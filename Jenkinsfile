@@ -366,7 +366,7 @@ pipeline {
         '### ['"$TITLE_ESC"']('"$URL_ESC"')\\n'\
         'Author: '"$AUTHOR_ESC"'\\n'\
         'Target: `'"$TGT_ESC"'`\\n'\
-        '**Error Tail**:\\n\\n\`\`\`${ERR_ESC}\`\`\`\\n'\
+        '**Error Tail**:\\n```'"$ERR_ESC"'```\\n'\
         '### MR Failed....\\n---'
 
           curl -sS -X POST -H "Content-Type: application/json" \
