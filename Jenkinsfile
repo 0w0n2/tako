@@ -295,8 +295,7 @@ pipeline {
     }
 
     failure {
-      // 실패 원인 tail은 우리가 쌓아둔 로그 파일이 있으면 그걸 활용
-      // (없어도 동작하도록 안전 처리)
+      // 실패 원인 tail은 우리가 쌓아둔 로그 파일이 있으면 그걸 활용. 그런데 가능할지 모르겠음.
       withCredentials([string(credentialsId: 'MM_WEBHOOK', variable: 'MM_WEBHOOK')]) {
         script {
           mattermostSend(
