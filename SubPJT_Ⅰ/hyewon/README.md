@@ -2,12 +2,13 @@
 👤 작성자 : 이혜원
 
 ### (1) 기획
-- 주제 선정
-- 기능 명세서 작성 진행  
-- MySQL ERD 설계
-- Jira WebHook 알림 설정 & Convention 설정 및 팀원에게 공유
-- 백엔드 Spring Boot 코드 초기 세팅
+- [x] 주제 선정
+- [x] 기능 명세서 작성 진행  
+- [x] MySQL ERD 설계
+- [x] Jira WebHook 알림 설정 & Convention 설정 및 팀원에게 공유
+- [x] 백엔드 Spring Boot 코드 초기 세팅
 
+---
 ### (2) 스마트 컨트랙트 학습
 #### ▶️ 명세서 기반 블록체인 스마트 컨트랙트 기능 구현 학습  
 ※ `/be`, `/bc`, `/fe` 코드 참고
