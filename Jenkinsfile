@@ -280,11 +280,7 @@ pipeline {
           TGT="${GL_MR_TARGET:-}"
           BUILDURL="${BUILD_URL:-}"
 
-          # JSON safe escaping (\", \n)
           esc() {
-            # 1) backslash → \\\\
-            # 2) double quote → \"
-            # 3) newline → \\n
             s="${1//\\\\/\\\\\\\\}"
             s="${s//\"/\\\\\"}"
             s="${s//$'\\n'/\\\\n}"
@@ -297,8 +293,11 @@ pipeline {
           TGT_ESC="$(esc "$TGT")"
           URL_ESC="$(esc "$URL")"
 
-          # Mattermost markdown: [text](url) + @mention
-          TEXT="---\\n## *Jenkins Pipeline Success*\\n### Title: [${TITLE_ESC}](${URL_ESC})\\nAuthor: ${AUTHOR_ESC}\\nTarget: \`${TGT_ESC}\`\\n### ### MR crate(merge) complete!\\n---"
+          TEXT='---\\n## *Jenkins Pipeline Success*\\n'\
+        '### Title: ['"$TITLE_ESC"']('"$URL_ESC"')\\n'\
+        'Author: '"$AUTHOR_ESC"'\\n'\
+        'Target: `'"$TGT_ESC"'`\\n'\
+        '### MR create(merge) complete!\\n---'
 
           # ---------- DEBUG 출력 ----------
           if [ "${DEBUG_MM:-false}" = "true" ]; then
@@ -363,10 +362,15 @@ pipeline {
           URL_ESC="$(esc "$URL")"
           ERR_ESC="$(esc "$ERR_TAIL")"
 
-          TEXT="---\\n## :x: *MR Failed* :x:\\n### [${TITLE_ESC}](${URL_ESC})\\n**Author**: ${AUTHOR_ESC}\\n**Target**: \`${TGT_ESC}\`\\n**Error Tail**:\\n\\n\`\`\`${ERR_ESC}\`\`\`### MR Failed....\\n---"
+          TEXT='---\\n## :x: *MR Failed* :x:\\n'\
+        '### ['"$TITLE_ESC"']('"$URL_ESC"')\\n'\
+        'Author: '"$AUTHOR_ESC"'\\n'\
+        'Target: `'"$TGT_ESC"'`\\n'\
+        '**Error Tail**:\\n```'"$ERR_ESC"'```\\n'\
+        '### MR Failed....\\n---'
 
           curl -sS -X POST -H "Content-Type: application/json" \
-            -d "${TEXT}" \
+            -d "{ \\"username\\": \\"Jenkins\\", \\"icon_emoji\\": \\":x:\\", \\"text\\": \\"${TEXT}\\" }" \
             "$MM_WEBHOOK" || true
         '''
       }
