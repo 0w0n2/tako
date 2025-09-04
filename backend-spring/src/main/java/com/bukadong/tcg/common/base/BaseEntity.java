@@ -17,19 +17,24 @@ import java.time.LocalDateTime;
 @Getter
 public class BaseEntity {
 
-    @Column(updatable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt; // 최초 생성일
 
+    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt; // 마지막 수정일
 
     @PrePersist // 저장 전에 동작
     public void prePersist() {
         LocalDateTime now = LocalDateTime.now();
-        createdAt = now;
-        updatedAt = now;
+        if (createdAt == null)
+            createdAt = now;
+        if (updatedAt == null)
+            updatedAt = now;
     }
+
     @PreUpdate // 업데이트 전에 동작
     public void preUpdate() {
-        updatedAt = LocalDateTime.now();
+        if (updatedAt == null)
+            updatedAt = LocalDateTime.now();
     }
 }

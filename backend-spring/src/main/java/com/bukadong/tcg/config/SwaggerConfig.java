@@ -15,7 +15,7 @@ public class SwaggerConfig {
     private String swaggerUri;
 
     @Bean
-    public OpenAPI openAPI() {
+    OpenAPI openAPI() {
         return new OpenAPI()
                 .addServersItem(new Server().url(swaggerUri))
                 .info(new Info()
@@ -25,7 +25,7 @@ public class SwaggerConfig {
     }
 
     @Bean
-    public GroupedOpenApi publicApi() {
+    GroupedOpenApi publicApi() {
         return GroupedOpenApi.builder()
                 .group("public-api") // 그룹 이름
                 .pathsToMatch("/api/v1/**") // 이 경로에 해당하는 API 문서화

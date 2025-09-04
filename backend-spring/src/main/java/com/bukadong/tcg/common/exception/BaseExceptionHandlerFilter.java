@@ -22,10 +22,10 @@ public class BaseExceptionHandlerFilter extends OncePerRequestFilter {// 매 요
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response,
-                                    @NonNull FilterChain filterChain) throws ServletException, IOException {
+            @NonNull FilterChain filterChain) throws ServletException, IOException {
         try {
             filterChain.doFilter(request, response); // 다음 필터 또는 실제 서블릿을 실행
-        } catch (BaseException e) {  // 커스텀 예외(BaseException) 발생 시 처리
+        } catch (BaseException e) { // 커스텀 예외(BaseException) 발생 시 처리
             log.error("BaseException -> {}({})", e.getStatus(), e.getStatus().getMessage(), e);
             setErrorResponse(response, e);
         } catch (AuthenticationException e) { // 추후 스프링 시큐리티를 위해 미리 작성
@@ -36,7 +36,7 @@ public class BaseExceptionHandlerFilter extends OncePerRequestFilter {// 매 요
 
     // 에러 응답을 설정 메서드
     private void setErrorResponse(HttpServletResponse response,
-                                  BaseException be) {
+            BaseException be) {
         ObjectMapper objectMapper = new ObjectMapper();
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
