@@ -1,51 +1,68 @@
 package com.bukadong.tcg.auth.controller;
 
 import com.bukadong.tcg.common.base.BaseResponse;
+import com.bukadong.tcg.common.base.BaseResponseStatus;
 import com.bukadong.tcg.member.dto.AvailabilityResponse;
 import com.bukadong.tcg.member.service.MemberAvailabilityService;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
-import org.springframework.validation.annotation.Validated;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.regex.Pattern;
 
 /**
  * 회원가입 전 이메일/닉네임 가용성 확인
  * <p>
- * 공통 응답 포맷(BaseResponse)을 사용합니다.
+ * 컨트롤러에서 파라미터를 직접 검증하고,
+ * 유효하지 않으면 즉시 실패 BaseResponse로 응답한다.
  * </p>
  * URL prefix: /api/v1/auth/availability
  */
 @RestController
 @RequestMapping("/api/v1/auth/availability")
 @RequiredArgsConstructor
-@Validated
 public class MemberAvailabilityController {
 
     private final MemberAvailabilityService memberAvailabilityService;
 
+    // 매우 느슨한 이메일 형식 검증(실무에서는 더 엄격한 정책/화이트리스트 필요할 수 있음)
+    private static final Pattern SIMPLE_EMAIL = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
+    // 영문/한글/숫자만 허용, 길이 2~30
+    private static final Pattern NICKNAME_PATTERN = Pattern.compile("^[0-9A-Za-z가-힣]{2,30}$");
+
     /**
      * 이메일 중복 확인
-     * 
-     * @param email 확인할 이메일
-     * @return { field: "email", value: "...", available: true|false }
+     * - 유효성 실패: INVALID_EMAIL_ADDRESS 로 실패 응답
+     * - 성공: { field, value, available } 반환
      */
     @GetMapping("/email")
-    public BaseResponse<AvailabilityResponse> checkEmail(@RequestParam("email") @Email String email) {
-        boolean available = memberAvailabilityService.isEmailAvailable(email);
-        return new BaseResponse<>(new AvailabilityResponse("email", email, available));
+    public BaseResponse<AvailabilityResponse> checkEmail(@RequestParam("email") String email) {
+        String v = email == null ? "" : email.strip();
+
+        if (!StringUtils.hasText(v) || !SIMPLE_EMAIL.matcher(v).matches()) {
+            // 실패 BaseResponse(불가능)로 바로 응답
+            return new BaseResponse<>(BaseResponseStatus.INVALID_EMAIL_ADDRESS);
+        }
+
+        boolean available = memberAvailabilityService.isEmailAvailable(v);
+        return new BaseResponse<>(new AvailabilityResponse("email", v, available));
     }
 
     /**
      * 닉네임 중복 확인
-     * 
-     * @param nickname 확인할 닉네임(2~30자)
-     * @return { field: "nickname", value: "...", available: true|false }
+     * - 유효성 실패: INVALID_PARAMETER 로 실패 응답
+     * - 성공: { field, value, available } 반환
      */
     @GetMapping("/nickname")
-    public BaseResponse<AvailabilityResponse> checkNickname(
-            @RequestParam("nickname") @Size(min = 2, max = 30) String nickname) {
-        boolean available = memberAvailabilityService.isNicknameAvailable(nickname);
-        return new BaseResponse<>(new AvailabilityResponse("nickname", nickname, available));
+    public BaseResponse<AvailabilityResponse> checkNickname(@RequestParam("nickname") String nickname) {
+        String v = nickname == null ? "" : nickname.strip();
+
+        // 공백/널 또는 패턴 불일치 -> 실패 응답
+        if (!StringUtils.hasText(v) || !NICKNAME_PATTERN.matcher(v).matches()) {
+            return new BaseResponse<>(BaseResponseStatus.INVALID_NICKNAME);
+        }
+
+        boolean available = memberAvailabilityService.isNicknameAvailable(v);
+        return new BaseResponse<>(new AvailabilityResponse("nickname", v, available));
     }
 }
