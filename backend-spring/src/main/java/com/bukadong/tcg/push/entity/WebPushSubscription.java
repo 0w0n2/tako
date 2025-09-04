@@ -36,15 +36,15 @@ public class WebPushSubscription {
     private Member member;
 
     /** Push endpoint URL — 고유 제약은 @Table.uniqueConstraints로 관리 */
-    @Column(nullable = false, length = 1024)
+    @Column(name = "endpoint", nullable = false, length = 1024)
     private String endpoint;
 
     /** VAPID 공개키 */
-    @Column(nullable = false, length = 255)
+    @Column(name = "p256dh", nullable = false, length = 255)
     private String p256dh;
 
     /** 인증 토큰 */
-    @Column(nullable = false, length = 255)
+    @Column(name = "auth", nullable = false, length = 255)
     private String auth;
 
     /** 생성 일시 */

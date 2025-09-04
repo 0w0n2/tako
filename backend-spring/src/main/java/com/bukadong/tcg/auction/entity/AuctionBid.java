@@ -51,7 +51,7 @@ public class AuctionBid {
 
     /** 입찰 상태 */
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(name = "status", nullable = false, length = 20)
     private AuctionBidStatus status;
 
     /** 체인 Tx Hash (선택) */

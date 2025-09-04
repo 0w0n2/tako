@@ -37,16 +37,17 @@ public class Delivery extends BaseEntity {
     @JoinColumn(name = "sender_address_id", nullable = false)
     private Address senderAddress;
 
-    /** 받는 주소지 (선택) */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "recipient_address_id")
+    /** 받는 주소지 (필수) */
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "recipient_address_id", nullable = false)
     private Address recipientAddress;
 
     /** 운송장 번호 (선택) — 고유 제약은 @Table.uniqueConstraints로 관리 */
+    // 운송장 번호는 택배사에서 발급받는 값으로, 배송이 시작되기 전에는 없을 수 있음
     @Column(name = "tracking_number", length = 50)
     private String trackingNumber;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(name = "status", nullable = false, length = 20)
     private DeliveryStatus status;
 }

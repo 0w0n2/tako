@@ -38,7 +38,7 @@ public class AuctionResult extends BaseEntity {
 
     /** 낙찰 입찰 ID — Bid 엔티티와의 직접 연관이 필요하면 ManyToOne으로 바꿀 수 있음 */
     @Column(name = "auction_bid_id", nullable = false)
-    private Long auctionBidId;
+    private Long auctionBid;
 
     /** 정산 여부 */
     @Column(name = "settled_flag", nullable = false)

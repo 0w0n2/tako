@@ -4,6 +4,7 @@ import com.bukadong.tcg.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 /**
  * 회원가입 시 이메일/닉네임 사용 가능 여부를 판단하는 서비스.
@@ -18,6 +19,15 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class MemberAvailabilityService {
 
+    /** null/공백만 문자열 방지 + 앞뒤 공백 제거 */
+    private String requireText(String value, String fieldName) {
+        if (!StringUtils.hasText(value)) {
+            throw new IllegalArgumentException(fieldName + " is required");
+        }
+        // 앞뒤 공백만 정리 (내용 중간 공백은 유지)
+        return value.strip();
+    }
+
     private final MemberRepository memberRepository;
 
     /**
@@ -28,11 +38,8 @@ public class MemberAvailabilityService {
      * @throws IllegalArgumentException email 값이 null 또는 공백일 경우
      */
     public boolean isEmailAvailable(String email) {
-        String v = normalize(email);
-        if (v.isEmpty()) {
-            throw new IllegalArgumentException("email is required");
-        }
-        return !memberRepository.existsByEmailIgnoreCase(v);
+        String v = requireText(email, "email");
+        return !memberRepository.existsByEmail(v);
     }
 
     /**
@@ -43,25 +50,8 @@ public class MemberAvailabilityService {
      * @throws IllegalArgumentException nickname 값이 null 또는 공백일 경우
      */
     public boolean isNicknameAvailable(String nickname) {
-        String v = normalize(nickname);
-        if (v.isEmpty()) {
-            throw new IllegalArgumentException("nickname is required");
-        }
-        return !memberRepository.existsByNicknameIgnoreCase(v);
+        String v = requireText(nickname, "nickname");
+        return !memberRepository.existsByNickname(v);
     }
 
-    /**
-     * 입력 문자열을 정규화한다.
-     *
-     * <ul>
-     * <li>null → 빈 문자열("")</li>
-     * <li>앞뒤 공백 제거(trim)</li>
-     * </ul>
-     *
-     * @param s 입력 문자열
-     * @return 정규화된 문자열
-     */
-    private String normalize(String s) {
-        return s == null ? "" : s.trim();
-    }
 }

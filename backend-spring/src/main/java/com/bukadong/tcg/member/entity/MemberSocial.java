@@ -39,7 +39,7 @@ public class MemberSocial {
     private Member member;
 
     /** 소셜 이메일 — 고유 제약은 @Table.uniqueConstraints로 관리 */
-    @Column(nullable = false, length = 50)
+    @Column(name = "email", nullable = false, length = 50)
     private String email;
 
     /** 제공자 (GOOGLE/NAVER/KAKAO) */
@@ -49,5 +49,5 @@ public class MemberSocial {
 
     /** 제공자 내부 식별자 — (provider_name, provider_id) 복합 고유 */
     @Column(name = "provider_id", nullable = false, length = 255)
-    private String providerId;
+    private String provider;
 }

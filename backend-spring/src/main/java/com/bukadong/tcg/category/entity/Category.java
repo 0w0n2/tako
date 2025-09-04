@@ -28,15 +28,15 @@ public class Category {
     private Long id;
 
     /** 카테고리 코드 */
-    @Column(nullable = false, length = 20) // 고유 제약은 @Table.uniqueConstraints로 관리
+    @Column(name = "code", nullable = false, length = 20) // 고유 제약은 @Table.uniqueConstraints로 관리
     private String code;
 
     /** 카테고리 이름 */
-    @Column(nullable = false, length = 30)
+    @Column(name = "name", nullable = false, length = 30)
     private String name;
 
     /** 설명 */
-    @Column(nullable = false, length = 100)
+    @Column(name = "description", nullable = false, length = 100)
     private String description;
 
     /** 대표 이미지 URL */

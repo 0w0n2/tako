@@ -15,10 +15,11 @@ import lombok.*;
  */
 @Entity
 @Table(name = "notification_setting", uniqueConstraints = {
-        @UniqueConstraint(name = "uk_noti_setting_member_type", columnNames = { "member_id", "notification_id" })
+                @UniqueConstraint(name = "uk_noti_setting_member_type", columnNames = { "member_id",
+                                "notification_id" })
 }, indexes = {
-        @Index(name = "idx_noti_setting_member", columnList = "member_id"),
-        @Index(name = "idx_noti_setting_type", columnList = "notification_id")
+                @Index(name = "idx_noti_setting_member", columnList = "member_id"),
+                @Index(name = "idx_noti_setting_type", columnList = "notification_id")
 })
 @Getter
 @NoArgsConstructor
@@ -26,22 +27,22 @@ import lombok.*;
 @Builder
 public class NotificationSetting {
 
-    /** ID */
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+        /** ID */
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        private Long id;
 
-    /** 회원 */
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "member_id", nullable = false)
-    private Member member;
+        /** 회원 */
+        @ManyToOne(fetch = FetchType.LAZY, optional = false)
+        @JoinColumn(name = "member_id", nullable = false)
+        private Member member;
 
-    /** 알림 종류 */
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "notification_id", nullable = false)
-    private NotificationType notificationType;
+        /** 알림 종류 */
+        @ManyToOne(fetch = FetchType.LAZY, optional = false)
+        @JoinColumn(name = "notification_type_id", nullable = false)
+        private NotificationType notificationType;
 
-    /** on/off (NULL = 미설정) */
-    @Column(name = "Field")
-    private Boolean enabled;
+        /** on/off (기본값 필요) */
+        @Column(name = "enabled", nullable = false)
+        private Boolean enabled;
 }

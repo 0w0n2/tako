@@ -42,7 +42,7 @@ public class Auction extends BaseEntity {
     /** 경매 생성자 */
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "member_id", nullable = false)
-    private Member owner;
+    private Member member;
 
     /** 배송(선택) */
     @ManyToOne(fetch = FetchType.LAZY)
@@ -60,11 +60,11 @@ public class Auction extends BaseEntity {
     private String grade;
 
     /** 경매 코드 (고유) — URL/공유 식별 등 외부 노출에 사용 */
-    @Column(nullable = false, length = 40)
+    @Column(name = "code", nullable = false, length = 40)
     private String code;
 
     /** 경매 제목 */
-    @Column(nullable = false, length = 40)
+    @Column(name = "title", nullable = false, length = 40)
     private String title;
 
     /** 경매 상세 설명 */
@@ -126,14 +126,6 @@ public class Auction extends BaseEntity {
     /** 세금 포함 여부 */
     @Column(name = "tax_flag", nullable = false)
     private boolean taxFlag;
-
-    /** 생성 일시 */
-    @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
-
-    /** 수정 일시 */
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
 
     /** 엔티티 저장 전, currentPrice를 startPrice로 초기화 */
     @PrePersist

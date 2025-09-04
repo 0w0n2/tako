@@ -38,7 +38,7 @@ public class AuctionReview {
         /** 작성자 */
         @ManyToOne(fetch = FetchType.LAZY, optional = false)
         @JoinColumn(name = "member_id", nullable = false)
-        private Member writer;
+        private Member member;
 
         /** 대상 경매 */
         @ManyToOne(fetch = FetchType.LAZY, optional = false)

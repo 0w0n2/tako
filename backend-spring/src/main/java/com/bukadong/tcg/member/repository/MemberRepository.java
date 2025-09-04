@@ -14,18 +14,18 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface MemberRepository extends JpaRepository<Member, Long> {
 
     /**
-     * 이메일 중복 여부 확인 (대소문자 무시).
+     * 이메일 중복 여부 확인 (대소문자 구분).
      *
      * @param email 검증할 이메일
      * @return 이미 존재하면 true, 없으면 false
      */
-    boolean existsByEmailIgnoreCase(String email);
+    boolean existsByEmail(String email);
 
     /**
-     * 닉네임 중복 여부 확인 (대소문자 무시).
+     * 닉네임 중복 여부 확인 (대소문자 구분).
      *
      * @param nickname 검증할 닉네임
      * @return 이미 존재하면 true, 없으면 false
      */
-    boolean existsByNicknameIgnoreCase(String nickname);
+    boolean existsByNickname(String nickname);
 }

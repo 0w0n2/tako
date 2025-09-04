@@ -36,24 +36,24 @@ public class Card extends BaseEntity {
         private Category category;
 
         /** 카드 코드 */
-        @Column(nullable = false, length = 30) // 고유 제약은 @Table.uniqueConstraints로 관리
+        @Column(name = "code", nullable = false, length = 30) // 고유 제약은 @Table.uniqueConstraints로 관리
         private String code;
 
         /** 카드 희귀도 */
         @Enumerated(EnumType.STRING)
-        @Column(nullable = false, length = 20)
+        @Column(name = "rarity", nullable = false, length = 20)
         private Rarity rarity;
 
         /** 카드 이름 */
-        @Column(nullable = false, length = 30)
+        @Column(name = "name", nullable = false, length = 30)
         private String name;
 
         /** 카드 설명 */
-        @Column(nullable = false, length = 100)
+        @Column(name = "description", nullable = false, length = 100)
         private String description;
 
         /** ' SCISSORS' → 'SCISSORS'로 정규화된 enum 사용 */
         @Enumerated(EnumType.STRING)
-        @Column(nullable = false, length = 20)
+        @Column(name = "attribute", nullable = false, length = 20)
         private Attribute attribute;
 }

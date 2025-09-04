@@ -37,19 +37,19 @@ public class Member {
     private Long id;
 
     /** 사용자 고유 UUID */
-    @Column(nullable = false, length = 60)
+    @Column(name = "uuid", nullable = false, length = 60)
     private String uuid;
 
     /** 이메일 (로그인 ID) */
-    @Column(nullable = false, length = 100)
+    @Column(name = "email", nullable = false, length = 100)
     private String email;
 
     /** 암호화된 비밀번호 */
-    @Column(nullable = false, length = 200)
+    @Column(name = "password", nullable = false, length = 200)
     private String password;
 
     /** 닉네임 */
-    @Column(nullable = false, length = 30)
+    @Column(name = "nickname", nullable = false, length = 30)
     private String nickname;
 
     /** 탈퇴 여부: false=활성, true=탈퇴 */
@@ -58,11 +58,12 @@ public class Member {
     private Boolean isDeleted = false;
 
     /** 탈퇴 일시 */
+    @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
     /** 권한 (USER / ADMIN) */
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 10)
+    @Column(name = "role", nullable = false, length = 10)
     private Role role;
 
     /** 생성일 */

@@ -45,7 +45,7 @@ public class TradeHistory {
 
         /** SELLER/BUYER */
         @Enumerated(EnumType.STRING)
-        @Column(name = "type", nullable = false, length = 10)
+        @Column(name = "role", nullable = false, length = 10)
         private TradeRole role;
 
         /** 생성 일시 */

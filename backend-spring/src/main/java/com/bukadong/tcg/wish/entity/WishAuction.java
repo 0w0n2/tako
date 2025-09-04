@@ -1,6 +1,7 @@
 package com.bukadong.tcg.wish.entity;
 
 import com.bukadong.tcg.auction.entity.Auction;
+import com.bukadong.tcg.common.base.BaseEntity;
 import com.bukadong.tcg.member.entity.Member;
 import jakarta.persistence.*;
 import lombok.*;
@@ -29,7 +30,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class WishAuction {
+public class WishAuction extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -48,26 +49,4 @@ public class WishAuction {
     /** 찜 여부 */
     @Column(name = "wish_flag", nullable = false)
     private boolean wishFlag;
-
-    /** 생성 일시 */
-    @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
-
-    /** 수정 일시 */
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
-
-    @PrePersist
-    void onCreate() {
-        LocalDateTime now = LocalDateTime.now();
-        if (createdAt == null)
-            createdAt = now;
-        if (updatedAt == null)
-            updatedAt = now;
-    }
-
-    @PreUpdate
-    void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
 }

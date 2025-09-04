@@ -41,15 +41,15 @@ public class Address {
     private String placeName;
 
     /** 수령인 이름 */
-    @Column(nullable = false, length = 50)
+    @Column(name = "name", nullable = false, length = 50)
     private String name;
 
     /** 연락처 */
-    @Column(nullable = false, length = 20)
+    @Column(name = "phone", nullable = false, length = 20)
     private String phone;
 
     /** 기본 주소 */
-    @Column(nullable = false, length = 150)
+    @Column(name = "base_address", nullable = false, length = 150)
     private String baseAddress;
 
     /** 상세 주소 */
@@ -57,6 +57,6 @@ public class Address {
     private String addressDetail;
 
     /** 우편번호 */
-    @Column(nullable = false, length = 20)
+    @Column(name = "zipcode", nullable = false, length = 20)
     private String zipcode;
 }

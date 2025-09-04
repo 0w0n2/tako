@@ -26,6 +26,6 @@ public class NotificationType {
 
     /** 종류 enum */
     @Enumerated(EnumType.STRING)
-    @Column(name = "type", nullable = false, length = 20)
+    @Column(name = "notification_type_kind", nullable = false, length = 20)
     private NotificationTypeKind type;
 }

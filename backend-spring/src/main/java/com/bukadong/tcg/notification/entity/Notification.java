@@ -1,5 +1,7 @@
 package com.bukadong.tcg.notification.entity;
 
+import java.time.LocalDateTime;
+
 import com.bukadong.tcg.common.base.BaseEntity;
 import com.bukadong.tcg.member.entity.Member;
 import jakarta.persistence.*;
@@ -25,17 +27,16 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Notification extends BaseEntity {
+public class Notification {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "noti_id")
     private Long id;
 
     /** 수신자 */
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "member_id", nullable = false)
-    private Member receiver;
+    private Member member;
 
     /** 알림 종류 */
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -43,10 +44,21 @@ public class Notification extends BaseEntity {
     private NotificationType notificationType;
 
     /** 알림 내용 */
-    @Column(nullable = false, length = 100)
+    @Column(name = "content", nullable = false, length = 100)
     private String content;
 
     /** 읽음 여부 */
     @Column(name = "is_read", nullable = false)
     private boolean read;
+
+    /** 생성 일시 */
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @PrePersist
+    void onCreate() {
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
+    }
 }

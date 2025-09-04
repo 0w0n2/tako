@@ -35,7 +35,7 @@ public class Notice extends BaseEntity {
     private Member author;
 
     /** 제목 */
-    @Column(nullable = false, length = 50)
+    @Column(name = "title", nullable = false, length = 50)
     private String title;
 
     /** 내용 */
