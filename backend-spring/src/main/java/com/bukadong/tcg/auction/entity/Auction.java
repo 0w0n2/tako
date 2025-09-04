@@ -55,6 +55,7 @@ public class Auction extends BaseEntity {
     private PhysicalCard physicalCard;
 
     /** 카드 컨디션 등급 (예: PS/NM 등 2자리) */
+    // TODO: enum으로 관리할지 AI 담당자와 검토
     @Column(name = "grade", nullable = false, length = 2)
     private String grade;
 
