@@ -22,7 +22,6 @@ import lombok.*;
                 @Index(name = "idx_ucdex_pcard", columnList = "physical_card_id")
 })
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

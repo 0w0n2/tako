@@ -26,7 +26,6 @@ import lombok.*;
         @Index(name = "idx_member_deleted", columnList = "is_deleted")
 })
 @Getter
-@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor

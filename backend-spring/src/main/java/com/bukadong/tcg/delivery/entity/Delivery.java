@@ -25,7 +25,6 @@ import com.bukadong.tcg.common.base.BaseEntity;
         @Index(name = "idx_delivery_status", columnList = "status")
 })
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

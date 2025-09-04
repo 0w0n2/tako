@@ -22,7 +22,6 @@ import java.time.LocalDateTime;
         @Index(name = "idx_card_category", columnList = "category_id")
 })
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

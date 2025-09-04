@@ -21,7 +21,6 @@ import lombok.*;
         @Index(name = "idx_address_zipcode", columnList = "zipcode")
 })
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

@@ -23,7 +23,6 @@ import lombok.*;
         @Index(name = "idx_msocial_pname", columnList = "provider_name")
 })
 @Getter
-@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor

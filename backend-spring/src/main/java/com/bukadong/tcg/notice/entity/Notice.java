@@ -20,7 +20,6 @@ import lombok.*;
         @Index(name = "idx_notice_title", columnList = "title")
 })
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

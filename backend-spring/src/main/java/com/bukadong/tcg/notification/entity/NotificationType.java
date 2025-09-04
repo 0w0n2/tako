@@ -14,7 +14,6 @@ import lombok.*;
         @UniqueConstraint(name = "uk_noti_type_type", columnNames = "type")
 })
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

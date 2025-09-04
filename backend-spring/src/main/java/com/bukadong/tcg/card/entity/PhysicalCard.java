@@ -20,7 +20,6 @@ import lombok.*;
         @Index(name = "idx_pcard_owner", columnList = "owner_member_id")
 })
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

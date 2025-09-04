@@ -23,7 +23,6 @@ import java.time.LocalDateTime;
         @Index(name = "idx_media_owner", columnList = "owner_id")
 })
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

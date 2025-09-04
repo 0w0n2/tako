@@ -30,7 +30,6 @@ import java.time.LocalDateTime;
         @Index(name = "idx_auc_start_end", columnList = "start_datetime,end_datetime")
 })
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

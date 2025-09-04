@@ -17,7 +17,6 @@ import lombok.*;
         @Index(name = "idx_category_name", columnList = "name")
 })
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

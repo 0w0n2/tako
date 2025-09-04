@@ -22,7 +22,6 @@ import lombok.*;
         @Index(name = "idx_noti_type", columnList = "notification_type_id")
 })
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

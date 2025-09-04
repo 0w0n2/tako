@@ -24,7 +24,6 @@ import com.fasterxml.jackson.databind.JsonSerializable.Base;
         @Index(name = "idx_aucres_bid", columnList = "auction_bid_id")
 })
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

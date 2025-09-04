@@ -24,7 +24,6 @@ import lombok.*;
                 @Index(name = "idx_review_auction", columnList = "auction_id")
 })
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

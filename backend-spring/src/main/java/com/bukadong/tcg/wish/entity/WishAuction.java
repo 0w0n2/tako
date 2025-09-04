@@ -26,7 +26,6 @@ import java.time.LocalDateTime;
         @Index(name = "idx_wish_auction_member_flag", columnList = "member_id,wish_flag")
 })
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

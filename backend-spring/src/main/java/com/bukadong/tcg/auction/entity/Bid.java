@@ -20,7 +20,6 @@ import java.time.LocalDateTime;
         @Index(name = "idx_bid_member", columnList = "member_id")
 })
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
