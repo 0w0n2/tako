@@ -3,8 +3,6 @@ package com.bukadong.tcg.delivery.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
-
 import com.bukadong.tcg.common.base.BaseEntity;
 
 /**

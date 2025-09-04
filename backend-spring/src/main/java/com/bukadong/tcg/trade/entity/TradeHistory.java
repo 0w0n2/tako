@@ -30,7 +30,7 @@ public class TradeHistory {
 
         @Id
         @GeneratedValue(strategy = GenerationType.IDENTITY)
-        @Column(name = "`Key`")
+        @Column(name = "id")
         private Long id;
 
         /** 회원 */

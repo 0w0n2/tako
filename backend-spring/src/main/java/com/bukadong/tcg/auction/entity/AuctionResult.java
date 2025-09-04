@@ -3,10 +3,7 @@ package com.bukadong.tcg.auction.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
-
 import com.bukadong.tcg.common.base.BaseEntity;
-import com.fasterxml.jackson.databind.JsonSerializable.Base;
 
 /**
  * 경매 결과(정산/체결 정보)

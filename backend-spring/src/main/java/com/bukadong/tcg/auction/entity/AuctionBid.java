@@ -23,7 +23,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Bid {
+public class AuctionBid {
 
     /** ID */
     @Id
@@ -47,12 +47,12 @@ public class Bid {
     /** 입찰 방식 */
     @Enumerated(EnumType.STRING)
     @Column(name = "bid_type", nullable = false, length = 10)
-    private BidType bidType;
+    private AuctionBidType bidType;
 
     /** 입찰 상태 */
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private BidStatus status;
+    private AuctionBidStatus status;
 
     /** 체인 Tx Hash (선택) */
     @Column(name = "tx_hash", length = 100)

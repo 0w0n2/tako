@@ -6,8 +6,6 @@ import com.bukadong.tcg.common.base.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
-
 /**
  * 카드 마스터
  *
@@ -17,9 +15,9 @@ import java.time.LocalDateTime;
  */
 @Entity
 @Table(name = "card", uniqueConstraints = {
-        @UniqueConstraint(name = "uk_card_code", columnNames = "code")
+                @UniqueConstraint(name = "uk_card_code", columnNames = "code")
 }, indexes = {
-        @Index(name = "idx_card_category", columnList = "category_id")
+                @Index(name = "idx_card_category", columnList = "category_id")
 })
 @Getter
 @NoArgsConstructor
@@ -27,35 +25,35 @@ import java.time.LocalDateTime;
 @Builder
 public class Card extends BaseEntity {
 
-    /** ID */
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+        /** ID */
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        private Long id;
 
-    /** 카테고리 */
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "category_id", nullable = false)
-    private Category category;
+        /** 카테고리 */
+        @ManyToOne(fetch = FetchType.LAZY, optional = false)
+        @JoinColumn(name = "category_id", nullable = false)
+        private Category category;
 
-    /** 카드 코드 */
-    @Column(nullable = false, length = 30) // 고유 제약은 @Table.uniqueConstraints로 관리
-    private String code;
+        /** 카드 코드 */
+        @Column(nullable = false, length = 30) // 고유 제약은 @Table.uniqueConstraints로 관리
+        private String code;
 
-    /** 카드 희귀도 */
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    private Rarity rarity;
+        /** 카드 희귀도 */
+        @Enumerated(EnumType.STRING)
+        @Column(nullable = false, length = 20)
+        private Rarity rarity;
 
-    /** 카드 이름 */
-    @Column(nullable = false, length = 30)
-    private String name;
+        /** 카드 이름 */
+        @Column(nullable = false, length = 30)
+        private String name;
 
-    /** 카드 설명 */
-    @Column(nullable = false, length = 100)
-    private String description;
+        /** 카드 설명 */
+        @Column(nullable = false, length = 100)
+        private String description;
 
-    /** ' SCISSORS' → 'SCISSORS'로 정규화된 enum 사용 */
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    private Attribute attribute;
+        /** ' SCISSORS' → 'SCISSORS'로 정규화된 enum 사용 */
+        @Enumerated(EnumType.STRING)
+        @Column(nullable = false, length = 20)
+        private Attribute attribute;
 }
