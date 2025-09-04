@@ -31,6 +31,7 @@ pipeline {
     GIT_URL_HTTPS   = 'https://lab.ssafy.com/s13-blochain-transaction-sub1/S13P21E104.git'
     GIT_CREDS_HTTPS = 'afe61e7f-6900-4334-863f-94560ac3b445'
 
+    // GitLab 설정
     GITLAB_BASE        = 'https://lab.ssafy.com'                // 예: https://gitlab.com 과 동일 개념
     GITLAB_PROJECT_ENC = 's13-blochain-transaction-sub1%2FS13P21E104'               // <namespace>%2F<project>
     STATUS_CONTEXT     = 'jenkins:mr-title-check'               // 커밋 상태의 context 라벨
@@ -270,132 +271,50 @@ pipeline {
   post {
     success {
       withCredentials([string(credentialsId: 'MM_WEBHOOK', variable: 'MM_WEBHOOK')]) {
-        sh '''
-          set -eu
+        script{
+          mattermostSend(
+              endpoint: MM_WEBHOOK,                 // ← 플러그인에 웹훅 직접 전달
+              color: 'good',
+              message: """
+---
+## :green_frog: **Jenkins Pipeline Success** :green_frog:
 
-          TITLE="${GL_MR_TITLE:-}"
-          URL="${GL_MR_URL:-${BUILD_URL:-}}"
-          AUTHOR="@${GL_AUTHOR_USERNAME:-unknown}"
-          TGT="${GL_MR_TARGET:-}"
-          BUILDURL="${BUILD_URL:-}"
+### [${env.GL_MR_TITLE ?: 'No title'}](${env.GL_MR_URL ?: env.BUILD_URL})
+:pencil2: *Author*: @${env.GL_AUTHOR_USERNAME ?: 'unknown'}
+:gun_cat: *Target*: `${env.GL_MR_TARGET ?: ''}`
 
-          esc() {
-            s="${1//\\\\/\\\\\\\\}"
-            s="${s//\"/\\\\\"}"
-            s="${s//$'\\n'/\\\\n}"
-            printf '%s' "$s"
-          }
+**배포 URL**: 추후 구현
 
-          TITLE_ESC="$(esc "$TITLE")"
-          DESC_ESC="$(esc "$DESC")"
-          AUTHOR_ESC="$(esc "$AUTHOR")"
-          TGT_ESC="$(esc "$TGT")"
-          URL_ESC="$(esc "$URL")"
-
-          TEXT='---\\n## *Jenkins Pipeline Success*\\n'\
-        '### Title: ['"$TITLE_ESC"']('"$URL_ESC"')\\n'\
-        'Author: '"$AUTHOR_ESC"'\\n'\
-        'Target: `'"$TGT_ESC"'`\\n'\
-        '### MR create(merge) complete!\\n---'
-
-          # ---------- DEBUG 출력 ----------
-          if [ "${DEBUG_MM:-false}" = "true" ]; then
-            echo "[MM] webhook configured? -> $([ -n "$MM_WEBHOOK" ] && echo yes || echo NO)"
-            echo "[MM] channel host -> $(printf '%s\n' "$MM_WEBHOOK" | sed -E 's#https?://([^/]+)/.*#\\1#')"
-            echo "[MM] payload preview:"
-            printf '%s' "$TEXT" | cut -c1-300; echo
-          fi
-
-          # ---------- 호출 & 응답 로그 ----------
-          printf '{ "username":"Jenkins", "icon_emoji":":white_check_mark:", "text":"%s" }' "$TEXT" > mm_payload.json
-
-          HTTP_CODE="$(curl -sS -X POST -H "Content-Type: application/json" \
-            --data @mm_payload.json \
-            --write-out "%{http_code}" --output mm_response.txt "$MM_WEBHOOK" || echo "000")"
-
-          if [ "${DEBUG_MM:-false}" = "true" ]; then
-            echo "[MM] HTTP_CODE=$HTTP_CODE"
-            echo "[MM] response body ↓"
-            sed -n '1,120p' mm_response.txt || true
-          fi
-
-          # 2xx가 아니면 실패 로그만 남기고 파이프라인은 계속
-          case "$HTTP_CODE" in
-            2??) echo "[MM] sent successfully." ;;
-            *)   echo "[MM] send failed (HTTP $HTTP_CODE)"; fi
-        '''
+### Pipeline Success!
+---
+"""
+          )
+        }
       }
       echo "✅ MR success by seok."
     }
 
     failure {
+      // 실패 원인 tail은 우리가 쌓아둔 로그 파일이 있으면 그걸 활용
+      // (없어도 동작하도록 안전 처리)
       withCredentials([string(credentialsId: 'MM_WEBHOOK', variable: 'MM_WEBHOOK')]) {
         script {
-          def tailLines = 80
-          try {
-            def tail = currentBuild.rawBuild.getLog(tailLines).join('\n')
-            writeFile file: 'build_error_tail.txt', text: tail
-          } catch (e) {
-            writeFile file: 'build_error_tail.txt', text: "No tail available: ${e.toString()}"
-          }
+          mattermostSend(
+              endpoint: MM_WEBHOOK,
+              color: 'danger',  
+              message: """
+---
+## :x: Jenkins Pipeline Failed :x:
+
+### [${env.GL_MR_TITLE ?: 'No title'}](${env.GL_MR_URL ?: env.BUILD_URL})
+:pencil2: *Author*: @${env.GL_AUTHOR_USERNAME ?: 'unknown'}
+:gun_cat: *Target*: ${env.GL_MR_TARGET ?: ''}
+
+### Emergency! Pipeline Failed!
+---
+"""
+            )
         }
-        sh '''
-          set -eu
-
-          TITLE="${GL_MR_TITLE:-}"
-          URL="${GL_MR_URL:-${BUILD_URL:-}}"
-          AUTHOR="@${GL_AUTHOR_USERNAME:-unknown}"
-          TGT="${GL_MR_TARGET:-}"
-          ERR_TAIL="$(cat build_error_tail.txt || echo '')"
-
-          esc() {
-            s="${1//\\\\/\\\\\\\\}"
-            s="${s//\"/\\\\\"}"
-            s="${s//$'\\n'/\\\\n}"
-            printf '%s' "$s"
-          }
-
-          TITLE_ESC="$(esc "$TITLE")"
-          AUTHOR_ESC="$(esc "$AUTHOR")"
-          TGT_ESC="$(esc "$TGT")"
-          URL_ESC="$(esc "$URL")"
-          ERR_ESC="$(esc "$ERR_TAIL")"
-
-          TEXT='---\\n## :x: *MR Failed* :x:\\n'\
-        '### ['"$TITLE_ESC"']('"$URL_ESC"')\\n'\
-        'Author: '"$AUTHOR_ESC"'\\n'\
-        'Target: `'"$TGT_ESC"'`\\n'\
-        '**Error Tail**:\\n```'"$ERR_ESC"'```\\n'\
-        '### MR Failed....\\n---'
-
-          curl -sS -X POST -H "Content-Type: application/json" \
-            -d "{ \\"username\\": \\"Jenkins\\", \\"icon_emoji\\": \\":x:\\", \\"text\\": \\"${TEXT}\\" }" \
-            "$MM_WEBHOOK" || true
-        '''
-      }
-
-      withCredentials([usernamePassword(credentialsId: env.GIT_CREDS_HTTPS,
-                                        usernameVariable: 'GIT_USER',
-                                        passwordVariable: 'GIT_PASS')]) {
-        sh '''
-          set -eu
-          SHA="${GL_MR_SHA:-}"
-          [ -n "$SHA" ] || exit 0
-
-          CONTEXT="jenkins:mr-title-check"
-          DESC="MR title check failed"
-          TARGET="${BUILD_URL:-}"
-          PROJECT_ENC="$(printf '%s' "${GL_PROJECT:-}" | sed 's#/#%2F#g')"
-
-          curl -sS -X POST \
-            -H "PRIVATE-TOKEN: ${GIT_PASS}" \
-            --data-urlencode "state=failed" \
-            --data-urlencode "context=${CONTEXT}" \
-            --data-urlencode "description=${DESC}" \
-            --data-urlencode "target_url=${TARGET}" \
-            "${GITLAB_BASE}/api/v4/projects/${PROJECT_ENC}/statuses/${SHA}" \
-            -w "\\nHTTP %{http_code}\\n" || true
-        '''
       }
       echo "❌ MR failed."
     }
