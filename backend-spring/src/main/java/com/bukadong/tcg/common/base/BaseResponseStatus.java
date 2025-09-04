@@ -1,6 +1,5 @@
 package com.bukadong.tcg.common.base;
 
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
@@ -26,8 +25,7 @@ public enum BaseResponseStatus {
     WRONG_JWT_TOKEN(HttpStatus.UNAUTHORIZED, false, 401, "다시 로그인 해주세요"),
     NO_SIGN_IN(HttpStatus.UNAUTHORIZED, false, 401, "로그인을 먼저 진행해주세요"),
     NO_ACCESS_AUTHORITY(HttpStatus.FORBIDDEN, false, 403, "접근 권한이 없습니다"),
-    NO_EXIST_MEMBER(HttpStatus.NOT_FOUND, false, 404, "요청하신 정보를 찾을 수 없습니다."),
-
+    NOT_FOUND(HttpStatus.NOT_FOUND, false, 404, "요청하신 정보를 찾을 수 없습니다."),
 
     /**
      * 5XX: Server Error(서버 에러)
@@ -40,11 +38,11 @@ public enum BaseResponseStatus {
      */
 
     // token
-    TOKEN_NOT_VALID(HttpStatus.UNAUTHORIZED, false, 403, "토큰이 유효하지 않습니다."),
+    TOKEN_NOT_VALID(HttpStatus.UNAUTHORIZED, false, 401, "토큰이 유효하지 않습니다."),
 
     // Users
     DUPLICATED_USER(HttpStatus.CONFLICT, false, 409, "이미 가입된 멤버입니다."),
-    FAILED_TO_LOGIN(HttpStatus.UNAUTHORIZED, false, 400, "아이디 또는 패스워드를 다시 확인하세요."),
+    FAILED_TO_LOGIN(HttpStatus.UNAUTHORIZED, false, 401, "아이디 또는 패스워드를 다시 확인하세요."),
     DUPLICATED_SOCIAL_USER(HttpStatus.CONFLICT, false, 409, "이미 소셜 연동된 계정입니다."),
     DUPLICATED_SOCIAL_PROVIDER_USER(HttpStatus.CONFLICT, false, 409, "계정에 동일한 플랫폼이 이미 연동되어있습니다"),
     NO_EXIST_USER(HttpStatus.NOT_FOUND, false, 404, "존재하지 않는 멤버 정보입니다."),
@@ -60,28 +58,14 @@ public enum BaseResponseStatus {
      */
     SSE_SEND_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, false, 503, "알림 전송에 실패하였습니다."),
     NO_EXIST_SSE_CONNECTION(HttpStatus.NOT_FOUND, false, 404, "SSE 연결이 존재하지 않습니다."),
-    PUSH_SEND_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, false, 503, "푸시 알림 전송에 실패하였습니다."), // 추가
-    /**
-     * Car
-     */
-    ALREADY_REGISTERED_CAR(HttpStatus.CONFLICT, false, 409, "이미 등록된 차량입니다."),
-    NO_EXIST_CAR(HttpStatus.NOT_FOUND, false, 404, "존재하지 않는 차량입니다."),
-    NO_EXIST_INSPECTION_LOG(HttpStatus.NOT_FOUND, false, 404, "존재하지 않는 점검 기록입니다."),
+    PUSH_SEND_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, false, 503, "푸시 알림 전송에 실패하였습니다."),
 
     /**
-     * Part
-     */
-    NO_EXIST_PART(HttpStatus.NOT_FOUND, false, 404, "존재하지 않는 부품입니다."),
-
-    /**
-     * OCR
+     * Image Upload
      */
     IMAGE_FILE_EMPTY(HttpStatus.BAD_REQUEST, false, 400, "이미지 파일이 비어있습니다."),
     IMAGE_FILE_SIZE_EXCEEDED(HttpStatus.BAD_REQUEST, false, 400, "이미지 크기는 2MB 이하만 허용됩니다."),
     IMAGE_FILE_TYPE_INVALID(HttpStatus.BAD_REQUEST, false, 400, "이미지 형식만 업로드할 수 있습니다.");
-
-
-
 
     private final HttpStatusCode httpStatusCode;
     private final boolean isSuccess;

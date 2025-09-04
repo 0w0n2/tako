@@ -25,19 +25,19 @@ repositories {
 }
 
 dependencies {
+	// spring boot
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
-	compileOnly 'org.projectlombok:lombok'
-
 	// Databases
 	runtimeOnly 'com.mysql:mysql-connector-j'
 	// redis
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-
+	implementation 'org.springframework.boot:spring-boot-starter-validation'	
+	// lombok
+	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 	// dotenv
 	implementation 'me.paulschwarz:spring-dotenv:3.0.0'
-
 	// swagger
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
 	// spring batch
