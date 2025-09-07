@@ -11,6 +11,8 @@ import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 /**
@@ -47,11 +49,20 @@ public class RedisConfig {
 
     @Bean
     @Primary
-    RedisTemplate<String, String> redisTemplate() {
-        RedisTemplate<String, String> t = new RedisTemplate<>();
-        t.setKeySerializer(new StringRedisSerializer());
-        t.setValueSerializer(new StringRedisSerializer());
+    RedisTemplate<String, Object> redisTemplate() {
+        // Redis와 통신할 템플릿 설정
+        RedisTemplate<String, Object> t = new RedisTemplate<>();
         t.setConnectionFactory(redisConnectionFactory());
+
+        // 직렬화 방법 설정
+        t.setKeySerializer(new StringRedisSerializer());
+        t.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+        t.setHashKeySerializer(new StringRedisSerializer());
+        t.setHashValueSerializer(new GenericJackson2JsonRedisSerializer());
+
+        // 트랜잭션 설정
+        t.setEnableTransactionSupport(true);
+
         return t;
     }
 }
