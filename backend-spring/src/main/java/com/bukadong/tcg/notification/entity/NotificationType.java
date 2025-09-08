@@ -4,28 +4,32 @@ import jakarta.persistence.*;
 import lombok.*;
 
 /**
- * 알림종류 테이블
+ * 알림 종류 엔티티
  *
- * 스키마 자동 생성 시 적용되는 @Table 메타데이터:
- * - @UniqueConstraint uk_noti_type_type : type 컬럼 고유 제약 생성
+ * <p>
+ * 회원이 받을 수 있는 알림의 종류를 정의한다.
+ * </p>
+ *
+ * <ul>
+ * <li>id는 PK</li>
+ * <li>type은 ENUM (WISH_AUCTION, WISH_CARD, KEYWORD)</li>
+ * </ul>
  */
 @Entity
-@Table(name = "notification_type", uniqueConstraints = {
-        @UniqueConstraint(name = "uk_noti_type_type", columnNames = "type")
-})
+@Table(name = "notification_type")
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class NotificationType {
 
-    /** ID */
+    /** 알림 종류 ID (PK) */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /** 종류 enum */
+    /** 알림 종류 */
     @Enumerated(EnumType.STRING)
-    @Column(name = "notification_type_kind", nullable = false, length = 20)
+    @Column(name = "type", nullable = false, length = 20)
     private NotificationTypeKind type;
 }

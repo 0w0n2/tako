@@ -49,14 +49,14 @@ public class Address {
     private String phone;
 
     /** 기본 주소 */
-    @Column(name = "base_address", nullable = false, length = 150)
+    @Column(name = "base_address", nullable = false, length = 200)
     private String baseAddress;
 
     /** 상세 주소 */
-    @Column(name = "address_detail", nullable = false, length = 100)
+    @Column(name = "address_detail", nullable = false, length = 150)
     private String addressDetail;
 
     /** 우편번호 */
-    @Column(name = "zipcode", nullable = false, length = 20)
+    @Column(name = "zipcode", nullable = false, length = 10)
     private String zipcode;
 }

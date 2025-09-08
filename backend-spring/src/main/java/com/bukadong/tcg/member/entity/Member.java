@@ -1,20 +1,16 @@
 package com.bukadong.tcg.member.entity;
 
 import java.time.LocalDateTime;
-
 import jakarta.persistence.*;
 import lombok.*;
 
 /**
- * 회원 정보를 저장하는 엔티티.
- * TCG.sql의 `회원` 테이블을 매핑한다.
+ * 회원 엔티티
  *
- * 스키마 자동 생성 시 적용되는 @Table 메타데이터:
- * - @UniqueConstraint uk_member_uuid : uuid 고유 제약 생성
- * - @UniqueConstraint uk_member_email : email 고유 제약 생성
- * - @UniqueConstraint uk_member_nickname : nickname 고유 제약 생성
- * - @Index idx_member_role : role 인덱스 생성
- * - @Index idx_member_deleted : is_deleted 인덱스 생성
+ * <p>
+ * - uuid, email, nickname은 UNIQUE 제약
+ * - role, is_deleted에 인덱스 생성
+ * </p>
  */
 @Entity
 @Table(name = "member", uniqueConstraints = {
@@ -31,39 +27,42 @@ import lombok.*;
 @AllArgsConstructor
 public class Member {
 
-    /** PK (BIGINT, AUTO INCREMENT 가정) */
+    /** PK */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /** 사용자 고유 UUID */
-    @Column(name = "uuid", nullable = false, length = 60)
+    /** 고유 UUID */
+    @Column(nullable = false, length = 60)
     private String uuid;
 
     /** 이메일 (로그인 ID) */
-    @Column(name = "email", nullable = false, length = 100)
+    @Column(nullable = false, length = 100)
     private String email;
 
     /** 암호화된 비밀번호 */
-    @Column(name = "password", nullable = false, length = 200)
+    @Column(nullable = false, length = 255)
     private String password;
 
-    /** 닉네임 */
-    @Column(name = "nickname", nullable = false, length = 30)
+    /** 닉네임 (2~6자) */
+    @Column(nullable = false, length = 6)
     private String nickname;
 
-    /** 탈퇴 여부: false=활성, true=탈퇴 */
+    /** 소개글 */
+    @Column(nullable = false, length = 255)
+    private String introduction;
+
+    /** 탈퇴 여부 */
     @Builder.Default
     @Column(name = "is_deleted", nullable = false)
     private Boolean isDeleted = false;
 
-    /** 탈퇴 일시 */
-    @Column(name = "deleted_at")
+    /** 탈퇴 시각 */
     private LocalDateTime deletedAt;
 
-    /** 권한 (USER / ADMIN) */
+    /** 권한 */
     @Enumerated(EnumType.STRING)
-    @Column(name = "role", nullable = false, length = 10)
+    @Column(nullable = false, length = 10)
     private Role role;
 
     /** 생성일 */
@@ -74,22 +73,23 @@ public class Member {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    /** JPA 라이프사이클 훅으로 createdAt/updatedAt 자동 세팅 */
+    /** 엔티티 생성 전 */
     @PrePersist
     public void onCreate() {
         final LocalDateTime now = LocalDateTime.now();
-        this.createdAt = (this.createdAt == null) ? now : this.createdAt;
-        this.updatedAt = (this.updatedAt == null) ? now : this.updatedAt;
+        this.createdAt = now;
+        this.updatedAt = now;
         if (this.isDeleted == null)
             this.isDeleted = false;
     }
 
+    /** 엔티티 수정 전 */
     @PreUpdate
     public void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
 
-    /** 소프트 삭제(회원 탈퇴 처리) */
+    /** 소프트 삭제 */
     public void softDelete() {
         this.isDeleted = true;
         this.deletedAt = LocalDateTime.now();

@@ -6,13 +6,17 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 /**
- * 미디어 파일 메타정보
+ * 미디어 파일 메타정보 엔티티
  *
- * 스키마 자동 생성 시 적용되는 @Table 메타데이터:
- * - @UniqueConstraint uk_media_owner_seq : (type, owner_id, seq_no) 복합 고유 제약 생성
- * - @UniqueConstraint uk_media_url : url 컬럼 고유 제약 생성
- * - @Index idx_media_type_owner: (type, owner_id) 복합 인덱스 생성
- * - @Index idx_media_owner : owner_id 인덱스 생성
+ * <p>
+ * 경매/후기/카드/카테고리/회원 등의 리소스에 연결되는 이미지·영상의 메타데이터를 저장한다.
+ * </p>
+ *
+ * <ul>
+ * <li>(type, owner_id, seq_no) 복합 고유 제약으로 리소스별 대표/순번 유일성 보장</li>
+ * <li>url은 고유(UNIQUE)하게 관리</li>
+ * <li>(type, owner_id) 조회용 복합 인덱스와 owner_id 단일 인덱스 제공</li>
+ * </ul>
  */
 @Entity
 @Table(name = "media", uniqueConstraints = {
@@ -28,30 +32,30 @@ import java.time.LocalDateTime;
 @Builder
 public class Media {
 
-    /** ID */
+    /** 미디어 ID (PK) */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /** AUCTION/REVIEW */
+    /** 소유 리소스 타입 (예: AUCTION_ITEM, MEMBER_PROFILE 등) */
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(name = "type", nullable = false, length = 30)
     private MediaType type;
 
-    /** 소유자 ID (경매ID or 후기ID) */
+    /** 소유 리소스 ID (경매ID/후기ID/카드ID/카테고리ID/회원ID 등) */
     @Column(name = "owner_id", nullable = false)
     private Long ownerId;
 
-    /** 접근 URL — 고유 제약은 @Table.uniqueConstraints로 관리 */
-    @Column(nullable = false, length = 200)
+    /** 접근 URL (고유) */
+    @Column(name = "url", nullable = false, length = 255, unique = true)
     private String url;
 
-    /** IMAGE/VIDEO */
+    /** 미디어 종류 (IMAGE/VIDEO) */
     @Enumerated(EnumType.STRING)
     @Column(name = "media_kind", nullable = false, length = 10)
     private MediaKind mediaKind;
 
-    /** MIME 타입 */
+    /** MIME 타입 (예: image/jpeg) */
     @Column(name = "mime_type", length = 30)
     private String mimeType;
 
@@ -59,12 +63,13 @@ public class Media {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    /** 대표 순번: 1=대표 */
+    /** 리소스 내 정렬 순번 (1=대표) */
     @Column(name = "seq_no", nullable = false)
     private Integer seqNo;
 
+    /** 저장 전 생성일시 자동 설정 */
     @PrePersist
-    void onCreate() {
+    void prePersist() {
         if (createdAt == null) {
             createdAt = LocalDateTime.now();
         }
