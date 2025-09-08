@@ -66,7 +66,11 @@ public enum BaseResponseStatus {
      */
     IMAGE_FILE_EMPTY(HttpStatus.BAD_REQUEST, false, 400, "이미지 파일이 비어있습니다."),
     IMAGE_FILE_SIZE_EXCEEDED(HttpStatus.BAD_REQUEST, false, 400, "이미지 크기는 2MB 이하만 허용됩니다."),
-    IMAGE_FILE_TYPE_INVALID(HttpStatus.BAD_REQUEST, false, 400, "이미지 형식만 업로드할 수 있습니다.");
+    IMAGE_FILE_TYPE_INVALID(HttpStatus.BAD_REQUEST, false, 400, "이미지 형식만 업로드할 수 있습니다."),
+
+    // CONFLICT 방지 하단에 추가 REFACTOR 부탁해요~
+    CATEGORY_BAD_REQUEST(HttpStatus.BAD_REQUEST, false, 400, "카테고리 요청이 올바르지 않습니다."),
+    CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, false, 404, "카테고리를 찾을 수 없습니다.");
 
     private final HttpStatusCode httpStatusCode;
     private final boolean isSuccess;

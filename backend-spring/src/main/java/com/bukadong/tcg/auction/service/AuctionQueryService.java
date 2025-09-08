@@ -16,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -31,6 +32,7 @@ import java.util.List;
  */
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class AuctionQueryService {
 
     /**
@@ -114,7 +116,7 @@ public class AuctionQueryService {
      */
     public List<MediaDto> getMediaList(Long auctionId) {
         return mediaRepository
-                .findByTypeAndOwnerIdOrderBySeqNoAsc(MediaType.AUCTION, auctionId)
+                .findByTypeAndOwnerIdOrderBySeqNoAsc(MediaType.AUCTION_ITEM, auctionId)
                 .stream()
                 .map(MediaDto::of)
                 .toList();
