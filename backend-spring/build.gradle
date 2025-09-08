@@ -1,0 +1,62 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.5.5'
+	id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.bukadong'
+version = '0.0.1-SNAPSHOT'
+description = 'ssafy tcg auction platform'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(17)
+	}
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	// == Spring Framework Starters ==
+	implementation 'org.springframework.boot:spring-boot-starter-web'			// 웹 애플리케이션 개발 (Tomcat, Spring MVC)
+	implementation 'org.springframework.boot:spring-boot-starter-validation'	// 데이터 유효성 검증 (@Valid, @NotNull 등)
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'		// JPA, Hibernate를 사용한 데이터베이스 연동
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'	// Redis 연동
+	implementation 'org.springframework.boot:spring-boot-starter-batch'			// Spring Batch
+
+	// == Database & Drivers ==
+	runtimeOnly 'com.mysql:mysql-connector-j'
+
+	// == Querydsl (Type-safe JPA Queries) ==
+	implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
+	annotationProcessor "com.querydsl:querydsl-apt:" + "${dependencyManagement.importedProperties['querydsl.version']}:jakarta"
+	annotationProcessor "jakarta.annotation:jakarta.annotation-api"
+	annotationProcessor "jakarta.persistence:jakarta.persistence-api"
+
+	// == Developer Tools & Utilities ==
+	// Lombok
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+
+	// Dotenv
+	implementation 'me.paulschwarz:spring-dotenv:3.0.0'
+
+	// Swagger
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
+
+	// == Test ==
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
