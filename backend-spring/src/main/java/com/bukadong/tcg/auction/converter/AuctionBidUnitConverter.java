@@ -1,6 +1,8 @@
 package com.bukadong.tcg.auction.converter;
 
 import com.bukadong.tcg.auction.entity.AuctionBidUnit;
+import com.bukadong.tcg.common.exception.BaseException;
+import com.bukadong.tcg.common.base.BaseResponseStatus;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
@@ -41,10 +43,20 @@ public class AuctionBidUnitConverter implements AttributeConverter<AuctionBidUni
      *
      * @param dbData DB에 저장된 문자열 값
      * @return Enum 매핑 값, null 허용
-     * @throws IllegalArgumentException 매핑되지 않는 값일 경우
+     * @throws BaseException 매핑되지 않는 값일 경우 BAD_REQUEST
      */
     @Override
     public AuctionBidUnit convertToEntityAttribute(String dbData) {
-        return dbData == null ? null : AuctionBidUnit.fromValue(dbData);
+        if (dbData == null)
+            return null;
+        try {
+            return AuctionBidUnit.fromValue(dbData);
+        } catch (BaseException ex) {
+            // 그대로 전파 (공통 예외 체계 사용)
+            throw ex;
+        } catch (RuntimeException ex) {
+            // 방어적 처리: 예기치 못한 런타임 예외를 공통 예외로 감싸서 전파
+            throw new BaseException(BaseResponseStatus.INVALID_AUCTION_BID_UNIT);
+        }
     }
 }
