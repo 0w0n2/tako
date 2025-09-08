@@ -56,7 +56,7 @@ public class AuctionBidUnitConverter implements AttributeConverter<AuctionBidUni
             throw ex;
         } catch (RuntimeException ex) {
             // 방어적 처리: 예기치 못한 런타임 예외를 공통 예외로 감싸서 전파
-            throw new BaseException(BaseResponseStatus.Auction_Bid_Unit_Converter_BAD_REQUEST);
+            throw new BaseException(BaseResponseStatus.INVALID_AUCTION_BID_UNIT);
         }
     }
 }

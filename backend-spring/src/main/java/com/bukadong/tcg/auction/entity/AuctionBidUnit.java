@@ -4,6 +4,10 @@ import com.bukadong.tcg.common.exception.BaseException;
 import com.bukadong.tcg.common.base.BaseResponseStatus;
 
 import java.math.BigDecimal;
+import java.util.stream.Collectors;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
 
 /**
  * 입찰 단위 ENUM
@@ -27,19 +31,17 @@ public enum AuctionBidUnit {
 
     private final String value;
 
-    AuctionBidUnit(String v) {
-        this.value = v;
+    AuctionBidUnit(String value) {
+        this.value = value;
     }
 
-    /** DB 저장/전송용 원문 값 */
     public String value() {
         return value;
     }
 
-    /** 산술 연산용 BigDecimal */
-    public BigDecimal asBigDecimal() {
-        return new BigDecimal(value);
-    }
+    /** value → Enum 상수 매핑 캐시 */
+    private static final Map<String, AuctionBidUnit> CACHE = Stream.of(values())
+            .collect(Collectors.toMap(AuctionBidUnit::value, e -> e));
 
     /**
      * DB 문자열 → Enum
@@ -49,12 +51,11 @@ public enum AuctionBidUnit {
      * @throws BaseException 매핑 실패 시 BAD_REQUEST
      */
     public static AuctionBidUnit fromValue(String v) {
-        for (AuctionBidUnit u : values()) {
-            if (u.value.equals(v)) {
-                return u;
-            }
+        AuctionBidUnit unit = CACHE.get(v);
+        if (unit == null) {
+            // 공통 예외/응답 체계를 사용해 명확한 에러로 전파
+            throw new BaseException(BaseResponseStatus.INVALID_AUCTION_BID_UNIT);
         }
-        // 공통 예외/응답 체계를 사용해 명확한 에러로 전파
-        throw new BaseException(BaseResponseStatus.Auction_Bid_Unit_Converter_BAD_REQUEST);
+        return unit;
     }
 }
