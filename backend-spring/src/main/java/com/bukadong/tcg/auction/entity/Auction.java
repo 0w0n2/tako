@@ -119,6 +119,10 @@ public class Auction extends BaseEntity {
     @Column(name = "duration_days", nullable = false)
     private Integer durationDays;
 
+    /** 종료 여부 (false=진행중, true=종료됨) */
+    @Column(name = "is_end", nullable = false)
+    private boolean isEnd;
+
     /** 즉시 구매 가능 여부 */
     @Column(name = "buy_now_flag", nullable = false)
     private boolean buyNowFlag;
