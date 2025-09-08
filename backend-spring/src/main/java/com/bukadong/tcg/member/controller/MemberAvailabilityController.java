@@ -1,4 +1,4 @@
-package com.bukadong.tcg.auth.controller;
+package com.bukadong.tcg.member.controller;
 
 import com.bukadong.tcg.common.base.BaseResponse;
 import com.bukadong.tcg.common.base.BaseResponseStatus;

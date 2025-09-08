@@ -29,7 +29,7 @@ pipeline {
 
   environment {
     GIT_URL_HTTPS   = 'https://lab.ssafy.com/s13-blochain-transaction-sub1/S13P21E104.git'
-    GIT_CREDS_HTTPS = 'afe61e7f-6900-4334-863f-94560ac3b445'
+    GIT_CREDS_HTTPS = 'seok'
 
     // GitLab 설정
     GITLAB_BASE        = 'https://lab.ssafy.com'                // 예: https://gitlab.com 과 동일 개념

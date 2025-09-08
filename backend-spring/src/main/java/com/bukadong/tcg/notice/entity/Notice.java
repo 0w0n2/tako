@@ -6,12 +6,17 @@ import jakarta.persistence.*;
 import lombok.*;
 
 /**
- * 공지사항 (작성자는 관리자)
+ * 공지사항 엔티티
  *
- * 스키마 자동 생성 시 적용되는 @Table 메타데이터:
- * - @Index idx_notice_author : member_id 인덱스 생성
- * - @Index idx_notice_created : created_at 인덱스 생성
- * - @Index idx_notice_title : title 인덱스 생성(제목 검색/정렬용)
+ * <p>
+ * 관리자가 작성하는 공지사항 정보를 저장한다.
+ * </p>
+ *
+ * <ul>
+ * <li>회원(member_id)와 연관 (작성자 FK)</li>
+ * <li>제목(title), 본문(text), 생성/수정일을 관리</li>
+ * <li>제목 검색 및 정렬, 작성자 검색을 위해 인덱스 부여</li>
+ * </ul>
  */
 @Entity
 @Table(name = "notice", indexes = {
@@ -25,20 +30,22 @@ import lombok.*;
 @Builder
 public class Notice extends BaseEntity {
 
+    /** 공지사항 ID (PK) */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /** 작성자(관리자) */
+    /** 작성자 (관리자) */
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "member_id", nullable = false)
+    @JoinColumn(name = "member_id", nullable = false, foreignKey = @ForeignKey(name = "FK_notice_member"))
     private Member author;
 
     /** 제목 */
     @Column(name = "title", nullable = false, length = 50)
     private String title;
 
-    /** 내용 */
-    @Column(name = "text", nullable = false, length = 100)
+    /** 본문 내용 (긴 텍스트) */
+    @Lob
+    @Column(name = "text", nullable = false, columnDefinition = "LONGTEXT")
     private String text;
 }

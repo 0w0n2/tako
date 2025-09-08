@@ -30,3 +30,14 @@ spring:
       enabled: ${BATCH_JOB_ENABLED}
     jdbc:
       initialize-schema: ${BATCH_JDBC_SCHEMA}
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id:
+            client-secret:
+            scope:
+              - email
+            redirect-uri: "{baseUrl}/api/v1/login/oauth2/code/{registrationId}"
