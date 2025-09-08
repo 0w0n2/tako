@@ -71,10 +71,10 @@ pipeline {
         sh '''
           set -eu
 
-          MR_TITLE_COMMON='^\\[(🔧|☀️|✈️)\\s+(FE|BE|INFRA)\\]\\s+.+$'
-          MR_TITLE_DEV='^\\[🔧\\s+(FE|BE|INFRA)\\]\\s+.+$'
-          MR_TITLE_HOT='^\\[☀️\\s+(FE|BE|INFRA)\\]\\s+.+$'
-          MR_TITLE_REL='^\\[✈️\\s+(FE|BE|INFRA)\\]\\s+.+$'
+          MR_TITLE_COMMON='^\\[(🔀|⛑️|🛫)\\s+(FE|BE|INFRA)\\]\\s+.+$'
+          MR_TITLE_DEV='^\\[🔀\\s+(FE|BE|INFRA)\\]\\s+.+$'
+          MR_TITLE_HOT='^\\[⛑️\\s+(FE|BE|INFRA)\\]\\s+.+$'
+          MR_TITLE_REL='^\\[🛫\\s+(FE|BE|INFRA)\\]\\s+.+$'
 
           RELEASE_REGEX='v[0-9]+\\.[0-9]+\\.[0-9]+(-\\S+)?$'
 
@@ -276,17 +276,17 @@ pipeline {
               endpoint: MM_WEBHOOK,                 // ← 플러그인에 웹훅 직접 전달
               color: 'good',
               message: """
+#### :green_frog: Jenkins Pipeline Success :green_frog:
+
+##### [${env.GL_MR_TITLE ?: 'No title'}](${env.GL_MR_URL ?: env.BUILD_URL})
+:pencil2: Author: @${env.GL_AUTHOR_USERNAME ?: 'unknown'}
+:gun_cat: **Target**: `${env.GL_MR_TARGET ?: ''}`
+
+##### Pipeline Success!
 ---
-## :green_frog: **Jenkins Pipeline Success** :green_frog:
-
-### [${env.GL_MR_TITLE ?: 'No title'}](${env.GL_MR_URL ?: env.BUILD_URL})
-:pencil2: *Author*: @${env.GL_AUTHOR_USERNAME ?: 'unknown'}
-:gun_cat: *Target*: `${env.GL_MR_TARGET ?: ''}`
-
-**배포 URL**: 추후 구현
-
-### Pipeline Success!
----
+##### 자동 배포된 서비스 점검하러 가기
+:springboot: [Backend Spring Server](https://j13e104.p.ssafy.io/swagger-ui/index.html)
+:react: [TAKO Web App Service](https://j13e104.p.ssafy.io/)
 """
           )
         }
@@ -302,15 +302,13 @@ pipeline {
               endpoint: MM_WEBHOOK,
               color: 'danger',  
               message: """
----
-## :x: Jenkins Pipeline Failed :x:
+#### :x: Jenkins Pipeline Failed :x:
 
-### [${env.GL_MR_TITLE ?: 'No title'}](${env.GL_MR_URL ?: env.BUILD_URL})
-:pencil2: *Author*: @${env.GL_AUTHOR_USERNAME ?: 'unknown'}
-:gun_cat: *Target*: ${env.GL_MR_TARGET ?: ''}
+##### [${env.GL_MR_TITLE ?: 'No title'}](${env.GL_MR_URL ?: env.BUILD_URL})
+:pencil2: Author: @${env.GL_AUTHOR_USERNAME ?: 'unknown'}
+:gun_cat: **Target**: ${env.GL_MR_TARGET ?: ''}
 
-### Emergency! Pipeline Failed!
----
+##### Error Logs
 """
             )
         }
