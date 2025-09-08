@@ -61,7 +61,7 @@ public class Auction extends BaseEntity {
 
     /** 경매 대상 실물 카드 (필수) */
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "physical_card_id", nullable = false, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
+    @JoinColumn(name = "physical_card_id", nullable = true, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private PhysicalCard physicalCard;
 
     /** 카드 컨디션 등급 (예: PS/NM 등 2자리) */
