@@ -32,26 +32,4 @@ public class CategoryMajorController {
     public BaseResponse<List<CategoryMajor>> listMajors() {
         return new BaseResponse<>(categoryQueryService.listMajors());
     }
-
-    /**
-     * 대분류 단건 조회 (ID 기준).
-     *
-     * @param id 대분류 ID
-     * @return 대분류 단건을 감싼 BaseResponse
-     */
-    @GetMapping("/{id}")
-    public BaseResponse<CategoryMajor> getMajorById(@PathVariable Long id) {
-        return new BaseResponse<>(categoryQueryService.getMajorById(id));
-    }
-
-    /**
-     * 대분류 단건 조회 (이름 기준).
-     *
-     * @param name 대분류 이름
-     * @return 대분류 단건을 감싼 BaseResponse
-     */
-    @GetMapping("/name/{name}")
-    public BaseResponse<CategoryMajor> getMajorByName(@PathVariable String name) {
-        return new BaseResponse<>(categoryQueryService.getMajorByName(name));
-    }
 }

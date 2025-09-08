@@ -25,40 +25,12 @@ public class CategoryMediumController {
 
     /**
      * 특정 대분류에 속한 중분류 목록 조회.
-     * TODO: url 방식이 바뀌면 수정 필요
-     * |
      *
      * @param majorId 대분류 ID
      * @return 중분류 목록을 감싼 BaseResponse
      */
-    @GetMapping("/by-major/{majorId}")
+    @GetMapping("/{majorId}")
     public BaseResponse<List<CategoryMedium>> listMediumsByMajor(@PathVariable Long majorId) {
         return new BaseResponse<>(categoryQueryService.listMediumsByMajorId(majorId));
-    }
-
-    /**
-     * 중분류 단건 조회 (ID 기준).
-     *
-     * @param id 중분류 ID
-     * @return 중분류 단건을 감싼 BaseResponse
-     */
-    @GetMapping("/{id}")
-    public BaseResponse<CategoryMedium> getMediumById(@PathVariable Long id) {
-        return new BaseResponse<>(categoryQueryService.getMediumById(id));
-    }
-
-    /**
-     * (대분류, 이름) 조합으로 중분류 단건 조회.
-     * TODO: url 방식이 바뀌면 수정 필요
-     *
-     * @param majorId 대분류 ID
-     * @param name    중분류 이름
-     * @return 중분류 단건을 감싼 BaseResponse
-     */
-    @GetMapping("/by-major/{majorId}/name/{name}")
-    public BaseResponse<CategoryMedium> getMediumByMajorAndName(
-            @PathVariable Long majorId,
-            @PathVariable String name) {
-        return new BaseResponse<>(categoryQueryService.getMediumByMajorAndName(majorId, name));
     }
 }
