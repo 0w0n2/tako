@@ -21,10 +21,11 @@ import lombok.*;
  */
 @Entity
 @Table(name = "card", uniqueConstraints = {
-                @UniqueConstraint(name = "uk_card_code", columnNames = "code")
+		@UniqueConstraint(name = "uk_card_category_name", columnNames = { "category_major_id",
+				"category_medium_id", "name" })
 }, indexes = {
-                @Index(name = "idx_card_category_major", columnList = "category_major_id"),
-                @Index(name = "idx_card_category_medium", columnList = "category_medium_id")
+		@Index(name = "idx_card_category_major", columnList = "category_major_id"),
+		@Index(name = "idx_card_category_medium", columnList = "category_medium_id")
 })
 @Getter
 @NoArgsConstructor
@@ -32,35 +33,35 @@ import lombok.*;
 @Builder
 public class Card extends BaseEntity {
 
-        /** 카드 ID (PK) */
-        @Id
-        @GeneratedValue(strategy = GenerationType.IDENTITY)
-        private Long id;
+	/** 카드 ID (PK) */
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
 
-        /** 카테고리 대분류 */
-        @ManyToOne(fetch = FetchType.LAZY, optional = false)
-        @JoinColumn(name = "category_major_id", nullable = false, foreignKey = @ForeignKey(name = "FK_card_category_major"))
-        private CategoryMajor categoryMajor;
+	/** 카테고리 대분류 */
+	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@JoinColumn(name = "category_major_id", nullable = false, foreignKey = @ForeignKey(name = "FK_card_category_major"))
+	private CategoryMajor categoryMajor;
 
-        /** 카테고리 중분류 */
-        @ManyToOne(fetch = FetchType.LAZY, optional = false)
-        @JoinColumn(name = "category_medium_id", nullable = false, foreignKey = @ForeignKey(name = "FK_card_category_medium"))
-        private CategoryMedium categoryMedium;
+	/** 카테고리 중분류 */
+	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@JoinColumn(name = "category_medium_id", nullable = false, foreignKey = @ForeignKey(name = "FK_card_category_medium"))
+	private CategoryMedium categoryMedium;
 
-        /** 카드 코드 (고유) */
-        @Column(name = "code", length = 30)
-        private String code;
+	/** 카드 코드 (고유) */
+	@Column(name = "code", length = 30)
+	private String code;
 
-        /** 카드 이름 */
-        @Column(name = "name", nullable = false, length = 30)
-        private String name;
+	/** 카드 이름 */
+	@Column(name = "name", nullable = false, length = 30)
+	private String name;
 
-        /** 카드 설명 */
-        @Column(name = "description", nullable = false, length = 100)
-        private String description;
+	/** 카드 설명 */
+	@Column(name = "description", nullable = false, length = 100)
+	private String description;
 
-        /** 속성 (ROCK, PAPER, SCISSORS) */
-        @Enumerated(EnumType.STRING)
-        @Column(name = "attribute", length = 20, nullable = true)
-        private Attribute attribute;
+	/** 속성 (ROCK, PAPER, SCISSORS) */
+	@Enumerated(EnumType.STRING)
+	@Column(name = "attribute", length = 20, nullable = true)
+	private Attribute attribute;
 }
