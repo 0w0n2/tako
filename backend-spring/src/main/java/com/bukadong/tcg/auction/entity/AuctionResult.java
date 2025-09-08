@@ -42,8 +42,8 @@ public class AuctionResult extends BaseEntity {
         @JoinColumn(name = "auction_id", nullable = false, foreignKey = @ForeignKey(name = "FK_auction_result_auction"))
         private Auction auction;
 
-        /** 낙찰 입찰 (N:1 매핑, 하나의 결과는 하나의 낙찰 입찰과 연결된다) */
-        @ManyToOne(fetch = FetchType.LAZY, optional = false)
+        /** 낙찰 입찰 (1:1 매핑, 하나의 결과는 하나의 낙찰 입찰과 연결된다) */
+        @OneToOne(fetch = FetchType.LAZY, optional = false)
         @JoinColumn(name = "auction_bid_id", nullable = false, foreignKey = @ForeignKey(name = "FK_auction_result_bid"))
         private AuctionBid auctionBid;
 
