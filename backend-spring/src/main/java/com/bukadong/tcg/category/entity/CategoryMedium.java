@@ -1,6 +1,5 @@
 package com.bukadong.tcg.category.entity;
 
-import com.bukadong.tcg.common.base.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
