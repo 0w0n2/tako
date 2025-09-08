@@ -1,6 +1,6 @@
 package com.bukadong.tcg.category.controller;
 
-import com.bukadong.tcg.category.entity.Category;
+import com.bukadong.tcg.category.entity.CategoryMajor;
 import com.bukadong.tcg.category.repository.CategoryRepository;
 import com.bukadong.tcg.common.base.BaseResponse;
 import com.bukadong.tcg.common.base.BaseResponseStatus;
@@ -30,8 +30,8 @@ public class CategoryController {
      * @return 모든 카테고리 목록을 감싼 BaseResponse
      */
     @GetMapping
-    public BaseResponse<List<Category>> list() {
-        List<Category> categories = categoryRepository.findAll();
+    public BaseResponse<List<CategoryMajor>> list() {
+        List<CategoryMajor> categories = categoryRepository.findAll();
         return new BaseResponse<>(categories);
     }
 
@@ -43,9 +43,9 @@ public class CategoryController {
      * @throws BaseException 카테고리를 찾을 수 없는 경우 공통 예외 던짐
      */
     @GetMapping("/{code}")
-    public BaseResponse<Category> getByCode(@PathVariable String code) {
+    public BaseResponse<CategoryMajor> getByCode(@PathVariable String code) {
         // 중요 로직: 존재하지 않으면 공통 예외(BaseException)로 흐름을 올림
-        Category category = categoryRepository.findByCode(code)
+        CategoryMajor category = categoryRepository.findByCode(code)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.NOT_FOUND));
         return new BaseResponse<>(category);
     }

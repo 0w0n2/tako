@@ -114,7 +114,7 @@ public class AuctionQueryService {
      */
     public List<MediaDto> getMediaList(Long auctionId) {
         return mediaRepository
-                .findByTypeAndOwnerIdOrderBySeqNoAsc(MediaType.AUCTION, auctionId)
+                .findByTypeAndOwnerIdOrderBySeqNoAsc(MediaType.AUCTION_ITEM, auctionId)
                 .stream()
                 .map(MediaDto::of)
                 .toList();

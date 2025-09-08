@@ -7,14 +7,17 @@ import jakarta.persistence.*;
 import lombok.*;
 
 /**
- * 거래 후기
+ * 경매 후기 엔티티
  *
- * 스키마 자동 생성 시 적용되는 @Table 메타데이터:
- * - @UniqueConstraint uk_auction_review_member_auction : (member_id,
- * auction_id) 복합 고유
- * 제약 생성
- * - @Index idx_auction_review_member : member_id 인덱스 생성
- * - @Index idx_auction_review_auction : auction_id 인덱스 생성
+ * <p>
+ * 회원이 특정 경매에 대해 남긴 후기 정보를 저장한다.
+ * </p>
+ *
+ * <ul>
+ * <li>회원과 경매 조합은 하나의 후기만 작성 가능 (복합 유니크 제약)</li>
+ * <li>별점(star)은 0~10 범위</li>
+ * <li>생성일(created_at)은 저장 시 자동으로 현재 시각으로 설정</li>
+ * </ul>
  */
 @Entity
 @Table(name = "auction_review", uniqueConstraints = {
@@ -30,37 +33,38 @@ import lombok.*;
 @Builder
 public class AuctionReview {
 
-        /** PK */
+        /** 후기 ID (PK) */
         @Id
-        @Column(name = "id", length = 255)
-        private String id;
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        private Long id;
 
-        /** 작성자 */
+        /** 작성자 (회원) */
         @ManyToOne(fetch = FetchType.LAZY, optional = false)
-        @JoinColumn(name = "member_id", nullable = false)
+        @JoinColumn(name = "member_id", nullable = false, foreignKey = @ForeignKey(name = "FK_auction_review_member"))
         private Member member;
 
         /** 대상 경매 */
         @ManyToOne(fetch = FetchType.LAZY, optional = false)
-        @JoinColumn(name = "auction_id", nullable = false)
+        @JoinColumn(name = "auction_id", nullable = false, foreignKey = @ForeignKey(name = "FK_auction_review_auction"))
         private Auction auction;
 
         /** 후기 내용 */
-        @Column(name = "review_text", nullable = false, length = 100)
+        @Column(name = "review_text", nullable = false, length = 255)
         private String reviewText;
 
-        /** 별점 0~10 */
+        /** 별점 (0~10) */
         @Column(name = "star", nullable = false)
         private int star;
 
         /** 생성 일시 */
-        @Column(name = "created_at", nullable = false)
+        @Column(name = "created_at", nullable = false, updatable = false)
         private LocalDateTime createdAt;
 
+        /** 저장 시 생성일을 현재 시간으로 설정 */
         @PrePersist
-        void onCreate() {
-                LocalDateTime now = LocalDateTime.now();
-                if (createdAt == null)
-                        createdAt = now;
+        void prePersist() {
+                if (createdAt == null) {
+                        createdAt = LocalDateTime.now();
+                }
         }
 }

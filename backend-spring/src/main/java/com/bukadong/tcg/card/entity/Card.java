@@ -1,23 +1,30 @@
 package com.bukadong.tcg.card.entity;
 
-import com.bukadong.tcg.category.entity.Category;
+import com.bukadong.tcg.category.entity.CategoryMajor;
+import com.bukadong.tcg.category.entity.CategoryMedium;
 import com.bukadong.tcg.common.base.BaseEntity;
-
 import jakarta.persistence.*;
 import lombok.*;
 
 /**
- * 카드 마스터
+ * 카드 마스터 엔티티
  *
- * 스키마 자동 생성 시 적용되는 @Table 메타데이터:
- * - @UniqueConstraint uk_card_code : code 컬럼 고유 제약 생성
- * - @Index idx_card_category : category_id 인덱스 생성
+ * <p>
+ * 카드 기본 정보를 저장한다.
+ * </p>
+ *
+ * <ul>
+ * <li>카테고리 대분류, 중분류와 연관</li>
+ * <li>code는 고유 제약 조건</li>
+ * <li>attribute는 ROCK / PAPER / SCISSORS 중 하나 선택 (nullable)</li>
+ * </ul>
  */
 @Entity
 @Table(name = "card", uniqueConstraints = {
                 @UniqueConstraint(name = "uk_card_code", columnNames = "code")
 }, indexes = {
-                @Index(name = "idx_card_category", columnList = "category_id")
+                @Index(name = "idx_card_category_major", columnList = "category_major_id"),
+                @Index(name = "idx_card_category_medium", columnList = "category_medium_id")
 })
 @Getter
 @NoArgsConstructor
@@ -25,24 +32,24 @@ import lombok.*;
 @Builder
 public class Card extends BaseEntity {
 
-        /** ID */
+        /** 카드 ID (PK) */
         @Id
         @GeneratedValue(strategy = GenerationType.IDENTITY)
         private Long id;
 
-        /** 카테고리 */
+        /** 카테고리 대분류 */
         @ManyToOne(fetch = FetchType.LAZY, optional = false)
-        @JoinColumn(name = "category_id", nullable = false)
-        private Category category;
+        @JoinColumn(name = "category_major_id", nullable = false, foreignKey = @ForeignKey(name = "FK_card_category_major"))
+        private CategoryMajor categoryMajor;
 
-        /** 카드 코드 */
-        @Column(name = "code", nullable = false, length = 30) // 고유 제약은 @Table.uniqueConstraints로 관리
+        /** 카테고리 중분류 */
+        @ManyToOne(fetch = FetchType.LAZY, optional = false)
+        @JoinColumn(name = "category_medium_id", nullable = false, foreignKey = @ForeignKey(name = "FK_card_category_medium"))
+        private CategoryMedium categoryMedium;
+
+        /** 카드 코드 (고유) */
+        @Column(name = "code", length = 30)
         private String code;
-
-        /** 카드 희귀도 */
-        @Enumerated(EnumType.STRING)
-        @Column(name = "rarity", nullable = false, length = 20)
-        private Rarity rarity;
 
         /** 카드 이름 */
         @Column(name = "name", nullable = false, length = 30)
@@ -52,8 +59,8 @@ public class Card extends BaseEntity {
         @Column(name = "description", nullable = false, length = 100)
         private String description;
 
-        /** ' SCISSORS' → 'SCISSORS'로 정규화된 enum 사용 */
+        /** 속성 (ROCK, PAPER, SCISSORS) */
         @Enumerated(EnumType.STRING)
-        @Column(name = "attribute", nullable = false, length = 20)
+        @Column(name = "attribute", length = 20, nullable = true)
         private Attribute attribute;
 }
