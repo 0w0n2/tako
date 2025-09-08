@@ -20,11 +20,11 @@ import lombok.*;
  */
 @Entity
 @Table(name = "wish_auction", uniqueConstraints = {
-                @UniqueConstraint(name = "uk_wish_auction_member_auction", columnNames = { "member_id", "auction_id" })
+        @UniqueConstraint(name = "uk_wish_auction_member_auction", columnNames = { "member_id", "auction_id" })
 }, indexes = {
-                @Index(name = "idx_wish_auction_member", columnList = "member_id"),
-                @Index(name = "idx_wish_auction_auction", columnList = "auction_id"),
-                @Index(name = "idx_wish_auction_member_flag", columnList = "member_id,wish_flag")
+        @Index(name = "idx_wish_auction_member", columnList = "member_id"),
+        @Index(name = "idx_wish_auction_auction", columnList = "auction_id"),
+        @Index(name = "idx_wish_auction_member_flag", columnList = "member_id,wish_flag")
 })
 @Getter
 @NoArgsConstructor
@@ -32,22 +32,22 @@ import lombok.*;
 @Builder
 public class WishAuction extends BaseEntity {
 
-        /** 찜 ID (PK) */
-        @Id
-        @GeneratedValue(strategy = GenerationType.IDENTITY)
-        private Long id;
+    /** 찜 ID (PK) */
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-        /** 대상 경매 */
-        @ManyToOne(fetch = FetchType.LAZY, optional = false)
-        @JoinColumn(name = "auction_id", nullable = false, foreignKey = @ForeignKey(name = "FK_wish_auction_auction"))
-        private Auction auction;
+    /** 대상 경매 */
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "auction_id", nullable = false, foreignKey = @ForeignKey(name = "FK_wish_auction_auction"))
+    private Auction auction;
 
-        /** 회원 */
-        @ManyToOne(fetch = FetchType.LAZY, optional = false)
-        @JoinColumn(name = "member_id", nullable = false, foreignKey = @ForeignKey(name = "FK_wish_auction_member"))
-        private Member member;
+    /** 회원 */
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "member_id", nullable = false, foreignKey = @ForeignKey(name = "FK_wish_auction_member"))
+    private Member member;
 
-        /** 찜 여부 */
-        @Column(name = "wish_flag", nullable = false)
-        private boolean wishFlag;
+    /** 찜 여부 */
+    @Column(name = "wish_flag", nullable = false)
+    private boolean wishFlag;
 }

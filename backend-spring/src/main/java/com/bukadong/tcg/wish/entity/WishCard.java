@@ -20,11 +20,11 @@ import lombok.*;
  */
 @Entity
 @Table(name = "wish_card", uniqueConstraints = {
-                @UniqueConstraint(name = "uk_wish_card_member_card", columnNames = { "member_id", "card_id" })
+        @UniqueConstraint(name = "uk_wish_card_member_card", columnNames = { "member_id", "card_id" })
 }, indexes = {
-                @Index(name = "idx_wish_card_member", columnList = "member_id"),
-                @Index(name = "idx_wish_card_card", columnList = "card_id"),
-                @Index(name = "idx_wish_card_member_flag", columnList = "member_id,wish_flag")
+        @Index(name = "idx_wish_card_member", columnList = "member_id"),
+        @Index(name = "idx_wish_card_card", columnList = "card_id"),
+        @Index(name = "idx_wish_card_member_flag", columnList = "member_id,wish_flag")
 })
 @Getter
 @NoArgsConstructor
@@ -32,22 +32,22 @@ import lombok.*;
 @Builder
 public class WishCard extends BaseEntity {
 
-        /** 찜 ID (PK) */
-        @Id
-        @GeneratedValue(strategy = GenerationType.IDENTITY)
-        private Long id;
+    /** 찜 ID (PK) */
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-        /** 카드 */
-        @ManyToOne(fetch = FetchType.LAZY, optional = false)
-        @JoinColumn(name = "card_id", nullable = false, foreignKey = @ForeignKey(name = "FK_wish_card_card"))
-        private Card card;
+    /** 카드 */
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "card_id", nullable = false, foreignKey = @ForeignKey(name = "FK_wish_card_card"))
+    private Card card;
 
-        /** 회원 */
-        @ManyToOne(fetch = FetchType.LAZY, optional = false)
-        @JoinColumn(name = "member_id", nullable = false, foreignKey = @ForeignKey(name = "FK_wish_card_member"))
-        private Member member;
+    /** 회원 */
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "member_id", nullable = false, foreignKey = @ForeignKey(name = "FK_wish_card_member"))
+    private Member member;
 
-        /** 찜 여부 */
-        @Column(name = "wish_flag", nullable = false)
-        private boolean wishFlag;
+    /** 찜 여부 */
+    @Column(name = "wish_flag", nullable = false)
+    private boolean wishFlag;
 }
