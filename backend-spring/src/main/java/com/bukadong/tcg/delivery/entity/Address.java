@@ -15,10 +15,10 @@ import lombok.*;
  */
 @Entity
 @Table(name = "address", uniqueConstraints = {
-                @UniqueConstraint(name = "uk_address_member_place", columnNames = { "member_id", "place_name" })
+        @UniqueConstraint(name = "uk_address_member_place", columnNames = { "member_id", "place_name" })
 }, indexes = {
-                @Index(name = "idx_address_member", columnList = "member_id"),
-                @Index(name = "idx_address_zipcode", columnList = "zipcode")
+        @Index(name = "idx_address_member", columnList = "member_id"),
+        @Index(name = "idx_address_zipcode", columnList = "zipcode")
 })
 @Getter
 @NoArgsConstructor
@@ -26,37 +26,37 @@ import lombok.*;
 @Builder
 public class Address {
 
-        /** ID */
-        @Id
-        @GeneratedValue(strategy = GenerationType.IDENTITY)
-        private Long id;
+    /** ID */
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-        /** 소유 회원 */
-        @ManyToOne(fetch = FetchType.LAZY, optional = false)
-        @JoinColumn(name = "member_id", nullable = false)
-        private Member member;
+    /** 소유 회원 */
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "member_id", nullable = false)
+    private Member member;
 
-        /** 장소 별칭(예: 집, 회사) */
-        @Column(name = "place_name", length = 30)
-        private String placeName;
+    /** 장소 별칭(예: 집, 회사) */
+    @Column(name = "place_name", length = 30)
+    private String placeName;
 
-        /** 수령인 이름 */
-        @Column(name = "name", nullable = false, length = 50)
-        private String name;
+    /** 수령인 이름 */
+    @Column(name = "name", nullable = false, length = 50)
+    private String name;
 
-        /** 연락처 */
-        @Column(name = "phone", nullable = false, length = 20)
-        private String phone;
+    /** 연락처 */
+    @Column(name = "phone", nullable = false, length = 20)
+    private String phone;
 
-        /** 기본 주소 */
-        @Column(name = "base_address", nullable = false, length = 200)
-        private String baseAddress;
+    /** 기본 주소 */
+    @Column(name = "base_address", nullable = false, length = 200)
+    private String baseAddress;
 
-        /** 상세 주소 */
-        @Column(name = "address_detail", nullable = false, length = 150)
-        private String addressDetail;
+    /** 상세 주소 */
+    @Column(name = "address_detail", nullable = false, length = 150)
+    private String addressDetail;
 
-        /** 우편번호 */
-        @Column(name = "zipcode", nullable = false, length = 10)
-        private String zipcode;
+    /** 우편번호 */
+    @Column(name = "zipcode", nullable = false, length = 10)
+    private String zipcode;
 }
