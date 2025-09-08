@@ -1,6 +1,5 @@
 package com.bukadong.tcg.category.entity;
 
-import com.bukadong.tcg.common.base.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -12,14 +11,13 @@ import lombok.*;
  * </p>
  *
  * <ul>
- * <li>code, name 컬럼은 각각 고유(UNIQUE) 제약</li>
+ * <li>ame 컬럼 고유(UNIQUE) 제약</li>
  * <li>name 컬럼에 조회 성능 향상을 위한 인덱스 생성</li>
  * <li>생성/수정 일시는 BaseEntity로 자동 관리</li>
  * </ul>
  */
 @Entity
 @Table(name = "category_major", uniqueConstraints = {
-                @UniqueConstraint(name = "uk_category_major_code", columnNames = "code"),
                 @UniqueConstraint(name = "uk_category_major_name", columnNames = "name")
 }, indexes = {
                 @Index(name = "idx_category_major_name", columnList = "name")
@@ -34,10 +32,6 @@ public class CategoryMajor {
         @Id
         @GeneratedValue(strategy = GenerationType.IDENTITY)
         private Long id;
-
-        /** 카테고리 코드 (고유) */
-        @Column(name = "code", nullable = false, length = 20)
-        private String code;
 
         /** 카테고리 이름 (고유) */
         @Column(name = "name", nullable = false, length = 30)

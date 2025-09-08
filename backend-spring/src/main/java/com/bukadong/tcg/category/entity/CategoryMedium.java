@@ -19,11 +19,10 @@ import lombok.*;
  */
 @Entity
 @Table(name = "category_medium", uniqueConstraints = {
-                @UniqueConstraint(name = "uk_category_medium_code", columnNames = "code"),
-                @UniqueConstraint(name = "uk_category_medium_name", columnNames = "name")
+        // (대분류, 이름) 조합으로 유니크
+        @UniqueConstraint(name = "uk_category_medium_major_name", columnNames = { "category_major_id", "name" })
 }, indexes = {
-                @Index(name = "idx_category_medium_category", columnList = "category_major_id"),
-                @Index(name = "idx_category_medium_name", columnList = "name")
+        @Index(name = "idx_category_medium_category", columnList = "category_major_id"),
 })
 @Getter
 @NoArgsConstructor
@@ -31,25 +30,21 @@ import lombok.*;
 @Builder
 public class CategoryMedium {
 
-        /** 중분류 ID (PK) */
-        @Id
-        @GeneratedValue(strategy = GenerationType.IDENTITY)
-        private Long id;
+    /** 중분류 ID (PK) */
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-        /** 대분류 (필수) */
-        @ManyToOne(fetch = FetchType.LAZY, optional = false)
-        @JoinColumn(name = "category_major_id", nullable = false, foreignKey = @ForeignKey(name = "FK_category_medium_major"))
-        private CategoryMajor categoryMajor;
+    /** 대분류 (필수) */
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "category_major_id", nullable = false, foreignKey = @ForeignKey(name = "FK_category_medium_major"))
+    private CategoryMajor categoryMajor;
 
-        /** 카테고리 코드 (고유) */
-        @Column(name = "code", nullable = false, length = 20)
-        private String code;
+    /** 카테고리 이름 (고유) */
+    @Column(name = "name", nullable = false, length = 30)
+    private String name;
 
-        /** 카테고리 이름 (고유) */
-        @Column(name = "name", nullable = false, length = 30)
-        private String name;
-
-        /** 설명 */
-        @Column(name = "description", nullable = false, length = 255)
-        private String description;
+    /** 설명 */
+    @Column(name = "description", nullable = false, length = 255)
+    private String description;
 }
