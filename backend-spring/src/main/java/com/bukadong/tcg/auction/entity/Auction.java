@@ -53,9 +53,10 @@ public class Auction extends BaseEntity {
     @JoinColumn(name = "member_id", nullable = false, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private Member member;
 
-    /** 배송지/배송 (선택) — 낙찰 후 배송정보로 연결될 수 있음 */
-    @ManyToOne(fetch = FetchType.LAZY, optional = true)
-    @JoinColumn(name = "delivery_id", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
+    /** 배송 (1:1 매핑) */
+    @OneToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(name = "delivery_id", unique = true, // 하나의 배송은 하나의 경매와만 연결
+            foreignKey = @ForeignKey(name = "FK_auction_delivery"))
     private Delivery delivery;
 
     /** 경매 대상 실물 카드 (필수) */
