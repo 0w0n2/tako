@@ -46,7 +46,8 @@ public class NoticeService {
         int safePage = Math.max(page, 0);
         int safeSize = Math.min(Math.max(size, 1), 100);
 
-        Pageable pageable = PageRequest.of(safePage, safeSize, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Pageable pageable = PageRequest.of(safePage, safeSize,
+                Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Notice> entities = noticeRepository.findAllBy(pageable);
         return entities.map(NoticeSummaryDto::from);
     }
@@ -65,10 +66,12 @@ public class NoticeService {
         viewCounterService.increment(id);
 
         // 공지(작성자 포함) 조회 (읽기 트랜잭션)
-        Notice n = noticeRepository.findById(id).orElseThrow(() -> new BaseException(BaseResponseStatus.NOT_FOUND));
+        Notice n = noticeRepository.findById(id)
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.NOT_FOUND));
 
         // 첨부파일 조회 (Media 테이블)
-        List<Media> medias = mediaRepository.findByTypeAndOwnerIdOrderBySeqNoAsc(MediaType.NOTICE_ATTACHMENT, id);
+        List<Media> medias = mediaRepository
+                .findByTypeAndOwnerIdOrderBySeqNoAsc(MediaType.NOTICE_ATTACHMENT, id);
         List<NoticeAttachmentDto> files = medias.stream().map(NoticeAttachmentDto::from).toList();
         return NoticeDetailDto.of(n, files);
     }
