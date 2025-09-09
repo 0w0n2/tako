@@ -55,6 +55,7 @@ export default function MypageSideMenu() {
                                     : 'text-[#A5A5A5] hover:text-[#F2B90C]'
                             }`}
                         >관심 카드</Link></li>
+
                     </ul>
                 </li>
                 <li>
@@ -73,6 +74,7 @@ export default function MypageSideMenu() {
                                 onClick={() => setOpenWithdraw(true)} 
                                 className="text-[#A5A5A5] text-sm text-left w-full cursor-pointer hover:text-[#F2B90C] transition-all duration-300"
                             >회원탈퇴</button>
+
                         </li>
                     </ul>
                 </li>
