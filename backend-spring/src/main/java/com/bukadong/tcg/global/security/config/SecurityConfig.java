@@ -1,4 +1,4 @@
-package com.bukadong.tcg.global.security;
+package com.bukadong.tcg.global.security.config;
 
 import com.bukadong.tcg.api.member.entity.Role;
 import com.bukadong.tcg.global.properties.SecurityCorsProperties;

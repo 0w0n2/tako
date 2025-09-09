@@ -4,6 +4,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 
+/**
+ * HTTP 쿠키 관련 유틸리티 기능을 제공하는 클래스
+ */
 @Component
 public class CookieUtils {
 
