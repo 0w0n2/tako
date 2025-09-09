@@ -64,10 +64,13 @@ security:
     exposed-headers: ${SECURITY_CORS_EXPOSED_HEADERS}
     max-age: ${SECURITY_CORS_MAX_AGE}
 
+  role:
+    admin: ${SECURITY_ROLE_ADMIN}
+
   oauth2:
     authorize-uri: ${SECURITY_OAUTH2_AUTHORIZE_URI}
     redirect-uri: ${SECURITY_OAUTH2_REDIRECT_URI}
 
     client-redirect-uri: ${SECURITY_OAUTH2_CLIENT_REDIRECT_URI}
-    
+
 # expire-time: # 나중에 만료 시간 등 설정할 때 사용할 것
