@@ -5,7 +5,7 @@ interface LoginModalProps {
 export default function LoginModal({ onClose }: LoginModalProps) {
     return (
         <div 
-            className="fixed inset-0 flex items-center justify-center z-50"
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
         >
             <div 
                 className="relative bg-[#191924] rounded-lg p-6 border border-[#353535]"
@@ -18,8 +18,7 @@ export default function LoginModal({ onClose }: LoginModalProps) {
                     ×
                 </button>
                 <div className="w-80">
-                    <h2 className="text-xl font-semibold text-white mb-6 text-center">로그인</h2>
-                    
+                    <h2 className="text-xl mb-6">로그인</h2>
                     <form className="space-y-4">
                         {/* 이메일 입력 */}
                         <div>

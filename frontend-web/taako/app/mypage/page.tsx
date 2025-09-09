@@ -2,7 +2,7 @@ import Image from "next/image"
 
 export default function Mypage(){
     return (
-        <div className="w-full flex flex-col gap-10">
+        <div className="flex flex-col gap-10">
             <div className="flex gap-4">
                 {/* 기본정보, 지갑조회, 판매중경매, 입찰중경매, 리뷰조회 */}
                 <div className="flex-1 flex flex-col gap-10">
