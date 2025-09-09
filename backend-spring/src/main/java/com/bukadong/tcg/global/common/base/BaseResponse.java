@@ -1,6 +1,5 @@
 package com.bukadong.tcg.global.common.base;
 
-import com.bukadong.tcg.global.support.TypeCaster;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 
