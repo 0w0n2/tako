@@ -30,3 +30,31 @@ body {
   width: 1420px;
   margin: 0 auto;
 }
+
+/* 기본 스타일 */
+@import "../components/cards/cards.css";
+@import "../components/cards/css/base.css";
+@import "../components/cards/css/basic.css";
+
+/* 카드 종류별 스타일 */
+@import "../components/cards/css/reverse-holo.css";
+@import "../components/cards/css/regular-holo.css";
+@import "../components/cards/css/cosmos-holo.css";
+@import "../components/cards/css/amazing-rare.css";
+@import "../components/cards/css/radiant-holo.css";
+@import "../components/cards/css/v-regular.css";
+@import "../components/cards/css/v-full-art.css";
+@import "../components/cards/css/v-max.css";
+@import "../components/cards/css/v-star.css";
+@import "../components/cards/css/trainer-full-art.css";
+@import "../components/cards/css/rainbow-holo.css";
+@import "../components/cards/css/rainbow-alt.css";
+@import "../components/cards/css/secret-rare.css";
+@import "../components/cards/css/trainer-gallery-holo.css";
+@import "../components/cards/css/trainer-gallery-v-regular.css";
+@import "../components/cards/css/trainer-gallery-v-max.css";
+@import "../components/cards/css/trainer-gallery-secret-rare.css";
+@import "../components/cards/css/shiny-rare.css";
+@import "../components/cards/css/shiny-v.css";
+@import "../components/cards/css/shiny-vmax.css";
+@import "../components/cards/css/swsh-pikachu.css";
