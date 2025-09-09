@@ -25,12 +25,12 @@ public class BaseExceptionHandler {
     protected BaseResponse<Void> handleValidException(MethodArgumentNotValidException e) {
         String message = e.getFieldErrors().get(0).getDefaultMessage();
         log.error("MethodArgumentNotValidException -> {}", message);
-        return new BaseResponse<>(BaseResponseStatus.INVALID_PARAMETER, message);
+        return BaseResponse.onFailure(BaseResponseStatus.INVALID_PARAMETER, message);
     }
 
     @ExceptionHandler(RuntimeException.class)
     protected BaseResponse<Void> handleRuntimeException(RuntimeException e) {
         log.error("RuntimeException -> {}", e.getMessage(), e);
-        return new BaseResponse<>(BaseResponseStatus.INTERNAL_SERVER_ERROR);
+        return BaseResponse.onFailure(BaseResponseStatus.INTERNAL_SERVER_ERROR);
     }
 }
