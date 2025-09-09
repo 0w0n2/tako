@@ -13,13 +13,12 @@ import java.util.regex.Pattern;
 /**
  * 회원가입 전 이메일/닉네임 가용성 확인
  * <p>
- * 컨트롤러에서 파라미터를 직접 검증하고,
- * 유효하지 않으면 즉시 실패 BaseResponse로 응답한다.
+ * 컨트롤러에서 파라미터를 직접 검증하고, 유효하지 않으면 즉시 실패 BaseResponse로 응답한다.
  * </p>
- * URL prefix: /api/v1/auth/availability
+ * URL prefix: /v1/auth/availability
  */
 @RestController
-@RequestMapping("/api/v1/auth/availability")
+@RequestMapping("/v1/auth/availability")
 @RequiredArgsConstructor
 public class MemberAvailabilityController {
 
@@ -31,9 +30,8 @@ public class MemberAvailabilityController {
     private static final Pattern NICKNAME_PATTERN = Pattern.compile("^[0-9A-Za-z가-힣]{2,30}$");
 
     /**
-     * 이메일 중복 확인
-     * - 유효성 실패: INVALID_EMAIL_ADDRESS 로 실패 응답
-     * - 성공: { field, value, available } 반환
+     * 이메일 중복 확인 - 유효성 실패: INVALID_EMAIL_ADDRESS 로 실패 응답 - 성공: { field, value,
+     * available } 반환
      */
     @GetMapping("/email")
     public BaseResponse<AvailabilityResponse> checkEmail(@RequestParam("email") String email) {
@@ -49,12 +47,12 @@ public class MemberAvailabilityController {
     }
 
     /**
-     * 닉네임 중복 확인
-     * - 유효성 실패: INVALID_PARAMETER 로 실패 응답
-     * - 성공: { field, value, available } 반환
+     * 닉네임 중복 확인 - 유효성 실패: INVALID_PARAMETER 로 실패 응답 - 성공: { field, value, available
+     * } 반환
      */
     @GetMapping("/nickname")
-    public BaseResponse<AvailabilityResponse> checkNickname(@RequestParam("nickname") String nickname) {
+    public BaseResponse<AvailabilityResponse> checkNickname(
+            @RequestParam("nickname") String nickname) {
         String v = nickname == null ? "" : nickname.strip();
 
         // 공백/널 또는 패턴 불일치 -> 실패 응답

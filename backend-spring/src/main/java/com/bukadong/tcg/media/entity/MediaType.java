@@ -9,5 +9,6 @@ public enum MediaType {
     CATEGORY_MEDIUM,
     AUCTION_ITEM,
     AUCTION_AI,
-    AUCTION_REVIEW
+    AUCTION_REVIEW,
+    NOTICE
 }
