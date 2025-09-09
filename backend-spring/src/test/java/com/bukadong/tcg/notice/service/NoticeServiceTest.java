@@ -1,10 +1,12 @@
 package com.bukadong.tcg.notice.service;
 
-import com.bukadong.tcg.common.base.BaseResponseStatus;
-import com.bukadong.tcg.common.exception.BaseException;
-import com.bukadong.tcg.notice.dto.response.NoticeDetailDto;
-import com.bukadong.tcg.notice.dto.response.NoticeSummaryDto;
-import com.bukadong.tcg.notice.repository.NoticeRepository;
+import com.bukadong.tcg.api.notice.service.NoticeService;
+import com.bukadong.tcg.api.notice.service.NoticeViewCounterService;
+import com.bukadong.tcg.global.common.base.BaseResponseStatus;
+import com.bukadong.tcg.global.common.exception.BaseException;
+import com.bukadong.tcg.api.notice.dto.response.NoticeDetailDto;
+import com.bukadong.tcg.api.notice.dto.response.NoticeSummaryDto;
+import com.bukadong.tcg.api.notice.repository.NoticeRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
