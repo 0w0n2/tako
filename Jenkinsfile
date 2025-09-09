@@ -14,10 +14,10 @@ pipeline {
         [key:'GL_MR_IID',       value:'$.object_attributes.iid'],
         [key:'GL_PROJECT',      value:'$.project.path_with_namespace'],
         [key:'GL_MR_SHA',       value:'$.object_attributes.last_commit.id'],
-        [key:'GL_MR_DESC',        value:'$.object_attributes.description'],
-        [key:'GL_MR_URL',         value:'$.object_attributes.url'],
-        [key:'GL_AUTHOR_USERNAME',value:'$.user.username'],
-        [key:'GL_AUTHOR_NAME',    value:'$.user.name']
+        [key:'GL_MR_URL',       value:'$.object_attributes.url'],
+        [key:'GL_ASSIGNEE',     value:'$.assignees.username'],
+        [key:'GL_REVIEWER',     value:'$.reveiwers.username'],
+        [key:'GL_USER_NAME',    value:'$.user.name']
       ],
       token: 'tcg-mr',
       printContributedVariables: true,
@@ -37,7 +37,6 @@ pipeline {
     STATUS_CONTEXT     = 'jenkins:mr-title-check'               // 커밋 상태의 context 라벨
     MERGE_ONLY_TO      = 'main'                                  // 이 타깃 브랜치로 들어오는 MR만 자동 병합 (빈 문자열이면 제한 없음)
     RELEASE_BRANCH     = 'release'                                // 릴리스 브랜치 이름 (태그 푸시용)
-    DEBUG_MM = 'true'
   }
 
   stages {
@@ -71,10 +70,10 @@ pipeline {
         sh '''
           set -eu
 
-          MR_TITLE_COMMON='^\\[(🔧|☀️|✈️)\\s+(FE|BE|INFRA)\\]\\s+.+$'
-          MR_TITLE_DEV='^\\[🔧\\s+(FE|BE|INFRA)\\]\\s+.+$'
-          MR_TITLE_HOT='^\\[☀️\\s+(FE|BE|INFRA)\\]\\s+.+$'
-          MR_TITLE_REL='^\\[✈️\\s+(FE|BE|INFRA)\\]\\s+.+$'
+          MR_TITLE_COMMON='^\\[(🔀|⛑️|🛫)\\s+(FE|BE|INFRA)\\]\\s+.+$'
+          MR_TITLE_DEV='^\\[🔀\\s+(FE|BE|INFRA)\\]\\s+.+$'
+          MR_TITLE_HOT='^\\[⛑️\\s+(FE|BE|INFRA)\\]\\s+.+$'
+          MR_TITLE_REL='^\\[🛫\\s+(FE|BE|INFRA)\\]\\s+.+$'
 
           RELEASE_REGEX='v[0-9]+\\.[0-9]+\\.[0-9]+(-\\S+)?$'
 
@@ -141,7 +140,6 @@ pipeline {
         }
       }  
     }
-
 
     stage('Report status: success to GitLab') {
       steps {
@@ -272,23 +270,108 @@ pipeline {
     success {
       withCredentials([string(credentialsId: 'MM_WEBHOOK', variable: 'MM_WEBHOOK')]) {
         script{
-          mattermostSend(
-              endpoint: MM_WEBHOOK,                 // ← 플러그인에 웹훅 직접 전달
-              color: 'good',
-              message: """
+          // 브랜치 이름에 따라 알림 다르게
+          def source = env.GL_MR_SOURCE ?: ""
+          def category = ""
+
+          if (source.contains("/be/") || source.contains("/BE/")) {
+              category = "backend"
+          } else if (source.contains("/fe/") || source.contains("/FE/")) {
+              category = "frontend"
+          } else {
+              category = "infra"
+          }
+
+          if ((env.GL_MR_ACTION == 'merge' && env.GL_MR_STATE == 'merged') && (env.GL_MR_TARGET == 'develop')) {
+            if (category == "backend") {
+              mattermostSend(
+                endpoint: MM_WEBHOOK,
+                color: 'good',
+                message: """
+#### :homer_bush: Successfully Merged :homer_bush:
+
+##### [${env.GL_MR_TITLE ?: 'No title'}](${env.GL_MR_URL ?: env.BUILD_URL})
+:pencil2: Assignee: @${env.GL_ASSIGNEE ?: '9526yu'}
+
+:gun_cat: **Target**: `${env.GL_MR_TARGET ?: 'develop'}`
+
+##### Pipeline Success!
 ---
-## :green_frog: **Jenkins Pipeline Success** :green_frog:
-
-### [${env.GL_MR_TITLE ?: 'No title'}](${env.GL_MR_URL ?: env.BUILD_URL})
-:pencil2: *Author*: @${env.GL_AUTHOR_USERNAME ?: 'unknown'}
-:gun_cat: *Target*: `${env.GL_MR_TARGET ?: ''}`
-
-**배포 URL**: 추후 구현
-
-### Pipeline Success!
----
+##### 서비스 점검하러 가기
+:springboot: [Backend Spring Server](https://j13e104.p.ssafy.io/swagger-ui/index.html)
 """
-          )
+              )
+            } else if (category == "frontend") {
+              mattermostSend(
+                endpoint: MM_WEBHOOK,
+                color: 'good',
+                message: """
+#### :homer_bush: Successfully Merged :homer_bush:
+
+##### [${env.GL_MR_TITLE ?: 'No title'}](${env.GL_MR_URL ?: env.BUILD_URL})
+:pencil2: Assignee: @${env.GL_ASSIGNEE ?: '9526yu'}
+
+:gun_cat: **Target**: `${env.GL_MR_TARGET ?: 'develop'}`
+
+##### Pipeline Success!
+---
+##### 서비스 점검하러 가기
+:react: [Frontend React Server](https://j13e104.p.ssafy.io)
+"""
+              )
+            } else {
+              mattermostSend(
+                endpoint: MM_WEBHOOK,
+                color: 'good',
+                message: """
+#### :homer_bush: Successfully Merged :homer_bush:
+
+##### [${env.GL_MR_TITLE ?: 'No title'}](${env.GL_MR_URL ?: env.BUILD_URL})
+:pencil2: Assignee: @${env.GL_ASSIGNEE ?: '9526yu'}
+
+:gun_cat: **Target**: `${env.GL_MR_TARGET ?: 'develop'}`
+
+##### Pipeline Success!
+"""
+              )
+            }
+          } else if ((env.GL_MR_ACTION == 'merge' || env.GL_MR_STATE == 'merged') && (env.GL_MR_TARGET == env.RELEASE_BRANCH)) {
+            mattermostSend(
+                endpoint: MM_WEBHOOK,
+                color: 'good',
+                message: """
+#### :homer_bush: Successfully Merged :homer_bush:
+
+##### [${env.GL_MR_TITLE ?: 'No title'}](${env.GL_MR_URL ?: env.BUILD_URL})
+:pencil2: Assignee: @${env.GL_ASSIGNEE ?: '9526yu'}
+
+:gun_cat: **Target**: `${env.GL_MR_TARGET ?: 'develop'}`
+
+##### Pipeline Success!
+---
+##### 서비스 점검하러 가기
+:springboot: [Backend Spring Server](https://j13e104.p.ssafy.io/swagger-ui/index.html)
+:react: [Frontend React Server](https://j13e104.p.ssafy.io)
+"""
+              )
+          } else {
+            mattermostSend(
+                endpoint: MM_WEBHOOK,
+                color: 'good',
+                message: """
+#### :green_frog: ${env.GL_USER_NAME ?: 'E104'}'s MR Generated!!!!!!!!! :green_frog:
+
+##### [${env.GL_MR_TITLE ?: 'No title'}](${env.GL_MR_URL ?: env.BUILD_URL})
+*서둘러서 코드 리뷰 해주세요~! 수정 필요할 경우 작성자 태그해주세요!!*
+:pencil2: Assignee: @${env.GL_ASSIGNEE ?: '9526yu'}
+:eyes_5s: Reviewer: @${env.GL_REVIEWER ?: '9526yu'}
+
+:gun_cat: **Target**: `${env.GL_MR_TARGET ?: 'develop'}`
+
+##### Pipeline Success!
+"""
+            )
+          }
         }
       }
       echo "✅ MR success by seok."
@@ -302,17 +385,16 @@ pipeline {
               endpoint: MM_WEBHOOK,
               color: 'danger',  
               message: """
----
-## :x: Jenkins Pipeline Failed :x:
+#### :x: Jenkins Pipeline Failed :x:
 
-### [${env.GL_MR_TITLE ?: 'No title'}](${env.GL_MR_URL ?: env.BUILD_URL})
-:pencil2: *Author*: @${env.GL_AUTHOR_USERNAME ?: 'unknown'}
-:gun_cat: *Target*: ${env.GL_MR_TARGET ?: ''}
+##### [${env.GL_MR_TITLE ?: 'No title'}](${env.GL_MR_URL ?: env.BUILD_URL})
+:pencil2: Assignee: @${GL_ASSIGNEE ?: '9526yu'}
 
-### Emergency! Pipeline Failed!
----
+:gun_cat: **Target**: `${env.GL_MR_TARGET ?: 'develop'}`
+
+##### Error Logs
 """
-            )
+          )
         }
       }
       echo "❌ MR failed."
