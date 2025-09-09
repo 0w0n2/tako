@@ -32,8 +32,9 @@ services:
     # 서비스들이 같이 묶일 네트워크 (다른 서비스와 같은 네트워크에 있어야 proxy_pass 가능)
     networks:
       - e104_net
+
   certbot:
-    image: certbot/certbot:latest
+    image: certbot/dns-cloudflare
     container_name: certbot
     # 평소엔 꺼져 있어도 되고, 필요 시 실행 (최초 발급/갱신)
     volumes:
