@@ -23,7 +23,7 @@ pipeline {
       printContributedVariables: true,
       printPostContent: true,
       regexpFilterText: '$GL_EVENT:$GL_MR_ACTION',
-      regexpFilterExpression: '^merge_request:(open|reopen|merge)$'
+      regexpFilterExpression: '^merge_request:(open|reopen|merge|update)$'
     )
   }
 
@@ -166,11 +166,20 @@ pipeline {
               "${GITLAB_BASE}/api/v4/projects/${PROJECT_ENC}/statuses/${SHA}" \
               -w "\\nHTTP %{http_code}\\n"
           '''
+
+          script {
+            if (env.GL_MR_ACTION == 'update') {
+              env.SKIP_POST_SUCCESS = 'true'
+
+              currentBuild.result = 'SUCCESS'
+              throw new org.jenkinsci.plugins.workflow.steps.FlowInterruptedException(hudson.model.Result.SUCCESS)
+            }
+          }
         }
       }
     }
 
-    // 병합 시에만 레포 준비(체크아웃) → 태그 푸시용
+    // release 브랜치에 병합 시에만 레포 준비(체크아웃) → 태그 푸시용
     stage('Prepare repo (only on merge)') {
       when {
         expression {
@@ -270,6 +279,11 @@ pipeline {
     success {
       withCredentials([string(credentialsId: 'MM_WEBHOOK', variable: 'MM_WEBHOOK')]) {
         script{
+          if (env.SKIP_POST_SUCCESS == 'true') {
+            echo 'update action - skip post success'
+            return
+          }
+
           // 브랜치 이름에 따라 알림 다르게
           def source = env.GL_MR_SOURCE ?: ""
           def category = ""
