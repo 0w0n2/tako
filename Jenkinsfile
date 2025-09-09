@@ -395,6 +395,16 @@ pipeline {
       // 실패 원인 tail은 우리가 쌓아둔 로그 파일이 있으면 그걸 활용. 그런데 가능할지 모르겠음.
       withCredentials([string(credentialsId: 'MM_WEBHOOK', variable: 'MM_WEBHOOK')]) {
         script {
+          // 에러나 예외 로그가 담긴 최대 20줄을 뽑아서 메세지에 포함
+          def errLogs = sh(
+            script: "grep -iE 'error|exception' ${currentBuild.rawBuild.logFile} | tail -n 20",
+            returnStdout: true
+          ).trim()
+
+          if (!errLogs) {
+            errLogs = "No specific error logs found (check console for details)"
+          }
+
           mattermostSend(
               endpoint: MM_WEBHOOK,
               color: 'danger',  
@@ -407,6 +417,9 @@ pipeline {
 :gun_cat: **Target**: `${env.GL_MR_TARGET ?: 'develop'}`
 
 ##### Error Logs
+```
+${errLogs}
+```
 """
           )
         }
