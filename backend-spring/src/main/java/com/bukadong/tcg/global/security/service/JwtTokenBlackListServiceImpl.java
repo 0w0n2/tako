@@ -10,31 +10,33 @@ import static com.bukadong.tcg.global.constant.SecurityConstants.*;
 import java.time.Duration;
 import java.util.Date;
 
+/**
+ * JWT 토큰을 블랙리스트에 추가하고 검증하는 서비스 구현체
+ */
 @Service
 @RequiredArgsConstructor
 public class JwtTokenBlackListServiceImpl implements JwtTokenBlackListService {
     private final RedisUtils redisUtils;
     private final JwtTokenUtils jwtTokenUtils;
 
-    private void addBlacklist(String prefix, String token) {
+    private void addBlacklist(String prefix, String token, Date expiration) {
         String key = prefix + token;
-        Claims claims = jwtTokenUtils.parseClaims(token);
-        Date expiration = claims.getExpiration();
-        long now = new Date().getTime();
+        long now = System.currentTimeMillis();
         long remaining = expiration.getTime() - now;
+
         if (remaining > 0) {
             redisUtils.setValue(key, "", Duration.ofMillis(remaining)); // 남은 만료 시간까지 블랙리스트 처리
         }
     }
 
     @Override
-    public void addBlacklistAccessToken(String accessToken) {
-        addBlacklist(BLACKLIST_ACCESS_PREFIX, accessToken);
+    public void addBlacklistAccessToken(String accessToken, Date expiration) {
+        addBlacklist(BLACKLIST_ACCESS_PREFIX, accessToken, expiration);
     }
 
     @Override
-    public void addBlacklistRefreshToken(String refreshToken) {
-        addBlacklist(BLACKLIST_REFRESH_PREFIX, refreshToken);
+    public void addBlacklistRefreshToken(String refreshToken, Date expiration) {
+        addBlacklist(BLACKLIST_REFRESH_PREFIX, refreshToken, expiration);
     }
 
     private boolean isBlacklist(String prefix, String token) {
