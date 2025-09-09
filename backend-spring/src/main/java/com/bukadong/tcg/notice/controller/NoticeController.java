@@ -2,8 +2,8 @@ package com.bukadong.tcg.notice.controller;
 
 import com.bukadong.tcg.common.base.BaseResponse;
 import com.bukadong.tcg.common.dto.PageResponse;
-import com.bukadong.tcg.notice.dto.NoticeDetailDto;
-import com.bukadong.tcg.notice.dto.NoticeSummaryDto;
+import com.bukadong.tcg.notice.dto.response.NoticeDetailDto;
+import com.bukadong.tcg.notice.dto.response.NoticeSummaryDto;
 import com.bukadong.tcg.notice.service.NoticeService;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.PositiveOrZero;

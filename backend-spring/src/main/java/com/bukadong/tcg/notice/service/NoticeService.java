@@ -5,9 +5,9 @@ import com.bukadong.tcg.common.exception.BaseException;
 import com.bukadong.tcg.media.entity.Media;
 import com.bukadong.tcg.media.entity.MediaType;
 import com.bukadong.tcg.media.repository.MediaRepository;
-import com.bukadong.tcg.notice.dto.NoticeAttachmentDto;
-import com.bukadong.tcg.notice.dto.NoticeDetailDto;
-import com.bukadong.tcg.notice.dto.NoticeSummaryDto;
+import com.bukadong.tcg.notice.dto.response.NoticeAttachmentDto;
+import com.bukadong.tcg.notice.dto.response.NoticeDetailDto;
+import com.bukadong.tcg.notice.dto.response.NoticeSummaryDto;
 import com.bukadong.tcg.notice.entity.Notice;
 import com.bukadong.tcg.notice.repository.NoticeRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,16 +25,17 @@ import java.util.List;
  */
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
+@Transactional(readOnly = true) // 기본은 읽기 트랜잭션
 public class NoticeService {
 
     private final NoticeRepository noticeRepository;
     private final MediaRepository mediaRepository;
+    private final NoticeViewCounterService viewCounterService;
 
     /**
-     * 공지사항 페이지 조회
+     * 공지사항 단건 조회
      * <p>
-     * 생성일 내림차순으로 정렬한다. 첨부파일은 포함하지 않는다.
+     * 조회수는 별도 쓰기 트랜잭션(REQUIRES_NEW)에서 증가시키고, 이후 읽기 트랜잭션에서 최신 상태를 로드한다.
      * </p>
      *
      * @param page 0부터 시작하는 페이지 번호
@@ -60,14 +61,12 @@ public class NoticeService {
      */
     @Transactional
     public NoticeDetailDto getDetail(Long id) {
-        // [중요 로직] 단일 UPDATE 쿼리로 조회수 증가
-        int updated = noticeRepository.incrementViewCount(id);
-        if (updated == 0) {
-            throw new BaseException(BaseResponseStatus.NOT_FOUND);
-        }
+        // 조회수 1 증가 (쓰기 트랜잭션)
+        viewCounterService.increment(id);
 
-        // 공지(작성자 포함) 재조회
+        // 공지(작성자 포함) 조회 (읽기 트랜잭션)
         Notice n = noticeRepository.findById(id).orElseThrow(() -> new BaseException(BaseResponseStatus.NOT_FOUND));
+
         // 첨부파일 조회 (Media 테이블)
         List<Media> medias = mediaRepository.findByTypeAndOwnerIdOrderBySeqNoAsc(MediaType.NOTICE_ATTACHMENT, id);
         List<NoticeAttachmentDto> files = medias.stream().map(NoticeAttachmentDto::from).toList();

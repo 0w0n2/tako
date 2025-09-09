@@ -7,7 +7,6 @@ import org.springframework.data.jpa.repository.*;
 
 /**
  * 공지사항 엔티티용 JPA 레포지토리.
- *
  * <p>
  * 기본 CRUD 및 페이징/정렬 메서드를 제공한다.
  * </p>
@@ -29,7 +28,7 @@ public interface NoticeRepository extends JpaRepository<Notice, Long> {
      * @param id 공지 ID
      * @return 업데이트된 행 수(0 또는 1)
      */
-    @Modifying(clearAutomatically = false, flushAutomatically = false)
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("update Notice n set n.viewCount = n.viewCount + 1 where n.id = :id")
     int incrementViewCount(@org.springframework.data.repository.query.Param("id") Long id);
 }
