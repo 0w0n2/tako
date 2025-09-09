@@ -60,7 +60,7 @@ security:
     allowed-origins: ${SECURITY_CORS_ALLOWED_ORIGINS}
     allowed-methods: ${SECURITY_CORS_ALLOWED_METHODS}
     allowed-headers: ${SECURITY_CORS_ALLOWED_HEADERS}
-    allow-credentials: ${SECURITY_CORS_ALLOWED_CREDENTIALS}
+    allow-credentials: ${SECURITY_CORS_ALLOW_CREDENTIALS}
     exposed-headers: ${SECURITY_CORS_EXPOSED_HEADERS}
     max-age: ${SECURITY_CORS_MAX_AGE}
 
@@ -70,7 +70,6 @@ security:
   oauth2:
     authorize-uri: ${SECURITY_OAUTH2_AUTHORIZE_URI}
     redirect-uri: ${SECURITY_OAUTH2_REDIRECT_URI}
-
     client-redirect-uri: ${SECURITY_OAUTH2_CLIENT_REDIRECT_URI}
 
 # expire-time: # 나중에 만료 시간 등 설정할 때 사용할 것
