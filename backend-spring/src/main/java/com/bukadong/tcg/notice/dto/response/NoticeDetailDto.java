@@ -1,5 +1,6 @@
 package com.bukadong.tcg.notice.dto.response;
 
+import com.bukadong.tcg.media.dto.MediaDto;
 import com.bukadong.tcg.notice.entity.Notice;
 
 import java.time.LocalDateTime;
@@ -22,7 +23,7 @@ import java.util.List;
  * @return 없음
  */
 public record NoticeDetailDto(Long id, String title, String text, String nickname, Long viewCount,
-        LocalDateTime createdAt, LocalDateTime updatedAt, List<NoticeAttachmentDto> attachments) {
+        LocalDateTime createdAt, LocalDateTime updatedAt, List<MediaDto> attachments) {
     /**
      * Notice 엔티티와 첨부 DTO 리스트로 상세 DTO를 생성한다.
      *
@@ -30,7 +31,7 @@ public record NoticeDetailDto(Long id, String title, String text, String nicknam
      * @param files 첨부 DTO 리스트
      * @return NoticeDetailDto
      */
-    public static NoticeDetailDto of(Notice n, List<NoticeAttachmentDto> files) {
+    public static NoticeDetailDto of(Notice n, List<MediaDto> files) {
         return new NoticeDetailDto(n.getId(), n.getTitle(), n.getText(),
                 n.getAuthor().getNickname(), n.getViewCount(), n.getCreatedAt(), n.getUpdatedAt(),
                 files);
