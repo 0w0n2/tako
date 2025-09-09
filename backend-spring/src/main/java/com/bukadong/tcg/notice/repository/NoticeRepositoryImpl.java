@@ -37,7 +37,7 @@ public class NoticeRepositoryImpl implements NoticeRepositoryCustom {
         List<NoticeSummaryDto> content = queryFactory
                 .select(Projections.constructor(NoticeSummaryDto.class, QNotice.notice.id,
                         QNotice.notice.title, QNotice.notice.author.nickname,
-                        QNotice.notice.createdAt, QNotice.notice.viewCount))
+                        QNotice.notice.viewCount, QNotice.notice.createdAt))
                 .from(QNotice.notice).leftJoin(QNotice.notice.author, QMember.member)
                 .orderBy(QNotice.notice.createdAt.desc()).offset(pageable.getOffset())
                 .limit(pageable.getPageSize()).fetch();
@@ -61,7 +61,8 @@ public class NoticeRepositoryImpl implements NoticeRepositoryCustom {
         // 첨부파일 조회
         List<NoticeAttachmentDto> attachments = queryFactory
                 .select(Projections.constructor(NoticeAttachmentDto.class, QMedia.media.id,
-                        QMedia.media.url, QMedia.media.mimeType, QMedia.media.seqNo))
+                        QMedia.media.url, QMedia.media.mediaKind, QMedia.media.mimeType,
+                        QMedia.media.seqNo))
                 .from(QMedia.media)
                 .where(QMedia.media.type.eq(MediaType.NOTICE_ATTACHMENT)
                         .and(QMedia.media.ownerId.eq(id)))

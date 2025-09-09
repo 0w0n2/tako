@@ -10,7 +10,8 @@ import java.time.LocalDateTime;
  * 제목, 작성자, 조회수, 생성일을 포함한다.
  * </p>
  */
-public record NoticeSummaryDto(Long id, String title, String authorNickname, Long viewCount, LocalDateTime createdAt) {
+public record NoticeSummaryDto(Long id, String title, String nickname, Long viewCount,
+        LocalDateTime createdAt) {
     /**
      * Notice 엔티티를 요약 DTO로 변환한다.
      *
@@ -18,7 +19,7 @@ public record NoticeSummaryDto(Long id, String title, String authorNickname, Lon
      * @return NoticeSummaryDto
      */
     public static NoticeSummaryDto from(Notice n) {
-        return new NoticeSummaryDto(n.getId(), n.getTitle(), n.getAuthor().getNickname(), n.getViewCount(),
-                n.getCreatedAt());
+        return new NoticeSummaryDto(n.getId(), n.getTitle(), n.getAuthor().getNickname(),
+                n.getViewCount(), n.getCreatedAt());
     }
 }

@@ -63,7 +63,7 @@ class NoticeServiceTest {
         NoticeSummaryDto dto = result.getContent().get(0);
         assertThat(dto.id()).isEqualTo(1L);
         assertThat(dto.title()).isEqualTo("공지1");
-        assertThat(dto.authorNickname()).isEqualTo("관리자");
+        assertThat(dto.nickname()).isEqualTo("관리자");
         assertThat(dto.viewCount()).isEqualTo(5L);
         assertThat(dto.createdAt()).isEqualTo(LocalDateTime.of(2025, 9, 9, 12, 0));
     }
@@ -114,7 +114,7 @@ class NoticeServiceTest {
         long id = 7L;
         willDoNothing().given(viewCounterService).increment(id);
 
-        NoticeDetailDto detail = new NoticeDetailDto(id, "제목", "내용", 3L, "관리자", 11L,
+        NoticeDetailDto detail = new NoticeDetailDto(id, "제목", "내용", "관리자", 11L,
                 LocalDateTime.of(2025, 9, 9, 10, 0), LocalDateTime.of(2025, 9, 9, 11, 0), List.of() // attachments
         );
         given(noticeRepository.findDetailDtoById(id)).willReturn(detail);
