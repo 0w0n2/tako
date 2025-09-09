@@ -2,10 +2,10 @@ package com.bukadong.tcg.notice.repository;
 
 import com.bukadong.tcg.common.base.BaseResponseStatus;
 import com.bukadong.tcg.common.exception.BaseException;
+import com.bukadong.tcg.media.dto.MediaDto;
 import com.bukadong.tcg.media.entity.MediaType;
 import com.bukadong.tcg.media.entity.QMedia;
 import com.bukadong.tcg.member.entity.QMember;
-import com.bukadong.tcg.notice.dto.response.NoticeAttachmentDto;
 import com.bukadong.tcg.notice.dto.response.NoticeDetailDto;
 import com.bukadong.tcg.notice.dto.response.NoticeSummaryDto;
 import com.bukadong.tcg.notice.entity.Notice;
@@ -59,10 +59,9 @@ public class NoticeRepositoryImpl implements NoticeRepositoryCustom {
         }
 
         // 첨부파일 조회
-        List<NoticeAttachmentDto> attachments = queryFactory
-                .select(Projections.constructor(NoticeAttachmentDto.class, QMedia.media.id,
-                        QMedia.media.url, QMedia.media.mediaKind, QMedia.media.mimeType,
-                        QMedia.media.seqNo))
+        List<MediaDto> attachments = queryFactory
+                .select(Projections.constructor(MediaDto.class, QMedia.media.id, QMedia.media.url,
+                        QMedia.media.mediaKind, QMedia.media.mimeType, QMedia.media.seqNo))
                 .from(QMedia.media)
                 .where(QMedia.media.type.eq(MediaType.NOTICE_ATTACHMENT)
                         .and(QMedia.media.ownerId.eq(id)))
