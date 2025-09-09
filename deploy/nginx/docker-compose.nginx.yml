@@ -1,0 +1,62 @@
+version: "3.8"
+
+# ================================
+# Nginx + Certbot Reverse Proxy 스택
+# - Nginx: 리버스 프록시, SSL 적용
+# - Certbot: Let's Encrypt 인증서 발급/갱신
+# - 볼륨: 인증서(/etc/letsencrypt), 챌린지(/var/www/certbot) 공유
+# ================================
+
+services:
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: nginx
+    restart: unless-stopped
+
+    # 80, 443 포트를 외부로 개방
+    ports:
+      - "80:80"
+      - "443:443"
+
+    # Nginx 설정 파일 및 인증서/챌린지 디렉토리 마운트
+    volumes:
+      # 프로젝트에서 작성한 nginx.conf를 컨테이너 내부 /etc/nginx/nginx.conf 로 매핑
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+
+      # Certbot 발급/갱신된 인증서 저장소
+      - letsencrypt:/etc/letsencrypt
+
+      # Certbot HTTP-01 챌린지용 디렉토리
+      - certbot-webroot:/var/www/certbot
+
+    # 서비스들이 같이 묶일 네트워크 (다른 서비스와 같은 네트워크에 있어야 proxy_pass 가능)
+    networks:
+      - e104_net
+  certbot:
+    image: certbot/certbot:latest
+    container_name: certbot
+    # 평소엔 꺼져 있어도 되고, 필요 시 실행 (최초 발급/갱신)
+    volumes:
+      - letsencrypt:/etc/letsencrypt
+      - certbot-webroot:/var/www/certbot
+      # Cloudflare API 토큰이 담긴 ini 파일을 마운트 (Jenkins pipeline에서 생성/삭제)
+      - ./certbot/cloudflare.ini:/etc/letsencrypt/cloudflare.ini:ro
+
+    networks:
+      - e104_net
+
+# ================================
+# 네트워크 & 볼륨 정의
+# ================================
+
+networks:
+  e104_net:
+    external: true
+    # 실제 프론트/백/AI 서비스들이 붙어있는 네트워크 이름과 동일해야 함.
+    # 예: docker-compose.dev.yml, docker-compose.prod.yml 에 정의된 네트워크 재사용
+
+volumes:
+  letsencrypt:
+    # 인증서 데이터는 영속적으로 저장해야 함
+  certbot-webroot:
+    # HTTP 챌린지 응답용 (갱신 시에도 사용)
