@@ -15,8 +15,8 @@ pipeline {
         [key:'GL_PROJECT',      value:'$.project.path_with_namespace'],
         [key:'GL_MR_SHA',       value:'$.object_attributes.last_commit.id'],
         [key:'GL_MR_URL',       value:'$.object_attributes.url'],
-        [key:'GL_ASSIGNEE',     value:'$.assignees.username'],
-        [key:'GL_REVIEWER',     value:'$.reveiwers.username'],
+        [key:'GL_ASSIGNEE',     value:'$.assignees[0].username'],
+        [key:'GL_REVIEWER',     value:'$.reveiwers[0].username'],
         [key:'GL_USER_NAME',    value:'$.user.name']
       ],
       token: 'tcg-mr',
@@ -373,7 +373,7 @@ pipeline {
                 endpoint: MM_WEBHOOK,
                 color: 'good',
                 message: """
-#### :green_frog: ${env.GL_USER_NAME ?: 'E104'}'s MR Generated!!!!!!!!! :green_frog:
+#### :green_frog: `${env.GL_USER_NAME ?: 'E104'}` MR Generated!!!!!!!!! :green_frog:
 
 ##### [${env.GL_MR_TITLE ?: 'No title'}](${env.GL_MR_URL ?: env.BUILD_URL})
 *서둘러서 코드 리뷰 해주세요~! 수정 필요할 경우 작성자 태그해주세요!!*
