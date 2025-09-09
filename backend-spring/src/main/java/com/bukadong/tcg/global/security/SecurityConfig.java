@@ -1,5 +1,6 @@
-package com.bukadong.tcg.global.config;
+package com.bukadong.tcg.global.security;
 
+import com.bukadong.tcg.api.member.entity.Role;
 import com.bukadong.tcg.global.properties.SecurityCorsProperties;
 import com.bukadong.tcg.global.properties.SecurityOAuth2Properties;
 import com.bukadong.tcg.global.properties.SecurityRoleProperties;
@@ -50,8 +51,18 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))   // 세션 인증 미사용
 
                 /* 경로별 인가 */
+                .authorizeHttpRequests(auth -> {
+                    whitelistProperties.getParsedWhitelist().forEach((method, urls) -> {
+                        if (urls != null && !urls.isEmpty()) {
+                            auth.requestMatchers(method, urls.toArray(new String[0])).permitAll();
+                        }
+                    });
+                    auth.requestMatchers(roleProperties.admin().toArray(new String[0])).hasRole(Role.ADMIN.getRoleName());
+                    auth.anyRequest().authenticated();
+                })
 
                 /* OAuth2 */
+                // TODO-SECURITY: oauth2 관련 설정 추가
 
                 /* 필터 */
 
@@ -81,6 +92,8 @@ public class SecurityConfig {
         configuration.setAllowCredentials(corsProperties.allowCredentials());
         configuration.setExposedHeaders(corsProperties.exposedHeaders());
         configuration.setMaxAge(corsProperties.maxAge());
+
+
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
