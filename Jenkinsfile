@@ -402,7 +402,7 @@ pipeline {
 #### :x: Jenkins Pipeline Failed :x:
 
 ##### [${env.GL_MR_TITLE ?: 'No title'}](${env.GL_MR_URL ?: env.BUILD_URL})
-:pencil2: Assignee: @${GL_ASSIGNEE ?: '9526yu'}
+:pencil2: Assignee: @${env.GL_ASSIGNEE ?: '9526yu'}
 
 :gun_cat: **Target**: `${env.GL_MR_TARGET ?: 'develop'}`
 
