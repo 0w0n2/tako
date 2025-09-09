@@ -15,15 +15,15 @@ pipeline {
         [key:'GL_PROJECT',      value:'$.project.path_with_namespace'],
         [key:'GL_MR_SHA',       value:'$.object_attributes.last_commit.id'],
         [key:'GL_MR_URL',       value:'$.object_attributes.url'],
-        [key:'GL_ASSIGNEE',     value:'$.assignees.username'],
-        [key:'GL_REVIEWER',     value:'$.reveiwers.username'],
+        [key:'GL_ASSIGNEE',     value:'$.assignees[0].username'],
+        [key:'GL_REVIEWER',     value:'$.reveiwers[0].username'],
         [key:'GL_USER_NAME',    value:'$.user.name']
       ],
       token: 'tcg-mr',
       printContributedVariables: true,
       printPostContent: true,
       regexpFilterText: '$GL_EVENT:$GL_MR_ACTION',
-      regexpFilterExpression: '^merge_request:(open|reopen|merge)$'
+      regexpFilterExpression: '^merge_request:(open|reopen|merge|update)$'
     )
   }
 
@@ -166,11 +166,20 @@ pipeline {
               "${GITLAB_BASE}/api/v4/projects/${PROJECT_ENC}/statuses/${SHA}" \
               -w "\\nHTTP %{http_code}\\n"
           '''
+
+          script {
+            if (env.GL_MR_ACTION == 'update') {
+              env.SKIP_POST_SUCCESS = 'true'
+
+              currentBuild.result = 'SUCCESS'
+              throw new org.jenkinsci.plugins.workflow.steps.FlowInterruptedException(hudson.model.Result.SUCCESS)
+            }
+          }
         }
       }
     }
 
-    // 병합 시에만 레포 준비(체크아웃) → 태그 푸시용
+    // release 브랜치에 병합 시에만 레포 준비(체크아웃) → 태그 푸시용
     stage('Prepare repo (only on merge)') {
       when {
         expression {
@@ -270,6 +279,11 @@ pipeline {
     success {
       withCredentials([string(credentialsId: 'MM_WEBHOOK', variable: 'MM_WEBHOOK')]) {
         script{
+          if (env.SKIP_POST_SUCCESS == 'true') {
+            echo 'update action - skip post success'
+            return
+          }
+
           // 브랜치 이름에 따라 알림 다르게
           def source = env.GL_MR_SOURCE ?: ""
           def category = ""
@@ -359,7 +373,7 @@ pipeline {
                 endpoint: MM_WEBHOOK,
                 color: 'good',
                 message: """
-#### :green_frog: ${env.GL_USER_NAME ?: 'E104'}'s MR Generated!!!!!!!!! :green_frog:
+#### :green_frog: `${env.GL_USER_NAME ?: 'E104'}` MR Generated!!!!!!!!! :green_frog:
 
 ##### [${env.GL_MR_TITLE ?: 'No title'}](${env.GL_MR_URL ?: env.BUILD_URL})
 *서둘러서 코드 리뷰 해주세요~! 수정 필요할 경우 작성자 태그해주세요!!*
@@ -381,6 +395,16 @@ pipeline {
       // 실패 원인 tail은 우리가 쌓아둔 로그 파일이 있으면 그걸 활용. 그런데 가능할지 모르겠음.
       withCredentials([string(credentialsId: 'MM_WEBHOOK', variable: 'MM_WEBHOOK')]) {
         script {
+          // 에러나 예외 로그가 담긴 최대 20줄을 뽑아서 메세지에 포함
+          def errLogs = sh(
+            script: "grep -iE 'error|exception' ${currentBuild.rawBuild.logFile} | tail -n 20",
+            returnStdout: true
+          ).trim()
+
+          if (!errLogs) {
+            errLogs = "No specific error logs found (check console for details)"
+          }
+
           mattermostSend(
               endpoint: MM_WEBHOOK,
               color: 'danger',  
@@ -388,11 +412,14 @@ pipeline {
 #### :x: Jenkins Pipeline Failed :x:
 
 ##### [${env.GL_MR_TITLE ?: 'No title'}](${env.GL_MR_URL ?: env.BUILD_URL})
-:pencil2: Assignee: @${GL_ASSIGNEE ?: '9526yu'}
+:pencil2: Assignee: @${env.GL_ASSIGNEE ?: '9526yu'}
 
 :gun_cat: **Target**: `${env.GL_MR_TARGET ?: 'develop'}`
 
 ##### Error Logs
+```
+${errLogs}
+```
 """
           )
         }
