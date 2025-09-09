@@ -1,4 +1,6 @@
 package com.bukadong.tcg.global.common.base;
+
+import com.bukadong.tcg.global.support.TypeCaster;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 
@@ -35,6 +37,10 @@ public record BaseResponse<T>(HttpStatusCode httpStatus, Boolean isSuccess, Stri
     }
 
     public BaseResponse(BaseResponseStatus status) {
-        this(status.getHttpStatusCode(), status.isSuccess(), status.getMessage(), status.getCode(), null);
+        this(status.getHttpStatusCode(), status.isSuccess(), status.getMessage(), status.getCode(), TypeCaster.castMessage(status.getMessage()));
+    }
+
+    public BaseResponse(BaseResponseStatus status, String message) {
+        this(status.getHttpStatusCode(), status.isSuccess(), message, status.getCode(), TypeCaster.castMessage(message));
     }
 }
