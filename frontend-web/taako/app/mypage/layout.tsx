@@ -6,7 +6,7 @@ export default function RootLayout({
     children: React.ReactNode;
   }>) {
     return (
-        <div>
+        <div className="default-container flex pb-40">
             <MypageSideMenu/>
             {children}
         </div>
