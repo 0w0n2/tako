@@ -31,6 +31,6 @@ public class BaseExceptionHandler {
     @ExceptionHandler(RuntimeException.class)
     protected BaseResponse<Void> handleRuntimeException(RuntimeException e) {
         log.error("RuntimeException -> {}", e.getMessage(), e);
-        return new BaseResponse<>(BaseResponseStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        return new BaseResponse<>(BaseResponseStatus.INTERNAL_SERVER_ERROR);
     }
 }
