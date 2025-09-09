@@ -8,7 +8,9 @@ export default function RootLayout({
     return (
         <div className="default-container flex pb-40">
             <MypageSideMenu/>
-            {children}
+            <div className="flex-1">
+              {children}
+            </div>
         </div>
     );
 }
