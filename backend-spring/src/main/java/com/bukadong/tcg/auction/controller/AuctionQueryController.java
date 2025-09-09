@@ -20,7 +20,7 @@ import java.util.List;
  * </p>
  */
 @RestController
-@RequestMapping("/api/v1/auctions")
+@RequestMapping("/v1/auctions")
 @RequiredArgsConstructor
 public class AuctionQueryController {
 

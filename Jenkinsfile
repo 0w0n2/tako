@@ -16,7 +16,7 @@ pipeline {
         [key:'GL_MR_SHA',       value:'$.object_attributes.last_commit.id'],
         [key:'GL_MR_URL',       value:'$.object_attributes.url'],
         [key:'GL_ASSIGNEE',     value:'$.assignees[0].username'],
-        [key:'GL_REVIEWER',     value:'$.reveiwers[0].username'],
+        [key:'GL_REVIEWER',     value:'$.reviewers[0].username'],
         [key:'GL_USER_NAME',    value:'$.user.name']
       ],
       token: 'tcg-mr',

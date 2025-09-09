@@ -16,19 +16,15 @@ public class SwaggerConfig {
 
     @Bean
     OpenAPI openAPI() {
-        return new OpenAPI()
-                .addServersItem(new Server().url(swaggerUri))
-                .info(new Info()
-                        .title("SSAFY TCG 옥션의 API")
-                        .description("00 API 테스트를 위한 Swagger UI")
+        return new OpenAPI().addServersItem(new Server().url(swaggerUri))
+                .info(new Info().title("SSAFY TCG 옥션의 API").description("00 API 테스트를 위한 Swagger UI")
                         .version("1.0.0"));
     }
 
     @Bean
     GroupedOpenApi publicApi() {
-        return GroupedOpenApi.builder()
-                .group("public-api") // 그룹 이름
-                .pathsToMatch("/api/v1/**") // 이 경로에 해당하는 API 문서화
+        return GroupedOpenApi.builder().group("public-api") // 그룹 이름
+                .pathsToMatch("/v1/**") // 이 경로에 해당하는 API 문서화
                 .build();
     }
 }
