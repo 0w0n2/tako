@@ -19,7 +19,6 @@ import java.util.List;
 
 /**
  * 공지사항 조회 비즈니스 로직.
- *
  * <p>
  * 레포지토리에서 엔티티/미디어를 조회한 뒤 DTO로 변환하여 반환한다.
  * </p>
@@ -34,10 +33,9 @@ public class NoticeService {
 
     /**
      * 공지사항 페이지 조회
-     *
      * <p>
-     * 작성자를 함께 로드하여 N+1 문제를 방지하고,
      * 생성일 내림차순으로 정렬한다.
+     * 첨부파일은 포함하지 않는다.
      * </p>
      *
      * @param page 0부터 시작하는 페이지 번호
@@ -56,10 +54,9 @@ public class NoticeService {
     /**
      * 공지사항 단건 조회
      *
-     * <p>
      * 조회수를 1 증가시킨 뒤, 작성자 포함 공지를 조회하고
-     * 첨부파일(Media: NOTICE_ATTACHMENT)을 함께 로드하여 상세 DTO로 반환한다.
-     * </p>
+     * 첨부파일(Media: NOTICE_ATTACHMENT) </p>
+     * 
      *
      * @param id 공지사항 ID
      * @return 공지사항 상세 DTO
@@ -75,14 +72,11 @@ public class NoticeService {
 
         // 공지(작성자 포함) 재조회
         Notice n = noticeRepository.findById(id)
-                .orElseThrow(() -> new BaseException(BaseResponseStatus.NOT_FOUND));
-
+                .orElseThrow(() -> new BaseExcep
         // 첨부파일 조회 (Media 테이블)
         List<Media> medias = mediaRepository.findByTypeAndOwnerIdOrderBySeqNoAsc(MediaType.NOTICE_ATTACHMENT, id);
         List<NoticeAttachmentDto> files = medias.stream()
-                .map(NoticeAttachmentDto::from)
-                .toList();
-
+                .map(NoticeAttachmentDto::from).toList();
         return NoticeDetailDto.of(n, files);
     }
 }

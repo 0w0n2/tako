@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 
 /**
  * 공지사항 조회 API (공개)
- *
  * <p>
  * 공지사항 목록과 상세 정보를 제공한다.
  * </p>
@@ -29,18 +28,16 @@ public class NoticeController {
 
     /**
      * 공지사항 목록 조회 (페이지네이션 포함)
-     *
      * <p>
      * 제목, 글쓴이, 조회수, 생성일을 반환한다.
      * </p>
      *
      * @param page 페이지 번호 (0부터 시작)
      * @param size 페이지 크기
-     * @return PageResponse&lt;NoticeSummaryDto&gt;
+     * @return PageResponse; NoticeSummaryDto;
      */
     @GetMapping
-    public BaseResponse<PageResponse<NoticeSummaryDto>> list(
-            @RequestParam(defaultValue = "0") @PositiveOrZero int page,
+    public BaseResponse<PageResponse<NoticeSummaryDto>> list(@RequestParam(defaultValue = "0") @PositiveOrZero int page,
             @RequestParam(defaultValue = "20") @Min(1) int size) {
         Page<NoticeSummaryDto> p = noticeService.getSummaryPage(page, size);
         return new BaseResponse<>(PageResponse.from(p));
@@ -48,7 +45,6 @@ public class NoticeController {
 
     /**
      * 공지사항 단건 조회
-     *
      * <p>
      * 제목, 내용, 글쓴이, 조회수, 생성일, 첨부파일을 반환한다.
      * </p>

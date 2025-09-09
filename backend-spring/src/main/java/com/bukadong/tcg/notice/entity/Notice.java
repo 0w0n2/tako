@@ -7,23 +7,19 @@ import lombok.*;
 
 /**
  * 공지사항 엔티티
- *
  * <p>
  * 관리자가 작성하는 공지사항 정보를 저장한다.
  * </p>
- *
  * <ul>
- * <li>회원(member_id) FK</li>
+ * <li>회원(member_id)와 연관 (작성자 FK)</li>
  * <li>제목(title), 본문(text), 조회수(view_count) 관리</li>
  * <li>제목/작성자/생성일 인덱스</li>
  * </ul>
  */
 @Entity
-@Table(name = "notice", indexes = {
-        @Index(name = "idx_notice_author", columnList = "member_id"),
+@Table(name = "notice", indexes = { @Index(name = "idx_notice_author", columnList = "member_id"),
         @Index(name = "idx_notice_created", columnList = "created_at"),
-        @Index(name = "idx_notice_title", columnList = "title")
-})
+        @Index(name = "idx_notice_title", columnList = "title") })
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
