@@ -10,7 +10,7 @@ services:
     ]
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
-      MYSQL_DATABASE: tako_mysql_dev
+      MYSQL_DATABASE: mysql_dev
       MYSQL_USER: ${DB_USERNAME}
       MYSQL_PASSWORD: ${DB_PASSWORD}
     volumes:
