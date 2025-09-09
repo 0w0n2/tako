@@ -13,7 +13,7 @@ import com.bukadong.tcg.notice.entity.Notice;
 import com.bukadong.tcg.notice.repository.NoticeRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentMatchers;
+import org.mockito.ArgumentCaptor;
 import org.springframework.data.domain.*;
 
 import java.time.LocalDateTime;
@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -29,14 +29,17 @@ import static org.mockito.Mockito.never;
 /**
  * NoticeService 테스트
  * <p>
- * 조회수 증가, 목록/상세 DTO 매핑을 검증한다.
+ * 조회수 증가(분리 트랜잭션), 목록/상세 DTO 매핑을 검증한다.
  * </p>
  */
 class NoticeServiceTest {
 
     private final NoticeRepository noticeRepository = mock(NoticeRepository.class);
     private final MediaRepository mediaRepository = mock(MediaRepository.class);
-    private final NoticeService noticeService = new NoticeService(noticeRepository, mediaRepository);
+    private final NoticeViewCounterService viewCounterService = mock(NoticeViewCounterService.class);
+
+    private final NoticeService noticeService = new NoticeService(noticeRepository, mediaRepository,
+            viewCounterService);
 
     @Test
     @DisplayName("getSummaryPage - 제목/닉네임/조회수/생성일 매핑")
@@ -53,7 +56,7 @@ class NoticeServiceTest {
         given(n1.getCreatedAt()).willReturn(LocalDateTime.of(2025, 9, 9, 12, 0));
 
         Page<Notice> page = new PageImpl<>(List.of(n1), PageRequest.of(0, 20, Sort.by("createdAt").descending()), 1);
-        given(noticeRepository.findAllBy(ArgumentMatchers.any(Pageable.class))).willReturn(page);
+        given(noticeRepository.findAllBy(any(Pageable.class))).willReturn(page);
 
         Page<NoticeSummaryDto> result = noticeService.getSummaryPage(0, 20);
 
@@ -67,12 +70,14 @@ class NoticeServiceTest {
     }
 
     @Test
-    @DisplayName("getDetail - 조회수 증가 + 첨부 포함 반환")
+    @DisplayName("getDetail - 조회수 증가(분리 트랜잭션) + 첨부 포함 반환")
     void getDetail_incrementsViewCount_andReturnsAttachments() {
         long noticeId = 7L;
 
-        given(noticeRepository.incrementViewCount(noticeId)).willReturn(1);
+        // 분리 트랜잭션 카운터: 정상 (void 메서드라 doNothing 생략 가능)
+        willDoNothing().given(viewCounterService).increment(noticeId);
 
+        // 공지 + 작성자
         Member author = mock(Member.class);
         given(author.getId()).willReturn(3L);
         given(author.getNickname()).willReturn("관리자");
@@ -88,15 +93,18 @@ class NoticeServiceTest {
 
         given(noticeRepository.findById(noticeId)).willReturn(Optional.of(notice));
 
+        // 첨부(Media)
         Media m1 = Media.builder().id(100L).type(MediaType.NOTICE_ATTACHMENT).ownerId(noticeId)
                 .url("https://cdn.example.com/a.pdf").mediaKind(MediaKind.IMAGE).mimeType("application/pdf").seqNo(1)
                 .build();
         given(mediaRepository.findByTypeAndOwnerIdOrderBySeqNoAsc(MediaType.NOTICE_ATTACHMENT, noticeId))
                 .willReturn(List.of(m1));
 
+        // when
         NoticeDetailDto dto = noticeService.getDetail(noticeId);
 
-        then(noticeRepository).should().incrementViewCount(noticeId);
+        // then
+        then(viewCounterService).should().increment(noticeId);
         then(noticeRepository).should().findById(noticeId);
         then(mediaRepository).should().findByTypeAndOwnerIdOrderBySeqNoAsc(MediaType.NOTICE_ATTACHMENT, noticeId);
 
@@ -111,15 +119,18 @@ class NoticeServiceTest {
     }
 
     @Test
-    @DisplayName("getDetail - 존재하지 않으면 NOT_FOUND")
+    @DisplayName("getDetail - 존재하지 않으면 NOT_FOUND (카운터 단계에서 예외)")
     void getDetail_notFound() {
         long invalidId = 999L;
-        given(noticeRepository.incrementViewCount(invalidId)).willReturn(0);
+
+        // 분리된 카운터 서비스에서 NOT_FOUND를 던지도록 설정
+        willThrow(new BaseException(BaseResponseStatus.NOT_FOUND)).given(viewCounterService).increment(invalidId);
 
         assertThatThrownBy(() -> noticeService.getDetail(invalidId)).isInstanceOf(BaseException.class)
                 .extracting("status").isEqualTo(BaseResponseStatus.NOT_FOUND);
 
-        then(noticeRepository).should().incrementViewCount(invalidId);
+        then(viewCounterService).should().increment(invalidId);
+        // 카운터에서 실패했으므로 findById는 호출되지 않아야 함
         then(noticeRepository).should(never()).findById(anyLong());
     }
 
@@ -131,7 +142,7 @@ class NoticeServiceTest {
 
         noticeService.getSummaryPage(-5, 1000);
 
-        var captor = org.mockito.ArgumentCaptor.forClass(Pageable.class);
+        ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
         then(noticeRepository).should().findAllBy(captor.capture());
 
         Pageable p = captor.getValue();
