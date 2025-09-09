@@ -1,21 +1,13 @@
 package com.bukadong.tcg.notice.service;
 
-import com.bukadong.tcg.common.base.BaseResponseStatus;
 import com.bukadong.tcg.common.exception.BaseException;
-import com.bukadong.tcg.media.entity.Media;
-import com.bukadong.tcg.media.entity.MediaType;
-import com.bukadong.tcg.media.repository.MediaRepository;
-import com.bukadong.tcg.notice.dto.response.NoticeAttachmentDto;
 import com.bukadong.tcg.notice.dto.response.NoticeDetailDto;
 import com.bukadong.tcg.notice.dto.response.NoticeSummaryDto;
-import com.bukadong.tcg.notice.entity.Notice;
 import com.bukadong.tcg.notice.repository.NoticeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 /**
  * 공지사항 조회 비즈니스 로직.
@@ -29,7 +21,6 @@ import java.util.List;
 public class NoticeService {
 
     private final NoticeRepository noticeRepository;
-    private final MediaRepository mediaRepository;
     private final NoticeViewCounterService viewCounterService;
 
     /**
@@ -48,8 +39,7 @@ public class NoticeService {
 
         Pageable pageable = PageRequest.of(safePage, safeSize,
                 Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<Notice> entities = noticeRepository.findAllBy(pageable);
-        return entities.map(NoticeSummaryDto::from);
+        return noticeRepository.findSummaryPage(pageable);
     }
 
     /**
@@ -60,19 +50,8 @@ public class NoticeService {
      * @return 공지사항 상세 DTO
      * @throws BaseException NOT_FOUND: 존재하지 않을 때
      */
-    @Transactional
     public NoticeDetailDto getDetail(Long id) {
-        // 조회수 1 증가 (쓰기 트랜잭션)
-        viewCounterService.increment(id);
-
-        // 공지(작성자 포함) 조회 (읽기 트랜잭션)
-        Notice n = noticeRepository.findById(id)
-                .orElseThrow(() -> new BaseException(BaseResponseStatus.NOT_FOUND));
-
-        // 첨부파일 조회 (Media 테이블)
-        List<Media> medias = mediaRepository
-                .findByTypeAndOwnerIdOrderBySeqNoAsc(MediaType.NOTICE_ATTACHMENT, id);
-        List<NoticeAttachmentDto> files = medias.stream().map(NoticeAttachmentDto::from).toList();
-        return NoticeDetailDto.of(n, files);
+        viewCounterService.increment(id); // 별도 트랜잭션으로 조회수 증가
+        return noticeRepository.findDetailDtoById(id);
     }
 }
