@@ -30,6 +30,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final TokenProvider tokenProvider;
     private final TokenBlackListService tokenBlackListService;
+    private final SecurityWhitelistProperties whitelistProperties;
+    private final AntPathMatcher pathMatcher = new AntPathMatcher();
+
+    @Override
+    protected boolean shouldNotFilter(@NonNull HttpServletRequest request) throws ServletException {
+        String uri = request.getRequestURI();
+        String method = request.getMethod();
+
+        return whitelistProperties.getParsedWhitelist().entrySet().stream()
+                .anyMatch(entry -> {
+                    boolean methodMatches = entry.getKey().name().equalsIgnoreCase(method);
+                    boolean pathMatches = entry.getValue().stream()
+                            .anyMatch(pattern -> pathMatcher.match(pattern, uri));
+                    return methodMatches && pathMatches;
+                });
+    }
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
