@@ -1,5 +1,6 @@
 package com.bukadong.tcg.api.auction.controller;
 
+import com.bukadong.tcg.api.auction.dto.response.AuctionDetailResponse;
 import com.bukadong.tcg.api.auction.dto.response.AuctionListItemDto;
 import com.bukadong.tcg.api.auction.repository.AuctionSort;
 import com.bukadong.tcg.api.auction.service.AuctionQueryService;
@@ -7,8 +8,14 @@ import com.bukadong.tcg.api.popularity.aop.AutoPopularityBid;
 import com.bukadong.tcg.api.popularity.aop.AutoPopularityView;
 import com.bukadong.tcg.global.common.base.BaseResponse;
 import com.bukadong.tcg.global.common.dto.PageResponse;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -17,17 +24,22 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * 경매 목록 조회 API (QueryDSL)
+ * 경매 조회 및 입찰 API
  * <P>
- * 동적 필터/정렬/페이지네이션을 제공한다.
+ * 컨트롤러는 얇게 유지하고, 비즈니스 로직은 서비스에서 수행한다.
  * </P>
+ * 
+ * @PARAM 없음
+ * @RETURN BaseResponse로 래핑된 DTO
  */
+@Tag(name = "Auctions", description = "경매 조회 및 입찰 API")
 @RestController
 @RequestMapping("/v1/auctions")
 @RequiredArgsConstructor
+@Validated
 public class AuctionQueryController {
 
-    private final AuctionQueryService service;
+    private final AuctionQueryService auctionQueryService;
 
     /**
      * 경매 목록 조회
@@ -62,24 +74,28 @@ public class AuctionQueryController {
                 : Arrays.stream(grades.split(",")).map(String::trim).filter(s -> !s.isEmpty())
                         .collect(Collectors.toSet());
 
-        var pageData = service.browse(categoryMajorId, categoryMediumId, title, cardId,
+        var pageData = auctionQueryService.browse(categoryMajorId, categoryMediumId, title, cardId,
                 currentPriceMin, currentPriceMax, gradeSet, sort, page);
         return new BaseResponse<>(pageData);
     }
 
     /**
-     * 경매 상세 조회 (깡통)
+     * 경매 상세 조회
      * <P>
-     * 실제 상세 로직 없이 성공 응답만 반환한다.
+     * 경매/카드/이미지/일주일 시세/입찰 히스토리를 포함한 상세 정보를 조회한다.
      * </P>
      * 
-     * @PARAM auctionId 경매 ID
-     * @RETURN BaseResponse<Void>
+     * @PARAM id 경매 ID (Path)
+     * @PARAM historySize 히스토리 개수 (Query, 기본 5)
+     * @RETURN BaseResponse<AuctionDetailResponse>
      */
     @AutoPopularityView
-    @GetMapping("/{auctionId}")
-    public BaseResponse<Void> getDetail(@PathVariable Long auctionId) {
-        return BaseResponse.onSuccess();
+    @Operation(summary = "경매 상세 조회", description = "경매/카드/이미지/일주일 시세/입찰 히스토리를 반환합니다.")
+    @GetMapping("/{id}")
+    public BaseResponse<AuctionDetailResponse> getDetail(
+            @Parameter(description = "경매 ID") @PathVariable("id") Long id,
+            @Parameter(description = "히스토리 개수(기본 5)") @RequestParam(name = "historySize", required = false, defaultValue = "5") @Min(1) int historySize) {
+        return BaseResponse.onSuccess(auctionQueryService.getDetail(id, historySize));
     }
 
     /**
