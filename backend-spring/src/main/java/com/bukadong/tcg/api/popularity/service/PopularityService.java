@@ -67,7 +67,6 @@ public class PopularityService {
      * @PARAM auctionId 경매 ID
      * @RETURN 없음
      */
-    @Transactional(readOnly = true)
     public void recordView(long categoryId, long auctionId) {
         applyEventToMinuteBucket(categoryId, auctionId, viewWeight);
     }
@@ -82,7 +81,6 @@ public class PopularityService {
      * @PARAM auctionId 경매 ID
      * @RETURN 없음
      */
-    @Transactional(readOnly = true)
     public void recordBid(long categoryId, long auctionId) {
         applyEventToMinuteBucket(categoryId, auctionId, bidWeight);
     }
@@ -162,7 +160,7 @@ public class PopularityService {
                 double score = (t.getScore() != null) ? t.getScore() : 0.0;
                 Card card = (cardId != null) ? cardMap.get(cardId) : null;
 
-                String rarity = "DEFAULT";
+                String rarity = Rarity.DEFAULT.name();
                 if (card != null && card.getRarity() != null) {
                     rarity = card.getRarity().name();
                 }

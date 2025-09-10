@@ -98,9 +98,10 @@ public class PopularityAutoAspect {
     }
 
     /**
-     * 메서드 인자에서 auctionId 추출
+     * 메서드 인자에서 auctionId 추출 (명시적 지정 우선)
      * <P>
-     * @PathVariable("auctionId") 우선, 없으면 첫 Long 타입 인자 사용.
+     * 우선순위: 1) @PopularityAuctionId 가 붙은 Long 파라미터 2) @PathVariable("auctionId") 가
+     * 붙은 Long 파라미터 3) 파라미터 이름이 "auctionId" 인 Long (컴파일 옵션 -parameters 필요)
      * </P>
      * 
      * @PARAM jp 조인포인트
@@ -108,8 +109,18 @@ public class PopularityAutoAspect {
      */
     private Long resolveAuctionId(JoinPoint jp) {
         Object[] args = jp.getArgs();
-        Parameter[] params = ((MethodSignature) jp.getSignature()).getMethod().getParameters();
+        MethodSignature sig = (MethodSignature) jp.getSignature();
+        Parameter[] params = sig.getMethod().getParameters();
 
+        // 1) @PopularityAuctionId
+        for (int i = 0; i < params.length; i++) {
+            if (params[i].isAnnotationPresent(PopularityAuctionId.class)
+                    && args[i] instanceof Long l) {
+                return l;
+            }
+        }
+
+        // 2) @PathVariable("auctionId")
         for (int i = 0; i < params.length; i++) {
             for (Annotation an : params[i].getAnnotations()) {
                 if (an instanceof PathVariable pv) {
@@ -120,10 +131,16 @@ public class PopularityAutoAspect {
                 }
             }
         }
-        for (Object arg : args) {
-            if (arg instanceof Long l)
+
+        // 3) 파라미터명 "auctionId" (컴파일러 -parameters 필요)
+        for (int i = 0; i < params.length; i++) {
+            if ("auctionId".equals(params[i].getName()) && args[i] instanceof Long l) {
                 return l;
+            }
         }
+
+        log.debug("[PopularityAOP] auctionId not resolved. Method: {}", sig.getMethod());
         return null;
     }
+
 }
