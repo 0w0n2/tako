@@ -1,5 +1,5 @@
 # ---------- Build stage ----------
-FROM openjdk:17-jdk-slim AS build
+FROM eclipse-temurin:17-jdk-jammy AS build
 WORKDIR /app
 
 # (선택) 테스트 스킵 여부를 빌드 인자로 제어
@@ -22,7 +22,7 @@ RUN --mount=type=cache,target=/root/.gradle \
     ./gradlew clean bootJar $( [ "$SKIP_TESTS" = "true" ] && echo "-x test" )
 
 # ---------- Runtime stage ----------
-FROM openjdk:17-jre-slim AS runtime
+FROM eclipse-temurin:17-jre-jammy AS runtime
 WORKDIR /app
 
 # 보안: 비루트 유저
@@ -34,6 +34,8 @@ COPY --from=build /app/build/libs/*.jar /app/app.jar
 
 # 포트만 노출 (환경변수/옵션은 compose에서 관리)
 EXPOSE 8080
+
+ENV JAVA_OPTS=""
 
 # 깔끔한 기본 엔트리포인트
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar /app/app.jar"]
