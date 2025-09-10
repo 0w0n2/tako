@@ -1,0 +1,86 @@
+# deploy/docker-compose.prod.yml
+version: "3.9"
+
+services:
+  mysql_prod:
+    image: mysql:8.0
+    container_name: mysql_prod
+    command: [
+      "--max-connections=200",
+      "--innodb-buffer-pool-size=256M",
+      "--character-set-server=utf8mb4",
+      "--collation-server=utf8mb4_unicode_ci"
+    ]
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: tcg
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - mysql_prod_data:/var/lib/mysql
+    restart: unless-stopped
+    networks:
+      - e104_net
+
+  redis_prod:
+    image: redis:8.0
+    container_name: redis_prod
+    command: ["redis-server","--maxmemory","128mb","--maxmemory-policy","volatile-lru"]
+    volumes:
+      - redis_prod_data:/data
+    restart: unless-stopped
+    networks:
+      - e104_net
+
+  tako_back:
+    # prod에선 레지스트리 이미지를 쓰려면 아래처럼 image로 교체하면 됨:
+    # image: seok1419/backend_app:latest
+    build:
+      context: ../backend-spring
+      dockerfile: Dockerfile
+    container_name: tako_back
+    env_file:
+      - .env.prod
+    depends_on:
+      - mysql_prod
+      - redis_prod
+    restart: unless-stopped
+    networks:
+      - e104_net
+
+  tako_front:
+    # image: seok1419/tetonam-frontend:latest
+    build:
+      context: ../frontend-web/taako
+      dockerfile: Dockerfile
+    container_name: tako_front
+    env_file:
+      - .env.prod
+    restart: unless-stopped
+    networks:
+      - e104_net
+
+  tako_ai:
+    # image: seok1419/ai-fastapi:latest
+    build:
+      context: ../backend-fastapi
+      dockerfile: Dockerfile
+    container_name: tako_ai
+    # dev 예시에서 'port:'로 되어있던 부분은 compose 문법상 'ports:'가 맞아요.
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env.prod
+    restart: unless-stopped
+    networks:
+      - e104_net
+
+networks:
+  e104_net:
+    external: true
+
+volumes:
+  mysql_prod_data:
+    external: true
+  redis_prod_data:
+    external: true

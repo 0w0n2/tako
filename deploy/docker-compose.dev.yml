@@ -1,0 +1,88 @@
+services:
+  mysql_dev:
+    image: mysql:8.0
+    container_name: mysql_dev
+    command: [
+      "--max-connections=200",
+      "--innodb-buffer-pool-size=256M",
+      "--character-set-server=utf8mb4",
+      "--collation-server=utf8mb4_unicode_ci"
+    ]
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: tcg
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - mysql_dev_data:/var/lib/mysql
+    mem_limit: 512m
+    cpus: "0.5"
+    restart: unless-stopped
+    networks:
+      - e104_net
+
+  redis_dev:
+    image: redis:8.0
+    container_name: redis_dev
+    command: ["redis-server","--maxmemory","128mb","--maxmemory-policy","volatile-lru"]
+    mem_limit: 256m
+    cpus: "0.25"
+    volumes:
+      - redis_dev_data:/data
+    restart: unless-stopped
+    networks:
+      - e104_net
+
+  tako_back_dev:
+    build:
+      context: ../backend-spring
+      dockerfile: Dockerfile
+    container_name: tako_back_dev
+    env_file:
+      - .env.dev
+    mem_limit: 768m
+    cpus: "0.75"
+    depends_on:
+      - mysql_dev
+      - redis_dev
+    restart: unless-stopped
+    networks:
+      - e104_net
+
+  tako_front_dev:
+    build:
+      context: ../frontend-web/taako
+      dockerfile: Dockerfile
+    container_name: tako_front_dev
+    mem_limit: 256m
+    cpus: "0.25"
+    restart: unless-stopped
+    networks:
+      - e104_net
+    env_file:
+      - .env.dev
+
+  tako_ai_dev:
+    build:
+      context: ../backend-fastapi
+      dockerfile: Dockerfile
+    container_name: tako_ai_dev
+    port:
+      - "8000:8000"
+    env_file:
+      - .env.dev
+    mem_limit: 512m
+    cpus: "0.5"
+    restart: unless-stopped
+    networks:
+      - e104_net
+
+networks:
+  e104_net:
+    external: true
+
+volumes:
+  mysql_dev_data:
+    external: true
+  redis_dev_data:
+    external: true
