@@ -9,6 +9,7 @@ import com.bukadong.tcg.global.security.provider.TokenBlackListService;
 import com.bukadong.tcg.global.security.provider.TokenProvider;
 import com.bukadong.tcg.global.security.provider.TokenService;
 import com.bukadong.tcg.global.util.CookieUtils;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -58,5 +59,15 @@ public class TokenAuthServiceImpl implements TokenAuthService {
         JwtToken jwtToken = tokenService.generateToken(userDetails);
         response.addHeader(HttpHeaders.AUTHORIZATION, SecurityConstants.GRANT_TYPE + jwtToken.accessToken());
         cookieUtils.setRefreshTokenCookie(response, jwtToken.refreshToken(), (int) refreshExpiration.getSeconds());
+    }
+
+    @Override
+    public void signOut(HttpServletRequest request, HttpServletResponse response) {
+        String accessToken = tokenProvider.getTokenFromRequest(request);
+        String memberUuid = tokenProvider.getSubjectFromToken(accessToken);
+
+        tokenService.deleteRefreshToken(memberUuid);
+        tokenBlackListService.addBlacklistAccessToken(accessToken);
+        cookieUtils.setRefreshTokenCookie(response, "", 0);
     }
 }

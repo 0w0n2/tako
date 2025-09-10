@@ -8,6 +8,7 @@ import com.bukadong.tcg.global.common.base.BaseResponse;
 import com.bukadong.tcg.global.security.dto.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -34,10 +35,17 @@ public class AuthController {
     }
 
     @Operation(summary = "일반/소셜 공통 회원가입 API",
-            description = "isSocial: true일 때, providerName 필수 기입 필요(최초 소셜 로그인 후 회원가입일 경우) ")
+            description = "현재 소셜 회원가입 로직 및 디폴트 프로필 이미지 할당은 구현되어 있지 않음")
     @PostMapping("/sign-up")
     public BaseResponse<Void> signUp(@Valid @RequestBody SignUpRequestDto requestDto, HttpServletResponse response) {
         signUpService.signUp(requestDto);
+        return BaseResponse.onSuccess();
+    }
+
+    @Operation(summary = "로그아웃 API")
+    @PostMapping("/sign-out")
+    public BaseResponse<Void> signOut(HttpServletRequest request, HttpServletResponse response) {
+        tokenAuthService.signOut(request, response);
         return BaseResponse.onSuccess();
     }
 
