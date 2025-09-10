@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -18,7 +19,7 @@ import java.io.IOException;
 
 @Slf4j
 @Component
-public class BaseExceptionHandlerFilter extends OncePerRequestFilter {// 매 요청마다 한 번만 실행되는 필터 클래스 상속
+public class BaseExceptionHandlerFilter extends OncePerRequestFilter { // 매 요청마다 한 번만 실행되는 필터 클래스 상속
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response,
@@ -30,7 +31,10 @@ public class BaseExceptionHandlerFilter extends OncePerRequestFilter {// 매 요
             setErrorResponse(response, e);
         } catch (AuthenticationException e) { // 추후 스프링 시큐리티를 위해 미리 작성
             log.error("AuthenticationException -> {}", e.getMessage(), e);
-            setErrorResponse(response, new BaseException(BaseResponseStatus.NO_SIGN_IN));
+            setErrorResponse(response, new BaseException(BaseResponseStatus.AUTHENTICATION_REQUIRED));
+        } catch (AuthorizationDeniedException e) {
+            log.error("AuthorizationDeniedException -> {}", e.getMessage(), e);
+            setErrorResponse(response, new BaseException(BaseResponseStatus.ACCESS_DENIED));
         }
     }
 

@@ -1,10 +1,14 @@
 package com.bukadong.tcg.global.security.config;
 
 import com.bukadong.tcg.api.member.entity.Role;
+import com.bukadong.tcg.global.common.exception.BaseExceptionHandlerFilter;
 import com.bukadong.tcg.global.properties.SecurityCorsProperties;
 import com.bukadong.tcg.global.properties.SecurityOAuth2Properties;
 import com.bukadong.tcg.global.properties.SecurityRoleProperties;
 import com.bukadong.tcg.global.properties.SecurityWhitelistProperties;
+import com.bukadong.tcg.global.security.filter.JwtAuthenticationFilter;
+import com.bukadong.tcg.global.security.service.JwtTokenBlackListService;
+import com.bukadong.tcg.global.util.JwtTokenUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -18,6 +22,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -37,6 +42,9 @@ public class SecurityConfig {
     private final SecurityOAuth2Properties oAuth2Properties;
     private final SecurityWhitelistProperties whitelistProperties;
     private final SecurityRoleProperties roleProperties;
+
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final BaseExceptionHandlerFilter baseExceptionHandlerFilter;
 
     /* service, handler */
 
@@ -65,6 +73,8 @@ public class SecurityConfig {
                 // TODO-SECURITY: oauth2 관련 설정 추가
 
                 /* 필터 */
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(baseExceptionHandlerFilter, JwtAuthenticationFilter.class)
 
                 /* Exception */
 
@@ -92,7 +102,6 @@ public class SecurityConfig {
         configuration.setAllowCredentials(corsProperties.allowCredentials());
         configuration.setExposedHeaders(corsProperties.exposedHeaders());
         configuration.setMaxAge(corsProperties.maxAge());
-
 
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
