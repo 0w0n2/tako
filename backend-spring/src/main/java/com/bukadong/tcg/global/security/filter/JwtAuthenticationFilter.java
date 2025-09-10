@@ -30,44 +30,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final TokenProvider tokenProvider;
     private final TokenBlackListService tokenBlackListService;
-    private final SecurityWhitelistProperties whitelistProperties;
-
-    private final AntPathMatcher antPathMatcher = new AntPathMatcher();
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
-        String requestMethod = request.getMethod();
-        String requestUri = request.getRequestURI();
+        String token = tokenProvider.getTokenFromRequest(request);
 
-        // permitAll()이 아닌 경로에 대해서 검증
-        if (!isPermitAll(requestMethod, requestUri)) {
-            String token = tokenProvider.getTokenFromRequest(request);
-
-            if (StringUtils.hasText(token)) {
-                if (!tokenProvider.validateToken(token)) {  // 토큰 유효성 검증
-                    throw new BaseException(INVALID_JWT_TOKEN);
-                }
-                if (tokenBlackListService.isBlacklistAccessToken(token)) {   // 블랙리스트 검증
-                    throw new BaseException(INVALID_JWT_TOKEN);
-                }
-
+        if (StringUtils.hasText(token) && tokenProvider.validateToken(token)) {
+            if (!tokenBlackListService.isBlacklistAccessToken(token)) {   // 블랙리스트 검증
                 Authentication authentication = tokenProvider.getAuthentication(token);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-            } else {    // 보호된 경로인데 토큰이 없는 경우
-                throw new BaseException(AUTHENTICATION_REQUIRED);
+            } else {
+                throw new BaseException(INVALID_JWT_TOKEN);
             }
         }
-
         filterChain.doFilter(request, response);
-    }
-
-    private boolean isPermitAll(String method, String uri) {
-        return whitelistProperties.getParsedWhitelist().entrySet().stream()
-                .anyMatch(entry -> entry.getKey().matches(method) &&
-                        entry.getValue().stream().anyMatch(pattern -> pathMatches(pattern, uri)));
-    }
-
-    private boolean pathMatches(String pattern, String uri) {
-        return this.antPathMatcher.match(pattern, uri);
     }
 }
