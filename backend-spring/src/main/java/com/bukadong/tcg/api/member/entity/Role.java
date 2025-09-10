@@ -1,6 +1,16 @@
 package com.bukadong.tcg.api.member.entity;
 
+import lombok.Getter;
+
 /** 회원 권한 */
+@Getter
 public enum Role {
-    USER, ADMIN
+    USER("ROLE_USER"),
+    ADMIN("ROLE_ADMIN");
+
+    private final String roleName;
+
+    Role(String roleName) {
+        this.roleName = roleName;
+    }
 }
