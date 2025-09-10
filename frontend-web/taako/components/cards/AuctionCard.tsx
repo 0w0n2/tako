@@ -2,12 +2,17 @@ import Image from "next/image";
 import Link from "next/link";
 import WishButton from "../atoms/Button/WishButton"
 import RankElement from "../atoms/RankElement"
+import { AuctionCardProps } from "@/types/auction";
+
+interface Auction {
+  props: AuctionCardProps;
+}
 
 // 경매 등록시 카드
-export default function ProductCard() {
+export default function AuctionCard() {
     return (
         <div>
-            <Link href={`/auction/1`}>
+            <Link href={`/auction/1`}> 
                 <div className="relative rounded-xl overflow-hidden h-[340px]">
                     {/* 좋아요 버튼 */}
                     <div className="absolute top-4 left-4"><WishButton /></div>

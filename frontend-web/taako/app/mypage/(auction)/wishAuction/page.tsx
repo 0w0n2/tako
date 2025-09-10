@@ -1,4 +1,4 @@
-import ProductCard from "@/components/cards/ProductCard";
+import AuctionCard from "@/components/cards/AuctionCard";
 
 export default function WishAuctionPage() {
   return (
@@ -9,10 +9,10 @@ export default function WishAuctionPage() {
         <p className="text-sm mb-3">총 2건</p>
         <ul className="grid grid-cols-4 gap-12">
           <li>
-            <ProductCard />
+            <AuctionCard />
           </li>
           <li>
-            <ProductCard />
+            <AuctionCard />
           </li>
         </ul>
       </div>
