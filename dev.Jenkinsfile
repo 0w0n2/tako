@@ -90,9 +90,9 @@ pipeline {
           set -eux
 
           # (옵션) 이미지 참조가 있으면 먼저 pull (build와 혼용 가능)
-          docker compose --env-file .env.dev -f "$COMPOSE_DEV_FILE" pull || true
+          docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" pull || true
 
-          docker compose --env-file .env.dev -f "$COMPOSE_DEV_FILE" up -d --build tako_backend_dev
+          docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" up -d --build tako_backend_dev
 
           # 상태 출력
           docker compose -f "$COMPOSE_DEV_FILE" ps
