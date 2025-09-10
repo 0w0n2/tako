@@ -30,3 +30,10 @@ spring:
       enabled: ${BATCH_JOB_ENABLED}
     jdbc:
       initialize-schema: ${BATCH_JDBC_SCHEMA}
+
+popularity:
+  weight:
+    view: ${POPULARITY_WEIGHT_VIEW:1} # 조회 가중치 (double). 미설정 시 기본 1
+    bid: ${POPULARITY_WEIGHT_BID:5} # 입찰 가중치 (double). 미설정 시 기본 5
+  bucket:
+    ttl-minutes: ${POPULARITY_BUCKET_TTL_MINUTES:70} # 분 버킷 TTL. 기본 70분(60분 + 버퍼)
