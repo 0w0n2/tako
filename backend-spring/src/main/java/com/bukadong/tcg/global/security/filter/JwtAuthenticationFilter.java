@@ -6,12 +6,14 @@ import com.bukadong.tcg.global.common.exception.BaseException;
 import com.bukadong.tcg.global.properties.SecurityWhitelistProperties;
 import com.bukadong.tcg.global.security.provider.TokenBlackListService;
 import com.bukadong.tcg.global.security.provider.TokenProvider;
+import jakarta.annotation.PostConstruct;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -24,6 +26,7 @@ import java.io.IOException;
 /**
  * JWT 토큰을 검증하여 사용자를 인증하는 Spring Security 필터
  */
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -32,14 +35,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final TokenBlackListService tokenBlackListService;
     private final SecurityWhitelistProperties securityWhitelistProperties;
     private final AntPathMatcher antPathMatcher = new AntPathMatcher();
+    
+    // TODO-SECURITY: 이슈 해결 후 아래 메소드 삭제 필요
+    @PostConstruct
+    public void printWhitelist() {
+        log.info("--- Security Whitelist Properties Loaded ---");
+        if (securityWhitelistProperties.getParsedWhitelist() == null || securityWhitelistProperties.getParsedWhitelist().isEmpty()) {
+            log.warn("!!! Whitelist is EMPTY. Check your application.yml properties.");
+        } else {
+            securityWhitelistProperties.getParsedWhitelist().forEach((method, urls) -> {
+                log.info("  [{}] -> {}", method, urls);
+            });
+        }
+        log.info("---------------------------------------------");
+    }
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
-        String requestMethod = request.getMethod();
-        String requestURI = request.getRequestURI();
+        String method = request.getMethod();
+        String uri = request.getRequestURI();
 
         /* 인증이 필요한 요청에 대해서만 검사 */
-        if (!isPermitAll(requestMethod, requestURI)) {
+        if (!isPermitAll(method, uri)) {
             String token = tokenProvider.getTokenFromRequest(request);
 
             if (StringUtils.hasText(token) && tokenProvider.validateToken(token)) {
@@ -55,10 +72,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    private boolean isPermitAll(String method, String url) {
+    private boolean isPermitAll(String method, String uri) {
         return securityWhitelistProperties.getParsedWhitelist().entrySet().stream()
-                .anyMatch(entry ->
-                        entry.getKey().matches(method) &&
-                                entry.getValue().stream().anyMatch(pattern -> antPathMatcher.match(pattern, url)));
+                .anyMatch(entry -> {
+                    String httpMethodFromConfig = entry.getKey().name();
+                    boolean methodMatches = httpMethodFromConfig.equalsIgnoreCase(method);
+
+                    if (!methodMatches) {
+                        return false;
+                    }
+                    return entry.getValue().stream()
+                            .anyMatch(pattern -> antPathMatcher.match(pattern, uri));
+
+                });
     }
 }
