@@ -1,14 +1,15 @@
 package com.bukadong.tcg.api.auth.dto.request;
 
+import com.bukadong.tcg.global.constant.ErrorMessages;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
 public record SignInRequestDto(
-        @NotBlank(message = "이메일을 입력해주세요.")
-        @Email(message = "올바른 이메일 형식이 아닙니다.")
+        @NotBlank(message = ErrorMessages.EMAIL_NOT_FOUND)
+        @Email(message = ErrorMessages.INVALID_EMAIL)
         String email,
 
-        @NotBlank(message = "비밀번호를 입력해주세요.")
+        @NotBlank(message = ErrorMessages.PASSWORD_NOT_FOUND)
         String password
 ) {
 }

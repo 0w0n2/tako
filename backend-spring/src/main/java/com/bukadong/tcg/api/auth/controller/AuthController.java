@@ -27,4 +27,12 @@ public class AuthController {
         authenticationService.authenticate(requestDto.email(), requestDto.password());
         return BaseResponse.onSuccess();
     }
+
+    @Operation(summary = "일반/소셜 공통 회원가입 API")
+    @PostMapping("/sign-up")
+    public BaseResponse<Void> signUp() {
+
+        return BaseResponse.onSuccess();
+    }
+
 }
