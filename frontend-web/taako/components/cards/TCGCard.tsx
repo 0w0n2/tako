@@ -31,9 +31,9 @@ export default function TCGCard({
   rarity: initialRarity,
   img,
   back = "https://tcg.pokemon.com/assets/img/global/tcg-card-back-2x.jpg",
-  showcase = false,
 }: TCGCardProps) {
   const [loading, setLoading] = useState(true);
+  const [frontSrc, setFrontSrc] = useState<string>("");
   const [interacting, setInteracting] = useState(false);
   const [firstPop, setFirstPop] = useState(true);
   const thisCard = useRef<HTMLDivElement>(null);
@@ -62,7 +62,20 @@ export default function TCGCard({
   const subtypes = useMemo(() => Array.isArray(initialSubtypes) ? initialSubtypes.join(" ").toLowerCase() : initialSubtypes.toLowerCase(), [initialSubtypes]);
   const isTrainerGallery = useMemo(() => !!numberL.match(/^[tg]g/i) || !!(id === "swshp-SWSH076" || id === "swshp-SWSH077"), [numberL, id]);
 
-  const frontImg = useMemo(() => (img.startsWith("http") ? img : `https://images.pokemontcg.io/${img}`), [img]);
+  const baseLocalPath = useMemo(() => `/card-images/${set}/${number}`, [set, number]);
+
+  useEffect(() => {
+    if (img.startsWith("http")) {
+      setFrontSrc(img);
+      return;
+    }
+    if (img.startsWith("/card-images/")) {
+      setFrontSrc(img);
+      return;
+    }
+    // 기본: 로컬 구조에 맞춰 hires 우선 사용, 실패 시 onError에서 일반으로 폴백
+    setFrontSrc(`${baseLocalPath}_hires.png`);
+  }, [img, baseLocalPath]);
 
   const interact = (e: React.PointerEvent<HTMLButtonElement>) => {
     setInteracting(true);
@@ -159,6 +172,7 @@ export default function TCGCard({
       [styles.translateX, styles.translateY, styles.scale],
       (x, y, s) => `translate(${x}px, ${y}px) scale(${s})`
     ),
+    zIndex: isActive ? 9999 : 'auto',
   };
 
   const rotatorStyles = {
@@ -217,9 +231,16 @@ export default function TCGCard({
           />
           <div className="card__front">
             <img
-              src={frontImg}
+              src={frontSrc}
               alt={name}
               onLoad={() => setLoading(false)}
+              onError={(e) => {
+                // 폴백: hires가 없으면 일반 해상도로 시도
+                const current = (e.currentTarget as HTMLImageElement).src;
+                if (current.endsWith("_hires.png")) {
+                  setFrontSrc(`${baseLocalPath}.png`);
+                }
+              }}
               loading="lazy"
               width="660"
               height="921"
