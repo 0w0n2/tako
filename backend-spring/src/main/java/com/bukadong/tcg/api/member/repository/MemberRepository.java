@@ -2,6 +2,10 @@ package com.bukadong.tcg.api.member.repository;
 
 import com.bukadong.tcg.api.member.entity.Member;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import javax.swing.text.html.Option;
+import java.util.Optional;
 
 /**
  * 회원 엔티티({@link Member})용 Spring Data JPA 레포지토리.
@@ -28,4 +32,6 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
      * @return 이미 존재하면 true, 없으면 false
      */
     boolean existsByNickname(String nickname);
+
+    Optional<Member> findByEmail(String email);
 }
