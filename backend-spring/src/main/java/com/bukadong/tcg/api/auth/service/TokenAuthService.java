@@ -11,4 +11,6 @@ public interface TokenAuthService {
     void issueJwt(CustomUserDetails userDetails, HttpServletResponse response);
 
     void signOut(HttpServletRequest request, HttpServletResponse response);
+
+    void refreshAccessToken(String refreshToken, HttpServletResponse response);
 }

@@ -5,6 +5,7 @@ import com.bukadong.tcg.api.auth.dto.request.SignUpRequestDto;
 import com.bukadong.tcg.api.auth.service.TokenAuthService;
 import com.bukadong.tcg.api.auth.service.SignUpService;
 import com.bukadong.tcg.global.common.base.BaseResponse;
+import com.bukadong.tcg.global.constant.SecurityConstants;
 import com.bukadong.tcg.global.security.dto.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -12,10 +13,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RequestMapping("/v1/auth")
 @Tag(name = "Auth", description = "사용자 인증/인가 관련 API")
@@ -46,6 +44,13 @@ public class AuthController {
     @PostMapping("/sign-out")
     public BaseResponse<Void> signOut(HttpServletRequest request, HttpServletResponse response) {
         tokenAuthService.signOut(request, response);
+        return BaseResponse.onSuccess();
+    }
+
+    @Operation(summary = "Access Token 재발급 API")
+    @PostMapping("/token/refresh")
+    public BaseResponse<Void> refresh(@CookieValue(value = SecurityConstants.REFRESH_TITLE) String refreshToken, HttpServletResponse response) {
+        tokenAuthService.refreshAccessToken(refreshToken, response);
         return BaseResponse.onSuccess();
     }
 
