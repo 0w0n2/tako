@@ -3,21 +3,24 @@
 /* 싸피카드에 쓸 핑크퐁 폰트 */
 @font-face {
   font-family: "Pinkfong-L";
-  src: url("/fonts/Pinkfong_Baby_Shark_Font_ Light.woff2") format("woff2");
+  src: url("/fonts/Pinkfong_Baby_Shark_Font_Light.woff2") format("woff2");
   font-weight: 300; /* Light */
   font-style: normal;
+  font-display: swap;
 }
 @font-face {
   font-family: "Pinkfong-R";
-  src: url("/fonts/Pinkfong_Baby_Shark_Font_ Regular.woff2") format("woff2");
+  src: url("/fonts/Pinkfong_Baby_Shark_Font_Regular.woff2") format("woff2");
   font-weight: 400; /* Regular */
   font-style: normal;
+  font-display: swap;
 }
 @font-face {
   font-family: "Pinkfong-B";
-  src: url("/fonts/Pinkfong_Baby_Shark_Font_ Bold.woff2") format("woff2");
+  src: url("/fonts/Pinkfong_Baby_Shark_Font_Bold.woff2") format("woff2");
   font-weight: 700; /* Bold */
   font-style: normal;
+  font-display: swap;
 }
 
 :root {
@@ -44,11 +47,8 @@ h3{
   font-size: 18px;
 }
 
-/* 마이페이지 사이드 메뉴 css */
-.mypage-side-menu{}
-.mypage-side-menu ul>li>a{
-  color: #A5A5A5;
-  font-size: 14px;
+.sell-auction-tbody{
+  border-radius: 24px!important;
 }
 
 /* 컨테이너 너비 고정 */
