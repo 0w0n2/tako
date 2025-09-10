@@ -312,7 +312,7 @@ pipeline {
 ##### Pipeline Success!
 ---
 ##### 서비스 점검하러 가기
-:springboot: [Backend Spring Server](https://j13e104.p.ssafy.io/swagger-ui/index.html)
+:springboot: [Backend Spring Server](https://dev-api.tako.today/swagger-ui/index.html)
 """
               )
             } else if (category == "frontend") {
@@ -330,7 +330,7 @@ pipeline {
 ##### Pipeline Success!
 ---
 ##### 서비스 점검하러 가기
-:react: [Frontend React Server](https://j13e104.p.ssafy.io)
+:react: [Frontend React Server](https://dev.tako.today/)
 """
               )
             } else {
@@ -364,8 +364,8 @@ pipeline {
 ##### Pipeline Success!
 ---
 ##### 서비스 점검하러 가기
-:springboot: [Backend Spring Server](https://j13e104.p.ssafy.io/swagger-ui/index.html)
-:react: [Frontend React Server](https://j13e104.p.ssafy.io)
+:springboot: [Backend Spring Server](https://dev-api.tako.today/swagger-ui/index.html)
+:react: [Frontend React Server](https://dev.tako.today)
 """
               )
           } else {
