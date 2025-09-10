@@ -1,11 +1,9 @@
-type RankType = 'S+' | 'S' | 'A' | 'B' | 'C';
-
-interface RankElementProps {
-  rank: RankType;
+interface Rank {
+  rank: string;
 }
 
-export default function RankElement({ rank }: RankElementProps) {
-  const getRankStyle = (rank: RankType) => {
+export default function RankElement({ rank }: Rank) {
+  const getRankStyle = (rank: string) => {
     switch (rank) {
       case 'S+':
         return 'text-[#30E6F7] shadow-[#30E6F7]';
