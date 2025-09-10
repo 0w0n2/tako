@@ -30,35 +30,35 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final TokenProvider tokenProvider;
     private final TokenBlackListService tokenBlackListService;
-    private final SecurityWhitelistProperties whitelistProperties;
-    private final AntPathMatcher pathMatcher = new AntPathMatcher();
-
-    @Override
-    protected boolean shouldNotFilter(@NonNull HttpServletRequest request) throws ServletException {
-        String uri = request.getRequestURI();
-        String method = request.getMethod();
-
-        return whitelistProperties.getParsedWhitelist().entrySet().stream()
-                .anyMatch(entry -> {
-                    boolean methodMatches = entry.getKey().name().equalsIgnoreCase(method);
-                    boolean pathMatches = entry.getValue().stream()
-                            .anyMatch(pattern -> pathMatcher.match(pattern, uri));
-                    return methodMatches && pathMatches;
-                });
-    }
+    private final SecurityWhitelistProperties securityWhitelistProperties;
+    private final AntPathMatcher antPathMatcher = new AntPathMatcher();
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
-        String token = tokenProvider.getTokenFromRequest(request);
+        String requestMethod = request.getMethod();
+        String requestURI = request.getRequestURI();
 
-        if (StringUtils.hasText(token) && tokenProvider.validateToken(token)) {
-            if (!tokenBlackListService.isBlacklistAccessToken(token)) {   // 블랙리스트 검증
-                Authentication authentication = tokenProvider.getAuthentication(token);
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-            } else {
-                throw new BaseException(INVALID_JWT_TOKEN);
+        /* 인증이 필요한 요청에 대해서만 검사 */
+        if (!isPermitAll(requestMethod, requestURI)) {
+            String token = tokenProvider.getTokenFromRequest(request);
+
+            if (StringUtils.hasText(token) && tokenProvider.validateToken(token)) {
+                if (!tokenBlackListService.isBlacklistAccessToken(token)) {   // 블랙리스트 검증
+                    Authentication authentication = tokenProvider.getAuthentication(token);
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                } else {
+                    throw new BaseException(INVALID_JWT_TOKEN);
+                }
             }
         }
+
         filterChain.doFilter(request, response);
+    }
+
+    private boolean isPermitAll(String method, String url) {
+        return securityWhitelistProperties.getParsedWhitelist().entrySet().stream()
+                .anyMatch(entry ->
+                        entry.getKey().matches(method) &&
+                                entry.getValue().stream().anyMatch(pattern -> antPathMatcher.match(pattern, url)));
     }
 }
