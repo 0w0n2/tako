@@ -23,22 +23,20 @@ export default function Header() {
         <ul className="category-wrap flex gap-10 items-center">
           <li>
             <div>
-              <Link href="#" className="flex items-center gap-2">
+              <Link href="#" className="flex items-center gap-2 hover:text-[#F2B90C] hover:font-semibold transition-all duration-300">
                 카테고리
                 <div><Image src="/icon/arrow-down.svg" width="8" height="4" alt="arrow-down" /></div>
               </Link>
             </div>
             </li>
-          <li><Link href="#" className="">미니게임</Link></li>
-          <li><button onClick={handleLoginClick} className="cursor-pointer">로그인</button></li>
-          <li><Link href="/mypage" className="">마이페이지</Link></li>
-          <li><Link href="/notification" className="">알림</Link></li>
+          <li><Link href="#" className="hover:text-[#F2B90C] hover:font-semibold transition-all duration-300">미니게임</Link></li>
+          <li><button onClick={handleLoginClick} className="cursor-pointer hover:text-[#F2B90C] hover:font-semibold transition-all duration-300">로그인</button></li>
+          <li><Link href="/mypage" className="hover:text-[#F2B90C] hover:font-semibold transition-all duration-300">마이페이지</Link></li>
+          <li><Link href="/notification" className="hover:text-[#F2B90C] hover:font-semibold transition-all duration-300">알림</Link></li>
           <li><Link
             href="/auction/new"
-            className="px-8 py-3 bg-gray-700 text-white cursor-pointer rounded-lg"
-            style={{
-                background: 'linear-gradient(137deg, #4557BF 20%, #3A468C 100%)'
-            }}
+            className="px-8 py-3 bg-[#364153] text-[#7DB7CD] border-1 border-[#7DB7CD] cursor-pointer rounded-lg
+            hover:bg-[#3E4C63] transition-all duration-300"
           >경매등록</Link></li>
         </ul>
       </div>
