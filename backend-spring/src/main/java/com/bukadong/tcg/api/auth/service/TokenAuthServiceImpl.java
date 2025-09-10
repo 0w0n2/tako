@@ -1,10 +1,18 @@
 package com.bukadong.tcg.api.auth.service;
 
-import com.bukadong.tcg.api.member.repository.MemberRepository;
 import com.bukadong.tcg.global.common.base.BaseResponseStatus;
 import com.bukadong.tcg.global.common.exception.BaseException;
+import com.bukadong.tcg.global.constant.SecurityConstants;
 import com.bukadong.tcg.global.security.dto.CustomUserDetails;
+import com.bukadong.tcg.global.security.dto.JwtToken;
+import com.bukadong.tcg.global.security.provider.TokenBlackListService;
+import com.bukadong.tcg.global.security.provider.TokenProvider;
+import com.bukadong.tcg.global.security.provider.TokenService;
+import com.bukadong.tcg.global.util.CookieUtils;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
@@ -14,11 +22,21 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+
 @Service
 @RequiredArgsConstructor
-public class AuthenticationServiceImpl implements AuthenticationService {
+public class TokenAuthServiceImpl implements TokenAuthService {
 
     private final AuthenticationProvider authenticationProvider;
+    private final TokenService tokenService;
+    private final TokenBlackListService tokenBlackListService;
+
+    private final CookieUtils cookieUtils;
+    private final TokenProvider tokenProvider;
+
+    @Value("${security.jwt.expire-time.refresh-token}")
+    private Duration refreshExpiration;
 
     @Override
     public CustomUserDetails authenticate(String username, String password) {
@@ -35,4 +53,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
     }
 
+    @Override
+    public void issueJwt(CustomUserDetails userDetails, HttpServletResponse response) {
+        JwtToken jwtToken = tokenService.generateToken(userDetails);
+        response.addHeader(HttpHeaders.AUTHORIZATION, SecurityConstants.GRANT_TYPE + jwtToken.accessToken());
+        cookieUtils.setRefreshTokenCookie(response, jwtToken.refreshToken(), (int) refreshExpiration.getSeconds());
+    }
 }

@@ -1,8 +1,11 @@
 package com.bukadong.tcg.api.auth.controller;
 
 import com.bukadong.tcg.api.auth.dto.request.SignInRequestDto;
-import com.bukadong.tcg.api.auth.service.AuthenticationService;
+import com.bukadong.tcg.api.auth.dto.request.SignUpRequestDto;
+import com.bukadong.tcg.api.auth.service.TokenAuthService;
+import com.bukadong.tcg.api.auth.service.SignUpService;
 import com.bukadong.tcg.global.common.base.BaseResponse;
+import com.bukadong.tcg.global.security.dto.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
@@ -14,24 +17,27 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RequestMapping("/v1/auth")
-@Tag(name = "Auth")
+@Tag(name = "Auth", description = "사용자 인증/인가 관련 API")
 @RequiredArgsConstructor
 @RestController
 public class AuthController {
 
-    private final AuthenticationService authenticationService;
+    private final TokenAuthService tokenAuthService;
+    private final SignUpService signUpService;
 
     @Operation(summary = "일반 로그인 API")
     @PostMapping("/sign-in")
     public BaseResponse<Void> signIn(@Valid @RequestBody SignInRequestDto requestDto, HttpServletResponse response) {
-        authenticationService.authenticate(requestDto.email(), requestDto.password());
+        CustomUserDetails userDetails = tokenAuthService.authenticate(requestDto.email(), requestDto.password());
+        tokenAuthService.issueJwt(userDetails, response);
         return BaseResponse.onSuccess();
     }
 
-    @Operation(summary = "일반/소셜 공통 회원가입 API")
+    @Operation(summary = "일반/소셜 공통 회원가입 API",
+            description = "isSocial: true일 때, providerName 필수 기입 필요(최초 소셜 로그인 후 회원가입일 경우) ")
     @PostMapping("/sign-up")
-    public BaseResponse<Void> signUp() {
-
+    public BaseResponse<Void> signUp(@Valid @RequestBody SignUpRequestDto requestDto, HttpServletResponse response) {
+        signUpService.signUp(requestDto);
         return BaseResponse.onSuccess();
     }
 
