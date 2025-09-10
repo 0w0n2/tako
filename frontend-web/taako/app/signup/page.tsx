@@ -11,7 +11,7 @@ export default function Signup(){
 
     return (
         <div className="default-container">
-            <h1 className="font-bold">일반 회원가입</h1>
+            <h2>일반 회원가입</h2>
             <div>
                 <form className="flex flex-col gap-10 my-10">
                     <div>
@@ -22,7 +22,7 @@ export default function Signup(){
                                 className="w-[350px] px-5 py-3 bg-[#191924] rounded-lg border-1 border-[#353535] text-sm"
                                 type="email"
                                 placeholder="이메일을 입력해주세요"/>
-                                <button className="min-w-[140px] px-8 py-3 bg-[#3A468C] rounded-lg text-md">중복체크</button>
+                                <button className="min-w-[140px] px-8 py-3 bg-[#3E4C63] rounded-lg text-md">중복체크</button>
                             </div>
                             <div className="flex gap-4">
                                 <div className='relative'>
@@ -32,7 +32,7 @@ export default function Signup(){
                                     placeholder="인증번호 입력해주세요"/>
                                     <p className='absolute top-1/2 right-5 -translate-y-1/2'>10:00</p>
                                 </div>
-                                <button className="min-w-[140px] px-6 bg-[#3A468C] rounded-lg text-md">인증번호전송</button>
+                                <button className="min-w-[140px] px-6 bg-[#3E4C63] rounded-lg text-md">인증번호전송</button>
                             </div>
                         </div>
                     </div>
@@ -73,7 +73,7 @@ export default function Signup(){
                                 className="w-[350px] px-5 py-3 bg-[#191924] rounded-lg border-1 border-[#353535] text-sm"
                                 type="text"
                                 placeholder="닉네임을 입력해주세요"/>
-                                <button className="min-w-[140px] px-8 bg-[#3A468C] rounded-lg text-md">중복체크</button>
+                                <button className="min-w-[140px] px-8 bg-[#3E4C63] rounded-lg text-md">중복체크</button>
                             </div>
                             { false && (
                                 <div className="text-[#FF3737] text-md mt-1 flex gap-2 items-center">
@@ -90,10 +90,7 @@ export default function Signup(){
                     </div>
                     <button
                         type="submit"
-                        className='w-[150px] px-8 py-3 cursor-pointer rounded-lg'
-                        style={{
-                            background: 'linear-gradient(137deg, #4557BF 20%, #3A468C 100%)'
-                        }}
+                        className='w-[150px] px-8 py-3 cursor-pointer rounded-lg bg-[#364153] text-[#7DB7CD] border-1 border-[#7DB7CD] hover:bg-[#3E4C63]'
                     >
                         회원가입
                     </button>
