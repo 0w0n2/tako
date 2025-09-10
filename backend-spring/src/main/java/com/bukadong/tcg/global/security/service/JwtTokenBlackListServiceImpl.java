@@ -1,6 +1,5 @@
 package com.bukadong.tcg.global.security.service;
 
-import com.bukadong.tcg.global.util.JwtTokenUtils;
 import com.bukadong.tcg.global.util.RedisUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,6 +15,7 @@ import java.util.Date;
 @Service
 @RequiredArgsConstructor
 public class JwtTokenBlackListServiceImpl implements JwtTokenBlackListService {
+
     private final RedisUtils redisUtils;
 
     private void addBlacklist(String prefix, String token, Date expiration) {
@@ -24,7 +24,7 @@ public class JwtTokenBlackListServiceImpl implements JwtTokenBlackListService {
         long remaining = expiration.getTime() - now;
 
         if (remaining > 0) {
-            redisUtils.setValue(key, "", Duration.ofMillis(remaining)); // 남은 만료 시간까지 블랙리스트 처리
+            redisUtils.setValue(key, "blacklisted", Duration.ofMillis(remaining)); // 남은 만료 시간까지 블랙리스트 처리
         }
     }
 

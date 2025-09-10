@@ -9,10 +9,11 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
- * Spring Security의 UserDetails 인터페이스의 커스텀 구현체 (JWT 기준)
+ * Spring Security의 {@link UserDetails} 인터페이스를 구현한 커스텀 클래스
  * TODO-SECURITY: OAUth2Info 구현체 등록
  */
 public class UserDetailsDto implements UserDetails {
@@ -29,10 +30,11 @@ public class UserDetailsDto implements UserDetails {
     }
 
     private Collection<? extends GrantedAuthority> getAuthorities(Role role) {
-        List<GrantedAuthority> authorities = new ArrayList<>();
-        if (role != null ) {    // 단일 authority
-            authorities.add(new SimpleGrantedAuthority(role.getRoleName()));
+        if (role == null) {
+            return Collections.emptyList();
         }
+        List<GrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority(role.getRoleName()));    // 단일 authority
         return authorities;
     }
 

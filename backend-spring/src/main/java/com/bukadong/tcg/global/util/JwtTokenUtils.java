@@ -7,6 +7,8 @@ import static com.bukadong.tcg.global.common.base.BaseResponseStatus.*;
 import com.bukadong.tcg.global.common.exception.BaseException;
 import com.bukadong.tcg.global.security.dto.UserDetailsDto;
 import io.jsonwebtoken.*;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,8 +37,8 @@ public class JwtTokenUtils {
     private final SecretKey secretKey;
     private final MemberRepository memberRepository;
 
-    public JwtTokenUtils(@Value("${security.jwt.secret-key}") SecretKey secretKey, MemberRepository memberRepository) {
-        this.secretKey = secretKey;
+    public JwtTokenUtils(@Value("${security.jwt.secret-key}") String secretKey, MemberRepository memberRepository) {
+        this.secretKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secretKey));
         this.memberRepository = memberRepository;
     }
 

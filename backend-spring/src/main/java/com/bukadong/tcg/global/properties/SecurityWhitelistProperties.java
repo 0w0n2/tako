@@ -14,10 +14,10 @@ import java.util.Map;
  */
 @Getter
 @Setter
-@ConfigurationProperties(prefix = "security.whitelist")
+@ConfigurationProperties(prefix = "security")
 public class SecurityWhitelistProperties {
 
-    private Map<String, List<String>> whitelist;
+    private Map<String, List<String>> whitelist = new HashMap<>();
 
     private Map<HttpMethod, List<String>> parsedWhitelist;
 

@@ -21,6 +21,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+/**
+ * JWT 토큰을 검증하여 사용자를 인증하는 Spring Security 필터
+ */
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -28,6 +31,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenUtils jwtTokenUtils;
     private final JwtTokenBlackListService jwtTokenBlackListService;
     private final SecurityWhitelistProperties whitelistProperties;
+
     private final AntPathMatcher antPathMatcher = new AntPathMatcher();
 
     @Override
@@ -59,7 +63,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private boolean isPermitAll(String method, String uri) {
         return whitelistProperties.getParsedWhitelist().entrySet().stream()
-                .anyMatch(entry -> entry.getKey().matches(method) && entry.getValue().stream().anyMatch(pattern -> pathMatches(pattern, uri)));
+                .anyMatch(entry -> entry.getKey().matches(method) &&
+                        entry.getValue().stream().anyMatch(pattern -> pathMatches(pattern, uri)));
     }
 
     private boolean pathMatches(String pattern, String uri) {

@@ -12,6 +12,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+/**
+ * Spring Security 필터 체인에서 발생하는 BaseException 담당 처리 필터
+ */
 @Slf4j
 @Component
 public class BaseExceptionHandlerFilter extends OncePerRequestFilter { // 매 요청마다 한 번만 실행되는 필터 클래스 상속
@@ -22,7 +25,8 @@ public class BaseExceptionHandlerFilter extends OncePerRequestFilter { // 매 �
         try {
             filterChain.doFilter(request, response); // 다음 필터 또는 실제 서블릿을 실행
         } catch (BaseException e) { // 커스텀 예외(BaseException) 발생 시 처리
-            log.error("BaseException -> {}({})", e.getStatus(), e.getStatus().getMessage(), e);
+            log.warn("BaseException caught in filter chain: Status={}, Message={}, RequestURI={}",
+                    e.getStatus(), e.getStatus().getMessage(), request.getRequestURI());
             ErrorResponseUtils.setErrorResponse(response, e.getStatus());
         }
     }
