@@ -31,6 +31,48 @@ spring:
     jdbc:
       initialize-schema: ${BATCH_JDBC_SCHEMA}
 
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${OAUTH2_GOOGLE_CLIENT_ID}
+            client-secret: ${OAUTH2_GOOGLE_CLIENT_SECRET}
+            scope:
+              - email
+            redirect-uri: "${OAUTH2_REDIRECT_URI}"
+security:
+  jwt:
+    secret-key: ${SECURITY_JWT_SECRET_KEY}
+    expire-time:
+      access-token: ${SECURITY_JWT_EXPIRE_TIME_ACCESS}
+      refresh-token: ${SECURITY_JWT_EXPIRE_TIME_REFRESH}
+
+  whitelist:
+    GET: ${SECURITY_WHITELIST_GET},${SECURITY_WHITELIST_GET_SWAGGER},${SECURITY_WHITELIST_GET_AUTH},${SECURITY_WHITELIST_GET_OAUTH},${SECURITY_WHITELIST_GET_NOTICE},${SECURITY_WHITELIST_GET_CATEGORY},${SECURITY_WHITELIST_GET_CARD},${SECURITY_WHITELIST_GET_AUCTION},${SECURITY_WHITELIST_GET_MEMBER},${SECURITY_WHITELIST_GET_GAME},${SECURITY_WHITELIST_GET_POPULARITY}
+    POST: ${SECURITY_WHITELIST_POST},${SECURITY_WHITELIST_POST_AUTH}
+    PUT: ${SECURITY_WHITELIST_PUT}
+    DELETE: ${SECURITY_WHITELIST_DELETE}
+    PATCH: ${SECURITY_WHITELIST_PATCH},${SECURITY_WHITELIST_PATCH_AUTH}
+    OPTIONS: ${SECURITY_WHITELIST_OPTION}
+
+  cors:
+    allowed-origins: ${SECURITY_CORS_ALLOWED_ORIGINS}
+    allowed-methods: ${SECURITY_CORS_ALLOWED_METHODS}
+    allowed-headers: ${SECURITY_CORS_ALLOWED_HEADERS}
+    allow-credentials: ${SECURITY_CORS_ALLOW_CREDENTIALS}
+    exposed-headers: ${SECURITY_CORS_EXPOSED_HEADERS}
+    max-age: ${SECURITY_CORS_MAX_AGE}
+
+  role:
+    admin: ${SECURITY_ROLE_ADMIN}
+
+  oauth2:
+    authorize-uri: ${SECURITY_OAUTH2_AUTHORIZE_URI}
+    redirect-uri: ${SECURITY_OAUTH2_REDIRECT_URI}
+    client-redirect-uri: ${SECURITY_OAUTH2_CLIENT_REDIRECT_URI}
+
+# expire-time: # 나중에 만료 시간 등 설정할 때 사용할 것
 popularity:
   weight:
     view: ${POPULARITY_WEIGHT_VIEW:1} # 조회 가중치 (double). 미설정 시 기본 1

@@ -6,6 +6,7 @@ import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
+import java.util.Optional;
 import java.util.Set;
 
 @Component
@@ -57,4 +58,15 @@ public class RedisUtils {
         return Boolean.TRUE.equals(setOps.isMember(key, value));
     }
 
+    public <T> Optional<T> getValue(String key, Class<T> type) {
+        Object value = redisTemplate.opsForValue().get(key);
+        if (value == null) {
+            return Optional.empty();
+        }
+        try {
+            return Optional.of(type.cast(value));
+        } catch (ClassCastException e) {
+            return Optional.empty();
+        }
+    }
 }

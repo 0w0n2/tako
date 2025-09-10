@@ -5,9 +5,11 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "download:card-images": "node scripts/download-images-from-cards.js --all --out public/card-images"
   },
   "dependencies": {
+    "@react-spring/web": "^10.0.2",
     "next": "^14.2.30",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
