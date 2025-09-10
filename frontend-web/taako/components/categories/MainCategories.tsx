@@ -2,7 +2,7 @@
 export default function MainCategories() {
     return (
         <div>
-            <h1>MainCategories</h1>
+
         </div>
     );
 }

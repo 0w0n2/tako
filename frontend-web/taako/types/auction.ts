@@ -1,8 +1,8 @@
-export interface AuctionCard {
+export interface AuctionCardProps {
     id: number;
-    rank: string;
+    grade: string;
     title: string;
-    price: number;
-    imageUrl?: string;
-    endDate: string;
+    bigCount: number;
+    remainingSeconds: number;
+    primaryImageUrl: string;
   }
