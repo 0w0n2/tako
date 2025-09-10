@@ -26,7 +26,7 @@ export default function BuyAuction(){
                <td className="w-[270px]">
                  <div className="flex gap-3">
                    <button className="flex-1 py-3 bg-[#272732] border border-[#353535] rounded-lg text-[#6d6d6d] text-sm">재입찰</button>
-                   <button className="flex-1 py-3 bg-gradient-to-r from-[#863ba9] to-[#487bd9] rounded-lg text-white text-sm">즉시구매</button>
+                   <button className="flex-1 py-3 bg-[#3E4C63] rounded-lg text-white text-sm">즉시구매</button>
                  </div>
                </td>
              </tr>

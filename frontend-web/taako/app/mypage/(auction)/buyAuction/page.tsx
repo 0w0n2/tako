@@ -18,7 +18,7 @@ export default function BuyAuctionPage() {
           className="flex-1 flex flex-col gap-1 items-center justify-center cursor-pointer"
         >
           <div className={`text-xl font-semibold ${
-            activeTab === 'ongoing' ? 'text-[#a4b2ff]' : ''
+            activeTab === 'ongoing' ? 'text-[#F2B90C]' : ''
           }`}>3</div>
           <div className="text-white text-md">경매 중</div>
         </button>
@@ -28,14 +28,14 @@ export default function BuyAuctionPage() {
           className="flex-1 flex flex-col gap-1 items-center justify-center cursor-pointer"
         >
           <div className={`text-xl font-semibold ${
-            activeTab === 'ended' ? 'text-[#a4b2ff]' : ''
+            activeTab === 'ended' ? 'text-[#F2B90C]' : ''
           }`}>2</div>
           <div className="text-white text-md">종료</div>
         </button>
         
         {/* 활성 탭 표시 바 */}
         <div 
-          className={`absolute bottom-0 w-[50%] h-[2px] bg-[#A4B2FF] transition-all duration-300 ease-in-out z-1 ${
+          className={`absolute bottom-0 w-[50%] h-[2px] bg-[#F2B90C] transition-all duration-300 ease-in-out z-1 ${
             activeTab === 'ongoing' ? 'left-0' : 'left-[50%] w-[50%]'
           }`}
         />
