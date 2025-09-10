@@ -16,7 +16,7 @@ import java.util.List;
  * Spring Security의 {@link UserDetails} 인터페이스를 구현한 커스텀 클래스
  * TODO-SECURITY: OAUth2Info 구현체 등록
  */
-public class UserDetailsDto implements UserDetails {
+public class UserDetailsDto implements CustomUserDetails {
 
     // Member 객체의 메서드를 직접 호출 가능
     @Delegate
@@ -44,6 +44,11 @@ public class UserDetailsDto implements UserDetails {
         return this.authorities;
     }
 
+    @Override
+    public String getUuid() {
+        return member.getUuid();
+    }
+
     /* 비밀번호 반환 */
     @Override
     public String getPassword() {
@@ -65,7 +70,7 @@ public class UserDetailsDto implements UserDetails {
     /* 계정 잠금 여부 반환 */
     @Override
     public boolean isAccountNonLocked() {
-        return UserDetails.super.isAccountNonLocked();
+        return CustomUserDetails.super.isAccountNonLocked();
     }
 
     /* 자격 증명(비밀번호) 만료 여부 반환 (true: 만료되지 않음) */

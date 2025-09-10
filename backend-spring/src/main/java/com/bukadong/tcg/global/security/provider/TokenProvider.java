@@ -1,4 +1,4 @@
-package com.bukadong.tcg.global.util;
+package com.bukadong.tcg.global.security.provider;
 
 import com.bukadong.tcg.api.member.repository.MemberRepository;
 
@@ -32,12 +32,12 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Component
-public class JwtTokenUtils {
+public class TokenProvider {
 
     private final SecretKey secretKey;
     private final MemberRepository memberRepository;
 
-    public JwtTokenUtils(@Value("${security.jwt.secret-key}") String secretKey, MemberRepository memberRepository) {
+    public TokenProvider(@Value("${security.jwt.secret-key}") String secretKey, MemberRepository memberRepository) {
         this.secretKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secretKey));
         this.memberRepository = memberRepository;
     }
@@ -97,8 +97,8 @@ public class JwtTokenUtils {
     /* Request Header 의 'Authorization' 필드에서 토큰 정보 추출 */
     public String getTokenFromRequest(HttpServletRequest request) {
         String bearerToken = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(TOKEN_PREFIX)) {
-            return bearerToken.substring(TOKEN_PREFIX.length());
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(GRANT_TYPE)) {
+            return bearerToken.substring(GRANT_TYPE.length());
         }
         return null;
     }
@@ -116,7 +116,7 @@ public class JwtTokenUtils {
 
         String subject = claims.getSubject();
 
-        UserDetails principal = memberRepository.findByUuid(subject)
+        UserDetails principal = memberRepository.findByEmail(subject)
                 .map(UserDetailsDto::new)
                 .orElseThrow(() -> new UsernameNotFoundException("해당하는 사용자를 찾을 수 없습니다."));
 

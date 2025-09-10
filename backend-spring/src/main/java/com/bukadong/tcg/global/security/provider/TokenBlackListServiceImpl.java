@@ -1,4 +1,4 @@
-package com.bukadong.tcg.global.security.service;
+package com.bukadong.tcg.global.security.provider;
 
 import com.bukadong.tcg.global.util.RedisUtils;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +14,7 @@ import java.util.Date;
  */
 @Service
 @RequiredArgsConstructor
-public class JwtTokenBlackListServiceImpl implements JwtTokenBlackListService {
+public class TokenBlackListServiceImpl implements TokenBlackListService {
 
     private final RedisUtils redisUtils;
 

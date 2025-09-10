@@ -1,7 +1,7 @@
 package com.bukadong.tcg.global.security.config;
 
 import com.bukadong.tcg.api.member.entity.Role;
-import com.bukadong.tcg.global.common.exception.BaseExceptionHandlerFilter;
+import com.bukadong.tcg.global.security.filter.BaseExceptionHandlerFilter;
 import com.bukadong.tcg.global.properties.SecurityCorsProperties;
 import com.bukadong.tcg.global.properties.SecurityOAuth2Properties;
 import com.bukadong.tcg.global.properties.SecurityRoleProperties;
@@ -9,8 +9,6 @@ import com.bukadong.tcg.global.properties.SecurityWhitelistProperties;
 import com.bukadong.tcg.global.security.filter.JwtAuthenticationFilter;
 import com.bukadong.tcg.global.security.handler.CustomAccessDeniedHandler;
 import com.bukadong.tcg.global.security.handler.CustomAuthenticationEntryPoint;
-import com.bukadong.tcg.global.security.service.JwtTokenBlackListService;
-import com.bukadong.tcg.global.util.JwtTokenUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -23,9 +21,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.util.StringUtils;
 import org.springframework.web.cors.CorsConfiguration;

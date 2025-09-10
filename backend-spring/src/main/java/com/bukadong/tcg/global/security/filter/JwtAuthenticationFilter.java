@@ -4,8 +4,8 @@ import static com.bukadong.tcg.global.common.base.BaseResponseStatus.*;
 
 import com.bukadong.tcg.global.common.exception.BaseException;
 import com.bukadong.tcg.global.properties.SecurityWhitelistProperties;
-import com.bukadong.tcg.global.security.service.JwtTokenBlackListService;
-import com.bukadong.tcg.global.util.JwtTokenUtils;
+import com.bukadong.tcg.global.security.provider.TokenBlackListService;
+import com.bukadong.tcg.global.security.provider.TokenProvider;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,8 +28,8 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private final JwtTokenUtils jwtTokenUtils;
-    private final JwtTokenBlackListService jwtTokenBlackListService;
+    private final TokenProvider tokenProvider;
+    private final TokenBlackListService tokenBlackListService;
     private final SecurityWhitelistProperties whitelistProperties;
 
     private final AntPathMatcher antPathMatcher = new AntPathMatcher();
@@ -41,17 +41,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         // permitAll()이 아닌 경로에 대해서 검증
         if (!isPermitAll(requestMethod, requestUri)) {
-            String token = jwtTokenUtils.getTokenFromRequest(request);
+            String token = tokenProvider.getTokenFromRequest(request);
 
             if (StringUtils.hasText(token)) {
-                if (!jwtTokenUtils.validateToken(token)) {  // 토큰 유효성 검증
+                if (!tokenProvider.validateToken(token)) {  // 토큰 유효성 검증
                     throw new BaseException(INVALID_JWT_TOKEN);
                 }
-                if (jwtTokenBlackListService.isBlacklistAccessToken(token)) {   // 블랙리스트 검증
+                if (tokenBlackListService.isBlacklistAccessToken(token)) {   // 블랙리스트 검증
                     throw new BaseException(INVALID_JWT_TOKEN);
                 }
 
-                Authentication authentication = jwtTokenUtils.getAuthentication(token);
+                Authentication authentication = tokenProvider.getAuthentication(token);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             } else {    // 보호된 경로인데 토큰이 없는 경우
                 throw new BaseException(AUTHENTICATION_REQUIRED);

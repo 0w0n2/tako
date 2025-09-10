@@ -1,5 +1,6 @@
-package com.bukadong.tcg.global.common.exception;
+package com.bukadong.tcg.global.security.filter;
 
+import com.bukadong.tcg.global.common.exception.BaseException;
 import com.bukadong.tcg.global.util.ErrorResponseUtils;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
