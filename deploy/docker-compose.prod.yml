@@ -12,7 +12,7 @@ services:
       "--collation-server=utf8mb4_unicode_ci"
     ]
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
       MYSQL_DATABASE: tcg
       MYSQL_USER: ${DB_USERNAME}
       MYSQL_PASSWORD: ${DB_PASSWORD}
@@ -66,9 +66,6 @@ services:
       context: ../backend-fastapi
       dockerfile: Dockerfile
     container_name: tako_ai
-    # dev 예시에서 'port:'로 되어있던 부분은 compose 문법상 'ports:'가 맞아요.
-    ports:
-      - "8000:8000"
     env_file:
       - .env.prod
     restart: unless-stopped

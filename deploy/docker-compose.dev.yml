@@ -67,8 +67,6 @@ services:
       context: ../backend-fastapi
       dockerfile: Dockerfile
     container_name: tako_ai_dev
-    port:
-      - "8000:8000"
     env_file:
       - .env.dev
     mem_limit: 512m
