@@ -16,8 +16,6 @@ type TCGCardProps = {
   rarity: string;
   img: string;
   back?: string;
-  foil?: string;
-  mask?: string;
   showcase?: boolean;
   isReverse?: boolean;
 };
@@ -33,8 +31,6 @@ export default function TCGCard({
   rarity: initialRarity,
   img,
   back = "https://tcg.pokemon.com/assets/img/global/tcg-card-back-2x.jpg",
-  foil,
-  mask,
   showcase = false,
 }: TCGCardProps) {
   const [loading, setLoading] = useState(true);
@@ -68,13 +64,7 @@ export default function TCGCard({
 
   const frontImg = useMemo(() => (img.startsWith("http") ? img : `https://images.pokemontcg.io/${img}`), [img]);
 
-  const foilStyles = useMemo(() => ({
-      "--mask": mask ? `url(${mask})` : "none",
-      "--foil": foil ? `url(${foil})` : "none",
-    } as React.CSSProperties), [mask, foil]);
-
   const interact = (e: React.PointerEvent<HTMLButtonElement>) => {
-    if (isActive) return;
     setInteracting(true);
 
     const rect = e.currentTarget.getBoundingClientRect();
@@ -201,7 +191,7 @@ export default function TCGCard({
       <animated.div
         className={`card ${types} ${loading ? "loading" : ""} ${
           isActive ? "active" : ""
-        } ${interacting ? "interacting" : ""} ${mask ? "masked" : ""}`}
+        } ${interacting ? "interacting" : ""}`}
         data-number={numberL}
         data-set={set}
         data-subtypes={subtypes}
@@ -215,7 +205,7 @@ export default function TCGCard({
           onClick={toggleActive}
           onPointerMove={interact}
           onPointerLeave={interactEnd}
-          style={rotatorStyles}
+          style={{ ...rotatorStyles, ...dynamicStyles }}
         >
           <img
             className="card__back"
@@ -225,7 +215,7 @@ export default function TCGCard({
             width="660"
             height="921"
           />
-          <div className="card__front" style={foilStyles}>
+          <div className="card__front">
             <img
               src={frontImg}
               alt={name}
