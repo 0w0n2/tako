@@ -29,23 +29,23 @@ import './css/v-star.css'
 
 export default function CardList() {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1rem', padding: '1rem' }}>
-      {cards.map((card) => (
-        <TCGCard
-          key={card.id}
-          id={card.id}
-          name={card.name}
-          number={card.number}
-          set={card.set}
-          types={card.types || []}
-          subtypes={card.subtypes}
-          supertype={card.supertype}
-          rarity={card.rarity}
-          img={card.images.large}
-          foil={card.images.foil}
-          mask={card.images.mask}
-        />
-      ))}
+    <div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1rem', padding: '1rem' }}>
+        {cards.map((card) => (
+          <TCGCard
+            key={card.id}
+            id={card.id}
+            name={card.name}
+            number={card.number}
+            set={card.set}
+            types={card.types || []}
+            subtypes={card.subtypes}
+            supertype={card.supertype}
+            rarity={card.rarity}
+            img={card.images.large}
+          />
+        ))}
+      </div>
     </div>
   )
 }
