@@ -73,6 +73,7 @@ public class SecurityConfig {
                         if (urls != null && !urls.isEmpty()) {
                             String[] urlPatterns = urls.stream()
                                     .filter(StringUtils::hasText)
+                                    .map(String::trim)
                                     .toArray(String[]::new);
                             if (urlPatterns.length > 0) {
                                 auth.requestMatchers(method, urlPatterns).permitAll();
