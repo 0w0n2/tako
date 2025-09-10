@@ -3,6 +3,8 @@ package com.bukadong.tcg.api.auction.controller;
 import com.bukadong.tcg.api.auction.dto.response.AuctionListItemDto;
 import com.bukadong.tcg.api.auction.repository.AuctionSort;
 import com.bukadong.tcg.api.auction.service.AuctionQueryService;
+import com.bukadong.tcg.api.popularity.aop.AutoPopularityBid;
+import com.bukadong.tcg.api.popularity.aop.AutoPopularityView;
 import com.bukadong.tcg.global.common.base.BaseResponse;
 import com.bukadong.tcg.global.common.dto.PageResponse;
 import jakarta.validation.constraints.Min;
@@ -64,4 +66,35 @@ public class AuctionQueryController {
                 currentPriceMin, currentPriceMax, gradeSet, sort, page);
         return new BaseResponse<>(pageData);
     }
+
+    /**
+     * 경매 상세 조회 (깡통)
+     * <P>
+     * 실제 상세 로직 없이 성공 응답만 반환한다.
+     * </P>
+     * 
+     * @PARAM auctionId 경매 ID
+     * @RETURN BaseResponse<Void>
+     */
+    @AutoPopularityView
+    @GetMapping("/{auctionId}")
+    public BaseResponse<Void> getDetail(@PathVariable Long auctionId) {
+        return BaseResponse.onSuccess();
+    }
+
+    /**
+     * 입찰 생성 (깡통)
+     * <P>
+     * 실제 입찰 처리 없이 성공 응답만 반환한다.
+     * </P>
+     * 
+     * @PARAM auctionId 경매 ID
+     * @RETURN BaseResponse<Void>
+     */
+    @AutoPopularityBid
+    @PostMapping("/{auctionId}/bids")
+    public BaseResponse<Void> placeBid(@PathVariable Long auctionId) {
+        return BaseResponse.onSuccess();
+    }
+
 }

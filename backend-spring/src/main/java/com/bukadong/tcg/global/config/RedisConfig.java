@@ -10,6 +10,7 @@ import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
@@ -30,8 +31,8 @@ public class RedisConfig {
     private int port;
 
     /**
-     * 비밀번호가 없을 수도 있으므로 기본값은 빈 문자열로 둡니다.
-     * application.yml에서 기본값을 지정했다면 굳이 :""는 없어도 됩니다.
+     * 비밀번호가 없을 수도 있으므로 기본값은 빈 문자열로 둡니다. application.yml에서 기본값을 지정했다면 굳이 :""는 없어도
+     * 됩니다.
      */
     @Value("${spring.data.redis.password:}")
     private String password;
@@ -65,4 +66,21 @@ public class RedisConfig {
 
         return t;
     }
+
+    /**
+     * StringRedisTemplate 빈
+     * <P>
+     * ZSET 연산(unionAndStore, rangeWithScores 등)에 사용한다.
+     * </P>
+     * 
+     * @RETURN StringRedisTemplate
+     */
+    @Bean
+    StringRedisTemplate stringRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
+        StringRedisTemplate t = new org.springframework.data.redis.core.StringRedisTemplate();
+        t.setConnectionFactory(redisConnectionFactory);
+        t.setEnableTransactionSupport(false);
+        return t;
+    }
+
 }
