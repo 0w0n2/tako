@@ -7,6 +7,7 @@ import com.bukadong.tcg.global.properties.SecurityOAuth2Properties;
 import com.bukadong.tcg.global.properties.SecurityRoleProperties;
 import com.bukadong.tcg.global.properties.SecurityWhitelistProperties;
 import com.bukadong.tcg.global.security.filter.JwtAuthenticationFilter;
+import com.bukadong.tcg.global.security.handler.CustomAccessDeniedHandler;
 import com.bukadong.tcg.global.security.service.JwtTokenBlackListService;
 import com.bukadong.tcg.global.util.JwtTokenUtils;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +22,9 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -43,10 +46,13 @@ public class SecurityConfig {
     private final SecurityWhitelistProperties whitelistProperties;
     private final SecurityRoleProperties roleProperties;
 
+    /* filter */
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final BaseExceptionHandlerFilter baseExceptionHandlerFilter;
 
-    /* service, handler */
+    /* handler */
+    private final AccessDeniedHandler accessDeniedHandler;
+    private final AuthenticationEntryPoint authenticationEntryPoint;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -77,7 +83,10 @@ public class SecurityConfig {
                 .addFilterBefore(baseExceptionHandlerFilter, JwtAuthenticationFilter.class)
 
                 /* Exception */
-
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(authenticationEntryPoint)
+                        .accessDeniedHandler(accessDeniedHandler)
+                )
                 .build();
     }
 
