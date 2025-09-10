@@ -6,6 +6,7 @@ import com.bukadong.tcg.api.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -16,6 +17,7 @@ public class SignUpServiceImpl implements SignUpService {
     private final MemberRepository memberRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
+    @Transactional
     @Override
     public Member signUp(SignUpRequestDto requestDto) {
         // 이전에 탈퇴한 회원의 재가입 시 기존 정보 제거
