@@ -1,7 +1,9 @@
 package com.bukadong.tcg.api.auction.entity;
 
-import com.bukadong.tcg.api.auction.converter.AuctionBidUnitConverter;
+import com.bukadong.tcg.api.card.entity.Card;
 import com.bukadong.tcg.api.card.entity.PhysicalCard;
+import com.bukadong.tcg.api.category.entity.CategoryMajor;
+import com.bukadong.tcg.api.category.entity.CategoryMedium;
 import com.bukadong.tcg.global.common.base.BaseEntity;
 import com.bukadong.tcg.api.delivery.entity.Delivery;
 import com.bukadong.tcg.api.member.entity.Member;
@@ -14,30 +16,29 @@ import java.time.LocalDateTime;
 
 /**
  * 경매 엔티티.
- *
  * <p>
- * 회원이 보유한 실물 카드를 경매로 등록하고,
- * 시작가/현재가/입찰단위/기간/옵션 등을 관리한다.
+ * 회원이 보유한 실물 카드를 경매로 등록하고, 시작가/현재가/입찰단위/기간/옵션 카드/카테고리 메타정보을 관리한다.
  * </p>
- *
  * <p>
  * 스키마 메타데이터:
  * </p>
  * <ul>
+ * <li>TABLE: 경매</li>
  * <li>UK: code</li>
- * <li>INDEX: member_id, delivery_id, physical_card_id, (start_datetime,
- * end_datetime)</li>
+ * <li>INDEX: member_id, delivery_id, physical_card_id, card_id,
+ * category_major_id, category_medium_id, (start_datetime,end_datetime)</li>
  * </ul>
  */
 @Entity
 @Table(name = "auction", uniqueConstraints = {
-        @UniqueConstraint(name = "uk_auction_code", columnNames = { "code" })
-}, indexes = {
-        @Index(name = "idx_auc_owner", columnList = "member_id"),
-        @Index(name = "idx_auc_delivery", columnList = "delivery_id"),
-        @Index(name = "idx_auc_pcard", columnList = "physical_card_id"),
-        @Index(name = "idx_auc_start_end", columnList = "start_datetime,end_datetime")
-})
+        @UniqueConstraint(name = "uk_auction_code", columnNames = { "code" }) }, indexes = {
+                @Index(name = "idx_auc_owner", columnList = "member_id"),
+                @Index(name = "idx_auc_delivery", columnList = "delivery_id"),
+                @Index(name = "idx_auc_pcard", columnList = "physical_card_id"),
+                @Index(name = "idx_auc_card", columnList = "card_id"),
+                @Index(name = "idx_auc_cat_major", columnList = "category_major_id"),
+                @Index(name = "idx_auc_cat_medium", columnList = "category_medium_id"),
+                @Index(name = "idx_auc_start_end", columnList = "start_datetime,end_datetime") })
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -60,10 +61,25 @@ public class Auction extends BaseEntity {
             foreignKey = @ForeignKey(name = "FK_auction_delivery"))
     private Delivery delivery;
 
-    /** 경매 대상 실물 카드 (필수) */
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "physical_card_id", nullable = true, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
+    /** 경매 대상 실물 카드 (옵션) -> physical_card_id */
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(name = "physical_card_id", nullable = true, foreignKey = @ForeignKey(name = "FK_auction_physical_card"))
     private PhysicalCard physicalCard;
+
+    /** 카드 메타 (필수) -> card_id */
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "card_id", nullable = false, foreignKey = @ForeignKey(name = "FK_auction_card"))
+    private Card card;
+
+    /** 카테고리 대분류 (필수) -> category_major_id */
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "category_major_id", nullable = false, foreignKey = @ForeignKey(name = "FK_auction_category_major"))
+    private CategoryMajor categoryMajor;
+
+    /** 카테고리 중분류 (필수) -> category_medium_id */
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "category_medium_id", nullable = false, foreignKey = @ForeignKey(name = "FK_auction_category_medium"))
+    private CategoryMedium categoryMedium;
 
     /** 카드 컨디션 등급 (예: PS/NM 등 2자리) */
     @Size(min = 1, max = 2)
@@ -101,7 +117,7 @@ public class Auction extends BaseEntity {
 
     /** 입찰 단위 (예: 0.01/0.1/0.3/0.5/1/5/10) */
     @NotNull
-    @Convert(converter = AuctionBidUnitConverter.class)
+    @Convert(converter = com.bukadong.tcg.api.auction.converter.AuctionBidUnitConverter.class)
     @Column(name = "bid_unit", nullable = false, length = 10)
     private AuctionBidUnit bidUnit;
 
@@ -145,7 +161,6 @@ public class Auction extends BaseEntity {
 
     /**
      * 저장 전 훅.
-     *
      * <p>
      * 중요 로직: currentPrice 미설정 시 startPrice로 초기화한다.
      * </p>
@@ -165,7 +180,6 @@ public class Auction extends BaseEntity {
 
     /**
      * 업데이트 전 훅.
-     *
      * <p>
      * 중요 로직: 종료일시가 시작일시보다 빠르면 안 된다.
      * </p>

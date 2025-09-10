@@ -37,7 +37,7 @@ public enum BaseResponseStatus {
     /**
      * 5XX: Server Error(서버 에러)
      */
-    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, false, 500, "Internal server error"),
+    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, false, 500, "서버에서 예기치 않은 오류가 발생했습니다."),
     REDIS_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, false, 500, "Internal Cache system failure"),
 
     /**
@@ -78,7 +78,8 @@ public enum BaseResponseStatus {
     // CONFLICT 방지 하단에 추가 REFACTOR 부탁해요~
     CATEGORY_BAD_REQUEST(HttpStatus.BAD_REQUEST, false, 400, "카테고리 요청이 올바르지 않습니다."),
     CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, false, 404, "카테고리를 찾을 수 없습니다."),
-    INVALID_AUCTION_BID_UNIT(HttpStatus.BAD_REQUEST, false, 400, "경매 입찰 단위 변환에 실패하였습니다.");
+    INVALID_AUCTION_BID_UNIT(HttpStatus.BAD_REQUEST, false, 400, "경매 입찰 단위 변환에 실패하였습니다."),
+    BAD_REQUEST(HttpStatus.BAD_REQUEST, false, 400, "잘못된 요청입니다.");
 
     private final HttpStatusCode httpStatusCode;
     private final boolean isSuccess;
