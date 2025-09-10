@@ -17,9 +17,9 @@ public class NicknameServiceImpl implements NicknameService {
     private final MemberRepository memberRepository;
 
     private static final String[] adjectives = {
-            "귀여운", "발랄한", "사랑스러운", "똑똑한", "활발한", "알뜰한", "장난꾸러기", "용감한", "상냥한", "행복한",
-            "느긋한", "온화한", "믿음직한", "애교쟁이", "엉뚱한", "당당한", "재빠른", "조용한", "부드러운", "당돌한",
-            "하품하는", "울상인", "대담한", "못말리는", "신사적인"
+            "귀여운", "발랄한", "똑똑한", "용감한", "상냥한", "행복한",
+            "느긋한", "온화한", "대담한", "당당한", "재빠른", "조용한", "부드러운", "당돌한",
+            "하품하는", "신사적인"
     };
 
     private static final String[] nouns = {
@@ -34,11 +34,17 @@ public class NicknameServiceImpl implements NicknameService {
         for (int i = 0; i < 20; i++) { // 20회까지 시도
             String adjective = adjectives[random.nextInt(adjectives.length)];
             String noun = nouns[random.nextInt(nouns.length)];
-            int number = random.nextInt(1000); // 0~999
 
-            String nickname = adjective + noun + number;
-            if (Patterns.NICKNAME_PATTERN.matcher(nickname).matches()) {
-                return nickname;
+            final int MAX_NICKNAME_LENGTH = 10;
+            final int NUMBER_SUFFIX_LENGTH = 4;
+
+            if ((adjective.length() + noun.length()) <= (MAX_NICKNAME_LENGTH - NUMBER_SUFFIX_LENGTH)) {
+                String numberSuffix = String.format("%04d", random.nextInt(10000));
+                String nickname = adjective + noun + numberSuffix;
+
+                if (nickname.length() > MAX_NICKNAME_LENGTH && Patterns.NICKNAME_PATTERN.matcher(nickname).matches()) {
+                    return nickname;
+                }
             }
         }
         // fallback: 랜덤 숫자 기반 닉네임 (8자리 보장)
@@ -49,7 +55,9 @@ public class NicknameServiceImpl implements NicknameService {
     public String getRandomNickname() {
         for (int i = 0; i < 10; i++) {
             String nickname = generateNickname();
-            if (!memberRepository.existsByNicknameAndIsDeletedIsFalse(nickname)) return nickname;
+            if (!memberRepository.existsByNicknameAndIsDeletedIsFalse(nickname)) {
+                return nickname;
+            }
         }
         throw new BaseException(BaseResponseStatus.NICKNAME_GENERATION_FAILED);
     }
