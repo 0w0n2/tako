@@ -19,6 +19,9 @@ RUN --mount=type=cache,target=/root/.gradle ./gradlew --version
 # 이후 소스 복사
 COPY . .
 
+# 실행권한 + CRLF 방지
+RUN chmod +x gradlew && sed -i 's/\r$//' gradlew
+
 # 의존성/컴파일 캐시 활용 + 테스트 스킵 옵션
 RUN --mount=type=cache,target=/root/.gradle \
     ./gradlew clean bootJar $( [ "$SKIP_TESTS" = "true" ] && echo "-x test" )
