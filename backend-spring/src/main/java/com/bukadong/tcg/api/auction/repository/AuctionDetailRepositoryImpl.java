@@ -43,7 +43,7 @@ public class AuctionDetailRepositoryImpl implements AuctionDetailRepository {
         return AuctionInfo.builder().id(a.getId()).title(a.getTitle()).detail(a.getDetail())
                 .grade(a.getGrade()).code(a.getCode()).startPrice(a.getStartPrice())
                 .currentPrice(a.getCurrentPrice())
-                .bidUnit(a.getBidUnit() != null ? String.valueOf(a.getBidUnit()) : null)
+                .bidUnit(a.getBidUnit() != null ? new BigDecimal(a.getBidUnit().value()) : null)
                 .startDatetime(a.getStartDatetime()).endDatetime(a.getEndDatetime())
                 .durationDays(a.getDurationDays()).end(a.isEnd()).buyNowFlag(a.isBuyNowFlag())
                 .buyNowPrice(a.getBuyNowPrice()).extensionFlag(a.isExtensionFlag())
@@ -110,7 +110,8 @@ public class AuctionDetailRepositoryImpl implements AuctionDetailRepository {
 
         return tuples.stream()
                 .map(t -> BidHistoryItem.builder().createdAt(t.get(auctionBid.createdAt))
-                        .bidPrice(t.get(auctionBid.bidPrice)).bidderNickname(t.get(member.nickname))
+                        .bidPrice(t.get(auctionBid.bidPrice))
+                        .bidderNickname(t.get(member.nickname))
                         .build())
                 .collect(Collectors.toList());
     }

@@ -52,7 +52,7 @@ public class AuctionDetailResponse {
         private String code;
         private BigDecimal startPrice;
         private BigDecimal currentPrice;
-        private String bidUnit; // 문자열로 노출 (예: "0.1")
+        private BigDecimal bidUnit;
         private LocalDateTime startDatetime;
         private LocalDateTime endDatetime;
         private Integer durationDays;
