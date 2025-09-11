@@ -2,8 +2,10 @@ package com.bukadong.tcg.api.auction.controller;
 
 import com.bukadong.tcg.api.auction.dto.response.AuctionDetailResponse;
 import com.bukadong.tcg.api.auction.dto.response.AuctionListItemDto;
+import com.bukadong.tcg.api.auction.dto.response.AuctionReviewResponse;
 import com.bukadong.tcg.api.auction.repository.AuctionSort;
 import com.bukadong.tcg.api.auction.service.AuctionQueryService;
+import com.bukadong.tcg.api.auction.service.ReviewQueryService;
 import com.bukadong.tcg.api.popularity.aop.AutoPopularityBid;
 import com.bukadong.tcg.api.popularity.aop.AutoPopularityView;
 import com.bukadong.tcg.global.common.base.BaseResponse;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -116,7 +119,7 @@ public class AuctionQueryController {
     @Operation(summary = "입찰 생성(샘플)", description = "실제 입찰 처리 없이 성공 응답만 반환합니다. (데모/연동용)")
     @PostMapping("/{auctionId}/bids")
     public BaseResponse<Void> placeBid(
-            @Parameter(description = "경매 ID", example = "1001") @PathVariable Long auctionId) {
+            @Parameter(description = "경매 ID", example = "1001") @PathVariable("auctionId") Long auctionId) {
         return BaseResponse.onSuccess();
     }
 
