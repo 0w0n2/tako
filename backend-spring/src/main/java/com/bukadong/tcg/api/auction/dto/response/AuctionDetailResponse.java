@@ -18,7 +18,6 @@ import java.util.List;
  * @RETURN 컨트롤러에서 BaseResponse로 감싸 반환
  */
 @Getter
-@Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -43,7 +42,6 @@ public class AuctionDetailResponse {
     private SellerInfo seller;
 
     @Getter
-    @Setter
     @Builder
     @AllArgsConstructor
     @NoArgsConstructor
@@ -66,7 +64,6 @@ public class AuctionDetailResponse {
     }
 
     @Getter
-    @Setter
     @Builder
     @AllArgsConstructor
     @NoArgsConstructor
@@ -82,7 +79,6 @@ public class AuctionDetailResponse {
     }
 
     @Getter
-    @Setter
     @Builder
     @AllArgsConstructor
     @NoArgsConstructor
@@ -94,7 +90,6 @@ public class AuctionDetailResponse {
     }
 
     @Getter
-    @Setter
     @Builder
     @AllArgsConstructor
     @NoArgsConstructor
@@ -105,7 +100,6 @@ public class AuctionDetailResponse {
     }
 
     @Getter
-    @Setter
     @Builder
     @AllArgsConstructor
     @NoArgsConstructor
