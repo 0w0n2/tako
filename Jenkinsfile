@@ -20,8 +20,8 @@ pipeline {
         [key:'GL_USER_NAME',    value:'$.user.name']
       ],
       token: 'tcg-mr',
-      printContributedVariables: true,
-      printPostContent: true,
+      printContributedVariables: false,
+      printPostContent: false,
       regexpFilterText: '$GL_EVENT:$GL_MR_ACTION',
       regexpFilterExpression: '^merge_request:(open|reopen|merge|update)$'
     )
@@ -397,7 +397,7 @@ pipeline {
         script {
           // 에러나 예외 로그가 담긴 최대 20줄을 뽑아서 메세지에 포함
           def errLogs = sh(
-            script: "grep -iE 'error|exception' ${currentBuild.rawBuild.logFile} | tail -n 20",
+            script: "grep -iE 'error|exception' ${currentBuild.rawBuild.logFile} | tail -n 5",
             returnStdout: true
           ).trim()
 
