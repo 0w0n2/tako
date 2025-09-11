@@ -3,10 +3,10 @@ pipeline {
   options { timestamps(); disableConcurrentBuilds() }
 
   parameters {
-    booleanParam(name: 'MANUAL_DEV_DEPLOY', defaultValue: false, description: 'Check to trigger manual dev deploy'),
-    booleanParam(name: 'MANUAL_PROD_DEPLOY', defaultValue: false, description: 'Check to trigger manual prod deploy'),
-    booleanParam(name: 'MANUAL_BACK', defaultValue: false, description: 'Backend only'),
-    booleanParam(name: 'MANUAL_FRONT', defaultValue: false, description: 'Frontend only'),
+    booleanParam(name: 'MANUAL_DEV_DEPLOY', defaultValue: false, description: 'Check to trigger manual dev deploy')
+    booleanParam(name: 'MANUAL_PROD_DEPLOY', defaultValue: false, description: 'Check to trigger manual prod deploy')
+    booleanParam(name: 'MANUAL_BACK', defaultValue: false, description: 'Backend only')
+    booleanParam(name: 'MANUAL_FRONT', defaultValue: false, description: 'Frontend only')
     booleanParam(name: 'MANUAL_AI', defaultValue: false, description: 'AI Backend only')
   }
 
