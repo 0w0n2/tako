@@ -9,11 +9,14 @@ import com.bukadong.tcg.global.properties.SecurityWhitelistProperties;
 import com.bukadong.tcg.global.security.filter.JwtAuthenticationFilter;
 import com.bukadong.tcg.global.security.handler.CustomAccessDeniedHandler;
 import com.bukadong.tcg.global.security.handler.CustomAuthenticationEntryPoint;
+import com.bukadong.tcg.global.security.handler.CustomAuthenticationProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -56,6 +59,8 @@ public class SecurityConfig {
     /* handler */
     private final CustomAccessDeniedHandler accessDeniedHandler;
     private final CustomAuthenticationEntryPoint authenticationEntryPoint;
+
+    private final CustomAuthenticationProvider authenticationProvider;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -108,6 +113,11 @@ public class SecurityConfig {
     @Bean
     public BCryptPasswordEncoder bCryptPasswordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager() {
+        return new ProviderManager(authenticationProvider);
     }
 
     /* CORS 정책 설정 */

@@ -6,9 +6,9 @@ import java.util.Date;
 
 @Service
 public interface TokenBlackListService {
-    void addBlacklistAccessToken(String accessToken, Date expiration);
+    void addBlacklistAccessToken(String accessToken);
 
-    void addBlacklistRefreshToken(String refreshToken, Date expiration);
+    void addBlacklistRefreshToken(String refreshToken);
 
     boolean isBlacklistAccessToken(String accessToken);
 

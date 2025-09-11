@@ -4,6 +4,7 @@ import com.bukadong.tcg.global.common.base.BaseResponse;
 import com.bukadong.tcg.global.common.base.BaseResponseStatus;
 import com.bukadong.tcg.api.member.dto.AvailabilityResponse;
 import com.bukadong.tcg.api.member.service.MemberAvailabilityService;
+import com.bukadong.tcg.global.constant.Patterns;
 import lombok.RequiredArgsConstructor;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -24,11 +25,6 @@ public class MemberAvailabilityController {
 
     private final MemberAvailabilityService memberAvailabilityService;
 
-    // 매우 느슨한 이메일 형식 검증(실무에서는 더 엄격한 정책/화이트리스트 필요할 수 있음)
-    private static final Pattern SIMPLE_EMAIL = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
-    // 영문/한글/숫자만 허용, 길이 2~30
-    private static final Pattern NICKNAME_PATTERN = Pattern.compile("^[0-9A-Za-z가-힣]{2,30}$");
-
     /**
      * 이메일 중복 확인 - 유효성 실패: INVALID_EMAIL_ADDRESS 로 실패 응답 - 성공: { field, value,
      * available } 반환
@@ -37,7 +33,7 @@ public class MemberAvailabilityController {
     public BaseResponse<AvailabilityResponse> checkEmail(@RequestParam("email") String email) {
         String v = email == null ? "" : email.strip();
 
-        if (!StringUtils.hasText(v) || !SIMPLE_EMAIL.matcher(v).matches()) {
+        if (!StringUtils.hasText(v) || !Patterns.SIMPLE_EMAIL.matcher(v).matches()) {
             // 실패 BaseResponse(불가능)로 바로 응답
             return new BaseResponse<>(BaseResponseStatus.INVALID_EMAIL_ADDRESS);
         }
@@ -56,7 +52,7 @@ public class MemberAvailabilityController {
         String v = nickname == null ? "" : nickname.strip();
 
         // 공백/널 또는 패턴 불일치 -> 실패 응답
-        if (!StringUtils.hasText(v) || !NICKNAME_PATTERN.matcher(v).matches()) {
+        if (!StringUtils.hasText(v) || !Patterns.NICKNAME_PATTERN.matcher(v).matches()) {
             return new BaseResponse<>(BaseResponseStatus.INVALID_NICKNAME);
         }
 

@@ -16,4 +16,5 @@ public final class SecurityConstants {
 
     public static final String REFRESH_PREFIX = "jwt-rt:";
     public static final String REFRESH_MEMBER_MAPPING_PREFIX = "member-rt:";
+    public static final String REFRESH_TITLE ="refreshToken";
 }
