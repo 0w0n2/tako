@@ -2,6 +2,7 @@ package com.bukadong.tcg.api.card.repository;
 
 import com.bukadong.tcg.api.card.entity.Card;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 /**
  * 카드 리포지토리
@@ -13,4 +14,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * @RETURN 없음
  */
 public interface CardRepository extends JpaRepository<Card, Long> {
+    @Query("select count(c) from Card c where c.categoryMajor.id = :majorId")
+    long countByCategoryMajorId(Long majorId);
+
+    @Query("select count(c) from Card c where c.categoryMedium.id = :mediumId")
+    long countByCategoryMediumId(Long mediumId);
 }

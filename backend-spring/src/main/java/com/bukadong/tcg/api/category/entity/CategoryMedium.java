@@ -5,11 +5,9 @@ import lombok.*;
 
 /**
  * 카테고리 중분류 엔티티
- *
  * <p>
  * 대분류(CategoryMajor) 하위에 속하는 중분류 정보를 관리한다.
  * </p>
- *
  * <ul>
  * <li>code, name 컬럼은 각각 고유(UNIQUE) 제약</li>
  * <li>category_major_id, name 컬럼에 인덱스 생성</li>
@@ -19,11 +17,11 @@ import lombok.*;
 @Entity
 @Table(name = "category_medium", uniqueConstraints = {
         // (대분류, 이름) 조합으로 유니크
-        @UniqueConstraint(name = "uk_category_medium_major_name", columnNames = { "category_major_id", "name" })
-}, indexes = {
-        @Index(name = "idx_category_medium_category", columnList = "category_major_id"),
-})
+        @UniqueConstraint(name = "uk_category_medium_major_name", columnNames = { "category_major_id",
+                "name" }) }, indexes = {
+                        @Index(name = "idx_category_medium_category", columnList = "category_major_id"), })
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
