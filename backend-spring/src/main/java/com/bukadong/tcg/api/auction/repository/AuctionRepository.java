@@ -58,7 +58,7 @@ public interface AuctionRepository extends JpaRepository<Auction, Long> {
      * @return
      */
     @Query("select count(a) from Auction a where a.categoryMajor.id = :majorId")
-    long countByCategoryMajorId(@Param("id") Long majorId);
+    long countByCategoryMajorId(@Param("majorId") Long majorId);
 
     /**
      * 카테고리 참조 여부 확인용
@@ -70,6 +70,6 @@ public interface AuctionRepository extends JpaRepository<Auction, Long> {
      * @return
      */
     @Query("select count(a) from Auction a where a.categoryMedium.id = :mediumId")
-    long countByCategoryMediumId(@Param("id") Long mediumId);
+    long countByCategoryMediumId(@Param("mediumId") Long mediumId);
 
 }
