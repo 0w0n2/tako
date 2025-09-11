@@ -44,8 +44,8 @@ public class Member {
     @Column(nullable = false, length = 255)
     private String password;
 
-    /** 닉네임 (2~6자) */
-    @Column(nullable = false, length = 6)
+    /** 닉네임 (2~10자) */
+    @Column(nullable = false, length = 10)
     private String nickname;
 
     /** 소개글 */

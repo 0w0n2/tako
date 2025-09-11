@@ -52,8 +52,8 @@ public enum BaseResponseStatus {
     FAILED_TO_LOGIN(HttpStatus.UNAUTHORIZED, false, 401, "아이디 또는 패스워드를 다시 확인하세요."),
     DUPLICATED_SOCIAL_USER(HttpStatus.CONFLICT, false, 409, "이미 소셜 연동된 계정입니다."),
     DUPLICATED_SOCIAL_PROVIDER_USER(HttpStatus.CONFLICT, false, 409, "계정에 동일한 플랫폼이 이미 연동되어있습니다"),
-    NO_EXIST_USER(HttpStatus.NOT_FOUND, false, 404, "존재하지 않는 멤버 정보입니다."),
-    PASSWORD_MATCH_FAILED(HttpStatus.BAD_REQUEST, false, 400, "패스워드를 다시 확인해주세요."),
+    NO_EXIST_USER(HttpStatus.NOT_FOUND, false, 404, "존재하지 않는 계정입니다."),
+    PASSWORD_MATCH_FAILED(HttpStatus.BAD_REQUEST, false, 400, "비밀번호를 다시 확인해주세요."),
     NO_SUPPORTED_PROVIDER(HttpStatus.BAD_REQUEST, false, 400, "지원하지 않는 플랫폼입니다"),
     DUPLICATED_NICKNAME(HttpStatus.CONFLICT, false, 409, "이미 사용중인 닉네임입니다."),
     SAME_NICKNAME(HttpStatus.CONFLICT, false, 409, "현재 사용중인 닉네임입니다."),
@@ -79,7 +79,12 @@ public enum BaseResponseStatus {
     CATEGORY_BAD_REQUEST(HttpStatus.BAD_REQUEST, false, 400, "카테고리 요청이 올바르지 않습니다."),
     CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, false, 404, "카테고리를 찾을 수 없습니다."),
     INVALID_AUCTION_BID_UNIT(HttpStatus.BAD_REQUEST, false, 400, "경매 입찰 단위 변환에 실패하였습니다."),
-    BAD_REQUEST(HttpStatus.BAD_REQUEST, false, 400, "잘못된 요청입니다.");
+    BAD_REQUEST(HttpStatus.BAD_REQUEST, false, 400, "잘못된 요청입니다."),
+
+    /**
+     * 600: 멤버 에러
+     */
+    NICKNAME_GENERATION_FAILED(HttpStatus.CONFLICT, false, 680, "랜덤 닉네임 생성을 실패했습니다.");
 
     private final HttpStatusCode httpStatusCode;
     private final boolean isSuccess;
