@@ -8,6 +8,7 @@ group = 'com.bukadong'
 version = '0.0.1-SNAPSHOT'
 description = 'ssafy tcg auction platform'
 
+// AWS 라이브러리 버전 관리
 ext {
 	set('springCloudAwsVersion', "3.1.1")
 }
@@ -26,6 +27,13 @@ configurations {
 
 repositories {
 	mavenCentral()
+}
+
+// Spring cloud AWS 종속성 관리
+dependencyManagement {
+	imports {
+		mavenBom "io.awspring.cloud:spring-cloud-aws-dependencies:${springCloudAwsVersion}"
+	}
 }
 
 dependencies {
