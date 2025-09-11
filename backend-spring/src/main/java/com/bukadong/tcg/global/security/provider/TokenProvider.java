@@ -114,9 +114,9 @@ public class TokenProvider {
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toList());
 
-        String subject = claims.getSubject();
+        String memberUuid = claims.getSubject();
 
-        UserDetails principal = memberRepository.findByEmail(subject)
+        UserDetails principal = memberRepository.findByUuid(memberUuid)
                 .map(UserDetailsDto::new)
                 .orElseThrow(() -> new UsernameNotFoundException("해당하는 사용자를 찾을 수 없습니다."));
 

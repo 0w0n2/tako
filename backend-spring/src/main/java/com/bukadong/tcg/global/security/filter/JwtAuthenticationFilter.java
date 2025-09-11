@@ -35,20 +35,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final TokenBlackListService tokenBlackListService;
     private final SecurityWhitelistProperties securityWhitelistProperties;
     private final AntPathMatcher antPathMatcher = new AntPathMatcher();
-    
-    // TODO-SECURITY: 이슈 해결 후 아래 메소드 삭제 필요
-    @PostConstruct
-    public void printWhitelist() {
-        log.info("--- Security Whitelist Properties Loaded ---");
-        if (securityWhitelistProperties.getParsedWhitelist() == null || securityWhitelistProperties.getParsedWhitelist().isEmpty()) {
-            log.warn("!!! Whitelist is EMPTY. Check your application.yml properties.");
-        } else {
-            securityWhitelistProperties.getParsedWhitelist().forEach((method, urls) -> {
-                log.info("  [{}] -> {}", method, urls);
-            });
-        }
-        log.info("---------------------------------------------");
-    }
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {

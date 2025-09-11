@@ -82,7 +82,7 @@ public class UserDetailsDto implements CustomUserDetails {
     /* 계정 활성화 여부 반환 */
     @Override
     public boolean isEnabled() {
-        return true;
+        return !member.getIsDeleted();
     }
 
 }

@@ -1,6 +1,7 @@
 package com.bukadong.tcg.global.security.provider;
 
 import com.bukadong.tcg.global.util.RedisUtils;
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -17,9 +18,12 @@ import java.util.Date;
 public class TokenBlackListServiceImpl implements TokenBlackListService {
 
     private final RedisUtils redisUtils;
+    private final TokenProvider tokenProvider;
 
-    private void addBlacklist(String prefix, String token, Date expiration) {
+    private void addBlacklist(String prefix, String token) {
         String key = prefix + token;
+        Claims claims = tokenProvider.parseClaims(token);
+        Date expiration = claims.getExpiration();
         long now = System.currentTimeMillis();
         long remaining = expiration.getTime() - now;
 
@@ -29,13 +33,13 @@ public class TokenBlackListServiceImpl implements TokenBlackListService {
     }
 
     @Override
-    public void addBlacklistAccessToken(String accessToken, Date expiration) {
-        addBlacklist(BLACKLIST_ACCESS_PREFIX, accessToken, expiration);
+    public void addBlacklistAccessToken(String accessToken) {
+        addBlacklist(BLACKLIST_ACCESS_PREFIX, accessToken);
     }
 
     @Override
-    public void addBlacklistRefreshToken(String refreshToken, Date expiration) {
-        addBlacklist(BLACKLIST_REFRESH_PREFIX, refreshToken, expiration);
+    public void addBlacklistRefreshToken(String refreshToken) {
+        addBlacklist(BLACKLIST_REFRESH_PREFIX, refreshToken);
     }
 
     private boolean isBlacklist(String prefix, String token) {
