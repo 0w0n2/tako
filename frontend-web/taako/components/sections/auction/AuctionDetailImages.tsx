@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react';
 import Image from 'next/image';
+import { useState } from 'react';
 import { AuctionDetailProps } from '@/types/auction';
+import RankElement from '../../atoms/RankElement';
 
 interface AuctionDetailImages{
     props: AuctionDetailProps
@@ -18,11 +19,9 @@ export default function AuctionDetailImages({ props }: AuctionDetailImages){
 
     return(
         <div>
-            <div className="flex-2 w-full max-w-md">
-                <div className="sticky top-60 z-8">
-                <div className="flex flex-col gap-4">
-                    <div 
-                    className="rounded-2xl overflow-hidden border-2 border-black relative aspect-square cursor-zoom-in"
+            <div className="flex flex-col gap-4">
+                <div 
+                    className="rounded-2xl overflow-hidden relative aspect-square cursor-zoom-in"
                     onMouseEnter={() => setIsZoomed(true)}
                     onMouseLeave={() => setIsZoomed(false)}
                     onMouseMove={(e) => {
@@ -31,9 +30,13 @@ export default function AuctionDetailImages({ props }: AuctionDetailImages){
                         const y = ((e.clientY - rect.top) / rect.height) * 100;
                         setMousePosition({ x, y });
                     }}
-                    >
+                >
+                    {/* 랭크 표시 */}
+                    {/* <div className='absolute top-4 right-4 z-1'>
+                        <RankElement rank={props.card.grade} />
+                    </div> */}
                     <Image
-                    src={props.imageUrl[selectedImageIndex] || '/no-image.jpg'}
+                    src={props.imageUrls[selectedImageIndex] || '/no-image.jpg'}
                     alt="상품 대표 이미지" 
                     width={100}
                     height={100}
@@ -44,30 +47,28 @@ export default function AuctionDetailImages({ props }: AuctionDetailImages){
                         transformOrigin: `${mousePosition.x}% ${mousePosition.y}%`
                     }}
                     />
-                    </div>
-                    <ul className="grid grid-cols-4 gap-4">
-                        {props.imageUrl.map((url, index) => (
-                        <li 
-                            key={index} 
-                            className={`relative w-25 h-25 aspect-square rounded-xl overflow-hidden border cursor-pointer transition-all ${
-                            selectedImageIndex === index 
-                                ? 'border-black border-2' 
-                                : 'border-[#eeeeee]'
-                            }`}
-                            onClick={() => setSelectedImageIndex(index)}
-                        >
-                            <Image 
-                            src={url}
-                            alt={`상품 썸네일${index + 1}`}
-                            width={50}
-                            height={50}
-                            className="object-cover w-full h-full"
-                            />
-                        </li>
-                        ))}
-                    </ul>
                 </div>
-                </div>
+                <ul className="grid grid-cols-6 gap-4">
+                    {props.imageUrls.map((url, index) => (
+                    <li 
+                        key={index} 
+                        className={`relative aspect-square rounded-lg overflow-hidden border cursor-pointer transition-all ${
+                        selectedImageIndex === index 
+                            ? 'border-[#F2B90C] border-2'
+                            : 'border-black'
+                        }`}
+                        onClick={() => setSelectedImageIndex(index)}
+                    >
+                        <Image 
+                        src={url}
+                        alt={`상품 썸네일${index + 1}`}
+                        width={50}
+                        height={50}
+                        className="object-cover w-full h-full"
+                        />
+                    </li>
+                    ))}
+                </ul>
             </div>
         </div>
     )

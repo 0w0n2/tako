@@ -53,8 +53,33 @@ h3{
 
 /* 컨테이너 너비 고정 */
 .default-container {
-  width: 1420px;
+  width: 1280px;
   margin: 0 auto;
+}
+
+/* 세로 스크롤 숨김 */
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}
+
+/* 가로 스크롤 커스텀 */
+.custom-scroll {
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: #555 transparent; /* thumb, track */
+}
+.custom-scroll::-webkit-scrollbar {
+  height: 8px; /* horizontal scrollbar height */
+}
+.custom-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scroll::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 9999px;
 }
 
 /* 기본 스타일 */

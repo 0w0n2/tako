@@ -21,9 +21,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko">
-      <body className={`${montserrat.className} pt-[160px]`}>
+      <body className={`${montserrat.className}`}>
         <Header />
-        {children}
+        <div className="pt-[160px]">
+          {children}
+        </div>
         <Footer />
       </body>
     </html>
