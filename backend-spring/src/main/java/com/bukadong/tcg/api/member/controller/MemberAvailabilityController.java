@@ -51,6 +51,7 @@ public class MemberAvailabilityController {
      * 닉네임 중복 확인 - 유효성 실패: INVALID_PARAMETER 로 실패 응답 - 성공: { field, value, available
      * } 반환
      */
+    @Operation(summary = "닉네임 가용성 확인", description = "닉네임 형식을 검증하고, 사용 가능 여부를 반환합니다.")
     @GetMapping("/nickname")
     public BaseResponse<AvailabilityResponse> checkNickname(
             @Parameter(description = "확인할 닉네임") @RequestParam("nickname") String nickname) {
