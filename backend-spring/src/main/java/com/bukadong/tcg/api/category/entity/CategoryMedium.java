@@ -1,5 +1,8 @@
 package com.bukadong.tcg.api.category.entity;
 
+import com.bukadong.tcg.global.common.base.BaseResponseStatus;
+import com.bukadong.tcg.global.common.exception.BaseException;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -47,8 +50,7 @@ public class CategoryMedium {
     /** 생성 팩토리: 유효성 포함 */
     public static CategoryMedium of(CategoryMajor major, String name, String description) {
         if (major == null)
-            throw new com.bukadong.tcg.global.common.exception.BaseException(
-                    com.bukadong.tcg.global.common.base.BaseResponseStatus.CATEGORY_PARENT_NOT_FOUND);
+            throw new BaseException(BaseResponseStatus.CATEGORY_PARENT_NOT_FOUND);
         CategoryMedium m = new CategoryMedium();
         m.changeMajor(major);
         m.updateName(name);
@@ -59,8 +61,7 @@ public class CategoryMedium {
     /** 상위 대분류 변경 */
     public void changeMajor(CategoryMajor newMajor) {
         if (newMajor == null)
-            throw new com.bukadong.tcg.global.common.exception.BaseException(
-                    com.bukadong.tcg.global.common.base.BaseResponseStatus.CATEGORY_PARENT_NOT_FOUND);
+            throw new BaseException(BaseResponseStatus.CATEGORY_PARENT_NOT_FOUND);
         this.categoryMajor = newMajor;
     }
 
@@ -73,20 +74,16 @@ public class CategoryMedium {
     }
 
     public void updateName(String name) {
-        if (!hasText(name))
-            throw new com.bukadong.tcg.global.common.exception.BaseException(
-                    com.bukadong.tcg.global.common.base.BaseResponseStatus.INVALID_PARAMETER);
+        if (name == null || name.isBlank()) {
+            throw new BaseException(BaseResponseStatus.INVALID_PARAMETER);
+        }
         this.name = name.trim();
     }
 
     public void updateDescription(String description) {
-        if (!hasText(description))
-            throw new com.bukadong.tcg.global.common.exception.BaseException(
-                    com.bukadong.tcg.global.common.base.BaseResponseStatus.INVALID_PARAMETER);
+        if (description == null || description.isBlank()) {
+            throw new BaseException(BaseResponseStatus.INVALID_PARAMETER);
+        }
         this.description = description.trim();
-    }
-
-    private static boolean hasText(String s) {
-        return s != null && !s.trim().isEmpty();
     }
 }

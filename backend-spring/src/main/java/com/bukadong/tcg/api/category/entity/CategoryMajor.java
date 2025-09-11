@@ -1,5 +1,8 @@
 package com.bukadong.tcg.api.category.entity;
 
+import com.bukadong.tcg.global.common.base.BaseResponseStatus;
+import com.bukadong.tcg.global.common.exception.BaseException;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -54,20 +57,17 @@ public class CategoryMajor {
     }
 
     public void updateName(String name) {
-        if (!hasText(name))
-            throw new com.bukadong.tcg.global.common.exception.BaseException(
-                    com.bukadong.tcg.global.common.base.BaseResponseStatus.INVALID_PARAMETER);
+        if (name == null || name.isBlank()) {
+            throw new BaseException(BaseResponseStatus.INVALID_PARAMETER);
+        }
         this.name = name.trim();
     }
 
     public void updateDescription(String description) {
-        if (!hasText(description))
-            throw new com.bukadong.tcg.global.common.exception.BaseException(
-                    com.bukadong.tcg.global.common.base.BaseResponseStatus.INVALID_PARAMETER);
+        if (description == null || description.isBlank()) {
+            throw new BaseException(BaseResponseStatus.INVALID_PARAMETER);
+        }
         this.description = description.trim();
     }
 
-    private static boolean hasText(String s) {
-        return s != null && !s.trim().isEmpty();
-    }
 }

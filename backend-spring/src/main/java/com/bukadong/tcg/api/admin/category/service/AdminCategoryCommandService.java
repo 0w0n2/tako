@@ -18,6 +18,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+
+import static com.bukadong.tcg.global.common.base.BaseResponseStatus.CATEGORY_MAJOR_NAME_DUPLICATED;
+import static com.bukadong.tcg.global.common.base.BaseResponseStatus.CATEGORY_MEDIUM_NAME_DUPLICATED;
+import static com.bukadong.tcg.global.common.base.BaseResponseStatus.CATEGORY_NOT_FOUND;
+import static com.bukadong.tcg.global.common.base.BaseResponseStatus.CATEGORY_PARENT_NOT_FOUND;
+import static com.bukadong.tcg.global.common.base.BaseResponseStatus.INVALID_PARAMETER;
+
 import java.util.Objects;
 
 /**
@@ -49,15 +56,12 @@ public class AdminCategoryCommandService {
      */
     @Transactional
     public CategoryMajorResponse createMajor(CategoryMajorCreateRequest request) {
-        if (!StringUtils.hasText(request.getName()) || !StringUtils.hasText(request.getDescription())) {
-            throw new BaseException(BaseResponseStatus.INVALID_PARAMETER);
+        String name = request.getName();
+        String desc = request.getDescription();
+        if (majorRepository.existsByName(name)) {
+            throw new BaseException(CATEGORY_MAJOR_NAME_DUPLICATED);
         }
-        // 대분류명 중복 검사
-        if (majorRepository.existsByName(request.getName())) {
-            throw new BaseException(BaseResponseStatus.CATEGORY_MAJOR_NAME_DUPLICATED);
-        }
-        CategoryMajor saved = majorRepository
-                .save(CategoryMajor.of(request.getName().trim(), request.getDescription().trim()));
+        CategoryMajor saved = majorRepository.save(CategoryMajor.of(name, desc));
         return CategoryMajorResponse.from(saved);
     }
 
@@ -74,21 +78,24 @@ public class AdminCategoryCommandService {
     @Transactional
     public CategoryMajorResponse updateMajor(Long majorId, CategoryMajorUpdateRequest request) {
         CategoryMajor major = majorRepository.findById(majorId)
-                .orElseThrow(() -> new BaseException(BaseResponseStatus.CATEGORY_NOT_FOUND));
+                .orElseThrow(() -> new BaseException(CATEGORY_NOT_FOUND));
 
-        if (request.getName() == null && request.getDescription() == null) {
-            throw new BaseException(BaseResponseStatus.INVALID_PARAMETER);
-        }
-        if (request.getName() != null) {
-            if (!StringUtils.hasText(request.getName())) {
-                throw new BaseException(BaseResponseStatus.INVALID_PARAMETER);
-            }
-            if (majorRepository.existsByNameAndIdNot(request.getName().trim(), majorId)) {
-                throw new BaseException(BaseResponseStatus.CATEGORY_MAJOR_NAME_DUPLICATED);
-            }
+        String name = trimToNull(request.getName());
+        String desc = trimToNull(request.getDescription());
+
+        // 최소 1개는 변경 필수
+        if (name == null && desc == null) {
+            throw new BaseException(INVALID_PARAMETER);
         }
 
-        major.update(request.getName(), request.getDescription());
+        if (name != null && majorRepository.existsByNameAndIdNot(name, majorId)) {
+            throw new BaseException(CATEGORY_MAJOR_NAME_DUPLICATED);
+        }
+
+        if (name != null)
+            major.updateName(name);
+        if (desc != null)
+            major.updateDescription(desc);
         return CategoryMajorResponse.from(major);
     }
 
@@ -131,20 +138,16 @@ public class AdminCategoryCommandService {
      */
     @Transactional
     public CategoryMediumResponse createMedium(CategoryMediumCreateRequest request) {
-        if (request.getMajorId() == null || !StringUtils.hasText(request.getName())
-                || !StringUtils.hasText(request.getDescription())) {
-            throw new BaseException(BaseResponseStatus.INVALID_PARAMETER);
-        }
-
         CategoryMajor major = majorRepository.findById(request.getMajorId())
-                .orElseThrow(() -> new BaseException(BaseResponseStatus.CATEGORY_PARENT_NOT_FOUND));
+                .orElseThrow(() -> new BaseException(CATEGORY_PARENT_NOT_FOUND));
 
-        if (mediumRepository.existsByCategoryMajor_IdAndName(request.getMajorId(), request.getName().trim())) {
-            throw new BaseException(BaseResponseStatus.CATEGORY_MEDIUM_NAME_DUPLICATED);
+        String name = request.getName();
+        String desc = request.getDescription();
+
+        if (mediumRepository.existsByCategoryMajor_IdAndName(request.getMajorId(), name)) {
+            throw new BaseException(CATEGORY_MEDIUM_NAME_DUPLICATED);
         }
-
-        CategoryMedium saved = mediumRepository
-                .save(CategoryMedium.of(major, request.getName().trim(), request.getDescription().trim()));
+        CategoryMedium saved = mediumRepository.save(CategoryMedium.of(major, name, desc));
         return CategoryMediumResponse.from(saved);
     }
 
@@ -161,32 +164,32 @@ public class AdminCategoryCommandService {
     @Transactional
     public CategoryMediumResponse updateMedium(Long mediumId, CategoryMediumUpdateRequest request) {
         CategoryMedium medium = mediumRepository.findById(mediumId)
-                .orElseThrow(() -> new BaseException(BaseResponseStatus.CATEGORY_NOT_FOUND));
+                .orElseThrow(() -> new BaseException(CATEGORY_NOT_FOUND));
 
-        if (request.getMajorId() == null && request.getName() == null && request.getDescription() == null) {
-            throw new BaseException(BaseResponseStatus.INVALID_PARAMETER);
+        Long newMajorId = request.getMajorId();
+        String name = trimToNull(request.getName());
+        String desc = trimToNull(request.getDescription());
+
+        // 최소 1개는 변경 필수
+        if (newMajorId == null && name == null && desc == null) {
+            throw new BaseException(INVALID_PARAMETER);
         }
 
-        Long targetMajorId = (request.getMajorId() != null) ? request.getMajorId() : medium.getCategoryMajor().getId();
-
-        if (request.getMajorId() != null && !Objects.equals(medium.getCategoryMajor().getId(), request.getMajorId())) {
-            // 상위 대분류 존재 검증
-            CategoryMajor newMajor = majorRepository.findById(request.getMajorId())
-                    .orElseThrow(() -> new BaseException(BaseResponseStatus.CATEGORY_PARENT_NOT_FOUND));
+        if (newMajorId != null && !Objects.equals(medium.getCategoryMajor().getId(), newMajorId)) {
+            CategoryMajor newMajor = majorRepository.findById(newMajorId)
+                    .orElseThrow(() -> new BaseException(CATEGORY_PARENT_NOT_FOUND));
             medium.changeMajor(newMajor);
         }
 
-        if (request.getName() != null) {
-            if (!StringUtils.hasText(request.getName())) {
-                throw new BaseException(BaseResponseStatus.INVALID_PARAMETER);
-            }
-            if (mediumRepository.existsByCategoryMajor_IdAndNameAndIdNot(targetMajorId, request.getName().trim(),
-                    mediumId)) {
-                throw new BaseException(BaseResponseStatus.CATEGORY_MEDIUM_NAME_DUPLICATED);
-            }
+        Long targetMajorId = (newMajorId != null) ? newMajorId : medium.getCategoryMajor().getId();
+        if (name != null && mediumRepository.existsByCategoryMajor_IdAndNameAndIdNot(targetMajorId, name, mediumId)) {
+            throw new BaseException(CATEGORY_MEDIUM_NAME_DUPLICATED);
         }
 
-        medium.update(request.getName(), request.getDescription());
+        if (name != null)
+            medium.updateName(name);
+        if (desc != null)
+            medium.updateDescription(desc);
         return CategoryMediumResponse.from(medium);
     }
 
@@ -210,5 +213,10 @@ public class AdminCategoryCommandService {
             throw new BaseException(BaseResponseStatus.CATEGORY_MEDIUM_IN_USE);
         }
         mediumRepository.delete(medium);
+    }
+
+    // 로컬 헬퍼
+    private static String trimToNull(String s) {
+        return (StringUtils.hasText(s)) ? s : null; // null/공백 → null, 유효하면 trim
     }
 }

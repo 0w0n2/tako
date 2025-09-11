@@ -93,14 +93,14 @@ public enum BaseResponseStatus {
      * 800: Category Error
      */
     // ====== [추가] Category Domain Errors ======
-    CATEGORY_BAD_REQUEST(HttpStatus.BAD_REQUEST, false, 400, "카테고리 요청이 올바르지 않습니다."),
-    CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, false, 404, "카테고리를 찾을 수 없습니다."),
-    CATEGORY_PARENT_NOT_FOUND(HttpStatus.NOT_FOUND, false, 404, "상위 대분류를 찾을 수 없습니다."),
-    CATEGORY_MAJOR_NAME_DUPLICATED(HttpStatus.CONFLICT, false, 409, "이미 사용 중인 대분류명입니다."),
-    CATEGORY_MEDIUM_NAME_DUPLICATED(HttpStatus.CONFLICT, false, 409, "이미 사용 중인 중분류명입니다."),
-    CATEGORY_MAJOR_IN_USE(HttpStatus.CONFLICT, false, 409, "하위 중분류나 참조 데이터가 있어 삭제할 수 없습니다."),
-    CATEGORY_MEDIUM_IN_USE(HttpStatus.CONFLICT, false, 409, "참조 데이터가 있어 삭제할 수 없습니다."),
-    CATEGORY_MAJOR_HAS_CHILDREN(HttpStatus.CONFLICT, false, 409, "하위 중분류가 존재하여 삭제할 수 없습니다.");
+    CATEGORY_BAD_REQUEST(HttpStatus.BAD_REQUEST, false, 800, "카테고리 요청이 올바르지 않습니다."),
+    CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, false, 804, "카테고리를 찾을 수 없습니다."),
+    CATEGORY_PARENT_NOT_FOUND(HttpStatus.NOT_FOUND, false, 804, "상위 대분류를 찾을 수 없습니다."),
+    CATEGORY_MAJOR_NAME_DUPLICATED(HttpStatus.CONFLICT, false, 809, "이미 사용 중인 대분류명입니다."),
+    CATEGORY_MEDIUM_NAME_DUPLICATED(HttpStatus.CONFLICT, false, 809, "이미 사용 중인 중분류명입니다."),
+    CATEGORY_MAJOR_IN_USE(HttpStatus.CONFLICT, false, 809, "하위 중분류나 참조 데이터가 있어 삭제할 수 없습니다."),
+    CATEGORY_MEDIUM_IN_USE(HttpStatus.CONFLICT, false, 809, "참조 데이터가 있어 삭제할 수 없습니다."),
+    CATEGORY_MAJOR_HAS_CHILDREN(HttpStatus.CONFLICT, false, 809, "하위 중분류가 존재하여 삭제할 수 없습니다.");
 
     private final HttpStatusCode httpStatusCode;
     private final boolean isSuccess;
