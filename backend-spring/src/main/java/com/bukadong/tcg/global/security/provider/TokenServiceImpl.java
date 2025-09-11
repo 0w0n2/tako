@@ -77,6 +77,8 @@ public class TokenServiceImpl implements TokenService {
         Date accessExpirationDate = new Date(now + accessExpiration.toMillis());
         String newAccessToken = tokenProvider.generateAccessToken(memberUuid, authorities, accessExpirationDate);
 
+        deleteRefreshToken(memberUuid);   // 기존 refreshToken은 제거
+
         String newRefreshToken = generateAndStoreRefreshToken(memberUuid, authorities);
 
         return JwtToken.builder()
