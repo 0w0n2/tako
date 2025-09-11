@@ -8,6 +8,10 @@ group = 'com.bukadong'
 version = '0.0.1-SNAPSHOT'
 description = 'ssafy tcg auction platform'
 
+ext {
+	set('springCloudAwsVersion', "3.1.1")
+}
+
 java {
 	toolchain {
 		languageVersion = JavaLanguageVersion.of(17)
@@ -36,6 +40,9 @@ dependencies {
 
 	// == Database & Drivers ==
 	runtimeOnly 'com.mysql:mysql-connector-j'
+
+	// == AWS ==
+	implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3'
 
 	// == Querydsl (Type-safe JPA Queries) ==
 	implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
