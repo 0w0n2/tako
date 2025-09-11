@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import BuyAuction from '@/components/sections/auction/BuyAuction';
+import BuyAuction from '@/components/sections/mypage/BuyAuction';
 
 export default function BuyAuctionPage() {
   const [activeTab, setActiveTab] = useState<'ongoing' | 'ended'>('ongoing');

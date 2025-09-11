@@ -1,6 +1,7 @@
 export interface Seller {
     id: number;
-    name: string;
+    nickname: string;
     reviewCount: number;
-    reviewAverage: number;
+    reviewStarAvg: number;
+    profileImageUrl: string;
 }

@@ -1,4 +1,4 @@
-import SellAuction from "@/components/sections/auction/SellAuction";
+import SellAuction from "@/components/sections/mypage/SellAuction";
 
 export default function SellAuctionPage() {
   return (
