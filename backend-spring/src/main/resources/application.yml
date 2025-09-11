@@ -41,6 +41,15 @@ spring:
             scope:
               - email
             redirect-uri: "${OAUTH2_REDIRECT_URI}"
+  cloud:
+    aws:
+      credentials:
+        access-key: ${AWS_ACCESS_KEY}
+        secret-key: ${AWS_SECRET_KEY}
+      region:
+        static: ${AWS_REGION_STATIC}
+      s3:
+        bucket: ${AWS_S3_BUCKET}
 security:
   jwt:
     secret-key: ${SECURITY_JWT_SECRET_KEY}

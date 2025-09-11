@@ -8,6 +8,11 @@ group = 'com.bukadong'
 version = '0.0.1-SNAPSHOT'
 description = 'ssafy tcg auction platform'
 
+// AWS 라이브러리 버전 관리
+ext {
+	set('springCloudAwsVersion', "3.1.1")
+}
+
 java {
 	toolchain {
 		languageVersion = JavaLanguageVersion.of(17)
@@ -24,6 +29,13 @@ repositories {
 	mavenCentral()
 }
 
+// Spring cloud AWS 종속성 관리
+dependencyManagement {
+	imports {
+		mavenBom "io.awspring.cloud:spring-cloud-aws-dependencies:${springCloudAwsVersion}"
+	}
+}
+
 dependencies {
 	// == Spring Framework Starters ==
 	implementation 'org.springframework.boot:spring-boot-starter-web'			// 웹 애플리케이션 개발 (Tomcat, Spring MVC)
@@ -36,6 +48,9 @@ dependencies {
 
 	// == Database & Drivers ==
 	runtimeOnly 'com.mysql:mysql-connector-j'
+
+	// == AWS ==
+	implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3'
 
 	// == Querydsl (Type-safe JPA Queries) ==
 	implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
