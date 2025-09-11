@@ -20,12 +20,12 @@ import lombok.Setter;
 public class CategoryMajorCreateRequest {
 
     @Schema(description = "대분류명", example = "포켓몬 카드")
-    @NotBlank
+    @NotBlank(message = "대분류명은 필수입니다.")
     @Size(max = 30)
     private String name;
 
     @Schema(description = "대분류 설명", example = "포켓몬 관련 카드 대분류")
-    @NotBlank
+    @NotBlank(message = "설명은 필수입니다.")
     @Size(max = 255)
     private String description;
 }

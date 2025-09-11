@@ -43,7 +43,6 @@ public class AdminCategoryMajorController {
      * @PARAM request 생성 요청 DTO
      * @RETURN BaseResponse<CategoryMajorResponse>
      */
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @Operation(summary = "대분류 생성", description = "새로운 카테고리 대분류를 생성합니다. (ADMIN)")
     @PostMapping
     public BaseResponse<CategoryMajorResponse> create(@Valid @RequestBody CategoryMajorCreateRequest request) {
@@ -60,7 +59,6 @@ public class AdminCategoryMajorController {
      * @PARAM request 수정 요청 DTO
      * @RETURN BaseResponse<CategoryMajorResponse>
      */
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @Operation(summary = "대분류 수정", description = "카테고리 대분류 정보를 수정합니다. (ADMIN)")
     @PutMapping("/{majorId}")
     public BaseResponse<CategoryMajorResponse> update(

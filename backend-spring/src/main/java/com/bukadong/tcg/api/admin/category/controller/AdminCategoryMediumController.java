@@ -43,7 +43,6 @@ public class AdminCategoryMediumController {
      * @PARAM request 생성 요청 DTO
      * @RETURN BaseResponse<CategoryMediumResponse>
      */
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @Operation(summary = "중분류 생성", description = "대상 대분류 하위에 중분류를 생성합니다. (ADMIN)")
     @PostMapping
     public BaseResponse<CategoryMediumResponse> create(@Valid @RequestBody CategoryMediumCreateRequest request) {
@@ -60,7 +59,6 @@ public class AdminCategoryMediumController {
      * @PARAM request 수정 요청 DTO
      * @RETURN BaseResponse<CategoryMediumResponse>
      */
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @Operation(summary = "중분류 수정", description = "카테고리 중분류 정보를 수정합니다. (ADMIN)")
     @PutMapping("/{mediumId}")
     public BaseResponse<CategoryMediumResponse> update(

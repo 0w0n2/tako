@@ -19,7 +19,6 @@ import lombok.*;
         @UniqueConstraint(name = "uk_category_major_name", columnNames = "name") }, indexes = {
                 @Index(name = "idx_category_major_name", columnList = "name") })
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -37,4 +36,38 @@ public class CategoryMajor {
     /** 설명 */
     @Column(name = "description", nullable = false, length = 255)
     private String description;
+
+    /** 생성 팩토리: 유효성 포함 */
+    public static CategoryMajor of(String name, String description) {
+        CategoryMajor m = new CategoryMajor();
+        m.updateName(name);
+        m.updateDescription(description);
+        return m;
+    }
+
+    /** 의미 있는 변경 메서드들 (빈 문자열 불가) */
+    public void update(String name, String description) {
+        if (name != null)
+            updateName(name);
+        if (description != null)
+            updateDescription(description);
+    }
+
+    public void updateName(String name) {
+        if (!hasText(name))
+            throw new com.bukadong.tcg.global.common.exception.BaseException(
+                    com.bukadong.tcg.global.common.base.BaseResponseStatus.INVALID_PARAMETER);
+        this.name = name.trim();
+    }
+
+    public void updateDescription(String description) {
+        if (!hasText(description))
+            throw new com.bukadong.tcg.global.common.exception.BaseException(
+                    com.bukadong.tcg.global.common.base.BaseResponseStatus.INVALID_PARAMETER);
+        this.description = description.trim();
+    }
+
+    private static boolean hasText(String s) {
+        return s != null && !s.trim().isEmpty();
+    }
 }

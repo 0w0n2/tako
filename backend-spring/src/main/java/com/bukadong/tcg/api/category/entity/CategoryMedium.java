@@ -21,7 +21,6 @@ import lombok.*;
                 "name" }) }, indexes = {
                         @Index(name = "idx_category_medium_category", columnList = "category_major_id"), })
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -44,4 +43,50 @@ public class CategoryMedium {
     /** 설명 */
     @Column(name = "description", nullable = false, length = 255)
     private String description;
+
+    /** 생성 팩토리: 유효성 포함 */
+    public static CategoryMedium of(CategoryMajor major, String name, String description) {
+        if (major == null)
+            throw new com.bukadong.tcg.global.common.exception.BaseException(
+                    com.bukadong.tcg.global.common.base.BaseResponseStatus.CATEGORY_PARENT_NOT_FOUND);
+        CategoryMedium m = new CategoryMedium();
+        m.changeMajor(major);
+        m.updateName(name);
+        m.updateDescription(description);
+        return m;
+    }
+
+    /** 상위 대분류 변경 */
+    public void changeMajor(CategoryMajor newMajor) {
+        if (newMajor == null)
+            throw new com.bukadong.tcg.global.common.exception.BaseException(
+                    com.bukadong.tcg.global.common.base.BaseResponseStatus.CATEGORY_PARENT_NOT_FOUND);
+        this.categoryMajor = newMajor;
+    }
+
+    /** 의미 있는 변경 메서드들 (빈 문자열 불가) */
+    public void update(String name, String description) {
+        if (name != null)
+            updateName(name);
+        if (description != null)
+            updateDescription(description);
+    }
+
+    public void updateName(String name) {
+        if (!hasText(name))
+            throw new com.bukadong.tcg.global.common.exception.BaseException(
+                    com.bukadong.tcg.global.common.base.BaseResponseStatus.INVALID_PARAMETER);
+        this.name = name.trim();
+    }
+
+    public void updateDescription(String description) {
+        if (!hasText(description))
+            throw new com.bukadong.tcg.global.common.exception.BaseException(
+                    com.bukadong.tcg.global.common.base.BaseResponseStatus.INVALID_PARAMETER);
+        this.description = description.trim();
+    }
+
+    private static boolean hasText(String s) {
+        return s != null && !s.trim().isEmpty();
+    }
 }

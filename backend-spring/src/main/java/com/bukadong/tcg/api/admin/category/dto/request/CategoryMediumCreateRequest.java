@@ -21,16 +21,16 @@ import lombok.Setter;
 public class CategoryMediumCreateRequest {
 
     @Schema(description = "상위 대분류 ID", example = "1000")
-    @NotNull
+    @NotNull(message = "상위 대분류 ID는 필수입니다.")
     private Long majorId;
 
     @Schema(description = "중분류명", example = "1세대")
-    @NotBlank
+    @NotBlank(message = "중분류명은 필수입니다.")
     @Size(max = 30)
     private String name;
 
     @Schema(description = "중분류 설명", example = "포켓몬 1세대 카드")
-    @NotBlank
+    @NotBlank(message = "설명은 필수입니다.")
     @Size(max = 255)
     private String description;
 }
