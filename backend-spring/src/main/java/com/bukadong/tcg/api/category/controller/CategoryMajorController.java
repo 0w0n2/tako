@@ -3,6 +3,9 @@ package com.bukadong.tcg.api.category.controller;
 import com.bukadong.tcg.api.category.entity.CategoryMajor;
 import com.bukadong.tcg.api.category.service.CategoryQueryService;
 import com.bukadong.tcg.global.common.base.BaseResponse;
+
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,6 +21,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/v1/categories/majors")
 @RequiredArgsConstructor
+@Tag(name = "Categories", description = "카테고리 대분류 조회 API")
 public class CategoryMajorController {
 
     private final CategoryQueryService categoryQueryService;
@@ -27,6 +31,7 @@ public class CategoryMajorController {
      *
      * @return 대분류 목록을 감싼 BaseResponse
      */
+    @Operation(summary = "대분류 전체 조회", description = "등록된 모든 카테고리 대분류 목록을 반환합니다.")
     @GetMapping
     public BaseResponse<List<CategoryMajor>> listMajors() {
         return new BaseResponse<>(categoryQueryService.listMajors());

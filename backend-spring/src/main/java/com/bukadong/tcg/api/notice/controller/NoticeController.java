@@ -5,9 +5,14 @@ import com.bukadong.tcg.global.common.dto.PageResponse;
 import com.bukadong.tcg.api.notice.dto.response.NoticeDetailDto;
 import com.bukadong.tcg.api.notice.dto.response.NoticeSummaryDto;
 import com.bukadong.tcg.api.notice.service.NoticeService;
+
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.data.domain.Page;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/v1/notices")
 @RequiredArgsConstructor
 @Validated
+@Tag(name = "Notices", description = "공지사항 목록 및 상세 조회 API")
 public class NoticeController {
 
     private final NoticeService noticeService;
@@ -36,9 +42,11 @@ public class NoticeController {
      * @param size 페이지 크기
      * @return PageResponse; NoticeSummaryDto;
      */
+    @Operation(summary = "공지사항 목록 조회", description = "페이지네이션된 공지사항 목록을 반환합니다.")
     @GetMapping
-    public BaseResponse<PageResponse<NoticeSummaryDto>> list(@RequestParam(defaultValue = "0") @PositiveOrZero int page,
-            @RequestParam(defaultValue = "20") @Min(1) int size) {
+    public BaseResponse<PageResponse<NoticeSummaryDto>> list(
+            @Parameter(description = "페이지 번호(0부터 시작)") @RequestParam(name = "page", defaultValue = "0") @PositiveOrZero int page,
+            @Parameter(description = "페이지 크기") @RequestParam(name = "size", defaultValue = "20") @Min(1) int size) {
         Page<NoticeSummaryDto> p = noticeService.getSummaryPage(page, size);
         return new BaseResponse<>(PageResponse.from(p));
     }
@@ -52,8 +60,10 @@ public class NoticeController {
      * @param id 공지사항 ID (1 이상)
      * @return 공지사항 단건
      */
+    @Operation(summary = "공지사항 단건 조회", description = "공지사항의 상세 정보를 반환합니다.")
     @GetMapping("/{id}")
-    public BaseResponse<NoticeDetailDto> get(@PathVariable @Min(1) Long id) {
+    public BaseResponse<NoticeDetailDto> get(
+            @Parameter(description = "공지사항 ID(1 이상)") @PathVariable("id") @Min(1) Long id) {
         NoticeDetailDto notice = noticeService.getDetail(id);
         return new BaseResponse<>(notice);
     }

@@ -1,6 +1,8 @@
 package com.bukadong.tcg.api.auction.repository;
 
 import com.bukadong.tcg.api.auction.entity.Auction;
+
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,7 +16,7 @@ import java.util.Optional;
  * </P>
  * 
  * @PARAM 없음
- * @RETURN 없음
+ * @RETURN 표준 CRUD + 커스텀 조회
  */
 public interface AuctionRepository extends JpaRepository<Auction, Long> {
 
@@ -32,4 +34,18 @@ public interface AuctionRepository extends JpaRepository<Auction, Long> {
 
     @Query("select a.categoryMajor.id from Auction a where a.id = :auctionId")
     Optional<Long> findCategoryMajorIdByAuctionId(@Param("auctionId") Long auctionId);
+
+    /**
+     * 상세 조회용 fetch join 대체(@EntityGraph)
+     * <P>
+     * 주의: 복잡한 join은 QueryDSL 커스텀으로 처리.
+     * </P>
+     * 
+     * @PARAM id 경매 ID
+     * @RETURN Optional<Auction>
+     */
+    @EntityGraph(attributePaths = { "card", "categoryMajor", "categoryMedium" })
+    @Query("select a from Auction a where a.id = :id")
+    Optional<Auction> findByIdWithCardAndCategory(@Param("id") Long id);
+
 }

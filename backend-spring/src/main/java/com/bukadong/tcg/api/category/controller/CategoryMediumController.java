@@ -3,6 +3,10 @@ package com.bukadong.tcg.api.category.controller;
 import com.bukadong.tcg.api.category.entity.CategoryMedium;
 import com.bukadong.tcg.api.category.service.CategoryQueryService;
 import com.bukadong.tcg.global.common.base.BaseResponse;
+
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,6 +23,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/v1/categories/mediums")
 @RequiredArgsConstructor
+@Tag(name = "Categories", description = "카테고리 중분류 조회 API")
 public class CategoryMediumController {
 
     private final CategoryQueryService categoryQueryService;
@@ -29,8 +34,10 @@ public class CategoryMediumController {
      * @param majorId 대분류 ID
      * @return 중분류 목록을 감싼 BaseResponse
      */
+    @Operation(summary = "중분류 목록 조회", description = "특정 대분류(majorId)에 속한 중분류 목록을 반환합니다.")
     @GetMapping("/{majorId}")
-    public BaseResponse<List<CategoryMedium>> listMediumsByMajor(@PathVariable Long majorId) {
-        return new BaseResponse<>(categoryQueryService.listMediumsByMajorId(majorId));
+    public BaseResponse<List<CategoryMedium>> listMediumsByMajor(
+            @Parameter(description = "대분류 ID") @PathVariable("majorId") Long majorId) {
+        return BaseResponse.onSuccess(categoryQueryService.listMediumsByMajorId(majorId));
     }
 }

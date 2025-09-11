@@ -1,7 +1,10 @@
 package com.bukadong.tcg.api.auction.service;
 
+import com.bukadong.tcg.api.auction.dto.response.AuctionDetailResponse;
 import com.bukadong.tcg.api.auction.dto.response.AuctionListItemDto;
 import com.bukadong.tcg.api.auction.dto.response.AuctionListRow;
+import com.bukadong.tcg.api.auction.repository.AuctionDetailRepository;
+import com.bukadong.tcg.api.auction.repository.AuctionRepository;
 import com.bukadong.tcg.api.auction.repository.AuctionRepositoryCustom;
 import com.bukadong.tcg.api.auction.repository.AuctionSort;
 import com.bukadong.tcg.global.common.base.BaseResponseStatus;
@@ -29,6 +32,8 @@ import java.util.Set;
 public class AuctionQueryService {
 
     private final AuctionRepositoryCustom auctionRepositoryCustom;
+    private final AuctionDetailRepository auctionDetailRepository;
+    private final AuctionRepository auctionRepository; // 상세 조회용 fetch-graph 사용
 
     /**
      * 경매 목록 조회
@@ -82,5 +87,33 @@ public class AuctionQueryService {
         long remain = Math.max(0, Duration.between(now, r.endDatetime()).getSeconds());
         return new AuctionListItemDto(r.id(), r.grade(), r.title(), r.currentPrice(), r.bidCount(),
                 remain, r.primaryImageUrl());
+    }
+
+    /**
+     * 경매 상세 조회
+     * <P>
+     * 히스토리는 기본 5개이며, 요청 파라미터로 개수 조절 가능.
+     * </P>
+     * 
+     * @PARAM auctionId 경매 ID
+     * @PARAM historySize 히스토리 개수
+     * @RETURN AuctionDetailResponse
+     */
+    public AuctionDetailResponse getDetail(Long auctionId, int historySize) {
+        var auction = auctionRepository.findByIdWithCardAndCategory(auctionId)
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.NOT_FOUND));
+
+        var auctionInfo = auctionDetailRepository.mapAuctionInfo(auction);
+        var cardInfo = auctionDetailRepository.mapCardInfo(auction);
+
+        var imageUrls = auctionDetailRepository.findImageUrlsByAuctionId(auctionId);
+        var weeklyPrices = auctionDetailRepository
+                .findWeeklyPriceLinesByCardId(auction.getCard().getId());
+        var history = auctionDetailRepository.findBidHistory(auctionId, historySize);
+        var sellerInfo = auctionDetailRepository.findSellerInfoByAuctionId(auctionId);
+
+        return AuctionDetailResponse.builder().auction(auctionInfo).card(cardInfo)
+                .weeklyPrices(weeklyPrices).history(history).imageUrls(imageUrls)
+                .seller(sellerInfo).build();
     }
 }
