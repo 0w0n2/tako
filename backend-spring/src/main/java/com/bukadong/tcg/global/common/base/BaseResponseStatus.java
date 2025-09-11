@@ -79,7 +79,12 @@ public enum BaseResponseStatus {
     CATEGORY_BAD_REQUEST(HttpStatus.BAD_REQUEST, false, 400, "카테고리 요청이 올바르지 않습니다."),
     CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, false, 404, "카테고리를 찾을 수 없습니다."),
     INVALID_AUCTION_BID_UNIT(HttpStatus.BAD_REQUEST, false, 400, "경매 입찰 단위 변환에 실패하였습니다."),
-    BAD_REQUEST(HttpStatus.BAD_REQUEST, false, 400, "잘못된 요청입니다.");
+    BAD_REQUEST(HttpStatus.BAD_REQUEST, false, 400, "잘못된 요청입니다."),
+
+    /**
+     * 600: 멤버 에러
+     */
+    NICKNAME_GENERATION_FAILED(HttpStatus.CONFLICT, false, 680, "랜덤 닉네임 생성을 실패했습니다.");
 
     private final HttpStatusCode httpStatusCode;
     private final boolean isSuccess;

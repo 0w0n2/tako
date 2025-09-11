@@ -2,6 +2,8 @@ package com.bukadong.tcg.api.auth.controller;
 
 import com.bukadong.tcg.api.auth.dto.request.SignInRequestDto;
 import com.bukadong.tcg.api.auth.dto.request.SignUpRequestDto;
+import com.bukadong.tcg.api.auth.dto.response.RandomNicknameResponseDto;
+import com.bukadong.tcg.api.auth.service.NicknameService;
 import com.bukadong.tcg.api.auth.service.TokenAuthService;
 import com.bukadong.tcg.api.auth.service.SignUpService;
 import com.bukadong.tcg.global.common.base.BaseResponse;
@@ -25,6 +27,7 @@ public class AuthController {
 
     private final TokenAuthService tokenAuthService;
     private final SignUpService signUpService;
+    private final NicknameService nicknameService;
 
     @Operation(summary = "일반 로그인 API")
     @PostMapping("/sign-in")
@@ -56,4 +59,9 @@ public class AuthController {
         return BaseResponse.onSuccess();
     }
 
+    @Operation(summary = "랜덤 닉네임 생성 및 조회 API")
+    @GetMapping("/random-nickname")
+    public BaseResponse<RandomNicknameResponseDto> randomNickname() {
+        return BaseResponse.onSuccess(RandomNicknameResponseDto.toDto(nicknameService.getRandomNickname()));
+    }
 }
