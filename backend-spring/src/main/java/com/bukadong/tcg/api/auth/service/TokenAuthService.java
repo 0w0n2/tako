@@ -12,5 +12,5 @@ public interface TokenAuthService {
 
     void signOut(HttpServletRequest request, HttpServletResponse response);
 
-    void refreshAccessToken(String refreshToken, HttpServletResponse response);
+    void refreshAccessToken(HttpServletRequest request, HttpServletResponse response, String refreshToken);
 }

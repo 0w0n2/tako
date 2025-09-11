@@ -5,7 +5,7 @@ import com.bukadong.tcg.api.auth.dto.request.SignUpRequestDto;
 import com.bukadong.tcg.api.auth.service.TokenAuthService;
 import com.bukadong.tcg.api.auth.service.SignUpService;
 import com.bukadong.tcg.global.common.base.BaseResponse;
-import com.bukadong.tcg.global.constant.SecurityConstants;
+import static com.bukadong.tcg.global.constant.SecurityConstants.*;
 import com.bukadong.tcg.global.security.dto.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -49,8 +49,9 @@ public class AuthController {
 
     @Operation(summary = "Access Token 재발급 API")
     @PostMapping("/token/refresh")
-    public BaseResponse<Void> refresh(@CookieValue(value = SecurityConstants.REFRESH_TITLE) String refreshToken, HttpServletResponse response) {
-        tokenAuthService.refreshAccessToken(refreshToken, response);
+    public BaseResponse<Void> refresh(@CookieValue(value = REFRESH_TITLE) String refreshToken,
+                                      HttpServletRequest request, HttpServletResponse response) {
+        tokenAuthService.refreshAccessToken(request, response, refreshToken);
         return BaseResponse.onSuccess();
     }
 

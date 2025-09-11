@@ -1,8 +1,8 @@
 package com.bukadong.tcg.api.auth.service;
 
-import com.bukadong.tcg.global.common.base.BaseResponseStatus;
+import static com.bukadong.tcg.global.common.base.BaseResponseStatus.*;
 import com.bukadong.tcg.global.common.exception.BaseException;
-import com.bukadong.tcg.global.constant.SecurityConstants;
+import static com.bukadong.tcg.global.constant.SecurityConstants.*;
 import com.bukadong.tcg.global.security.dto.CustomUserDetails;
 import com.bukadong.tcg.global.security.dto.JwtToken;
 import com.bukadong.tcg.global.security.provider.TokenBlackListService;
@@ -46,18 +46,18 @@ public class TokenAuthServiceImpl implements TokenAuthService {
             Authentication authentication = authenticationProvider.authenticate(authenticationToken);
             return (CustomUserDetails) authentication.getPrincipal();
         } catch (UsernameNotFoundException | DisabledException e) { // 존재하지 않거나, 삭제된 회원
-            throw new BaseException(BaseResponseStatus.NO_EXIST_USER);
+            throw new BaseException(NO_EXIST_USER);
         } catch (BadCredentialsException e) {   // 비밀번호 불일치
-            throw new BaseException(BaseResponseStatus.PASSWORD_MATCH_FAILED);
+            throw new BaseException(PASSWORD_MATCH_FAILED);
         } catch (AuthenticationException e) {
-            throw new BaseException(BaseResponseStatus.AUTHENTICATION_REQUIRED);
+            throw new BaseException(AUTHENTICATION_REQUIRED);
         }
     }
 
     @Override
     public void issueJwt(CustomUserDetails userDetails, HttpServletResponse response) {
         JwtToken jwtToken = tokenService.generateToken(userDetails);
-        response.addHeader(HttpHeaders.AUTHORIZATION, SecurityConstants.GRANT_TYPE + jwtToken.accessToken());
+        response.addHeader(HttpHeaders.AUTHORIZATION, GRANT_TYPE + jwtToken.accessToken());
         cookieUtils.setRefreshTokenCookie(response, jwtToken.refreshToken(), (int) refreshExpiration.getSeconds());
     }
 
@@ -72,10 +72,13 @@ public class TokenAuthServiceImpl implements TokenAuthService {
     }
 
     @Override
-    public void refreshAccessToken(String refreshToken, HttpServletResponse response) {
+    public void refreshAccessToken(HttpServletRequest request, HttpServletResponse response, String refreshToken) {
+        String accessToken = tokenProvider.getTokenFromRequest(request);
+        String memberUuid = tokenProvider.getSubjectFromToken(accessToken);
+
         JwtToken newTokens = tokenService.refresh(refreshToken);
-        tokenBlackListService.addBlacklistRefreshToken(refreshToken);
-        response.addHeader(HttpHeaders.AUTHORIZATION, SecurityConstants.GRANT_TYPE + newTokens.accessToken());
+        tokenService.deleteRefreshToken(memberUuid);
+        response.addHeader(HttpHeaders.AUTHORIZATION, GRANT_TYPE + newTokens.accessToken());
         cookieUtils.setRefreshTokenCookie(response, newTokens.refreshToken(), (int) refreshExpiration.getSeconds());
     }
 }
