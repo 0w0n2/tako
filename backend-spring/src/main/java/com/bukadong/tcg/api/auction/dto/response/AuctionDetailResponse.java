@@ -55,7 +55,6 @@ public class AuctionDetailResponse {
         private BigDecimal bidUnit;
         private LocalDateTime startDatetime;
         private LocalDateTime endDatetime;
-        private Integer durationDays;
         private boolean end;
         private boolean buyNowFlag;
         private BigDecimal buyNowPrice;

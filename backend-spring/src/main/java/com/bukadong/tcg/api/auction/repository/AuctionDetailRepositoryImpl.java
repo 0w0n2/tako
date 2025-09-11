@@ -45,7 +45,7 @@ public class AuctionDetailRepositoryImpl implements AuctionDetailRepository {
                 .currentPrice(a.getCurrentPrice())
                 .bidUnit(a.getBidUnit() != null ? new BigDecimal(a.getBidUnit().value()) : null)
                 .startDatetime(a.getStartDatetime()).endDatetime(a.getEndDatetime())
-                .durationDays(a.getDurationDays()).end(a.isEnd()).buyNowFlag(a.isBuyNowFlag())
+                .end(a.isEnd()).buyNowFlag(a.isBuyNowFlag())
                 .buyNowPrice(a.getBuyNowPrice()).extensionFlag(a.isExtensionFlag())
                 .createdAt(a.getCreatedAt()).build();
     }
