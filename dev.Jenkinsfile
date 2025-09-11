@@ -128,24 +128,24 @@ pipeline {
       }
     }
 
-    stage('AI Deploy (compose up)') {
-      when {
-        expression {
-          (params.MANUAL_DEV_DEPLOY && params.MANUAL_AI) || (
-            ((env.GL_MR_ACTION ?: "") == "merge" || (env.GL_MR_STATE ?: "") == "merged") &&
-            (env.GL_MR_TARGET == env.DEVELOP_BRANCH)
-          )
-        }
-      }
-      // steps {
-      //   sh '''
-      //     set -eux
+    // stage('AI Deploy (compose up)') {
+    //   when {
+    //     expression {
+    //       (params.MANUAL_DEV_DEPLOY && params.MANUAL_AI) || (
+    //         ((env.GL_MR_ACTION ?: "") == "merge" || (env.GL_MR_STATE ?: "") == "merged") &&
+    //         (env.GL_MR_TARGET == env.DEVELOP_BRANCH)
+    //       )
+    //     }
+    //   }
+    //   steps {
+    //     sh '''
+    //       set -eux
 
-      //     docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" pull || true
-      //     docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" up -d --build tako_ai_dev
-      //   '''
-      // }
-    }
+    //       docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" pull || true
+    //       docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" up -d --build tako_ai_dev
+    //     '''
+    //   }
+    // }
   }
 
   post {
