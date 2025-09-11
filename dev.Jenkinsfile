@@ -3,7 +3,11 @@ pipeline {
   options { timestamps(); disableConcurrentBuilds() }
 
   parameters {
-    booleanParam(name: 'MANUAL_DEPLOY', defaultValue: false, description: 'Check to trigger manual deploy')
+    booleanParam(name: 'MANUAL_DEV_DEPLOY', defaultValue: false, description: 'Check to trigger manual dev deploy'),
+    booleanParam(name: 'MANUAL_PROD_DEPLOY', defaultValue: false, description: 'Check to trigger manual prod deploy'),
+    booleanParam(name: 'MANUAL_BACK', defaultValue: false, description: 'Backend only'),
+    booleanParam(name: 'MANUAL_FRONT', defaultValue: false, description: 'Frontend only'),
+    booleanParam(name: 'MANUAL_AI', defaultValue: false, description: 'AI Backend only')
   }
 
   triggers {
@@ -35,6 +39,7 @@ pipeline {
     DOCKER_BUILDKIT = '1'
     COMPOSE_DOCKER_CLI_BUILD = '1'
     COMPOSE_DEV_FILE = 'deploy/docker-compose.dev.yml'
+    COMPOSE_PROD_FILE = 'deploy/docker-compose.prod.yml'
   }
 
   stages {
@@ -47,7 +52,7 @@ pipeline {
     stage('Prepare repo') {
       when {
         expression {
-          params.MANUAL_DEPLOY || (
+          params.MANUAL_DEV_DEPLOY || params.MANUAL_PROD_DEPLOY || (
             ((env.GL_MR_ACTION ?: "") == "merge" || (env.GL_MR_STATE ?: "") == "merged") &&
             (env.GL_MR_TARGET == env.DEVELOP_BRANCH)
           )
@@ -69,7 +74,7 @@ pipeline {
     stage('Prepare .env.dev') {
       when {
         expression {
-          params.MANUAL_DEPLOY || (
+          params.MANUAL_DEV_DEPLOY || params.MANUAL_PROD_DEPLOY || (
             ((env.GL_MR_ACTION ?: "") == "merge" || (env.GL_MR_STATE ?: "") == "merged") &&
             (env.GL_MR_TARGET == env.DEVELOP_BRANCH)
           )
@@ -85,10 +90,29 @@ pipeline {
       }
     }
 
-    stage('Build & Deploy (compose up)') {
+    stage('Back Deploy (compose up)') {
       when {
         expression {
-          params.MANUAL_DEPLOY || (
+          (params.MANUAL_DEV_DEPLOY && params.MANUAL_BACK) || (
+            ((env.GL_MR_ACTION ?: "") == "merge" || (env.GL_MR_STATE ?: "") == "merged") &&
+            (env.GL_MR_TARGET == env.DEVELOP_BRANCH)
+          )
+        }
+      }
+      steps {
+        sh ''' 
+          set -eux
+
+          docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" pull || true
+          docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" up -d --build tako_back_dev
+        '''
+      }
+    }
+
+    stage('Front Deploy (compose up)') {
+      when {
+        expression {
+          (params.MANUAL_DEV_DEPLOY && params.MANUAL_FRONT) || (
             ((env.GL_MR_ACTION ?: "") == "merge" || (env.GL_MR_STATE ?: "") == "merged") &&
             (env.GL_MR_TARGET == env.DEVELOP_BRANCH)
           )
@@ -99,8 +123,26 @@ pipeline {
           set -eux
 
           docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" pull || true
-          docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" up -d --build tako_back_dev
-          docker compose -f "$COMPOSE_DEV_FILE" ps
+          docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" up -d --build tako_front_dev
+        '''
+      }
+    }
+
+    stage('AI Deploy (compose up)') {
+      when {
+        expression {
+          (params.MANUAL_DEV_DEPLOY && params.MANUAL_AI) || (
+            ((env.GL_MR_ACTION ?: "") == "merge" || (env.GL_MR_STATE ?: "") == "merged") &&
+            (env.GL_MR_TARGET == env.DEVELOP_BRANCH)
+          )
+        }
+      }
+      steps {
+        sh '''
+          set -eux
+
+          docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" pull || true
+          docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" up -d --build tako_ai_dev
         '''
       }
     }
