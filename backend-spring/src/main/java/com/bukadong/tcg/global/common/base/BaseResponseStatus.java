@@ -84,7 +84,12 @@ public enum BaseResponseStatus {
     /**
      * 600: 멤버 에러
      */
-    NICKNAME_GENERATION_FAILED(HttpStatus.CONFLICT, false, 680, "랜덤 닉네임 생성을 실패했습니다.");
+    NICKNAME_GENERATION_FAILED(HttpStatus.CONFLICT, false, 680, "랜덤 닉네임 생성을 실패했습니다."),
+
+    /**
+     * 700: AWS 에러
+     */
+    S3_FILE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, false, 700, "파일 업로드에 실패했습니다.");
 
     private final HttpStatusCode httpStatusCode;
     private final boolean isSuccess;
