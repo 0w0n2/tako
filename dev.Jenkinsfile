@@ -137,14 +137,14 @@ pipeline {
           )
         }
       }
-      steps {
-        sh '''
-          set -eux
+      // steps {
+      //   sh '''
+      //     set -eux
 
-          docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" pull || true
-          docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" up -d --build tako_ai_dev
-        '''
-      }
+      //     docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" pull || true
+      //     docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" up -d --build tako_ai_dev
+      //   '''
+      // }
     }
   }
 

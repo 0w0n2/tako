@@ -59,6 +59,8 @@ services:
     build:
       context: ../frontend-web/taako
       dockerfile: Dockerfile
+      args:
+        APP_STAGE: "dev"
     container_name: tako_front_dev
     ports:
       - "3000:3000"
