@@ -110,8 +110,10 @@ public class AuctionQueryService {
         var weeklyPrices = auctionDetailRepository
                 .findWeeklyPriceLinesByCardId(auction.getCard().getId());
         var history = auctionDetailRepository.findBidHistory(auctionId, historySize);
+        var sellerInfo = auctionDetailRepository.findSellerInfoByAuctionId(auctionId);
 
         return AuctionDetailResponse.builder().auction(auctionInfo).card(cardInfo)
-                .weeklyPrices(weeklyPrices).history(history).imageUrls(imageUrls).build();
+                .weeklyPrices(weeklyPrices).history(history).imageUrls(imageUrls)
+                .seller(sellerInfo).build();
     }
 }

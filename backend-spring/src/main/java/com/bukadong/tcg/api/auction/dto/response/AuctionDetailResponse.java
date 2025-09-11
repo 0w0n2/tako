@@ -39,6 +39,9 @@ public class AuctionDetailResponse {
     @Schema(description = "경매 이미지 URL 목록")
     private List<String> imageUrls;
 
+    @Schema(description = "판매자 정보")
+    private SellerInfo seller;
+
     @Getter
     @Setter
     @Builder
@@ -55,7 +58,6 @@ public class AuctionDetailResponse {
         private BigDecimal bidUnit;
         private LocalDateTime startDatetime;
         private LocalDateTime endDatetime;
-        private Integer durationDays;
         private boolean end;
         private boolean buyNowFlag;
         private BigDecimal buyNowPrice;
@@ -100,5 +102,18 @@ public class AuctionDetailResponse {
         private LocalDateTime createdAt;
         private BigDecimal bidPrice;
         private String bidderNickname;
+    }
+
+    @Getter
+    @Setter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class SellerInfo {
+        private Long id;
+        private String nickname;
+        private Long reviewCount;
+        private Double reviewStarAvg;
+        private String profileImageUrl;
     }
 }

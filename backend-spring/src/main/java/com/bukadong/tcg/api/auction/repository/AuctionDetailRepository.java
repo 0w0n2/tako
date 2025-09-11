@@ -62,4 +62,15 @@ public interface AuctionDetailRepository {
      * @RETURN 최근순(내림차순) 리스트
      */
     List<BidHistoryItem> findBidHistory(Long auctionId, int limit);
+
+    /**
+     * 판매자 정보 조회
+     * <P>
+     * 경매의 판매자 닉네임, 판매자가 받은 리뷰 수/평균 별점을 집계한다.
+     * </P>
+     * 
+     * @PARAM auctionId 경매 ID
+     * @RETURN SellerInfo
+     */
+    SellerInfo findSellerInfoByAuctionId(Long auctionId);
 }

@@ -2,6 +2,10 @@ pipeline {
   agent any
   options { timestamps(); disableConcurrentBuilds() }
 
+  parameters {
+    booleanParam(name: 'MANUAL_DEPLOY', defaultValue: false, description: 'Check to trigger manual deploy')
+  }
+
   triggers {
     GenericTrigger(
       genericVariables: [
@@ -28,7 +32,6 @@ pipeline {
     RELEASE_BRANCH     = 'release'
     DEVELOP_BRANCH     = 'develop'
 
-    // --- Compose & BuildKit ---
     DOCKER_BUILDKIT = '1'
     COMPOSE_DOCKER_CLI_BUILD = '1'
     COMPOSE_DEV_FILE = 'deploy/docker-compose.dev.yml'
@@ -44,13 +47,15 @@ pipeline {
     stage('Prepare repo') {
       when {
         expression {
-          ((env.GL_MR_ACTION ?: "") == "merge" || (env.GL_MR_STATE ?: "") == "merged") &&
-          (env.GL_MR_TARGET == env.DEVELOP_BRANCH)
+          params.MANUAL_DEPLOY || (
+            ((env.GL_MR_ACTION ?: "") == "merge" || (env.GL_MR_STATE ?: "") == "merged") &&
+            (env.GL_MR_TARGET == env.DEVELOP_BRANCH)
+          )
         }
       }
       steps {
         checkout([$class:'GitSCM',
-          branches: [[name: "*/${GL_MR_TARGET}"]],
+          branches: [[name: "*/${env.DEVELOP_BRANCH}"]],
           userRemoteConfigs: [[
             url: env.GIT_URL_HTTPS,
             credentialsId: env.GIT_CREDS_HTTPS,
@@ -64,8 +69,10 @@ pipeline {
     stage('Prepare .env.dev') {
       when {
         expression {
-          ((env.GL_MR_ACTION ?: "") == "merge" || (env.GL_MR_STATE ?: "") == "merged") &&
-          (env.GL_MR_TARGET == env.DEVELOP_BRANCH)
+          params.MANUAL_DEPLOY || (
+            ((env.GL_MR_ACTION ?: "") == "merge" || (env.GL_MR_STATE ?: "") == "merged") &&
+            (env.GL_MR_TARGET == env.DEVELOP_BRANCH)
+          )
         }
       }
       steps {
@@ -81,20 +88,18 @@ pipeline {
     stage('Build & Deploy (compose up)') {
       when {
         expression {
-          ((env.GL_MR_ACTION ?: "") == "merge" || (env.GL_MR_STATE ?: "") == "merged") &&
-          (env.GL_MR_TARGET == env.DEVELOP_BRANCH)
+          params.MANUAL_DEPLOY || (
+            ((env.GL_MR_ACTION ?: "") == "merge" || (env.GL_MR_STATE ?: "") == "merged") &&
+            (env.GL_MR_TARGET == env.DEVELOP_BRANCH)
+          )
         }
       }
       steps {
         sh '''
           set -eux
 
-          # (옵션) 이미지 참조가 있으면 먼저 pull (build와 혼용 가능)
           docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" pull || true
-
           docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" up -d --build tako_back_dev
-
-          # 상태 출력
           docker compose -f "$COMPOSE_DEV_FILE" ps
         '''
       }
