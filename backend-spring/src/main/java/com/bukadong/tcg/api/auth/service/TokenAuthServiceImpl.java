@@ -72,12 +72,9 @@ public class TokenAuthServiceImpl implements TokenAuthService {
     }
 
     @Override
-    public void refreshAccessToken(HttpServletRequest request, HttpServletResponse response, String refreshToken) {
-        String accessToken = tokenProvider.getTokenFromRequest(request);
-        String memberUuid = tokenProvider.getSubjectFromToken(accessToken);
-
+    public void refreshAccessToken(HttpServletResponse response, String refreshToken) {
         JwtToken newTokens = tokenService.refresh(refreshToken);
-        tokenService.deleteRefreshToken(memberUuid);
+        tokenBlackListService.addBlacklistRefreshToken(refreshToken);
         response.addHeader(HttpHeaders.AUTHORIZATION, GRANT_TYPE + newTokens.accessToken());
         cookieUtils.setRefreshTokenCookie(response, newTokens.refreshToken(), (int) refreshExpiration.getSeconds());
     }
