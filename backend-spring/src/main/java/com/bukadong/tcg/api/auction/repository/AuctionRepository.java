@@ -48,4 +48,28 @@ public interface AuctionRepository extends JpaRepository<Auction, Long> {
     @Query("select a from Auction a where a.id = :id")
     Optional<Auction> findByIdWithCardAndCategory(@Param("id") Long id);
 
+    /**
+     * 카테고리 참조 여부 확인용
+     * <P>
+     * 카테고리 대분류 ID
+     * </P>
+     * 
+     * @param majorId
+     * @return
+     */
+    @Query("select count(a) from Auction a where a.categoryMajor.id = :majorId")
+    long countByCategoryMajorId(@Param("majorId") Long majorId);
+
+    /**
+     * 카테고리 참조 여부 확인용
+     * <P>
+     * 카테고리 중분류 ID
+     * </P>
+     * 
+     * @param mediumId
+     * @return
+     */
+    @Query("select count(a) from Auction a where a.categoryMedium.id = :mediumId")
+    long countByCategoryMediumId(@Param("mediumId") Long mediumId);
+
 }

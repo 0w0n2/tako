@@ -16,4 +16,7 @@ public final class Patterns {
     // 비밀번호 형식 검증: 8~21자, 최소 하나의 대문자, 소문자, 숫자, 특수문자(/!@$~) 포함
     public static final String PASSWORD_REGEX = "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[\\/!@$~])[A-Za-z\\d\\/!@$~]{8,21}$";
     public static final Pattern PASSWORD_PATTERN = Pattern.compile(PASSWORD_REGEX);
+
+    // 공백 불가
+    public static final String NO_WHITESPACE = "^(?=\\s*\\S).*$";
 }
