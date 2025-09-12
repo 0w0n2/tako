@@ -408,7 +408,7 @@ pipeline {
         }
       }
     }
-
+      
     stage('Docker Image Push to DockerHub') {
       when {
         expression {
@@ -431,37 +431,33 @@ pipeline {
           script {
             // 서비스별 정의 (경로/도커파일/이미지명)
             def targets = [
-              [name: 'backend',  ctx: 'backend',  df: 'S13P21E104/backend-spring/Dockerfile',  image: 'seok1419/takon-backend'],
-              [name: 'frontend', ctx: 'frontend', df: 'S13P21E104/frontend-web/Dockerfile', image: 'seok1419/tako-frontend'],
-              [name: 'ai',       ctx: 'AI',       df: 'S13P21E104/AI/Dockerfile',       image: 'seok1419/tako-ai']
+              [name: 'backend',  ctx: 'backend-spring',   df: 'Dockerfile', image: 'seok1419/tako-backend'],
+              [name: 'frontend', ctx: 'frontend-web/taako',     df: 'Dockerfile', image: 'seok1419/tako-frontend'],
+              // [name: 'ai',       ctx: 'backend-fastapi',  df: 'Dockerfile', image: 'seok1419/tako-ai']
             ]
 
-            // Docker Hub 로그인(1회)
-            sh '''
-              set -eu
-              echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-            '''
-
-            // 각 서비스 빌드 & 푸시
+            sh "echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin"
+            
             targets.each { t ->
-              echo ">>> Build & Push: ${t.name} -> ${t.image}:${IMG_SHA}"
               sh """
                 set -eu
                 export DOCKER_BUILDKIT=1
 
-                # 최신 베이스 이미지 반영 시 --pull
-                docker build --pull -t "${t.image}:${IMG_SHA}" -f "${t.df}" "${t.ctx}"
+                # 경로/파일 존재 확인
+                test -d "${t.ctx}"
+                test -f "${t.ctx}/${t.df}"
 
-                # 롤백 용이하도록 latest 동시 태깅
+                docker build --pull \
+                  -t "${t.image}:${IMG_SHA}" \
+                  -f "${t.ctx}/${t.df}" \
+                  "${t.ctx}"
+
                 docker tag "${t.image}:${IMG_SHA}" "${t.image}:latest"
 
-                # 푸시
                 docker push "${t.image}:${IMG_SHA}"
                 docker push "${t.image}:latest"
               """
             }
-
-            // 선택: 정리
             sh '''
               docker logout || true
               docker image prune -f || true
