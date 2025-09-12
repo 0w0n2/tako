@@ -31,7 +31,7 @@ export default function AuctionCard() {
                         </div>
                     </div>
 
-                    <Image src="/auction/351675401_1_1755660178_w1200.webp" alt="auction-item" width={100} height={100}
+                    <Image src="/auction/106bb00f55200ab3b5770ae9508a4172.jpg" alt="auction-item" width={100} height={100}
                         className="w-full h-full object-fit"/>
                 </div>
             </Link>
