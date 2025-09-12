@@ -279,6 +279,11 @@ pipeline {
                   -t "${t.image}:${IMG_SHA}" \
                   -f "${t.ctx}/${t.df}" \
                   "${t.ctx}"
+
+                docker tag "${t.image}:${IMG_SHA}" "${t.image}:latest"
+
+                docker push "${t.image}:${IMG_SHA}"
+                docker push "${t.image}:latest"
               """
             }
             sh '''
