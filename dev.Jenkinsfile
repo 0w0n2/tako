@@ -261,9 +261,9 @@ pipeline {
           script {
             // 서비스별 정의 (경로/도커파일/이미지명)
             def targets = [
-              [name: 'backend',  ctx: 'S13P21E104/backend-spring', df: 'Dockerfile', image: 'seok1419/takon-backend'],
-              [name: 'frontend', ctx: 'S13P21E104/frontend-web', df: 'Dockerfile', image: 'seok1419/tako-frontend'],
-              [name: 'ai',       ctx: 'S13P21E104/backend-fastapi', df: 'Dockerfile', image: 'seok1419/tako-ai']
+              [name: 'backend',  ctx: 'backend-spring',   df: 'Dockerfile', image: 'seok1419/tako-backend'],
+              [name: 'frontend', ctx: 'frontend-web',     df: 'Dockerfile', image: 'seok1419/tako-frontend'],
+              [name: 'ai',       ctx: 'backend-fastapi',  df: 'Dockerfile', image: 'seok1419/tako-ai']
             ]
 
             // Docker Hub 로그인(1회)
