@@ -26,16 +26,6 @@ public class MemberQueryService {
     private final MemberRepository memberRepository;
 
     /**
-     * uuid로 Member.id 조회
-     * <P>
-     * 존재하지 않으면 NOT_FOUND 예외
-     * </P>
-     */
-    public Long getIdByUuid(String uuid) {
-        return memberRepository.findIdByUuid(uuid).orElseThrow(() -> new BaseException(BaseResponseStatus.NOT_FOUND));
-    }
-
-    /**
      * uuid로 Member 조회
      * <P>
      * 존재하지 않으면 NOT_FOUND 예외

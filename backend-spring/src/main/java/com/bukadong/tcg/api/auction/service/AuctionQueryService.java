@@ -58,17 +58,21 @@ public class AuctionQueryService {
      * @return PageResponse로 감싼 응답 DTO 페이지
      */
     public PageResponse<AuctionListItemDto> browse(Long categoryMajorId, Long categoryMediumId, String titlePart,
-            Long cardId, BigDecimal currentPriceMin, BigDecimal currentPriceMax, Set<String> grades, AuctionSort sort,
+            Long cardId, BigDecimal currentPriceMin, BigDecimal currentPriceMax, Set<String> grades,
+            AuctionSort sort,
             int page) {
-        if (currentPriceMin != null && currentPriceMax != null && currentPriceMin.compareTo(currentPriceMax) > 0) {
+        if (currentPriceMin != null && currentPriceMax != null
+                && currentPriceMin.compareTo(currentPriceMax) > 0) {
             throw new BaseException(BaseResponseStatus.BAD_REQUEST);
         }
 
         int safePage = Math.max(0, page);
         Pageable pageable = PageRequest.of(safePage, 20);
 
-        var rowsPage = auctionRepositoryCustom.searchAuctions(categoryMajorId, categoryMediumId, titlePart, cardId,
-                currentPriceMin, currentPriceMax, grades, sort == null ? AuctionSort.ENDTIME_ASC : sort, pageable);
+        var rowsPage = auctionRepositoryCustom.searchAuctions(categoryMajorId, categoryMediumId, titlePart,
+                cardId,
+                currentPriceMin, currentPriceMax, grades, sort == null ? AuctionSort.ENDTIME_ASC : sort,
+                pageable);
 
         LocalDateTime now = LocalDateTime.now();
         var dtoPage = rowsPage.map(r -> toListItem(now, r));

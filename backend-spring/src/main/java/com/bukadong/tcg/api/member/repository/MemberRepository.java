@@ -3,6 +3,7 @@ package com.bukadong.tcg.api.member.repository;
 import com.bukadong.tcg.api.member.entity.Member;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.swing.text.html.Option;
@@ -40,8 +41,4 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     Optional<Member> findByUuid(String memberUuid);
 
     boolean existsByNicknameAndIsDeletedIsFalse(String nickname);
-
-    // uuid로 Member.id만 조회 (선택적 최적화)
-    @Query("select m.id from Member m where m.uuid = :uuid")
-    Optional<Long> findIdByUuid(@org.springframework.data.repository.query.Param("uuid") String uuid);
 }
