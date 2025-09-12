@@ -1,8 +1,8 @@
 package com.bukadong.tcg.api.media.policy;
 
-import com.bukadong.tcg.api.inquiry.entity.Inquiry;
-import com.bukadong.tcg.api.inquiry.repository.InquiryAnswerRepository;
-import com.bukadong.tcg.api.inquiry.repository.InquiryRepository;
+// import com.bukadong.tcg.api.inquiry.entity.Inquiry;
+// import com.bukadong.tcg.api.inquiry.repository.InquiryAnswerRepository;
+// import com.bukadong.tcg.api.inquiry.repository.InquiryRepository;
 import com.bukadong.tcg.api.media.entity.MediaType;
 import com.bukadong.tcg.api.member.entity.Member;
 import com.bukadong.tcg.global.common.base.BaseResponseStatus;
@@ -18,11 +18,11 @@ import org.springframework.stereotype.Component;
  * </P>
  */
 @Component
-@RequiredArgsConstructor
+// @RequiredArgsConstructor
 public class InquiryMediaPolicy implements MediaPermissionPolicy {
 
-    private final InquiryRepository inquiryRepository;
-    private final InquiryAnswerRepository inquiryAnswerRepository;
+    // private final InquiryRepository inquiryRepository;
+    // private final InquiryAnswerRepository inquiryAnswerRepository;
 
     @Override
     public MediaType supports() {
@@ -31,14 +31,14 @@ public class InquiryMediaPolicy implements MediaPermissionPolicy {
 
     @Override
     public void checkCanAdd(MediaType type, Long ownerId, Member actor) {
-        Inquiry inq = inquiryRepository.findById(ownerId)
-                .orElseThrow(() -> new BaseException(BaseResponseStatus.MEDIA_NOT_FOUND));
-        // 작성자 본인만 가능
-        if (!inq.getAuthor().getId().equals(actor.getId()))
-            throw new BaseException(BaseResponseStatus.MEDIA_FORBIDDEN);
-        // 답변이 등록된 문의는 불가
-        if (inquiryAnswerRepository.existsByInquiryId(ownerId))
-            throw new BaseException(BaseResponseStatus.MEDIA_NOT_EDITABLE);
+        // Inquiry inq = inquiryRepository.findById(ownerId)
+        //         .orElseThrow(() -> new BaseException(BaseResponseStatus.MEDIA_NOT_FOUND));
+        // // 작성자 본인만 가능
+        // if (!inq.getAuthor().getId().equals(actor.getId()))
+        //     throw new BaseException(BaseResponseStatus.MEDIA_FORBIDDEN);
+        // // 답변이 등록된 문의는 불가
+        // if (inquiryAnswerRepository.existsByInquiryId(ownerId))
+        //     throw new BaseException(BaseResponseStatus.MEDIA_NOT_EDITABLE);
     }
 
     @Override
