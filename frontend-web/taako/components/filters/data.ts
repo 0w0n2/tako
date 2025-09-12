@@ -1,4 +1,6 @@
-export const filterOptions = [
+import { FilterOption, FilterItem } from '@/types/filter'
+
+export const filterOptions: FilterOption[] = [
   { id: 'rarity', label: '희귀도' },
   { id: 'card_type', label: '카드 종류' },
   { id: 'card_sub_type', label: '카드 세부 속성' },
@@ -6,7 +8,7 @@ export const filterOptions = [
   { id: 'card_pack', label: '카드팩' }
 ]
 
-export const items = [
+export const items: FilterItem[] = [
   { id: 'normal', label: '노말', value: 'normal' },
   { id: 'cosmic_rare', label: '코스믹 레이', value: 'cosmic_rare' },
   { id: 'promo', label: '프로모', value: 'promo' },
@@ -16,7 +18,7 @@ export const items = [
   { id: 'holo_rare', label: '홀로그래픽 레어', value: 'holo_rare' }
 ]
 
-export const cardType = [
+export const cardType: FilterItem[] = [
   { id: 'pokemon', label: '포켓몬', value: 'pokemon' },
   { id: 'support', label: '서포트', value: 'support' },
   { id: 'trainers', label: '트레이너스', value: 'trainers' },
@@ -24,7 +26,7 @@ export const cardType = [
   { id: 'energy', label: '에너지', value: 'energy' }
 ]
 
-export const cardSubType = [
+export const cardSubType: FilterItem[] = [
   { id: '1_evolution', label: '1진화', value: '1_evolution' },
   { id: '2_evolution', label: '2진화', value: '2_evolution' },
   { id: '3_evolution', label: '3진화', value: '3_evolution' },
@@ -36,7 +38,7 @@ export const cardSubType = [
   { id: 'shining', label: '찬란한', value: 'shining' }
 ]
 
-export const regulation = [
+export const regulation: FilterItem[] = [
   { id: 'a', label: 'A', value: 'a' },
   { id: 'b', label: 'B', value: 'b' },
   { id: 'c', label: 'C', value: 'c' },
@@ -48,7 +50,7 @@ export const regulation = [
   { id: 'i', label: 'I', value: 'i' }
 ]
 
-export const cardPack = [
+export const cardPack: FilterItem[] = [
   { id: 'classic', label: '클래식', value: 'classic' },
   { id: 'excl', label: '(EXCL)', value: 'excl' },
   { id: 'sun_collection', label: '썬 컬렉션', value: 'sun_collection' },
@@ -90,7 +92,7 @@ export const cardPack = [
 ]
 
 // Filter 컴포넌트의 itemsMap 형태로 매핑
-export const itemsMap = {
+export const itemsMap: Record<string, FilterItem[]> = {
   '희귀도': items,
   '카드 종류': cardType,
   '카드 세부 속성': cardSubType,

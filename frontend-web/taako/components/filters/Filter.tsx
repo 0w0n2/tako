@@ -1,25 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-
-interface FilterOption {
-  id: string
-  label: string
-}
-
-interface FilterItem {
-  id: string
-  label: string
-  value: string
-}
-
-interface FilterProps {
-  filterOptions: FilterOption[]
-  items?: FilterItem[]
-  itemsMap?: Record<string, FilterItem[]>
-  // 병렬 선택 결과를 전달: key는 옵션 label (예: '희귀도')
-  onSelectionsChange?: (selections: Record<string, FilterItem | null>) => void
-}
+import { FilterOption, FilterItem, FilterProps } from '@/types/filter'
 
 export default function Filter({ 
   filterOptions, 

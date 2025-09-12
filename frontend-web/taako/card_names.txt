@@ -1,0 +1,91 @@
+Pikachu 피카츄
+Squirtle 꼬부기
+Charmander 파이리
+Bulbasaur 꼬부기
+Togedemaru 토게데마루
+Dedenne 데덴네
+Morpeko 모르페코
+Articuno 프리저
+Zapdos 썬더
+Moltres 파이어
+Gengar 팬텀
+Boss's Orders 보스의 지령
+Tyranitar 마기라스
+Morpeko 모르페코
+Professor's Research 박사의 연구
+Eevee 이브이
+Radiant Charizard 찬란한 리자몽
+Radiant Alakazam 찬란한 후딘
+Radiant Jirachi 찬란한 지라치
+Charizard 리자몽
+Pikachu 피카츄
+Milotic 밀로틱
+Rayquaza V 레쿠쟈 V
+Lugia V 루기아 V
+Dragonite V 망나뇽 V
+Mew V 뮤 V
+Scizor V 핫삼 V
+Unown V 안농 V
+Flareon V 부스터 V
+Vaporeon V 샤미드 V
+Jolteon V 쥬피썬더 V
+Celebi V 세레비 V
+Giratina V 기라티나 V
+Origin Forme Dialga V  디아루가 오리진 폼 V
+Flareon VMAX 부스터 VMAX
+Vaporeon VMAX 샤미드 VMAX
+Jolteon VMAX  쥬피썬더 VMAX
+Gyarados VMAX 갸라도스 VMAX
+Ditto VMAX 메타몽 VMAX
+Kingler VMAX 크랩 VMAX
+Espeon VMAX 에브이 VMAX
+Gengar VMAX 팬텀 VMAX
+Umbreon VMAX 블래키 VMAX
+Mewtwo VSTAR 뮤츠 VMAX
+Lucario VSTAR 루카리오 VSTAR
+Charizard VSTAR 리자몽 VSRAR
+Peonia 니아
+Barry 용식
+Marnie 마리
+Nessa 야청
+Professor Burnet 버넷박사
+Kabu 순무
+Pikachu VMAX 피카츄 VMAX
+Alolan Vulpix VSTAR 알로라 식스테일 VSTAR
+Irida 주혜
+Mew VMAX 뮤 VMAX
+Whimsicott VSTAR 엘풍 VSTAR
+Furisode Girl 기모노드레스
+Twin Energy 트윈 에너지
+Ultra Ball 하이퍼볼
+Path to the Peak 정상으로 가는 눈길
+Flaaffy 보송송
+Arceus VSTAR 아르세우스 VSATR
+Mew VMAX 뮤 VMAX
+Mimikyu V 따라큐 V
+Single Strike Urshifu V 일격 우라오스 V
+Pikachu V 피카츄 V
+Mimikyu VMAX 따라큐 VMAX
+Single Strike Urshifu VMAX 일격 우라오스 VMAX
+Pikachu VMAX 피카츄 VMAX
+Bidoof 비버니
+Pikachu 피카츄
+Onix 롱스톤
+PokéStop 포켓스톱
+Poké Kid 포켓몬놀이
+Ultra Ball 마스터볼
+Celebi 세레비
+Raikou 라이코
+Zacian 자시안
+Zamazenta 자마젠타
+Jirachi 지라치
+Rayquaza 레쿠쟈
+Reshiram 레시라무
+Kyogre 가이오가
+Yveltal 이벨타르
+Minccino 치라미
+Cinccino 치라치노
+Lapras V 라프라스 V
+Galarian Darumaka 가라르 달막화
+Koffing 또가스
+Charizard VMAX 리자몽 VMAX

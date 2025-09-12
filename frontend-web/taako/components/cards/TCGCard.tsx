@@ -4,6 +4,8 @@ import { useSpring, animated, to } from "@react-spring/web";
 import { useEffect, useState, useRef, useMemo } from "react";
 import { useCardStore } from "@/stores/useCardStore";
 import { clamp, round, adjust } from "./lib/math";
+import altArts from "./lib/alternate-arts.json";
+import promos from "./lib/promos.json";
 
 type TCGCardProps = {
   id: string;
@@ -18,6 +20,8 @@ type TCGCardProps = {
   back?: string;
   showcase?: boolean;
   isReverse?: boolean;
+  foil?: string;
+  mask?: string;
 };
 
 export default function TCGCard({
@@ -31,6 +35,9 @@ export default function TCGCard({
   rarity: initialRarity,
   img,
   back = "https://tcg.pokemon.com/assets/img/global/tcg-card-back-2x.jpg",
+  isReverse: initialIsReverse = false,
+  foil: initialFoil,
+  mask: initialMask,
 }: TCGCardProps) {
   const [loading, setLoading] = useState(true);
   const [frontSrc, setFrontSrc] = useState<string>("");
@@ -55,14 +62,127 @@ export default function TCGCard({
     config: { tension: 300, friction: 30 },
   }));
 
-  const rarity = useMemo(() => initialRarity.toLowerCase(), [initialRarity]);
-  const supertype = useMemo(() => initialSupertype.toLowerCase(), [initialSupertype]);
+  const supertype = useMemo(
+    () => initialSupertype.toLowerCase(),
+    [initialSupertype]
+  );
   const numberL = useMemo(() => number.toLowerCase(), [number]);
-  const types = useMemo(() => Array.isArray(initialTypes) ? initialTypes.join(" ").toLowerCase() : initialTypes.toLowerCase(), [initialTypes]);
-  const subtypes = useMemo(() => Array.isArray(initialSubtypes) ? initialSubtypes.join(" ").toLowerCase() : initialSubtypes.toLowerCase(), [initialSubtypes]);
-  const isTrainerGallery = useMemo(() => !!numberL.match(/^[tg]g/i) || !!(id === "swshp-SWSH076" || id === "swshp-SWSH077"), [numberL, id]);
+  const types = useMemo(
+    () =>
+      Array.isArray(initialTypes)
+        ? initialTypes.join(" ").toLowerCase()
+        : initialTypes.toLowerCase(),
+    [initialTypes]
+  );
+  const subtypes = useMemo(
+    () =>
+      Array.isArray(initialSubtypes)
+        ? initialSubtypes.join(" ").toLowerCase()
+        : initialSubtypes.toLowerCase(),
+    [initialSubtypes]
+  );
 
-  const baseLocalPath = useMemo(() => `/card-images/${set}/${number}`, [set, number]);
+  const isShiny = useMemo(() => numberL.startsWith("sv"), [numberL]);
+  const isGallery = useMemo(() => !!numberL.match(/^[tg]g/i), [numberL]);
+  const isAlternate = useMemo(
+    () => altArts.includes(id) && !isShiny && !isGallery,
+    [id, isShiny, isGallery]
+  );
+  const isPromo = useMemo(() => set === "swshp", [set]);
+
+  const finalRarity = useMemo(() => {
+    let r = initialRarity.toLowerCase();
+    if (initialIsReverse) {
+      r = r + " reverse holo";
+    }
+    if (isGallery) {
+      if (r.startsWith("trainer gallery")) {
+        r = r.replace(/trainer gallery\s*/, "");
+      }
+      if (r.includes("rare holo v") && subtypes.includes("vmax")) {
+        r = "rare holo vmax";
+      }
+      if (r.includes("rare holo v") && subtypes.includes("vstar")) {
+        r = "rare holo vstar";
+      }
+    }
+    if (isPromo) {
+      if (id === "swshp-SWSH076" || id === "swshp-SWSH077") {
+        r = "rare secret";
+      } else if (subtypes.includes("v-union")) {
+        r = "rare holo vunion";
+      } else if (subtypes.includes("vmax")) {
+        r = "rare holo vmax";
+      } else if (subtypes.includes("vstar")) {
+        r = "rare holo vstar";
+      } else if (subtypes.includes("radiant")) {
+        r = "radiant rare";
+      } else if (subtypes.includes("v")) {
+        r = "rare holo v";
+      }
+    }
+    return r;
+  }, [initialRarity, initialIsReverse, isGallery, isPromo, id, subtypes]);
+
+  const isTrainerGallery = useMemo(
+    () =>
+      !!numberL.match(/^[tg]g/i) ||
+      !!(id === "swshp-SWSH076" || id === "swshp-SWSH077"),
+    [numberL, id]
+  );
+
+  const foilUrl = useMemo(() => {
+    return foilMaskImage(initialFoil, "foils");
+  }, [initialFoil, finalRarity, subtypes, supertype, set, numberL, isShiny, isGallery, isAlternate, isPromo, id]);
+
+  const maskUrl = useMemo(() => {
+    return foilMaskImage(initialMask, "masks");
+  }, [initialMask, finalRarity, subtypes, supertype, set, numberL, isShiny, isGallery, isAlternate, isPromo, id]);
+
+  function foilMaskImage(prop: string | undefined, type: "foils" | "masks") {
+    if (type === 'masks') {
+      return ''; // 마스크는 사용하지 않음
+    }
+
+    if (prop) {
+      if (prop === "false") return "";
+      return prop;
+    }
+
+    const fRarity = finalRarity;
+
+    const mapping: { [key: string]: string } = {
+      'rare secret': '/card-images/effects/geometric.png',
+      'rare holo cosmos': '/card-images/effects/cosmos.png',
+      'radiant rare': '/card-images/effects/angular.png',
+      'trainer gallery rare holo': '/card-images/effects/trainerbg.png',
+      'rare holo vmax': '/card-images/effects/vmaxbg.jpg',
+      'rare holo vstar': '/card-images/effects/ancient.png',
+      'rare holo v': '/card-images/effects/illusion.png',
+      'rare ultra': '/card-images/effects/illusion.png',
+      'rare rainbow': '/card-images/effects/rainbow.jpg',
+      'amazing rare': '/card-images/effects/galaxy.jpg',
+      'rare shiny': '/card-images/effects/illusion.png',
+      'rare holo': '/card-images/effects/wave.png',
+    };
+
+    for (const key in mapping) {
+      if (fRarity.includes(key)) {
+        return mapping[key];
+      }
+    }
+
+    if (fRarity.includes('reverse holo')) {
+      return '/card-images/effects/wave.png';
+    }
+
+    return '';
+  }
+
+  const baseLocalPath = useMemo(
+    () => `/card-images/${set}/${number}`,
+    [set, number]
+  );
 
   useEffect(() => {
     if (img.startsWith("http")) {
@@ -73,7 +193,6 @@ export default function TCGCard({
       setFrontSrc(img);
       return;
     }
-    // 기본: 로컬 구조에 맞춰 hires 우선 사용, 실패 시 onError에서 일반으로 폴백
     setFrontSrc(`${baseLocalPath}_hires.png`);
   }, [img, baseLocalPath]);
 
@@ -172,7 +291,7 @@ export default function TCGCard({
       [styles.translateX, styles.translateY, styles.scale],
       (x, y, s) => `translate(${x}px, ${y}px) scale(${s})`
     ),
-    zIndex: isActive ? 9999 : 'auto',
+    zIndex: isActive ? 9999 : "auto",
   };
 
   const rotatorStyles = {
@@ -188,12 +307,16 @@ export default function TCGCard({
     "--background-x": styles.backgroundX.to((x) => `${x}%`),
     "--background-y": styles.backgroundY.to((y) => `${y}%`),
     "--card-opacity": styles.opacity,
-    "--pointer-from-center": to(
-      [styles.pointerX, styles.pointerY],
-      (x, y) => clamp(Math.sqrt((y - 50) ** 2 + (x - 50) ** 2) / 50, 0, 1)
+    "--pointer-from-center": to([styles.pointerX, styles.pointerY], (x, y) =>
+      clamp(Math.sqrt((y - 50) ** 2 + (x - 50) ** 2) / 50, 0, 1)
     ),
     "--pointer-from-top": styles.pointerY.to((y) => y / 100),
     "--pointer-from-left": styles.pointerX.to((x) => x / 100),
+  } as React.CSSProperties;
+
+  const foilStyles = {
+    "--foil": foilUrl ? `url("${foilUrl}")` : "none",
+    "--mask": maskUrl ? `url("${maskUrl}")` : "none",
   } as React.CSSProperties;
 
   return (
@@ -205,12 +328,12 @@ export default function TCGCard({
       <animated.div
         className={`card ${types} ${loading ? "loading" : ""} ${
           isActive ? "active" : ""
-        } ${interacting ? "interacting" : ""}`}
+        } ${interacting ? "interacting" : ""} ${maskUrl ? "masked" : ""}`}
         data-number={numberL}
         data-set={set}
         data-subtypes={subtypes}
         data-supertype={supertype}
-        data-rarity={rarity}
+                data-rarity={finalRarity}
         data-trainer-gallery={isTrainerGallery}
         style={dynamicStyles}
       >
@@ -229,13 +352,12 @@ export default function TCGCard({
             width="660"
             height="921"
           />
-          <div className="card__front">
+          <div className="card__front" style={foilStyles}>
             <img
               src={frontSrc}
               alt={name}
               onLoad={() => setLoading(false)}
               onError={(e) => {
-                // 폴백: hires가 없으면 일반 해상도로 시도
                 const current = (e.currentTarget as HTMLImageElement).src;
                 if (current.endsWith("_hires.png")) {
                   setFrontSrc(`${baseLocalPath}.png`);
