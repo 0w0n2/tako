@@ -266,6 +266,8 @@ pipeline {
               // [name: 'ai',       ctx: 'backend-fastapi',  df: 'Dockerfile', image: 'seok1419/tako-ai']
             ]
 
+            sh "echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin"
+            
             targets.each { t ->
               sh """
                 set -eu
