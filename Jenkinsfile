@@ -37,6 +37,11 @@ pipeline {
     STATUS_CONTEXT     = 'jenkins:mr-title-check'               // 커밋 상태의 context 라벨
     MERGE_ONLY_TO      = 'main'                                  // 이 타깃 브랜치로 들어오는 MR만 자동 병합 (빈 문자열이면 제한 없음)
     RELEASE_BRANCH     = 'release'                                // 릴리스 브랜치 이름 (태그 푸시용)
+    DEVELOP_BRANCH     = 'develop'                                // 개발 브랜치 이름 (자동 배포용)
+
+    COMPOSE_DEV_FILE = 'deploy/docker-compose.dev.yml'
+    COMPOSE_PROD_FILE = 'deploy/docker-compose.prod.yml'
+    DEV_CONTAINER = ''  // 자동 배포 시에 채워질 예정
   }
 
   stages {
@@ -47,6 +52,11 @@ pipeline {
     }
 
     stage('Checkout source branch (HTTPS)') {
+      when {
+        expression {
+            ((env.GL_MR_ACTION ?: "") != "merge") && ((env.GL_MR_STATE ?: "") != "merged")
+        }
+      }
       steps {
         checkout([$class: 'GitSCM',
           branches: [[name: "*/${GL_MR_SOURCE}"]],
@@ -92,6 +102,11 @@ pipeline {
     }
 
     stage('Validate MR title') {
+      when {
+        expression {
+            ((env.GL_MR_ACTION ?: "") != "merge") && ((env.GL_MR_STATE ?: "") != "merged")
+        }
+      }
       steps {
         withCredentials([usernamePassword(
           credentialsId: env.GIT_CREDS_HTTPS,
@@ -142,6 +157,11 @@ pipeline {
     }
 
     stage('Report status: success to GitLab') {
+      when {
+        expression {
+            ((env.GL_MR_ACTION ?: "") != "merge") && ((env.GL_MR_STATE ?: "") != "merged")
+        }
+      }
       steps {
         withCredentials([usernamePassword(credentialsId: env.GIT_CREDS_HTTPS,
                                           usernameVariable: 'GIT_USER',
@@ -175,6 +195,83 @@ pipeline {
               throw new org.jenkinsci.plugins.workflow.steps.FlowInterruptedException(hudson.model.Result.SUCCESS)
             }
           }
+        }
+      }
+    }
+
+    stage('Prepare repo(develop)') {
+      when {
+        expression {
+          ((env.GL_MR_ACTION ?: "") == "merge" || (env.GL_MR_STATE ?: "") == "merged") &&
+          (env.GL_MR_TARGET == env.DEVELOP_BRANCH)
+        }
+      }
+      steps {
+        checkout([$class:'GitSCM',
+          branches: [[name: "*/${env.DEVELOP_BRANCH}"]],
+          userRemoteConfigs: [[
+            url: env.GIT_URL_HTTPS,
+            credentialsId: env.GIT_CREDS_HTTPS,
+            refspec: '+refs/heads/develop:refs/remotes/origin/develop'
+          ]],
+          extensions: [[$class:'CloneOption', shallow:true, depth:1, timeout:10]]
+        ])
+      }
+    }
+
+    stage('Prepare .env.dev') {
+      when {
+        expression {
+          ((env.GL_MR_ACTION ?: "") == "merge" || (env.GL_MR_STATE ?: "") == "merged") &&
+          (env.GL_MR_TARGET == env.DEVELOP_BRANCH)
+        }
+      }
+      steps {
+        withCredentials([file(credentialsId: 'ENV_DEV_FILE', variable: 'ENV_DEV_FILE')]) {
+          sh '''
+            set -eu
+            install -m 600 "$ENV_DEV_FILE" deploy/.env.dev
+          '''
+        }
+      }
+    }
+
+    stage('dev Deploy (compose up)') {
+      when {
+        expression {
+          ((env.GL_MR_ACTION ?: "") == "merge" || (env.GL_MR_STATE ?: "") == "merged") &&
+          (env.GL_MR_TARGET == env.DEVELOP_BRANCH)
+        }
+      }
+      steps {
+        script {
+          def dev_source = env.GL_MR_SOURCE ?: ""
+          def dev_category = ""
+
+          if (dev_source.contains("/be/") || dev_source.contains("/BE/")) {
+              dev_category = "backend"
+          } else if (dev_source.contains("/fe/") || dev_source.contains("/FE/")) {
+              dev_category = "frontend"
+          } else if (dev_source.contains("/ai/") || dev_source.contains("/AI/")) {
+              dev_category = "ai"
+          }
+
+          if (dev_category == "backend") {
+            env.DEV_CONTAINER = 'tako_back_dev'
+          } else if (dev_category == "frontend") {
+            env.DEV_CONTAINER = 'tako_frontend_dev'
+          } else if (dev_category == "ai") {
+            env.DEV_CONTAINER = 'tako_ai_dev'
+          } else {
+            error("Cannot determine category from source branch: ${dev_source}")
+          }
+
+          sh ''' 
+          set -eux
+
+          docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" pull || true
+          docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" up -d --build "$DEV_CONTAINER"
+          '''
         }
       }
     }
@@ -270,6 +367,106 @@ pipeline {
             git push origin "refs/tags/${VERSION}"
             echo "✅ Tag pushed: ${VERSION}"
           '''
+        }
+      }
+    }
+
+    stage('Prepare .env.prod') {
+      when {
+        expression {
+          ((env.GL_MR_ACTION ?: "") == "merge" || (env.GL_MR_STATE ?: "") == "merged") &&
+          (env.GL_MR_TARGET == env.RELEASE_BRANCH)
+        }
+      }
+      steps {
+        withCredentials([file(credentialsId: 'ENV_PROD_FILE', variable: 'ENV_PROD_FILE')]) {
+          sh '''
+            set -eu
+            install -m 600 "$ENV_PROD_FILE" deploy/.env.prod
+          '''
+        }
+      }
+    }
+
+    stage('prod Deploy (compose up)') {
+      when {
+        expression {
+          ((env.GL_MR_ACTION ?: "") == "merge" || (env.GL_MR_STATE ?: "") == "merged") &&
+          (env.GL_MR_TARGET == env.RELEASE_BRANCH)
+        }
+      }
+      steps {
+        script {
+          sh ''' 
+          set -eux
+
+          docker compose --env-file deploy/.env.prod -f "$COMPOSE_PROD_FILE" pull || true
+          docker compose --env-file deploy/.env.prod -f "$COMPOSE_PROD_FILE" up -d --build tako_back
+          docker compose --env-file deploy/.env.prod -f "$COMPOSE_PROD_FILE" up -d --build tako_front
+          docker compose --env-file deploy/.env.prod -f "$COMPOSE_PROD_FILE" up -d --build tako_ai
+          '''
+        }
+      }
+    }
+
+    stage('Docker Image Push to DockerHub') {
+      when {
+        expression {
+          ((env.GL_MR_ACTION ?: "") == "merge" || (env.GL_MR_STATE ?: "") == "merged") &&
+          (env.GL_MR_TARGET == env.RELEASE_BRANCH)
+        }
+      }
+      environment {
+        // 커밋 해시(12자리) 기준 태깅, 없으면 manual
+        IMG_SHA = "${(env.GL_MR_SHA ?: env.GIT_COMMIT ?: 'manual').take(12)}"
+      }
+      steps {
+        withCredentials([
+          usernamePassword(
+            credentialsId: 'dockerhub-creds',
+            usernameVariable: 'DOCKER_USER',
+            passwordVariable: 'DOCKER_PASS'
+          )
+        ]) {
+          script {
+            // 서비스별 정의 (경로/도커파일/이미지명)
+            def targets = [
+              [name: 'backend',  ctx: 'backend',  df: 'S13P21E104/backend-spring/Dockerfile',  image: 'seok1419/takon-backend'],
+              [name: 'frontend', ctx: 'frontend', df: 'S13P21E104/frontend-web/Dockerfile', image: 'seok1419/tako-frontend'],
+              [name: 'ai',       ctx: 'AI',       df: 'S13P21E104/AI/Dockerfile',       image: 'seok1419/tako-ai']
+            ]
+
+            // Docker Hub 로그인(1회)
+            sh '''
+              set -eu
+              echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+            '''
+
+            // 각 서비스 빌드 & 푸시
+            targets.each { t ->
+              echo ">>> Build & Push: ${t.name} -> ${t.image}:${IMG_SHA}"
+              sh """
+                set -eu
+                export DOCKER_BUILDKIT=1
+
+                # 최신 베이스 이미지 반영 시 --pull
+                docker build --pull -t "${t.image}:${IMG_SHA}" -f "${t.df}" "${t.ctx}"
+
+                # 롤백 용이하도록 latest 동시 태깅
+                docker tag "${t.image}:${IMG_SHA}" "${t.image}:latest"
+
+                # 푸시
+                docker push "${t.image}:${IMG_SHA}"
+                docker push "${t.image}:latest"
+              """
+            }
+
+            // 선택: 정리
+            sh '''
+              docker logout || true
+              docker image prune -f || true
+            '''
+          }
         }
       }
     }
