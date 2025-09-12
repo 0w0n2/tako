@@ -1,7 +1,7 @@
 import Image from "next/image"
 
 export default function RegisterImage(){
-    const images = Array.from({ length: 10 }, () => "/no-image.jpg")
+    const images = Array.from({ length: 2 }, () => "/no-image.jpg")
 
     return(
         <div className="flex gap-4">

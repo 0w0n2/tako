@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@plugin "tailwindcss-animate";
+
 /* 싸피카드에 쓸 핑크퐁 폰트 */
 @font-face {
   font-family: "Pinkfong-L";
@@ -28,14 +30,7 @@
   font-display: swap;
 }
 
-:root {
-  --background: #141420;
-  --foreground: #ffffff;
-}
-
 body {
-  background: var(--background);
-  color: var(--foreground);
   font-family: "Montserrat", sans-serif;
 }
 

@@ -3,17 +3,17 @@
 import Image from 'next/image';
 import { useState } from 'react';
 import { AuctionDetailProps } from '@/types/auction';
-import RankElement from '../../atoms/RankElement';
+// import RankElement from '../../atoms/RankElement';
 
 interface AuctionDetailImages{
     props: AuctionDetailProps
 }
 
 export default function AuctionDetailImages({ props }: AuctionDetailImages){
-    // --- 이미지 선택 기능 ---
+    // 이미지 선택 기능
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
-    // --- 돋보기 기능 ---
+    // 돋보기 기능
     const [isZoomed, setIsZoomed] = useState(false);
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
