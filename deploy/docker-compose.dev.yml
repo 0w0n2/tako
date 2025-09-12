@@ -62,12 +62,13 @@ services:
       args:
         APP_STAGE: "dev"
     container_name: tako_front_dev
-    expose:
-      - "80"                # 외부 포트 매핑 제거! (ports 삭제)
-    restart: unless-stopped
+    ports:
+      - "3000:3000"
     mem_limit: 256m
     cpus: "0.25"
-    networks: [ e104_net ]
+    restart: unless-stopped
+    networks:
+      - e104_net
     env_file:
       - .env.dev
 
