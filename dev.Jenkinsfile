@@ -246,12 +246,6 @@ pipeline {
     }
 
     stage('Docker Image Push to DockerHub') {
-      when {
-        expression {
-          ((env.GL_MR_ACTION ?: "") == "merge" || (env.GL_MR_STATE ?: "") == "merged") &&
-          (env.GL_MR_TARGET == env.RELEASE_BRANCH)
-        }
-      }
       environment {
         // 커밋 해시(12자리) 기준 태깅, 없으면 manual
         IMG_SHA = "${(env.GL_MR_SHA ?: env.GIT_COMMIT ?: 'manual').take(12)}"
