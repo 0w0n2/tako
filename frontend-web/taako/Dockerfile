@@ -5,6 +5,7 @@ ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1
 ARG APP_STAGE=dev
 ENV APP_STAGE=${APP_STAGE}
 
+RUN npm i -D @tailwindcss/postcss tailwindcss postcss autoprefixer
 COPY package.json package-lock.json ./
 RUN npm ci --no-audit --no-fund
 COPY . .
