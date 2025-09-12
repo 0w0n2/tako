@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "export": "next export -o out",
     "start": "next start",
     "download:card-images": "node scripts/download-images-from-cards.js --all --out public/card-images"
   },
