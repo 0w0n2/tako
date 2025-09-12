@@ -1,9 +1,13 @@
 package com.bukadong.tcg.api.media.repository;
 
 import com.bukadong.tcg.api.media.entity.Media;
+import com.bukadong.tcg.api.media.entity.MediaKind;
 import com.bukadong.tcg.api.media.entity.MediaType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -39,7 +43,7 @@ public interface MediaRepository extends JpaRepository<Media, Long> {
      * @PARAM ownerIds 카드 ID 목록
      * @RETURN 각 카드의 대표 Media 목록
      */
-    @org.springframework.data.jpa.repository.Query("""
+    @Query("""
                 select m
                 from Media m
                 where m.type = :type
@@ -47,9 +51,7 @@ public interface MediaRepository extends JpaRepository<Media, Long> {
                   and m.seqNo = 1
                   and m.ownerId in :ownerIds
             """)
-    java.util.List<com.bukadong.tcg.api.media.entity.Media> findCardThumbnails(
-            @org.springframework.data.repository.query.Param("type") com.bukadong.tcg.api.media.entity.MediaType type,
-            @org.springframework.data.repository.query.Param("mediaKind") com.bukadong.tcg.api.media.entity.MediaKind mediaKind,
-            @org.springframework.data.repository.query.Param("ownerIds") java.util.Collection<Long> ownerIds);
+    List<Media> findCardThumbnails(@Param("type") MediaType type, @Param("mediaKind") MediaKind mediaKind,
+            @Param("ownerIds") Collection<Long> ownerIds);
 
 }

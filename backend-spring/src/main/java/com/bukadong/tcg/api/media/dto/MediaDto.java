@@ -25,6 +25,6 @@ public record MediaDto(Long id, String url, MediaKind mediaKind, String mimeType
      * @return 변환된 MediaDto
      */
     public static MediaDto of(Media m) {
-        return new MediaDto(m.getId(), m.getUrl(), m.getMediaKind(), m.getMimeType(), m.getSeqNo());
+        return new MediaDto(m.getId(), m.getKey(), m.getMediaKind(), m.getMimeType(), m.getSeqNo());
     }
 }

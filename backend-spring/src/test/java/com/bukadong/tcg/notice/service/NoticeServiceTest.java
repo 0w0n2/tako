@@ -31,12 +31,10 @@ import static org.mockito.Mockito.mock;
 class NoticeServiceTest {
 
     private final NoticeRepository noticeRepository = mock(NoticeRepository.class);
-    private final NoticeViewCounterService viewCounterService = mock(
-            NoticeViewCounterService.class);
+    private final NoticeViewCounterService viewCounterService = mock(NoticeViewCounterService.class);
 
     // ✅ 현재 서비스 시그니처에 맞게 2개만 주입
-    private final NoticeService noticeService = new NoticeService(noticeRepository,
-            viewCounterService);
+    private final NoticeService noticeService = new NoticeService(noticeRepository, viewCounterService);
 
     /**
      * getSummaryPage - Repository가 DTO 페이지를 직접 반환
@@ -51,8 +49,7 @@ class NoticeServiceTest {
     @DisplayName("getSummaryPage - Repository가 DTO 페이지를 직접 반환")
     void getSummaryPage_returnsDtoPageFromRepository() {
         // given
-        NoticeSummaryDto s1 = new NoticeSummaryDto(1L, "공지1", "관리자", 5L,
-                LocalDateTime.of(2025, 9, 9, 12, 0));
+        NoticeSummaryDto s1 = new NoticeSummaryDto(1L, "공지1", "관리자", 5L, LocalDateTime.of(2025, 9, 9, 12, 0));
         Page<NoticeSummaryDto> page = new PageImpl<>(List.of(s1),
                 PageRequest.of(0, 20, Sort.by(Sort.Direction.DESC, "createdAt")), 1);
         given(noticeRepository.findSummaryPage(any(Pageable.class))).willReturn(page);
@@ -116,9 +113,8 @@ class NoticeServiceTest {
         long id = 7L;
         willDoNothing().given(viewCounterService).increment(id);
 
-        NoticeDetailDto detail = new NoticeDetailDto(id, "제목", "내용", "관리자", 11L,
-                LocalDateTime.of(2025, 9, 9, 10, 0), LocalDateTime.of(2025, 9, 9, 11, 0), List.of() // attachments
-        );
+        NoticeDetailDto detail = new NoticeDetailDto(id, "제목", "내용", "관리자", 11L, List.of("image1.jpg", "image2.jpg"),
+                LocalDateTime.of(2025, 9, 9, 10, 0), LocalDateTime.of(2025, 9, 9, 11, 0));
         given(noticeRepository.findDetailDtoById(id)).willReturn(detail);
 
         // when
@@ -149,13 +145,11 @@ class NoticeServiceTest {
         // given
         long invalidId = 999L;
         willDoNothing().given(viewCounterService).increment(invalidId);
-        given(noticeRepository.findDetailDtoById(invalidId))
-                .willThrow(new BaseException(BaseResponseStatus.NOT_FOUND));
+        given(noticeRepository.findDetailDtoById(invalidId)).willThrow(new BaseException(BaseResponseStatus.NOT_FOUND));
 
         // when & then
-        assertThatThrownBy(() -> noticeService.getDetail(invalidId))
-                .isInstanceOf(BaseException.class).extracting("status")
-                .isEqualTo(BaseResponseStatus.NOT_FOUND);
+        assertThatThrownBy(() -> noticeService.getDetail(invalidId)).isInstanceOf(BaseException.class)
+                .extracting("status").isEqualTo(BaseResponseStatus.NOT_FOUND);
 
         InOrder inOrder = inOrder(viewCounterService, noticeRepository);
         inOrder.verify(viewCounterService).increment(invalidId);

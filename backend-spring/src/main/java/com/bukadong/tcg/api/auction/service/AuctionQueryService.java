@@ -7,6 +7,9 @@ import com.bukadong.tcg.api.auction.repository.AuctionDetailRepository;
 import com.bukadong.tcg.api.auction.repository.AuctionRepository;
 import com.bukadong.tcg.api.auction.repository.AuctionRepositoryCustom;
 import com.bukadong.tcg.api.auction.repository.AuctionSort;
+import com.bukadong.tcg.api.media.entity.MediaKind;
+import com.bukadong.tcg.api.media.entity.MediaType;
+import com.bukadong.tcg.api.media.service.MediaUrlService;
 import com.bukadong.tcg.global.common.base.BaseResponseStatus;
 import com.bukadong.tcg.global.common.dto.PageResponse;
 import com.bukadong.tcg.global.common.exception.BaseException;
@@ -18,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -34,6 +38,7 @@ public class AuctionQueryService {
     private final AuctionRepositoryCustom auctionRepositoryCustom;
     private final AuctionDetailRepository auctionDetailRepository;
     private final AuctionRepository auctionRepository; // 상세 조회용 fetch-graph 사용
+    private final MediaUrlService mediaUrlService;
 
     /**
      * 경매 목록 조회
@@ -52,20 +57,18 @@ public class AuctionQueryService {
      * @param page             페이지(0-base)
      * @return PageResponse로 감싼 응답 DTO 페이지
      */
-    public PageResponse<AuctionListItemDto> browse(Long categoryMajorId, Long categoryMediumId,
-            String titlePart, Long cardId, BigDecimal currentPriceMin, BigDecimal currentPriceMax,
-            Set<String> grades, AuctionSort sort, int page) {
-        if (currentPriceMin != null && currentPriceMax != null
-                && currentPriceMin.compareTo(currentPriceMax) > 0) {
+    public PageResponse<AuctionListItemDto> browse(Long categoryMajorId, Long categoryMediumId, String titlePart,
+            Long cardId, BigDecimal currentPriceMin, BigDecimal currentPriceMax, Set<String> grades, AuctionSort sort,
+            int page) {
+        if (currentPriceMin != null && currentPriceMax != null && currentPriceMin.compareTo(currentPriceMax) > 0) {
             throw new BaseException(BaseResponseStatus.BAD_REQUEST);
         }
 
         int safePage = Math.max(0, page);
         Pageable pageable = PageRequest.of(safePage, 20);
 
-        var rowsPage = auctionRepositoryCustom.searchAuctions(categoryMajorId, categoryMediumId,
-                titlePart, cardId, currentPriceMin, currentPriceMax, grades,
-                sort == null ? AuctionSort.ENDTIME_ASC : sort, pageable);
+        var rowsPage = auctionRepositoryCustom.searchAuctions(categoryMajorId, categoryMediumId, titlePart, cardId,
+                currentPriceMin, currentPriceMax, grades, sort == null ? AuctionSort.ENDTIME_ASC : sort, pageable);
 
         LocalDateTime now = LocalDateTime.now();
         var dtoPage = rowsPage.map(r -> toListItem(now, r));
@@ -85,8 +88,8 @@ public class AuctionQueryService {
      */
     private static AuctionListItemDto toListItem(LocalDateTime now, AuctionListRow r) {
         long remain = Math.max(0, Duration.between(now, r.endDatetime()).getSeconds());
-        return new AuctionListItemDto(r.id(), r.grade(), r.title(), r.currentPrice(), r.bidCount(),
-                remain, r.primaryImageUrl());
+        return new AuctionListItemDto(r.id(), r.grade(), r.title(), r.currentPrice(), r.bidCount(), remain,
+                r.primaryImageUrl());
     }
 
     /**
@@ -106,14 +109,13 @@ public class AuctionQueryService {
         var auctionInfo = auctionDetailRepository.mapAuctionInfo(auction);
         var cardInfo = auctionDetailRepository.mapCardInfo(auction);
 
-        var imageUrls = auctionDetailRepository.findImageUrlsByAuctionId(auctionId);
-        var weeklyPrices = auctionDetailRepository
-                .findWeeklyPriceLinesByCardId(auction.getCard().getId());
+        List<String> imageUrls = mediaUrlService.getPresignedImageUrls(MediaType.AUCTION_ITEM, auctionId,
+                MediaKind.IMAGE, Duration.ofMinutes(5));
+        var weeklyPrices = auctionDetailRepository.findWeeklyPriceLinesByCardId(auction.getCard().getId());
         var history = auctionDetailRepository.findBidHistory(auctionId, historySize);
         var sellerInfo = auctionDetailRepository.findSellerInfoByAuctionId(auctionId);
 
-        return AuctionDetailResponse.builder().auction(auctionInfo).card(cardInfo)
-                .weeklyPrices(weeklyPrices).history(history).imageUrls(imageUrls)
-                .seller(sellerInfo).build();
+        return AuctionDetailResponse.builder().auction(auctionInfo).card(cardInfo).weeklyPrices(weeklyPrices)
+                .history(history).imageUrls(imageUrls).seller(sellerInfo).build();
     }
 }

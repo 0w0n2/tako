@@ -107,8 +107,8 @@ public class PopularityService {
         }
 
         // 2) 존재하는 키만 추려서 합산 비용 절감
-        List<String> existing = minuteKeys.stream()
-                .filter(k -> Boolean.TRUE.equals(stringRedisTemplate.hasKey(k))).toList();
+        List<String> existing = minuteKeys.stream().filter(k -> Boolean.TRUE.equals(stringRedisTemplate.hasKey(k)))
+                .toList();
 
         if (existing.isEmpty()) {
             return new PageResponse<>(List.of(), page, size, 0, 0);
@@ -120,12 +120,10 @@ public class PopularityService {
         try {
             // 4) ZUNIONSTORE (고수준 API) — 가중치는 이벤트 시점에 반영했으므로 SUM만 필요
             String first = existing.get(0);
-            List<String> others = (existing.size() > 1) ? existing.subList(1, existing.size())
-                    : List.of();
+            List<String> others = (existing.size() > 1) ? existing.subList(1, existing.size()) : List.of();
             stringRedisTemplate.opsForZSet().unionAndStore(first, others, destKey);
 
-            long totalElements = Optional
-                    .ofNullable(stringRedisTemplate.opsForZSet().zCard(destKey)).orElse(0L);
+            long totalElements = Optional.ofNullable(stringRedisTemplate.opsForZSet().zCard(destKey)).orElse(0L);
             int totalPages = size == 0 ? 0 : (int) Math.ceil((double) totalElements / size);
 
             long start = (long) page * size;
@@ -140,19 +138,17 @@ public class PopularityService {
             }
 
             // 6) 카드 ID 리스트 추출 (멤버는 cardId 문자열)
-            List<Long> cardIds = range.stream().map(ZSetOperations.TypedTuple::getValue)
-                    .filter(Objects::nonNull).map(Long::valueOf).toList();
+            List<Long> cardIds = range.stream().map(ZSetOperations.TypedTuple::getValue).filter(Objects::nonNull)
+                    .map(Long::valueOf).toList();
 
             // 7) 카드 메타 로딩 (rarity 포함)
             Map<Long, Card> cardMap = cardRepository.findAllById(cardIds).stream()
                     .collect(Collectors.toMap(Card::getId, c -> c));
 
             // 7-1) 카드 대표 이미지(IMAGE, seqNo=1) 벌크 조회 → ownerId(=cardId) -> url 매핑
-            final Map<Long, String> imageUrlByCardId = cardIds.isEmpty()
-                    ? java.util.Collections.emptyMap()
-                    : mediaRepository.findCardThumbnails(MediaType.CARD, MediaKind.IMAGE, cardIds)
-                            .stream().collect(Collectors.toMap(Media::getOwnerId, Media::getUrl,
-                                    (a, b) -> a)); // 중복시 첫 값 유지
+            final Map<Long, String> imageUrlByCardId = cardIds.isEmpty() ? java.util.Collections.emptyMap()
+                    : mediaRepository.findCardThumbnails(MediaType.CARD, MediaKind.IMAGE, cardIds).stream()
+                            .collect(Collectors.toMap(Media::getOwnerId, Media::getKey, (a, b) -> a)); // 중복시 첫 값 유지
 
             // 8) DTO 매핑: rarity는 enum 이름을 문자열로, imageUrl은 대표 썸네일
             List<PopularCardDto> content = range.stream().map(t -> {

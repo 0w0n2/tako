@@ -49,9 +49,9 @@ public class AuctionRepositoryImpl implements AuctionRepositoryCustom {
      */
 
     @Override
-    public Page<AuctionListRow> searchAuctions(Long categoryMajorId, Long categoryMediumId,
-            String titlePart, Long cardId, BigDecimal currentPriceMin, BigDecimal currentPriceMax,
-            Set<String> grades, AuctionSort sort, Pageable pageable) {
+    public Page<AuctionListRow> searchAuctions(Long categoryMajorId, Long categoryMediumId, String titlePart,
+            Long cardId, BigDecimal currentPriceMin, BigDecimal currentPriceMax, Set<String> grades, AuctionSort sort,
+            Pageable pageable) {
 
         BooleanBuilder where = new BooleanBuilder();
         if (categoryMajorId != null)
@@ -72,11 +72,11 @@ public class AuctionRepositoryImpl implements AuctionRepositoryCustom {
         if (grades != null && !grades.isEmpty())
             where.and(auction.grade.in(grades));
 
-        var bidCountSub = JPAExpressions.select(auctionBid.count()).from(auctionBid).where(
-                auctionBid.auction.eq(auction).and(auctionBid.status.eq(AuctionBidStatus.VALID)));
+        var bidCountSub = JPAExpressions.select(auctionBid.count()).from(auctionBid)
+                .where(auctionBid.auction.eq(auction).and(auctionBid.status.eq(AuctionBidStatus.VALID)));
 
-        NumberExpression<Long> bidCountExpr = Expressions.numberTemplate(Long.class,
-                "coalesce({0}, {1})", bidCountSub, 0L);
+        NumberExpression<Long> bidCountExpr = Expressions.numberTemplate(Long.class, "coalesce({0}, {1})", bidCountSub,
+                0L);
 
         OrderSpecifier<?> orderSpecifier = switch (sort) {
         case ENDTIME_ASC -> auction.endDatetime.asc();
@@ -87,15 +87,18 @@ public class AuctionRepositoryImpl implements AuctionRepositoryCustom {
 
         // 서브쿼리를 사용하면 경매 행마다 실행되어 성능 저하와 'Subquery returns more than 1 row' 오류가 발생할 수 있어
         // JOIN 방식으로 단일 대표이미지를 가져오도록 함
-        List<AuctionListRow> content = queryFactory
-                .select(Projections.constructor(AuctionListRow.class, auction.id, auction.grade,
-                        auction.title, auction.currentPrice, bidCountExpr, auction.endDatetime,
-                        media.url // 대표이미지
-                )).from(auction).leftJoin(media)
-                .on(media.ownerId.eq(auction.id).and(media.type.eq(MediaType.AUCTION_ITEM))
-                        .and(media.seqNo.eq(1))) // ← seq_no = 1로 고정 대표이미지
-                .where(where).orderBy(orderSpecifier, auction.id.desc())
-                .offset(pageable.getOffset()).limit(pageable.getPageSize()).fetch();
+        // TODO: 좀 간단하게 수정 이미지 로드 또한 수정
+        List<AuctionListRow> content = queryFactory.select(Projections.constructor(AuctionListRow.class, auction.id,
+                auction.grade, auction.title, auction.currentPrice, bidCountExpr, auction.endDatetime, media.key // 대표이미지
+        )).from(auction).leftJoin(media)
+                .on(media.ownerId.eq(auction.id).and(media.type.eq(MediaType.AUCTION_ITEM)).and(media.seqNo.eq(1))) // ←
+                                                                                                                    // seq_no
+                                                                                                                    // =
+                                                                                                                    // 1로
+                                                                                                                    // 고정
+                                                                                                                    // 대표이미지
+                .where(where).orderBy(orderSpecifier, auction.id.desc()).offset(pageable.getOffset())
+                .limit(pageable.getPageSize()).fetch();
 
         Long total = queryFactory.select(auction.count()).from(auction).where(where).fetchOne();
         return new PageImpl<>(content, pageable, total == null ? 0 : total);

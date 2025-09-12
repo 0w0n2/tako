@@ -2,9 +2,9 @@ package com.bukadong.tcg.api.notice.repository;
 
 import com.bukadong.tcg.global.common.base.BaseResponseStatus;
 import com.bukadong.tcg.global.common.exception.BaseException;
-import com.bukadong.tcg.api.media.dto.MediaDto;
+import com.bukadong.tcg.api.media.entity.MediaKind;
 import com.bukadong.tcg.api.media.entity.MediaType;
-import com.bukadong.tcg.api.media.entity.QMedia;
+import com.bukadong.tcg.api.media.service.MediaUrlService;
 import com.bukadong.tcg.api.member.entity.QMember;
 import com.bukadong.tcg.api.notice.dto.response.NoticeDetailDto;
 import com.bukadong.tcg.api.notice.dto.response.NoticeSummaryDto;
@@ -18,6 +18,7 @@ import org.springframework.stereotype.Repository;
 
 import static com.bukadong.tcg.api.notice.entity.QNotice.notice;
 
+import java.time.Duration;
 import java.util.List;
 
 /**
@@ -31,16 +32,16 @@ import java.util.List;
 public class NoticeRepositoryImpl implements NoticeRepositoryCustom {
 
     private final JPAQueryFactory queryFactory;
+    private final MediaUrlService mediaUrlService;
 
     @Override
     public Page<NoticeSummaryDto> findSummaryPage(Pageable pageable) {
         List<NoticeSummaryDto> content = queryFactory
-                .select(Projections.constructor(NoticeSummaryDto.class, QNotice.notice.id,
-                        QNotice.notice.title, QNotice.notice.author.nickname,
-                        QNotice.notice.viewCount, QNotice.notice.createdAt))
+                .select(Projections.constructor(NoticeSummaryDto.class, QNotice.notice.id, QNotice.notice.title,
+                        QNotice.notice.author.nickname, QNotice.notice.viewCount, QNotice.notice.createdAt))
                 .from(QNotice.notice).leftJoin(QNotice.notice.author, QMember.member)
-                .orderBy(QNotice.notice.createdAt.desc()).offset(pageable.getOffset())
-                .limit(pageable.getPageSize()).fetch();
+                .orderBy(QNotice.notice.createdAt.desc()).offset(pageable.getOffset()).limit(pageable.getPageSize())
+                .fetch();
 
         Long total = queryFactory.select(QNotice.notice.count()).from(QNotice.notice).fetchOne();
 
@@ -50,24 +51,15 @@ public class NoticeRepositoryImpl implements NoticeRepositoryCustom {
     @Override
     public NoticeDetailDto findDetailDtoById(Long id) {
         // 공지사항 + 작성자 조회
-        Notice noticeEntity = queryFactory.selectFrom(QNotice.notice)
-                .leftJoin(QNotice.notice.author, QMember.member).fetchJoin()
-                .where(QNotice.notice.id.eq(id)).fetchOne();
+        Notice noticeEntity = queryFactory.selectFrom(QNotice.notice).leftJoin(QNotice.notice.author, QMember.member)
+                .fetchJoin().where(QNotice.notice.id.eq(id)).fetchOne();
 
         if (noticeEntity == null) {
             throw new BaseException(BaseResponseStatus.NOT_FOUND);
         }
-
-        // 첨부파일 조회
-        List<MediaDto> attachments = queryFactory
-                .select(Projections.constructor(MediaDto.class, QMedia.media.id, QMedia.media.url,
-                        QMedia.media.mediaKind, QMedia.media.mimeType, QMedia.media.seqNo))
-                .from(QMedia.media)
-                .where(QMedia.media.type.eq(MediaType.NOTICE_ATTACHMENT)
-                        .and(QMedia.media.ownerId.eq(id)))
-                .orderBy(QMedia.media.seqNo.asc()).fetch();
-
-        return NoticeDetailDto.of(noticeEntity, attachments);
+        List<String> imageUrls = mediaUrlService.getPresignedImageUrls(MediaType.NOTICE, noticeEntity.getId(),
+                MediaKind.IMAGE, Duration.ofMinutes(5));
+        return NoticeDetailDto.of(noticeEntity, imageUrls);
     }
 
     /**
@@ -78,8 +70,8 @@ public class NoticeRepositoryImpl implements NoticeRepositoryCustom {
      */
     @Override
     public int incrementViewCount(Long id) {
-        return (int) queryFactory.update(notice).set(notice.viewCount, notice.viewCount.add(1))
-                .where(notice.id.eq(id)).execute();
+        return (int) queryFactory.update(notice).set(notice.viewCount, notice.viewCount.add(1)).where(notice.id.eq(id))
+                .execute();
     }
 
 }

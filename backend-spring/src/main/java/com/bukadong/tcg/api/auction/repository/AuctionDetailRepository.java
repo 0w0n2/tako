@@ -36,14 +36,6 @@ public interface AuctionDetailRepository {
     CardInfo mapCardInfo(Auction auction);
 
     /**
-     * 경매 이미지 URL 목록 조회
-     * 
-     * @PARAM auctionId 경매 ID
-     * @RETURN 이미지 URL 목록
-     */
-    List<String> findImageUrlsByAuctionId(Long auctionId);
-
-    /**
      * 최근 7일 일자별(min/max/avg) 시세 라인
      * <P>
      * 모든 경매 중 동일 카드(card_id) 기준, auction_result의 최종 입찰가를 이용.
