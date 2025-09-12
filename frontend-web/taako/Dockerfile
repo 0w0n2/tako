@@ -1,13 +1,13 @@
 # ---- Build stage --------------------------------------------------------
 FROM node:20-alpine AS builder
 WORKDIR /app
-ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1
+
 ARG APP_STAGE=dev
 ENV APP_STAGE=${APP_STAGE}
 
-RUN npm i -D @tailwindcss/postcss tailwindcss postcss autoprefixer
 COPY package.json package-lock.json ./
 RUN npm ci --no-audit --no-fund
+
 COPY . .
 # Next.js 정적 산출물(out/) 생성
 RUN npm run build && npm run export
