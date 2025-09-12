@@ -9,7 +9,7 @@ import {
     NavigationMenuLink,
     NavigationMenuTrigger,
   } from "@/components/ui/navigation-menu"
-  
+import { Badge } from "@/components/ui/badge"
 
 const components: { image: string; title:string}[] = [
   {
@@ -26,45 +26,53 @@ const components: { image: string; title:string}[] = [
   },
 ]
 
-export default function HeaderNavigationMenu(){
+interface HeaderNavigationMenuProps {
+  onLoginClick: () => void;
+}
+
+export default function HeaderNavigationMenu({ onLoginClick }: HeaderNavigationMenuProps){
     return(
-        <NavigationMenu>
-            <NavigationMenuItem>
-              <NavigationMenuTrigger>카테고리</NavigationMenuTrigger>
+        <NavigationMenu className="gap-8">
+            <NavigationMenuItem className="list-none">
+              <NavigationMenuTrigger className="flex gap-1 items-center cursor-pointer hover:text-[#f2b90c]">카테고리</NavigationMenuTrigger>
               <NavigationMenuContent>
-                <ul className="grid w-[400px] gap-2 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
+                <ul className="grid grid-cols-3 w-[600px] p-3">
                   {components.map((component) => (
                     <li
                       key={component.title}
                     >
-                      <Link href={`/${component.title}`}>
-                        <Image src={component.image} alt={component.title} width={30} height={30} />
-                        {component.title}
-                      </Link>
+                      <NavigationMenuLink asChild>
+                        <Link className="rounded-md flex flex-col items-center flex-1 py-6 hover:bg-[#f2b90c]/10" href={`/${component.title}`}>
+                          <Image src={component.image} alt={component.title} width={100} height={100} />
+                          {/* {component.title} */}
+                        </Link>
+                      </NavigationMenuLink>
                     </li>
                   ))}
                 </ul>
               </NavigationMenuContent>
             </NavigationMenuItem>
-            <NavigationMenuItem>
+            <NavigationMenuItem className="list-none">
                 <NavigationMenuLink asChild>
-                    <Link href="#">미니게임</Link>
+                    <Link href="#" className="hover:text-[#f2b90c]">미니게임</Link>
                 </NavigationMenuLink>
             </NavigationMenuItem>
-            <NavigationMenuItem>
-                  <button >로그인</button>
+            <NavigationMenuItem className="list-none">
+                  <button className="cursor-pointer hover:text-[#f2b90c]" onClick={onLoginClick}>로그인</button>
             </NavigationMenuItem>
-            <NavigationMenuItem>
+            <NavigationMenuItem className="list-none">
                 <NavigationMenuLink asChild>
-                    <Link href="/mypage">마이페이지</Link>
+                    <Link href="/mypage" className="hover:text-[#f2b90c]">마이페이지</Link>
                 </NavigationMenuLink>
             </NavigationMenuItem>
-            <NavigationMenuItem>
+            <NavigationMenuItem className="list-none">
                 <NavigationMenuLink asChild>
-                    <Link href="/notification">알림</Link>
+                    <Link href="/notification" className="flex items-center gap-1 hover:text-[#f2b90c]">알림
+                      <Badge className="h-4 min-w-4 rounded-full px-1 bg-[#f2b90c]">3</Badge>
+                    </Link>
                 </NavigationMenuLink>
             </NavigationMenuItem>
-            <NavigationMenuItem>
+            <NavigationMenuItem className="list-none">
                 <NavigationMenuLink asChild>
                     <Link
                     href="/auction/new"
