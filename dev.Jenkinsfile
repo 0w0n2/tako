@@ -49,10 +49,10 @@ pipeline {
       }
     }
 
-    stage('Prepare repo') {
+    stage('Prepare repo(develop)') {
       when {
         expression {
-          params.MANUAL_DEV_DEPLOY || params.MANUAL_PROD_DEPLOY || (
+          params.MANUAL_DEV_DEPLOY || (
             ((env.GL_MR_ACTION ?: "") == "merge" || (env.GL_MR_STATE ?: "") == "merged") &&
             (env.GL_MR_TARGET == env.DEVELOP_BRANCH)
           )
@@ -71,10 +71,32 @@ pipeline {
       }
     }
 
+    stage('Prepare repo(release)') {
+      when {
+        expression {
+          params.MANUAL_PROD_DEPLOY || (
+            ((env.GL_MR_ACTION ?: "") == "merge" || (env.GL_MR_STATE ?: "") == "merged") &&
+            (env.GL_MR_TARGET == env.RELEASE_BRANCH)
+          )
+        }
+      }
+      steps {
+        checkout([$class:'GitSCM',
+          branches: [[name: "*/${env.RELEASE_BRANCH}"]],
+          userRemoteConfigs: [[
+            url: env.GIT_URL_HTTPS,
+            credentialsId: env.GIT_CREDS_HTTPS,
+            refspec: '+refs/heads/release:refs/remotes/origin/release'
+          ]],
+          extensions: [[$class:'CloneOption', shallow:true, depth:1, timeout:10]]
+        ])
+      }
+    }
+
     stage('Prepare .env.dev') {
       when {
         expression {
-          params.MANUAL_DEV_DEPLOY || params.MANUAL_PROD_DEPLOY || (
+          params.MANUAL_DEV_DEPLOY || (
             ((env.GL_MR_ACTION ?: "") == "merge" || (env.GL_MR_STATE ?: "") == "merged") &&
             (env.GL_MR_TARGET == env.DEVELOP_BRANCH)
           )
@@ -90,7 +112,26 @@ pipeline {
       }
     }
 
-    stage('Back Deploy (compose up)') {
+    stage('Prepare .env.prod') {
+      when {
+        expression {
+          params.MANUAL_PROD_DEPLOY || (
+            ((env.GL_MR_ACTION ?: "") == "merge" || (env.GL_MR_STATE ?: "") == "merged") &&
+            (env.GL_MR_TARGET == env.RELEASE_BRANCH)
+          )
+        }
+      }
+      steps {
+        withCredentials([file(credentialsId: 'ENV_PROD_FILE', variable: 'ENV_PROD_FILE')]) {
+          sh '''
+            set -eu
+            install -m 600 "$ENV_PROD_FILE" deploy/.env.prod
+          '''
+        }
+      }
+    }
+
+    stage('Back dev Deploy (compose up)') {
       when {
         expression {
           (params.MANUAL_DEV_DEPLOY && params.MANUAL_BACK) || (
@@ -109,7 +150,7 @@ pipeline {
       }
     }
 
-    stage('Front Deploy (compose up)') {
+    stage('Front dev Deploy (compose up)') {
       when {
         expression {
           (params.MANUAL_DEV_DEPLOY && params.MANUAL_FRONT) || (
@@ -128,24 +169,81 @@ pipeline {
       }
     }
 
-    // stage('AI Deploy (compose up)') {
-    //   when {
-    //     expression {
-    //       (params.MANUAL_DEV_DEPLOY && params.MANUAL_AI) || (
-    //         ((env.GL_MR_ACTION ?: "") == "merge" || (env.GL_MR_STATE ?: "") == "merged") &&
-    //         (env.GL_MR_TARGET == env.DEVELOP_BRANCH)
-    //       )
-    //     }
-    //   }
-    //   steps {
-    //     sh '''
-    //       set -eux
+    stage('AI dev Deploy (compose up)') {
+      when {
+        expression {
+          (params.MANUAL_DEV_DEPLOY && params.MANUAL_AI) || (
+            ((env.GL_MR_ACTION ?: "") == "merge" || (env.GL_MR_STATE ?: "") == "merged") &&
+            (env.GL_MR_TARGET == env.DEVELOP_BRANCH)
+          )
+        }
+      }
+      steps {
+        sh '''
+          set -eux
 
-    //       docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" pull || true
-    //       docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" up -d --build tako_ai_dev
-    //     '''
-    //   }
-    // }
+          docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" pull || true
+          docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" up -d --build tako_ai_dev
+        '''
+      }
+    }
+
+    stage('Back prod Deploy (compose up)') {
+      when {
+        expression {
+          (params.MANUAL_PROD_DEPLOY && params.MANUAL_BACK) || (
+            ((env.GL_MR_ACTION ?: "") == "merge" || (env.GL_MR_STATE ?: "") == "merged") &&
+            (env.GL_MR_TARGET == env.RELEASE_BRANCH)
+          )
+        }
+      }
+      steps {
+        sh '''
+          set -eux
+
+          docker compose --env-file deploy/.env.prod -f "$COMPOSE_PROD_FILE" pull || true
+          docker compose --env-file deploy/.env.prod -f "$COMPOSE_PROD_FILE" up -d --build tako_back
+        '''
+      }
+    }
+
+    stage('Front prod Deploy (compose up)') {
+      when {
+        expression {
+          (params.MANUAL_PROD_DEPLOY && params.MANUAL_FRONT) || (
+            ((env.GL_MR_ACTION ?: "") == "merge" || (env.GL_MR_STATE ?: "") == "merged") &&
+            (env.GL_MR_TARGET == env.RELEASE_BRANCH)
+          )
+        }
+      }
+      steps {
+        sh '''
+          set -eux
+
+          docker compose --env-file deploy/.env.prod -f "$COMPOSE_PROD_FILE" pull || true
+          docker compose --env-file deploy/.env.prod -f "$COMPOSE_PROD_FILE" up -d --build tako_front
+        '''
+      }
+    }
+
+    stage('AI prod Deploy (compose up)') {
+      when {
+        expression {
+          (params.MANUAL_PROD_DEPLOY && params.MANUAL_AI) || (
+            ((env.GL_MR_ACTION ?: "") == "merge" || (env.GL_MR_STATE ?: "") == "merged") &&
+            (env.GL_MR_TARGET == env.RELEASE_BRANCH)
+          )
+        }
+      }
+      steps {
+        sh '''
+          set -eux
+
+          docker compose --env-file deploy/.env.prod -f "$COMPOSE_PROD_FILE" pull || true
+          docker compose --env-file deploy/.env.prod -f "$COMPOSE_PROD_FILE" up -d --build tako_ai
+        '''
+      }
+    }
   }
 
   post {
