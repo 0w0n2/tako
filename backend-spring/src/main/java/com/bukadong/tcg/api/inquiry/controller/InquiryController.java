@@ -57,7 +57,7 @@ public class InquiryController {
             @Parameter(description = "페이지 크기") @RequestParam(name = "size", defaultValue = "20") int size,
             @AuthenticationPrincipal CustomUserDetails user) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
-        Long viewerId = (user == null) ? null : memberQueryService.getIdByUuid(user.getUuid());
+        Long viewerId = (user == null) ? null : memberQueryService.getByUuid(user.getUuid()).getId();
         Page<InquiryListRow> result = inquiryQueryService.getList(auctionId, viewerId, pageable);
         return BaseResponse.onSuccess(result);
 
@@ -76,7 +76,7 @@ public class InquiryController {
             @Parameter(description = "경매 ID", required = true) @PathVariable("auctionId") Long auctionId,
             @Parameter(description = "문의 ID", required = true) @PathVariable("inquiryId") Long inquiryId,
             @AuthenticationPrincipal CustomUserDetails user) {
-        Long viewerId = (user == null) ? null : memberQueryService.getIdByUuid(user.getUuid());
+        Long viewerId = (user == null) ? null : memberQueryService.getByUuid(user.getUuid()).getId();
         InquiryDetailResponse res = inquiryQueryService.getDetail(inquiryId, viewerId);
         return BaseResponse.onSuccess(res);
 
