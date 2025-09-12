@@ -262,8 +262,8 @@ pipeline {
             // 서비스별 정의 (경로/도커파일/이미지명)
             def targets = [
               [name: 'backend',  ctx: 'backend-spring',   df: 'Dockerfile', image: 'seok1419/tako-backend'],
-              [name: 'frontend', ctx: 'frontend-web',     df: 'Dockerfile', image: 'seok1419/tako-frontend'],
-              [name: 'ai',       ctx: 'backend-fastapi',  df: 'Dockerfile', image: 'seok1419/tako-ai']
+              [name: 'frontend', ctx: 'frontend-web/taako',     df: 'Dockerfile', image: 'seok1419/tako-frontend'],
+              // [name: 'ai',       ctx: 'backend-fastapi',  df: 'Dockerfile', image: 'seok1419/tako-ai']
             ]
 
             targets.each { t ->
