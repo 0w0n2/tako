@@ -23,7 +23,7 @@ pipeline {
       printContributedVariables: true,
       printPostContent: true,
       regexpFilterText: '$GL_EVENT:$GL_MR_ACTION',
-      regexpFilterExpression: '^merge_request:(merge)$'
+      regexpFilterExpression: '^merge_request:(mergetest)$'
     )
   }
 
