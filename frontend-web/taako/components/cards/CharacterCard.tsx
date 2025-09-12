@@ -2,17 +2,9 @@
 
 import Image from "next/image"
 import { useState } from "react";
+import { CharacterCardProps, CARD_SIZE } from "@/types/card"
 
-type CharacterCardProps = {
-    imageUrl : string,
-    cardType : keyof typeof CARD_SIZE
-}
 
-export const CARD_SIZE = {
-  YuGiOh: { width: 59, height: 86 },
-  Pokemon: { width: 63, height: 88 },
-  MTG: { width: 63, height: 88 },
-} as const;
 
 export default function CharacterCard(props: CharacterCardProps) {
   const [isMouseOver, handleMouseOver] = useState<boolean>(false)
