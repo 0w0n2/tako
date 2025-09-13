@@ -59,7 +59,6 @@ public class AuctionQueryService {
      * @PARAM page 0-base 페이지 인덱스
      * @RETURN PageResponse<AuctionListItemResponse>
      */
-    @Transactional(readOnly = true)
     public PageResponse<AuctionListItemResponse> getAuctionList(Long categoryMajorId, Long categoryMediumId,
             String titlePart, Long cardId, BigDecimal currentPriceMin, BigDecimal currentPriceMax, Set<String> grades,
             AuctionSort sort, int page) {
