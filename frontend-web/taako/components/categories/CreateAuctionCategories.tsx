@@ -75,7 +75,7 @@ export default function CreateAuctionCategories({ onChange }: CreateAuctionCateg
   }, [majorCategoryId, minorCategoryId, onChange])
 
   return (
-    <div className="flex gap-2 w-[500px] h-[300px]">
+    <div className="flex gap-2 w-[500px] h-[270px]">
       {/* 대분류 */}
       <div className="flex-1 h-full overflow-y-auto scrollbar-hide border border-[#353535] rounded-md">
         <ul className="bg-[#191924]">
