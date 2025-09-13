@@ -43,8 +43,8 @@ public class Media {
     private Long ownerId;
 
     /** 접근 key (고유) */
-    @Column(name = "key", nullable = false, length = 255, unique = true)
-    private String key;
+    @Column(name = "s3key", nullable = false, length = 255, unique = true)
+    private String s3key;
 
     /** 미디어 종류 (IMAGE/VIDEO) */
     @Enumerated(EnumType.STRING)

@@ -23,7 +23,7 @@ pipeline {
       printContributedVariables: true,
       printPostContent: true,
       regexpFilterText: '$GL_EVENT:$GL_MR_ACTION',
-      regexpFilterExpression: '^merge_request:(merge)$'
+      regexpFilterExpression: '^merge_request:(mergetest)$'
     )
   }
 
@@ -164,6 +164,7 @@ pipeline {
           set -eux
 
           docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" pull || true
+          docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" build --progress=plain tako_front_dev
           docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" up -d --build tako_front_dev
         '''
       }

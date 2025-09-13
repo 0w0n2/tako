@@ -148,7 +148,7 @@ public class PopularityService {
             // 7-1) 카드 대표 이미지(IMAGE, seqNo=1) 벌크 조회 → ownerId(=cardId) -> url 매핑
             final Map<Long, String> imageUrlByCardId = cardIds.isEmpty() ? java.util.Collections.emptyMap()
                     : mediaRepository.findCardThumbnails(MediaType.CARD, MediaKind.IMAGE, cardIds).stream()
-                            .collect(Collectors.toMap(Media::getOwnerId, Media::getKey, (a, b) -> a)); // 중복시 첫 값 유지
+                            .collect(Collectors.toMap(Media::getOwnerId, Media::getS3key, (a, b) -> a)); // 중복시 첫 값 유지
 
             // 8) DTO 매핑: rarity는 enum 이름을 문자열로, imageUrl은 대표 썸네일
             List<PopularCardDto> content = range.stream().map(t -> {

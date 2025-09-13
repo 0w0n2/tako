@@ -54,11 +54,21 @@ public class S3Uploader {
         }
         String uniqueFileKey = dirName + "/" + UUID.randomUUID() + extension;
 
+        if (log.isDebugEnabled()) {
+            log.debug("[S3] 업로드 준비: dirName={} originalFileName={} size={} contentType={}", dirName, originalFileName,
+                    multipartFile.getSize(), multipartFile.getContentType());
+        }
+
         PutObjectRequest putObjectRequest = PutObjectRequest.builder().bucket(bucket).key(uniqueFileKey)
                 .contentType(multipartFile.getContentType()).contentLength(multipartFile.getSize()).build();
         try {
             s3Client.putObject(putObjectRequest, RequestBody.fromBytes(multipartFile.getBytes()));
+            if (log.isDebugEnabled()) {
+                log.debug("[S3] 업로드 완료: key={}", uniqueFileKey);
+            }
         } catch (IOException e) {
+            log.error("[S3] 업로드 실패: dirName={} originalFileName={} -> {}", dirName, originalFileName, e.getMessage(),
+                    e);
             throw new BaseException(BaseResponseStatus.S3_FILE_UPLOAD_FAILED);
         }
 
@@ -74,14 +84,19 @@ public class S3Uploader {
      */
     public void delete(String fileKey) {
         if (!StringUtils.hasText(fileKey)) {
+            if (log.isDebugEnabled())
+                log.debug("[S3] 삭제 건너뜀: 빈 key");
             return;
         }
 
         try {
+            if (log.isDebugEnabled())
+                log.debug("[S3] 삭제 시도: key={}", fileKey);
             DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder().bucket(bucket).key(fileKey).build();
             s3Client.deleteObject(deleteObjectRequest);
+            if (log.isDebugEnabled())
+                log.debug("[S3] 삭제 완료: key={}", fileKey);
         } catch (Exception e) {
-            // 삭제 실패 로그, 별도의 방법으로 처리하기 (보통 주기적인 batch 작업으로 정리)
             log.error("S3 파일 삭제에 실패했습니다. fileKey: {}", fileKey, e);
         }
     }
@@ -90,27 +105,47 @@ public class S3Uploader {
      * 프리사인 GET URL 발급 (기본 5분)
      */
     public String getPresignedGetUrl(String fileKey) {
+        if (log.isDebugEnabled())
+            log.debug("[S3] Presign 요청(기본 5분): key={}", fileKey);
         return getPresignedGetUrl(fileKey, Duration.ofMinutes(5));
     }
 
     public String getPresignedGetUrl(String fileKey, Duration ttl) {
-        if (!StringUtils.hasText(fileKey))
+        if (!StringUtils.hasText(fileKey)) {
+            if (log.isDebugEnabled())
+                log.debug("[S3] Presign 건너뜀: 빈 key");
             return null;
+        }
+        Duration effective = (ttl == null ? Duration.ofMinutes(5) : ttl);
+        if (log.isDebugEnabled()) {
+            log.debug("[S3] Presign 생성: key={} ttlSec={}", fileKey, effective.toSeconds());
+        }
         var get = GetObjectRequest.builder().bucket(bucket).key(fileKey).build();
-        var req = GetObjectPresignRequest.builder().signatureDuration(ttl == null ? Duration.ofMinutes(5) : ttl)
-                .getObjectRequest(get).build();
-        return s3Presigner.presignGetObject(req).url().toString();
+        var req = GetObjectPresignRequest.builder().signatureDuration(effective).getObjectRequest(get).build();
+        String url = s3Presigner.presignGetObject(req).url().toString();
+        if (log.isDebugEnabled())
+            log.debug("[S3] Presign └─완료: key={} ttlSec={}", fileKey, effective.toSeconds());
+        return url;
     }
 
     /**
      * 키/URL 입력 시 → 프리사인 URL로 변환 키면 presign, 이미 http(s)면 그대로 반환
      */
     public String resolvePresignedUrl(String urlOrKey, Duration ttl) {
-        if (!StringUtils.hasText(urlOrKey))
+        if (!StringUtils.hasText(urlOrKey)) {
+            if (log.isDebugEnabled())
+                log.debug("[S3] Presign └─변환 건너뜀: 빈 입력");
             return null;
+        }
         String lower = urlOrKey.toLowerCase();
         if (lower.startsWith("http://") || lower.startsWith("https://")) {
-            return urlOrKey; // 이미 전체 URL이면 그대로 사용
+            if (log.isDebugEnabled())
+                log.debug("[S3] Presign └─불필요: 이미 URL -> {}", urlOrKey);
+            return urlOrKey;
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("[S3] Presign └─변환 시도: key={} ttlSec={}", urlOrKey,
+                    (ttl == null ? Duration.ofMinutes(5) : ttl).toSeconds());
         }
         return getPresignedGetUrl(urlOrKey, ttl);
     }
@@ -126,6 +161,8 @@ public class S3Uploader {
     public boolean healthCheck() {
         try {
             s3Client.listObjectsV2(b -> b.bucket(bucket).maxKeys(1));
+            if (log.isDebugEnabled())
+                log.debug("[S3] 헬스체크 성공");
             return true;
         } catch (Exception e) {
             log.error("S3 연결 확인 실패", e);

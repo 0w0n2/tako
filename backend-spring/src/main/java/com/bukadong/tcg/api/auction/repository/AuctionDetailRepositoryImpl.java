@@ -21,7 +21,6 @@ import java.util.stream.Collectors;
 import static com.bukadong.tcg.api.auction.entity.QAuction.auction;
 import static com.bukadong.tcg.api.auction.entity.QAuctionBid.auctionBid;
 import static com.bukadong.tcg.api.member.entity.QMember.member;
-import static com.bukadong.tcg.api.media.entity.QMedia.media;
 import static com.bukadong.tcg.api.auction.entity.QAuctionReview.auctionReview;
 
 /**
@@ -47,17 +46,20 @@ public class AuctionDetailRepositoryImpl implements AuctionDetailRepository {
                 .code(a.getCode()).startPrice(a.getStartPrice()).currentPrice(a.getCurrentPrice())
                 .bidUnit(a.getBidUnit() != null ? new BigDecimal(a.getBidUnit().value()) : null)
                 .startDatetime(a.getStartDatetime()).endDatetime(a.getEndDatetime()).end(a.isEnd())
-                .buyNowFlag(a.isBuyNowFlag()).buyNowPrice(a.getBuyNowPrice()).extensionFlag(a.isExtensionFlag())
+                .buyNowFlag(a.isBuyNowFlag()).buyNowPrice(a.getBuyNowPrice())
+                .extensionFlag(a.isExtensionFlag())
                 .createdAt(a.getCreatedAt()).build();
     }
 
     @Override
     public CardInfo mapCardInfo(Auction a) {
         return CardInfo.builder().categoryMajorId(a.getCategoryMajor().getId())
-                .categoryMajorName(a.getCategoryMajor().getName()).categoryMediumId(a.getCategoryMedium().getId())
+                .categoryMajorName(a.getCategoryMajor().getName())
+                .categoryMediumId(a.getCategoryMedium().getId())
                 .categoryMediumName(a.getCategoryMedium().getName()).cardName(a.getCard().getName())
                 .cardDescription(a.getCard().getDescription())
-                .attribute(a.getCard().getAttribute() != null ? a.getCard().getAttribute().name() : null)
+                .attribute(a.getCard().getAttribute() != null ? a.getCard().getAttribute().name()
+                        : null)
                 .rarity(a.getCard().getRarity().name()).build();
     }
 
@@ -75,23 +77,27 @@ public class AuctionDetailRepositoryImpl implements AuctionDetailRepository {
 
         @SuppressWarnings("unchecked")
         List<Object[]> rows = em.createNativeQuery(sql).setParameter("cardId", cardId)
-                .setParameter("fromDate", java.sql.Timestamp.valueOf(from.toLocalDateTime())).getResultList();
+                .setParameter("fromDate", java.sql.Timestamp.valueOf(from.toLocalDateTime()))
+                .getResultList();
 
         return rows.stream()
                 .map(r -> DailyPriceLine.builder().date(((java.sql.Date) r[0]).toLocalDate())
-                        .minPrice((BigDecimal) r[1]).maxPrice((BigDecimal) r[2]).avgPrice((BigDecimal) r[3]).build())
+                        .minPrice((BigDecimal) r[1]).maxPrice((BigDecimal) r[2])
+                        .avgPrice((BigDecimal) r[3]).build())
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<BidHistoryItem> findBidHistory(Long auctionId, int limit) {
         List<Tuple> tuples = queryFactory.select(auctionBid.createdAt, auctionBid.bidPrice, member.nickname)
-                .from(auctionBid).join(auctionBid.member, member).where(auctionBid.auction.id.eq(auctionId))
+                .from(auctionBid).join(auctionBid.member, member)
+                .where(auctionBid.auction.id.eq(auctionId))
                 .orderBy(auctionBid.createdAt.desc()).limit(limit).fetch();
 
         return tuples.stream()
                 .map(t -> BidHistoryItem.builder().createdAt(t.get(auctionBid.createdAt))
-                        .bidPrice(t.get(auctionBid.bidPrice)).bidderNickname(t.get(member.nickname)).build())
+                        .bidPrice(t.get(auctionBid.bidPrice))
+                        .bidderNickname(t.get(member.nickname)).build())
                 .collect(Collectors.toList());
     }
 
@@ -109,7 +115,8 @@ public class AuctionDetailRepositoryImpl implements AuctionDetailRepository {
     @Override
     public SellerInfo findSellerInfoByAuctionId(Long auctionId) {
         // 1) 경매의 판매자 식별
-        Tuple seller = queryFactory.select(member.id, member.nickname).from(auction).join(auction.member, member)
+        Tuple seller = queryFactory.select(member.id, member.nickname).from(auction)
+                .join(auction.member, member)
                 .where(auction.id.eq(auctionId)).fetchOne();
 
         if (seller == null) {
@@ -122,7 +129,8 @@ public class AuctionDetailRepositoryImpl implements AuctionDetailRepository {
 
         // 2) 리뷰 수/평균 별점 집계
         Tuple agg = queryFactory.select(auctionReview.id.count(), auctionReview.star.avg()).from(auctionReview)
-                .join(auction).on(auctionReview.auction.id.eq(auction.id)).where(auction.member.id.eq(sellerId))
+                .join(auction).on(auctionReview.auction.id.eq(auction.id))
+                .where(auction.member.id.eq(sellerId))
                 .fetchOne();
 
         long reviewCount = (agg != null && agg.get(auctionReview.id.count()) != null)
@@ -132,10 +140,12 @@ public class AuctionDetailRepositoryImpl implements AuctionDetailRepository {
 
         // 3) 프로필 이미지 조회 (대표 이미지만 1개)
         String profileImageUrl = mediaUrlService
-                .getPresignedImageUrls(MediaType.MEMBER_PROFILE, sellerId, MediaKind.IMAGE, Duration.ofMinutes(5))
+                .getPresignedImageUrls(MediaType.MEMBER_PROFILE, sellerId, MediaKind.IMAGE,
+                        Duration.ofMinutes(5))
                 .stream().findFirst().orElse(null);
 
-        return SellerInfo.builder().id(sellerId).nickname(nickname).reviewCount(reviewCount).reviewStarAvg(starAvg)
+        return SellerInfo.builder().id(sellerId).nickname(nickname).reviewCount(reviewCount)
+                .reviewStarAvg(starAvg)
                 .profileImageUrl(profileImageUrl).build();
     }
 

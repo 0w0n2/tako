@@ -56,7 +56,7 @@ public class MediaAttachmentService {
                 continue;
 
             S3UploadResult res = s3Uploader.upload(f, dir);
-            Media m = Media.builder().type(type).ownerId(ownerId).key(res.getKey()) // KEY 저장
+            Media m = Media.builder().type(type).ownerId(ownerId).s3key(res.getKey()) // KEY 저장
                     .mediaKind(MediaKind.IMAGE) // 이미지 기본, 필요 시 요청 파라미터로 받기
                     .mimeType(res.getContentType()).seqNo(seq++).build();
             mediaRepository.save(m);
@@ -89,7 +89,7 @@ public class MediaAttachmentService {
         for (String keyOrUrl : keysOrUrls) {
             if (keyOrUrl == null || keyOrUrl.isBlank())
                 continue;
-            Media m = Media.builder().type(type).ownerId(ownerId).key(keyOrUrl) // key 저장
+            Media m = Media.builder().type(type).ownerId(ownerId).s3key(keyOrUrl) // key 저장
                     .mediaKind(kind == null ? MediaKind.IMAGE : kind).mimeType(mimeType).seqNo(seq++).build();
             mediaRepository.save(m);
         }
@@ -112,7 +112,7 @@ public class MediaAttachmentService {
         if (media.getType() != type || !media.getOwnerId().equals(ownerId))
             return;
 
-        tryDeleteS3Object(media.getKey());
+        tryDeleteS3Object(media.getS3key());
         mediaRepository.delete(media);
 
         resequence(type, ownerId);
