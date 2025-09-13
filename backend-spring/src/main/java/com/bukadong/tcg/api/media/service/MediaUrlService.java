@@ -1,7 +1,6 @@
 package com.bukadong.tcg.api.media.service;
 
 import com.bukadong.tcg.api.media.entity.Media;
-import com.bukadong.tcg.api.media.entity.MediaKind;
 import com.bukadong.tcg.api.media.entity.MediaType;
 import com.bukadong.tcg.api.media.repository.MediaRepository;
 import com.bukadong.tcg.global.util.S3Uploader;
@@ -47,14 +46,14 @@ public class MediaUrlService {
      * @RETURN presign URL 리스트
      */
     @Transactional(readOnly = true)
-    public List<String> getPresignedImageUrls(MediaType type, Long ownerId, MediaKind kind, Duration ttl) {
+    public List<String> getPresignedImageUrls(MediaType type, Long ownerId, Duration ttl) {
         List<Media> mediaList = mediaRepository.findByTypeAndOwnerIdOrderBySeqNoAsc(type, ownerId);
         Duration effectiveTtl = (ttl == null ? Duration.ofMinutes(5) : ttl);
 
-        List<String> keys = mediaList.stream().filter(m -> m.getMediaKind() == kind).map(Media::getS3keyOrUrl).toList();
+        List<String> keys = mediaList.stream().map(Media::getS3keyOrUrl).toList();
 
         if (log.isDebugEnabled()) {
-            log.debug("[MediaPresign] 준비: type={} ownerId={} kind={} 전체미디어={} 대상키수={} TTL(초)={}", type, ownerId, kind,
+            log.debug("[MediaPresign] 준비: type={} ownerId={} 전체미디어={} 대상키수={} TTL(초)={}", type, ownerId,
                     mediaList.size(), keys.size(), effectiveTtl.toSeconds());
         }
 
@@ -62,8 +61,8 @@ public class MediaUrlService {
                 .toList();
 
         if (log.isDebugEnabled()) {
-            log.debug("[MediaPresign] └─완료: type={} ownerId={} kind={} 반환URL수={} TTL(초)={}", type, ownerId, kind,
-                    urls.size(), effectiveTtl.toSeconds());
+            log.debug("[MediaPresign] └─완료: type={} ownerId={} 반환URL수={} TTL(초)={}", type, ownerId, urls.size(),
+                    effectiveTtl.toSeconds());
         }
         return urls;
     }

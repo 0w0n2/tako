@@ -1,7 +1,6 @@
 package com.bukadong.tcg.api.media.controller;
 
 import com.bukadong.tcg.api.media.dto.response.MediaUploadResponse;
-import com.bukadong.tcg.api.media.entity.MediaKind;
 import com.bukadong.tcg.api.media.entity.MediaType;
 import com.bukadong.tcg.api.media.service.MediaAttachmentService;
 import com.bukadong.tcg.api.media.util.MediaDirResolver;
@@ -64,10 +63,9 @@ public class MediaAttachmentController {
             @Parameter(description = "소유 엔터티 ID", required = true) @PathVariable(name = "ownerId") Long ownerId,
             @Parameter(description = "S3 key 또는 full URL 목록", required = true) @RequestBody List<@NotNull String> keysOrUrls,
             @Parameter(description = "MIME 타입(옵션)") @RequestParam(name = "mimeType", required = false) String mimeType,
-            @Parameter(description = "종류(IMAGE/VIDEO, default=IMAGE)") @RequestParam(name = "kind", required = false) MediaKind kind,
             @AuthenticationPrincipal CustomUserDetails user) {
         var me = memberQueryService.getByUuid(user.getUuid());
-        mediaAttachmentService.addByKeys(type, ownerId, me, keysOrUrls, mimeType, kind);
+        mediaAttachmentService.addByKeys(type, ownerId, me, keysOrUrls, mimeType);
         return BaseResponse.onSuccess();
     }
 

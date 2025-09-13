@@ -7,7 +7,6 @@ import com.bukadong.tcg.api.card.repository.CardRepository;
 import com.bukadong.tcg.api.popularity.dto.response.PopularCardDto;
 import com.bukadong.tcg.api.popularity.util.PopularityKeyUtil;
 import com.bukadong.tcg.api.media.entity.Media;
-import com.bukadong.tcg.api.media.entity.MediaKind;
 import com.bukadong.tcg.api.media.entity.MediaType;
 import com.bukadong.tcg.api.media.repository.MediaRepository;
 import com.bukadong.tcg.global.common.dto.PageResponse;
@@ -147,7 +146,7 @@ public class PopularityService {
 
             // 7-1) 카드 대표 이미지(IMAGE, seqNo=1) 벌크 조회 → ownerId(=cardId) -> url 매핑
             final Map<Long, String> imageUrlByCardId = cardIds.isEmpty() ? java.util.Collections.emptyMap()
-                    : mediaRepository.findCardThumbnails(MediaType.CARD, MediaKind.IMAGE, cardIds).stream()
+                    : mediaRepository.findCardThumbnails(MediaType.CARD, cardIds).stream()
                             .collect(Collectors.toMap(Media::getOwnerId, Media::getS3keyOrUrl, (a, b) -> a)); // 중복시 첫 값
                                                                                                               // 유지
 

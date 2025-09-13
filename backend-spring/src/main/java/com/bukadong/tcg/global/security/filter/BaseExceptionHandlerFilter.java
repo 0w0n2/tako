@@ -1,5 +1,7 @@
 package com.bukadong.tcg.global.security.filter;
 
+import com.bukadong.tcg.global.common.base.BaseResponse;
+import com.bukadong.tcg.global.common.base.BaseResponseStatus;
 import com.bukadong.tcg.global.common.exception.BaseException;
 import com.bukadong.tcg.global.util.ErrorResponseUtils;
 import jakarta.servlet.FilterChain;
@@ -10,7 +12,6 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-
 import java.io.IOException;
 
 /**
@@ -22,12 +23,12 @@ public class BaseExceptionHandlerFilter extends OncePerRequestFilter { // 매 �
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response,
-                                    @NonNull FilterChain filterChain) throws ServletException, IOException {
+            @NonNull FilterChain filterChain) throws ServletException, IOException {
         try {
             filterChain.doFilter(request, response); // 다음 필터 또는 실제 서블릿을 실행
         } catch (BaseException e) { // 커스텀 예외(BaseException) 발생 시 처리
-            log.warn("BaseException caught in filter chain: Status={}, Message={}, RequestURI={}",
-                    e.getStatus(), e.getStatus().getMessage(), request.getRequestURI());
+            log.warn("BaseException caught in filter chain: Status={}, Message={}, RequestURI={}", e.getStatus(),
+                    e.getStatus().getMessage(), request.getRequestURI());
             ErrorResponseUtils.setErrorResponse(response, e.getStatus());
         }
     }

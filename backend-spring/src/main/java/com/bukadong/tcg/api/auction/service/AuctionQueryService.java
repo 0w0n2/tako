@@ -1,14 +1,12 @@
 package com.bukadong.tcg.api.auction.service;
 
 import com.bukadong.tcg.api.auction.converter.AuctionListConverter;
-import com.bukadong.tcg.api.auction.dto.projection.AuctionListProjection;
 import com.bukadong.tcg.api.auction.dto.response.AuctionDetailResponse;
 import com.bukadong.tcg.api.auction.dto.response.AuctionListItemResponse;
 import com.bukadong.tcg.api.auction.repository.AuctionDetailRepository;
 import com.bukadong.tcg.api.auction.repository.AuctionRepository;
 import com.bukadong.tcg.api.auction.repository.AuctionRepositoryCustom;
 import com.bukadong.tcg.api.auction.repository.AuctionSort;
-import com.bukadong.tcg.api.media.entity.MediaKind;
 import com.bukadong.tcg.api.media.entity.MediaType;
 import com.bukadong.tcg.api.media.service.MediaUrlService;
 import com.bukadong.tcg.global.common.base.BaseResponseStatus;
@@ -94,7 +92,7 @@ public class AuctionQueryService {
         var cardInfo = auctionDetailRepository.mapCardInfo(auction);
 
         List<String> imageUrls = mediaUrlService.getPresignedImageUrls(MediaType.AUCTION_ITEM, auctionId,
-                MediaKind.IMAGE, Duration.ofMinutes(5));
+                Duration.ofMinutes(5));
         var weeklyPrices = auctionDetailRepository.findWeeklyPriceLinesByCardId(auction.getCard().getId());
         var history = auctionDetailRepository.findBidHistory(auctionId, historySize);
         var sellerInfo = auctionDetailRepository.findSellerInfoByAuctionId(auctionId);
