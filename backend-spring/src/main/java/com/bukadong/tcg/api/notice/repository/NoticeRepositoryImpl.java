@@ -57,6 +57,8 @@ public class NoticeRepositoryImpl implements NoticeRepositoryCustom {
         if (noticeEntity == null) {
             throw new BaseException(BaseResponseStatus.NOT_FOUND);
         }
+
+        // 미디어 URL 조회 (5분짜리 presigned URL)
         List<String> imageUrls = mediaUrlService.getPresignedImageUrls(MediaType.NOTICE, noticeEntity.getId(),
                 MediaKind.IMAGE, Duration.ofMinutes(5));
         return NoticeDetailDto.of(noticeEntity, imageUrls);

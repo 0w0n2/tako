@@ -1,11 +1,9 @@
 package com.bukadong.tcg.api.auction.controller;
 
 import com.bukadong.tcg.api.auction.dto.response.AuctionDetailResponse;
-import com.bukadong.tcg.api.auction.dto.response.AuctionListItemDto;
-import com.bukadong.tcg.api.auction.dto.response.AuctionReviewResponse;
+import com.bukadong.tcg.api.auction.dto.response.AuctionListItemResponse;
 import com.bukadong.tcg.api.auction.repository.AuctionSort;
 import com.bukadong.tcg.api.auction.service.AuctionQueryService;
-import com.bukadong.tcg.api.auction.service.ReviewQueryService;
 import com.bukadong.tcg.api.popularity.aop.AutoPopularityBid;
 import com.bukadong.tcg.api.popularity.aop.AutoPopularityView;
 import com.bukadong.tcg.global.common.base.BaseResponse;
@@ -22,7 +20,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -64,7 +61,7 @@ public class AuctionQueryController {
      */
     @Operation(summary = "경매 목록 조회", description = "카테고리/제목/카드/가격/등급 조건으로 페이지네이션된 경매 목록을 반환합니다. 페이지 당 20개로 고정되며, page는 0-base 입니다.")
     @GetMapping
-    public BaseResponse<PageResponse<AuctionListItemDto>> list(
+    public BaseResponse<PageResponse<AuctionListItemResponse>> getList(
             @Parameter(description = "페이지(0-base)") @RequestParam(name = "page", defaultValue = "0") @Min(0) int page,
             @Parameter(description = "대분류 ID") @RequestParam(name = "categoryMajorId", required = false) Long categoryMajorId,
             @Parameter(description = "중분류 ID") @RequestParam(name = "categoryMediumId", required = false) Long categoryMediumId,
@@ -75,13 +72,10 @@ public class AuctionQueryController {
             @Parameter(description = "등급 CSV(쉼표 구분). 예: \"PS,NM\"") @RequestParam(name = "grades", required = false) String grades,
             @Parameter(description = "정렬 기준: ENDTIME_ASC | ENDTIME_DESC | BIDCOUNT_DESC | BIDCOUNT_ASC") @RequestParam(name = "sort", required = false) AuctionSort sort) {
         Set<String> gradeSet = (grades == null || grades.isBlank()) ? null
-                : Arrays.stream(grades.split(","))
-                        .map(String::trim)
-                        .filter(s -> !s.isEmpty())
+                : Arrays.stream(grades.split(",")).map(String::trim).filter(s -> !s.isEmpty())
                         .collect(Collectors.toSet());
 
-        var pageData = auctionQueryService.browse(
-                categoryMajorId, categoryMediumId, title, cardId,
+        var pageData = auctionQueryService.getAuctionList(categoryMajorId, categoryMediumId, title, cardId,
                 currentPriceMin, currentPriceMax, gradeSet, sort, page);
 
         return BaseResponse.onSuccess(pageData);
@@ -100,8 +94,7 @@ public class AuctionQueryController {
     @AutoPopularityView
     @Operation(summary = "경매 상세 조회", description = "경매/카드/이미지/일주일 시세/입찰 히스토리를 반환합니다.")
     @GetMapping("/{id}")
-    public BaseResponse<AuctionDetailResponse> getDetail(
-            @Parameter(description = "경매 ID") @PathVariable("id") Long id,
+    public BaseResponse<AuctionDetailResponse> getDetail(@Parameter(description = "경매 ID") @PathVariable("id") Long id,
             @Parameter(description = "히스토리 개수(기본 5)") @RequestParam(name = "historySize", required = false, defaultValue = "5") @Min(1) int historySize) {
         return BaseResponse.onSuccess(auctionQueryService.getDetail(id, historySize));
     }

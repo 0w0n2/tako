@@ -3,7 +3,7 @@ package com.bukadong.tcg.api.auction.repository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import com.bukadong.tcg.api.auction.dto.response.AuctionListRow;
+import com.bukadong.tcg.api.auction.dto.projection.AuctionListProjection;
 
 import java.math.BigDecimal;
 import java.util.Set;
@@ -33,7 +33,7 @@ public interface AuctionRepositoryCustom {
      * @param pageable         페이지 정보(서비스에서 size=20 강제)
      * @return 내부 행 DTO 페이지
      */
-    Page<AuctionListRow> searchAuctions(Long categoryMajorId, Long categoryMediumId,
-            String titlePart, Long cardId, BigDecimal currentPriceMin, BigDecimal currentPriceMax,
-            Set<String> grades, AuctionSort sort, Pageable pageable);
+    Page<AuctionListProjection> searchAuctions(Long categoryMajorId, Long categoryMediumId, String titlePart,
+            Long cardId, BigDecimal currentPriceMin, BigDecimal currentPriceMax, Set<String> grades, AuctionSort sort,
+            Pageable pageable);
 }

@@ -82,9 +82,18 @@ security:
     client-redirect-uri: ${SECURITY_OAUTH2_CLIENT_REDIRECT_URI}
 
 # expire-time: # 나중에 만료 시간 등 설정할 때 사용할 것
+# 인기도 관련 설정
 popularity:
   weight:
     view: ${POPULARITY_WEIGHT_VIEW:1} # 조회 가중치 (double). 미설정 시 기본 1
     bid: ${POPULARITY_WEIGHT_BID:5} # 입찰 가중치 (double). 미설정 시 기본 5
   bucket:
     ttl-minutes: ${POPULARITY_BUCKET_TTL_MINUTES:70} # 분 버킷 TTL. 기본 70분(60분 + 버퍼)
+
+logging:
+  level:
+    com.bukadong.tcg.api.media.service.MediaUrlService: DEBUG
+    com.bukadong.tcg.global.util.RedisUtils: DEBUG
+    com.bukadong.tcg.global.util.S3Uploader: DEBUG
+    org.springframework.data.redis: INFO
+    io.lettuce.core: INFO

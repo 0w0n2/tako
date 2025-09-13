@@ -1,8 +1,9 @@
 package com.bukadong.tcg.api.auction.service;
 
+import com.bukadong.tcg.api.auction.converter.AuctionListConverter;
+import com.bukadong.tcg.api.auction.dto.projection.AuctionListProjection;
 import com.bukadong.tcg.api.auction.dto.response.AuctionDetailResponse;
-import com.bukadong.tcg.api.auction.dto.response.AuctionListItemDto;
-import com.bukadong.tcg.api.auction.dto.response.AuctionListRow;
+import com.bukadong.tcg.api.auction.dto.response.AuctionListItemResponse;
 import com.bukadong.tcg.api.auction.repository.AuctionDetailRepository;
 import com.bukadong.tcg.api.auction.repository.AuctionRepository;
 import com.bukadong.tcg.api.auction.repository.AuctionRepositoryCustom;
@@ -41,59 +42,39 @@ public class AuctionQueryService {
     private final MediaUrlService mediaUrlService;
 
     /**
-     * 경매 목록 조회
+     * 경매 목록 조회 서비스(컨트롤러 편의 오버로드)
      * <P>
-     * 페이지 크기는 20으로 고정한다.
+     * 컨트롤러가 page(int)만 넘겨도 되도록 내부에서 Pageable(size=20)을 구성하고, PageResponse로 변환해
+     * 반환합니다. 동일 클래스 내 트랜잭션 메서드 호출을 피하여 Sonar 규칙(java:S6809)도 만족합니다.
      * </P>
-     *
-     * @param categoryMajorId  대분류 ID
-     * @param categoryMediumId 중분류 ID
-     * @param titlePart        타이틀 부분검색
-     * @param cardId           카드 ID
-     * @param currentPriceMin  현재가 최소
-     * @param currentPriceMax  현재가 최대
-     * @param grades           등급 집합(예: PS,NM)
-     * @param sort             정렬 기준
-     * @param page             페이지(0-base)
-     * @return PageResponse로 감싼 응답 DTO 페이지
+     * 
+     * @PARAM categoryMajorId 카테고리 대분류 ID
+     * @PARAM categoryMediumId 카테고리 중분류 ID
+     * @PARAM titlePart 타이틀 부분검색어
+     * @PARAM cardId 카드 ID
+     * @PARAM currentPriceMin 현재가 최소
+     * @PARAM currentPriceMax 현재가 최대
+     * @PARAM grades 등급 집합
+     * @PARAM sort 정렬 기준 (null이면 ENDTIME_ASC)
+     * @PARAM page 0-base 페이지 인덱스
+     * @RETURN PageResponse<AuctionListItemResponse>
      */
-    public PageResponse<AuctionListItemDto> browse(Long categoryMajorId, Long categoryMediumId, String titlePart,
-            Long cardId, BigDecimal currentPriceMin, BigDecimal currentPriceMax, Set<String> grades,
-            AuctionSort sort,
-            int page) {
-        if (currentPriceMin != null && currentPriceMax != null
-                && currentPriceMin.compareTo(currentPriceMax) > 0) {
-            throw new BaseException(BaseResponseStatus.BAD_REQUEST);
-        }
+    @Transactional(readOnly = true)
+    public PageResponse<AuctionListItemResponse> getAuctionList(Long categoryMajorId, Long categoryMediumId,
+            String titlePart, Long cardId, BigDecimal currentPriceMin, BigDecimal currentPriceMax, Set<String> grades,
+            AuctionSort sort, int page) {
+        Pageable pageable = PageRequest.of(page, 20);
 
-        int safePage = Math.max(0, page);
-        Pageable pageable = PageRequest.of(safePage, 20);
+        var rows = auctionRepositoryCustom.searchAuctions(categoryMajorId, categoryMediumId, titlePart, cardId,
+                currentPriceMin, currentPriceMax, grades, (sort == null ? AuctionSort.ENDTIME_ASC : sort), pageable);
 
-        var rowsPage = auctionRepositoryCustom.searchAuctions(categoryMajorId, categoryMediumId, titlePart,
-                cardId,
-                currentPriceMin, currentPriceMax, grades, sort == null ? AuctionSort.ENDTIME_ASC : sort,
-                pageable);
+        Duration ttl = Duration.ofMinutes(30);
+        List<AuctionListItemResponse> items = rows.getContent().stream()
+                .map(row -> AuctionListConverter.toItem(row, mediaUrlService, ttl)).toList();
 
-        LocalDateTime now = LocalDateTime.now();
-        var dtoPage = rowsPage.map(r -> toListItem(now, r));
+        Page<AuctionListItemResponse> p = new PageImpl<>(items, pageable, rows.getTotalElements());
 
-        return PageResponse.from(dtoPage);
-    }
-
-    /**
-     * 내부 행 DTO를 응답 DTO로 변환한다.
-     * <P>
-     * 남은 시간(초)을 now 기준으로 계산한다.
-     * </P>
-     *
-     * @param now 현재 시각
-     * @param r   내부 행 DTO
-     * @return 목록 응답 DTO
-     */
-    private static AuctionListItemDto toListItem(LocalDateTime now, AuctionListRow r) {
-        long remain = Math.max(0, Duration.between(now, r.endDatetime()).getSeconds());
-        return new AuctionListItemDto(r.id(), r.grade(), r.title(), r.currentPrice(), r.bidCount(), remain,
-                r.primaryImageUrl());
+        return PageResponse.from(p);
     }
 
     /**
