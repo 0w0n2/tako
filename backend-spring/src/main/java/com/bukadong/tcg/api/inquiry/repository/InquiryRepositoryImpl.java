@@ -5,6 +5,7 @@ import com.bukadong.tcg.api.inquiry.entity.Inquiry;
 import com.bukadong.tcg.api.inquiry.entity.QInquiry;
 import com.bukadong.tcg.api.inquiry.entity.QInquiryAnswer;
 import com.bukadong.tcg.api.inquiry.util.NicknameMasker;
+import com.bukadong.tcg.api.inquiry.util.TitleTrimer;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -60,7 +61,7 @@ public class InquiryRepositoryImpl implements InquiryRepositoryCustom {
 
         List<InquiryListRow> rows = pageContent.stream().map(it -> {
             String title = (it.getTitle() != null && !it.getTitle().isBlank()) ? it.getTitle()
-                    : trimAsTitle(it.getContent()); // 내 글이므로 '비밀글' 마스킹 없이 노출
+                    : TitleTrimer.trimAsTitle(it.getContent()); // 내 글이므로 '비밀글' 마스킹 없이 노출
             String masked = NicknameMasker.mask(it.getAuthor().getNickname());
             Long ansId = answerIdByInquiryId.get(it.getId());
             return InquiryListRow.builder().id(it.getId()).answerId(ansId).title(title).maskedNickname(masked)
@@ -101,9 +102,17 @@ public class InquiryRepositoryImpl implements InquiryRepositoryCustom {
 
         List<InquiryListRow> rows = pageContent.stream().map(it -> {
             boolean secret = it.isSecret();
-            String title = secret ? "비밀글입니다."
-                    : (it.getTitle() != null && !it.getTitle().isBlank() ? it.getTitle()
-                            : trimAsTitle(it.getContent()));
+            String title;
+            if (secret) {
+                title = "비밀글입니다.";
+            } else {
+                String raw = it.getTitle();
+                if (raw != null && !raw.isBlank()) {
+                    title = raw;
+                } else {
+                    title = TitleTrimer.trimAsTitle(it.getContent());
+                }
+            }
             String masked = NicknameMasker.mask(it.getAuthor().getNickname());
             Long ansId = answerIdByInquiryId.get(it.getId());
             return InquiryListRow.builder().id(it.getId()).answerId(ansId).title(title).maskedNickname(masked)
@@ -111,13 +120,5 @@ public class InquiryRepositoryImpl implements InquiryRepositoryCustom {
         }).toList();
 
         return new PageImpl<>(rows, pageable, total);
-    }
-
-    private String trimAsTitle(String content) {
-        if (content == null)
-            return "";
-        int limit = 30;
-        String s = content.replaceAll("\\s+", " ").trim();
-        return s.length() > limit ? s.substring(0, limit) + "…" : s;
     }
 }

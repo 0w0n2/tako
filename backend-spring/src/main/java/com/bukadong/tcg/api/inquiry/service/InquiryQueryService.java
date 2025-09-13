@@ -7,6 +7,7 @@ import com.bukadong.tcg.api.inquiry.entity.Inquiry;
 import com.bukadong.tcg.api.inquiry.entity.InquiryAnswer;
 import com.bukadong.tcg.api.inquiry.repository.InquiryAnswerRepository;
 import com.bukadong.tcg.api.inquiry.repository.InquiryRepository;
+import com.bukadong.tcg.api.inquiry.util.TitleTrimer;
 import com.bukadong.tcg.api.media.entity.MediaType;
 import com.bukadong.tcg.api.media.service.MediaUrlService;
 import com.bukadong.tcg.global.common.base.BaseResponseStatus;
@@ -93,7 +94,7 @@ public class InquiryQueryService {
             if (inquiry.getTitle() != null && !inquiry.getTitle().isBlank()) {
                 title = inquiry.getTitle();
             } else {
-                title = trimAsTitle(inquiry.getContent());
+                title = TitleTrimer.trimAsTitle(inquiry.getContent());
             }
         }
 
@@ -119,14 +120,6 @@ public class InquiryQueryService {
         boolean seller = inquiry.getAuction().getMember().getId().equals(viewerId);
         log.debug("canViewSecret: author={}, seller={}", author, seller);
         return author || seller;
-    }
-
-    private String trimAsTitle(String content) {
-        if (content == null)
-            return "";
-        int limit = 30;
-        String s = content.replaceAll("\\s+", " ").trim();
-        return s.length() > limit ? s.substring(0, limit) + "…" : s;
     }
 
 }
