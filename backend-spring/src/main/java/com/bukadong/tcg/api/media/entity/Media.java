@@ -18,8 +18,8 @@ import java.time.LocalDateTime;
  */
 @Entity
 @Table(name = "media", uniqueConstraints = {
-        @UniqueConstraint(name = "uk_media_owner_seq", columnNames = { "type", "owner_id", "seq_no" }),
-        @UniqueConstraint(name = "uk_media_s3key", columnNames = "s3key") }, indexes = {
+        @UniqueConstraint(name = "uk_media_owner_seq", columnNames = { "type", "owner_id", "seq_no" })
+        }, indexes = {
                 @Index(name = "idx_media_type_owner", columnList = "type,owner_id"),
                 @Index(name = "idx_media_owner", columnList = "owner_id") })
 @Getter
@@ -43,7 +43,7 @@ public class Media {
     private Long ownerId;
 
     /** 접근 key (고유) */
-    @Column(name = "s3key", nullable = false, length = 255, unique = true)
+    @Column(name = "s3key", nullable = false, length = 255)
     private String s3key;
 
     /** 미디어 종류 (IMAGE/VIDEO) */
