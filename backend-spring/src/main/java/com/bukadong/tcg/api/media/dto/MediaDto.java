@@ -1,7 +1,6 @@
 package com.bukadong.tcg.api.media.dto;
 
 import com.bukadong.tcg.api.media.entity.Media;
-import com.bukadong.tcg.api.media.entity.MediaKind;
 
 /**
  * 미디어 조회용 DTO.
@@ -11,12 +10,11 @@ import com.bukadong.tcg.api.media.entity.MediaKind;
  * <ul>
  * <li>{@code id} - 미디어 ID (PK)</li>
  * <li>{@code url} - 미디어 파일 접근 URL</li>
- * <li>{@code mediaKind} - 미디어 종류 (IMAGE, VIDEO)</li>
  * <li>{@code mimeType} - MIME 타입 (예: image/jpeg, video/mp4)</li>
  * <li>{@code seqNo} - 순번 (1 = 대표 이미지, 그 외는 추가 이미지/영상)</li>
  * </ul>
  */
-public record MediaDto(Long id, String url, MediaKind mediaKind, String mimeType, Integer seqNo) {
+public record MediaDto(Long id, String url, String mimeType, Integer seqNo) {
 
     /**
      * {@link Media} 엔티티를 {@link MediaDto}로 변환한다.
@@ -25,6 +23,6 @@ public record MediaDto(Long id, String url, MediaKind mediaKind, String mimeType
      * @return 변환된 MediaDto
      */
     public static MediaDto of(Media m) {
-        return new MediaDto(m.getId(), m.getS3keyOrUrl(), m.getMediaKind(), m.getMimeType(), m.getSeqNo());
+        return new MediaDto(m.getId(), m.getS3keyOrUrl(), m.getMimeType(), m.getSeqNo());
     }
 }

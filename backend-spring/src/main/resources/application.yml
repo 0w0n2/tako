@@ -1,5 +1,7 @@
 server:
   port: ${SERVER_PORT}
+  tomcat:
+    max-swallow-size: -1 # 남은 바디를 끝까지 삼켜서 응답을 바로 보냄
 
 swagger:
   uri: ${SWAGGER_URI}
@@ -50,6 +52,12 @@ spring:
         static: ${AWS_REGION_STATIC}
       s3:
         bucket: ${AWS_S3_BUCKET}
+  servlet:
+    multipart:
+      max-file-size: 50MB # 전체 타입 중 가장 큰 per-file 상한
+      max-request-size: 50MB # 전체 타입 중 가장 큰 per-request 상한
+      resolve-lazily: true
+
 security:
   jwt:
     secret-key: ${SECURITY_JWT_SECRET_KEY}
@@ -99,5 +107,86 @@ logging:
     com.bukadong.tcg.api.inquiry.controller.MyInquiryController: DEBUG
     com.bukadong.tcg.global.util.RedisUtils: DEBUG
     com.bukadong.tcg.global.util.S3Uploader: DEBUG
+    com.bukadong.tcg.api.media.guard.MediaUploadGuard: DEBUG
     org.springframework.data.redis: INFO
     io.lettuce.core: INFO
+
+app:
+  upload:
+    limits:
+      MEMBER_PROFILE:
+        per-file: 2MB
+        per-request: 5MB
+        max-count: 1
+        allowed-mimes: [image/jpeg, image/png, image/webp]
+        allowed-exts: [jpg, jpeg, png, webp]
+        image:
+          square: true
+          min-width: 256
+          min-height: 256
+          max-width: 2048
+          max-height: 2048
+
+      AUCTION_ITEM:
+        per-file: 8MB
+        per-request: 30MB
+        max-count: 10
+        allowed-mimes: [image/jpeg, image/png, image/webp, video/mp4]
+        allowed-exts: [jpg, jpeg, png, webp, mp4]
+        # 이미지 규격 제한이 필요 없으면 image 블록 생략 가능
+
+      CARD:
+        per-file: 5MB
+        per-request: 30MB
+        max-count: 10
+        allowed-mimes: [image/jpeg, image/png, image/webp]
+        allowed-exts: [jpg, jpeg, png, webp]
+
+      CATEGORY_MAJOR:
+        per-file: 2MB
+        per-request: 6MB
+        max-count: 1
+        allowed-mimes: [image/jpeg, image/png, image/webp]
+        allowed-exts: [jpg, jpeg, png, webp]
+
+      CATEGORY_MEDIUM:
+        per-file: 2MB
+        per-request: 6MB
+        max-count: 1
+        allowed-mimes: [image/jpeg, image/png, image/webp]
+        allowed-exts: [jpg, jpeg, png, webp]
+
+      AUCTION_AI:
+        per-file: 8MB
+        per-request: 30MB
+        max-count: 10
+        allowed-mimes: [image/jpeg, image/png, image/webp]
+        allowed-exts: [jpg, jpeg, png, webp]
+
+      AUCTION_REVIEW:
+        per-file: 8MB
+        per-request: 30MB
+        max-count: 10
+        allowed-mimes: [image/jpeg, image/png, image/webp, video/mp4]
+        allowed-exts: [jpg, jpeg, png, webp, mp4]
+
+      NOTICE:
+        per-file: 5MB
+        per-request: 20MB
+        max-count: 3
+        allowed-mimes: [image/jpeg, image/png, image/webp]
+        allowed-exts: [jpg, jpeg, png, webp]
+
+      NOTICE_ATTACHMENT:
+        per-file: 10MB
+        per-request: 40MB
+        max-count: 5
+        allowed-mimes: [image/jpeg, image/png, image/webp, application/pdf, application/zip, application/x-zip-compressed]
+        allowed-exts: [jpg, jpeg, png, webp, pdf, zip]
+
+      INQUIRY:
+        per-file: 5MB
+        per-request: 20MB
+        max-count: 3
+        allowed-mimes: [image/jpeg, image/png, image/webp]
+        allowed-exts: [jpg, jpeg, png, webp]

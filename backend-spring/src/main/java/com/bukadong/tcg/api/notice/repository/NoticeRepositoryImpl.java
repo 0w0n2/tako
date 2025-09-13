@@ -2,7 +2,6 @@ package com.bukadong.tcg.api.notice.repository;
 
 import com.bukadong.tcg.global.common.base.BaseResponseStatus;
 import com.bukadong.tcg.global.common.exception.BaseException;
-import com.bukadong.tcg.api.media.entity.MediaKind;
 import com.bukadong.tcg.api.media.entity.MediaType;
 import com.bukadong.tcg.api.media.service.MediaUrlService;
 import com.bukadong.tcg.api.member.entity.QMember;
@@ -60,7 +59,7 @@ public class NoticeRepositoryImpl implements NoticeRepositoryCustom {
 
         // 미디어 URL 조회 (5분짜리 presigned URL)
         List<String> imageUrls = mediaUrlService.getPresignedImageUrls(MediaType.NOTICE, noticeEntity.getId(),
-                MediaKind.IMAGE, Duration.ofMinutes(5));
+                Duration.ofMinutes(5));
         return NoticeDetailDto.of(noticeEntity, imageUrls);
     }
 

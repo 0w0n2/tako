@@ -45,10 +45,6 @@ public class Media {
     @Column(name = "s3key_or_url", nullable = false, length = 255)
     private String s3keyOrUrl;
 
-    /** 미디어 종류 (IMAGE/VIDEO) */
-    @Enumerated(EnumType.STRING)
-    @Column(name = "media_kind", nullable = false, length = 10)
-    private MediaKind mediaKind;
 
     /** MIME 타입 (예: image/jpeg) */
     @Column(name = "mime_type", length = 30)

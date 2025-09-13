@@ -2,7 +2,6 @@ package com.bukadong.tcg.api.auction.converter;
 
 import com.bukadong.tcg.api.auction.dto.projection.AuctionListProjection;
 import com.bukadong.tcg.api.auction.dto.response.AuctionListItemResponse;
-import com.bukadong.tcg.api.media.entity.MediaKind;
 import com.bukadong.tcg.api.media.entity.MediaType;
 import com.bukadong.tcg.api.media.service.MediaUrlService;
 
@@ -38,7 +37,7 @@ public final class AuctionListConverter {
         // 대표 이미지: 반드시 MediaUrlService 메서드를 통해 presign
         // 목록이 반환되므로 첫 번째 이미지를 대표로 사용 (없으면 null)
         String primaryUrl = mediaUrlService
-                .getPresignedImageUrls(MediaType.AUCTION_ITEM, row.id(), MediaKind.IMAGE, ttl).stream().findFirst()
+                .getPresignedImageUrls(MediaType.AUCTION_ITEM, row.id(), ttl).stream().findFirst()
                 .orElse(null);
 
         return new AuctionListItemResponse(row.id(), row.grade(), row.title(), row.currentPrice(), row.bidCount(),

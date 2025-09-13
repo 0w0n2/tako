@@ -2,8 +2,8 @@ package com.bukadong.tcg.api.media.service;
 
 import com.bukadong.tcg.api.media.dto.response.MediaUploadResponse;
 import com.bukadong.tcg.api.media.entity.Media;
-import com.bukadong.tcg.api.media.entity.MediaKind;
 import com.bukadong.tcg.api.media.entity.MediaType;
+import com.bukadong.tcg.api.media.guard.MediaUploadGuard;
 import com.bukadong.tcg.api.media.policy.MediaPermissionRegistry;
 import com.bukadong.tcg.api.media.repository.MediaRepository;
 import com.bukadong.tcg.api.member.entity.Member;
@@ -32,6 +32,7 @@ public class MediaAttachmentService {
     private final MediaPermissionRegistry permissionRegistry;
     private final MediaRepository mediaRepository;
     private final S3Uploader s3Uploader;
+    private final MediaUploadGuard uploadGuard;
 
     /**
      * (멀티파트) 파일 업로드 + 첨부 추가
@@ -45,7 +46,10 @@ public class MediaAttachmentService {
      */
     public MediaUploadResponse addByMultipart(MediaType type, Long ownerId, Member actor, List<MultipartFile> files,
             String dir) {
+        // 권한 검증
         permissionRegistry.get(type).checkCanAdd(type, ownerId, actor);
+        // 타입별 데이터 한도 검증
+        uploadGuard.validate(type, files);
 
         List<Media> exist = mediaRepository.findByTypeAndOwnerIdOrderBySeqNoAsc(type, ownerId);
         int seq = exist.size() + 1;
@@ -57,7 +61,6 @@ public class MediaAttachmentService {
 
             S3UploadResult res = s3Uploader.upload(f, dir);
             Media m = Media.builder().type(type).ownerId(ownerId).s3keyOrUrl(res.getKey()) // KEY 저장
-                    .mediaKind(MediaKind.IMAGE) // 이미지 기본, 필요 시 요청 파라미터로 받기
                     .mimeType(res.getContentType()).seqNo(seq++).build();
             mediaRepository.save(m);
 
@@ -77,8 +80,7 @@ public class MediaAttachmentService {
      * @param mimeType
      * @param kind
      */
-    public void addByKeys(MediaType type, Long ownerId, Member actor, List<String> keysOrUrls, String mimeType,
-            MediaKind kind) {
+    public void addByKeys(MediaType type, Long ownerId, Member actor, List<String> keysOrUrls, String mimeType) {
         permissionRegistry.get(type).checkCanAdd(type, ownerId, actor);
 
         List<Media> exist = mediaRepository.findByTypeAndOwnerIdOrderBySeqNoAsc(type, ownerId);
@@ -90,7 +92,7 @@ public class MediaAttachmentService {
             if (keyOrUrl == null || keyOrUrl.isBlank())
                 continue;
             Media m = Media.builder().type(type).ownerId(ownerId).s3keyOrUrl(keyOrUrl) // key 저장
-                    .mediaKind(kind == null ? MediaKind.IMAGE : kind).mimeType(mimeType).seqNo(seq++).build();
+                    .mimeType(mimeType).seqNo(seq++).build();
             mediaRepository.save(m);
         }
     }
