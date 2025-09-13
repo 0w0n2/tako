@@ -14,6 +14,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -35,21 +38,26 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final TokenBlackListService tokenBlackListService;
     private final SecurityWhitelistProperties securityWhitelistProperties;
     private final AntPathMatcher antPathMatcher = new AntPathMatcher();
+    private final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
     @Override
-    protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response,
+            @NonNull FilterChain filterChain) throws ServletException, IOException {
         String method = request.getMethod();
         String uri = request.getRequestURI();
 
         /* 인증이 필요한 요청에 대해서만 검사 */
         if (!isPermitAll(method, uri)) {
             String token = tokenProvider.getTokenFromRequest(request);
+            logger.info("Requested URI: {}, Method: {}, Token: {}", uri, method, token != null ? "Present" : "Absent");
 
             if (StringUtils.hasText(token) && tokenProvider.validateToken(token)) {
-                if (!tokenBlackListService.isBlacklistAccessToken(token)) {   // 블랙리스트 검증
+                if (!tokenBlackListService.isBlacklistAccessToken(token)) { // 블랙리스트 검증
                     Authentication authentication = tokenProvider.getAuthentication(token);
                     SecurityContextHolder.getContext().setAuthentication(authentication);
+                    logger.info("Authentication set for user: {}", authentication.getName());
                 } else {
+                    logger.warn("Token is blacklisted: {}", token);
                     throw new BaseException(INVALID_JWT_TOKEN);
                 }
             }
@@ -59,17 +67,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private boolean isPermitAll(String method, String uri) {
-        return securityWhitelistProperties.getParsedWhitelist().entrySet().stream()
-                .anyMatch(entry -> {
-                    String httpMethodFromConfig = entry.getKey().name();
-                    boolean methodMatches = httpMethodFromConfig.equalsIgnoreCase(method);
+        return securityWhitelistProperties.getParsedWhitelist().entrySet().stream().anyMatch(entry -> {
+            String httpMethodFromConfig = entry.getKey().name();
+            boolean methodMatches = httpMethodFromConfig.equalsIgnoreCase(method);
 
-                    if (!methodMatches) {
-                        return false;
-                    }
-                    return entry.getValue().stream()
-                            .anyMatch(pattern -> antPathMatcher.match(pattern, uri));
+            if (!methodMatches) {
+                logger.info("Method does not match: {}", httpMethodFromConfig);
+                return false;
+            }
+            logger.info("Checking URI against patterns: {} for method: {}", entry.getValue(), method);
+            return entry.getValue().stream().anyMatch(pattern -> antPathMatcher.match(pattern, uri));
 
-                });
+        });
     }
 }

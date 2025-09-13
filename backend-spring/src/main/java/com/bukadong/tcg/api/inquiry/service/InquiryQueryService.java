@@ -39,9 +39,22 @@ public class InquiryQueryService {
 
     private final InquiryRepository inquiryRepository;
     private final InquiryAnswerRepository answerRepository;
-    private final MediaRepository mediaRepository;
-    private final S3Uploader s3Uploader;
     private final MediaUrlService mediaViewService;
+
+    /**
+     * 내 문의 목록 조회
+     * <P>
+     * 전체 경매에서 특정 회원이 작성한 문의만 페이징으로 반환합니다.
+     * </P>
+     * 
+     * @PARAM memberId 회원 ID
+     * @PARAM pageable 페이징 정보
+     * @RETURN Page<InquiryListRow>
+     */
+    @Transactional(readOnly = true)
+    public Page<InquiryListRow> getMyList(Long memberId, Pageable pageable) {
+        return inquiryRepository.fetchMyInquiries(memberId, pageable);
+    }
 
     /**
      * 경매별 문의 목록

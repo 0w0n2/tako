@@ -43,11 +43,11 @@ public class InquiryCommandService {
     public Long createInquiry(Long auctionId, Member author, InquiryCreateRequest req) {
         Auction auction = em.find(Auction.class, auctionId);
         if (auction == null)
-            throw new BaseException(BaseResponseStatus.NOT_FOUND);
+            throw new BaseException(BaseResponseStatus.INQUIRY_AUCTION_NOT_FOUND);
 
         // 판매자 자기 경매에 문의 금지
         if (auction.getMember() != null && auction.getMember().getId().equals(author.getId())) {
-            throw new BaseException(BaseResponseStatus.INQUIRY_FORBIDDEN);
+            throw new BaseException(BaseResponseStatus.INQUIRY_CREATE_FORBIDDEN);
         }
 
         Inquiry inquiry = Inquiry.builder().auction(auction).author(author)
@@ -67,11 +67,11 @@ public class InquiryCommandService {
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.NOT_FOUND));
 
         if (!inquiry.isAuthor(author.getId()))
-            throw new BaseException(BaseResponseStatus.INQUIRY_FORBIDDEN);
+            throw new BaseException(BaseResponseStatus.INQUIRY_UNAUTHORIZED);
 
         boolean answered = answerRepository.existsByInquiryId(inquiryId);
         if (answered)
-            throw new BaseException(BaseResponseStatus.INQUIRY_CONFLICT); // 이미 답변됨 → 수정 불가
+            throw new BaseException(BaseResponseStatus.INQUIRY_ANSWER_CONFLICT); // 이미 답변됨 → 수정 불가
 
         inquiry.updateBeforeAnswered(safeTitle(req.getTitle(), req.getContent()), req.getContent(), req.isSecret());
     }
@@ -84,11 +84,11 @@ public class InquiryCommandService {
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.NOT_FOUND));
 
         if (!inquiry.isAuthor(author.getId()))
-            throw new BaseException(BaseResponseStatus.INQUIRY_FORBIDDEN);
+            throw new BaseException(BaseResponseStatus.INQUIRY_UNAUTHORIZED);
 
         boolean answered = answerRepository.existsByInquiryId(inquiryId);
         if (answered)
-            throw new BaseException(BaseResponseStatus.INQUIRY_CONFLICT); // 이미 답변됨 → 삭제 불가
+            throw new BaseException(BaseResponseStatus.INQUIRY_ANSWER_CONFLICT); // 이미 답변됨 → 삭제 불가
 
         inquiryRepository.delete(inquiry);
     }
@@ -102,11 +102,11 @@ public class InquiryCommandService {
 
         // 판매자 권한 검증
         if (!inquiry.getAuction().getMember().getId().equals(seller.getId())) {
-            throw new BaseException(BaseResponseStatus.INQUIRY_FORBIDDEN);
+            throw new BaseException(BaseResponseStatus.INQUIRY_ANSWER_UNAUTHORIZED);
         }
 
         if (answerRepository.existsByInquiryId(inquiryId)) {
-            throw new BaseException(BaseResponseStatus.INQUIRY_CONFLICT); // 이미 답변 존재
+            throw new BaseException(BaseResponseStatus.INQUIRY_ANSWER_CONFLICT); // 이미 답변 존재
         }
 
         InquiryAnswer answer = InquiryAnswer.builder().inquiry(inquiry).seller(seller).content(req.getContent())

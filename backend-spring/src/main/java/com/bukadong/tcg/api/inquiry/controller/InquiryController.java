@@ -18,9 +18,12 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 경매 문의/답변 API
@@ -41,6 +44,7 @@ public class InquiryController {
     private final InquiryQueryService inquiryQueryService;
     private final InquiryCommandService inquiryCommandService;
     private final MemberQueryService memberQueryService;
+    private final Logger log = LoggerFactory.getLogger(InquiryController.class);
 
     // ---------- 목록 ----------
     /**
@@ -56,6 +60,7 @@ public class InquiryController {
             @Parameter(description = "페이지 번호(0-base)") @RequestParam(name = "page", defaultValue = "0") int page,
             @Parameter(description = "페이지 크기") @RequestParam(name = "size", defaultValue = "20") int size,
             @AuthenticationPrincipal CustomUserDetails user) {
+        log.debug("principal={}", (user == null ? "null" : user.getUuid()));
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
         Long viewerId = (user == null) ? null : memberQueryService.getByUuid(user.getUuid()).getId();
         Page<InquiryListRow> result = inquiryQueryService.getList(auctionId, viewerId, pageable);

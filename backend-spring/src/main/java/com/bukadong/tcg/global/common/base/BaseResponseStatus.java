@@ -108,7 +108,15 @@ public enum BaseResponseStatus {
     INQUIRY_NOT_FOUND(HttpStatus.NOT_FOUND, false, 904, "문의가 존재하지 않습니다."),
     INQUIRY_FORBIDDEN(HttpStatus.FORBIDDEN, false, 903, "문의에 대한 권한이 없습니다."),
     INQUIRY_CONFLICT(HttpStatus.CONFLICT, false, 902, "문의 처리 중 충돌이 발생했습니다."),
-
+    INQUIRY_BAD_REQUEST(HttpStatus.BAD_REQUEST, false, 900, "문의 요청이 올바르지 않습니다."),
+    INQUIRY_ANSWER_NOT_FOUND(HttpStatus.NOT_FOUND, false, 904, "문의 답변이 존재하지 않습니다."),
+    INQUIRY_ANSWER_FORBIDDEN(HttpStatus.FORBIDDEN, false, 903, "문의 답변에 대한 권한이 없습니다."),
+    INQUIRY_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, false, 901, "문의 작성자만 접근할 수 있습니다."),
+    INQUIRY_ANSWER_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, false, 901, "문의 답변은 판매자만 등록할 수 있습니다."),
+    INQUIRY_ANSWER_CONFLICT(HttpStatus.CONFLICT, false, 902, "이미 답변이 등록된 문의입니다."),
+    INQUIRY_CREATE_FORBIDDEN(HttpStatus.FORBIDDEN, false, 903, "판매자는 본인 경매에 문의할 수 없습니다."),
+    INQUIRY_AUCTION_NOT_FOUND(HttpStatus.NOT_FOUND, false, 904, "존재하지 않는 경매입니다."),
+    INQUIRY_NOT_LOGGED_IN(HttpStatus.UNAUTHORIZED, false, 901, "로그인 정보가 없습니다."),
     /**
      * 1000: 미디어 Error
      */
