@@ -18,7 +18,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -81,6 +80,7 @@ public class InquiryController {
             @Parameter(description = "경매 ID", required = true) @PathVariable("auctionId") Long auctionId,
             @Parameter(description = "문의 ID", required = true) @PathVariable("inquiryId") Long inquiryId,
             @AuthenticationPrincipal CustomUserDetails user) {
+        log.debug("principal={}", (user == null ? "null" : user.getUuid()));
         Long viewerId = (user == null) ? null : memberQueryService.getByUuid(user.getUuid()).getId();
         InquiryDetailResponse res = inquiryQueryService.getDetail(inquiryId, viewerId);
         return BaseResponse.onSuccess(res);

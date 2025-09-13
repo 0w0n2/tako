@@ -1,21 +1,21 @@
 package com.bukadong.tcg.api.inquiry.service;
 
+import com.bukadong.tcg.api.inquiry.controller.InquiryController;
 import com.bukadong.tcg.api.inquiry.dto.response.InquiryDetailResponse;
 import com.bukadong.tcg.api.inquiry.dto.response.InquiryListRow;
 import com.bukadong.tcg.api.inquiry.entity.Inquiry;
 import com.bukadong.tcg.api.inquiry.entity.InquiryAnswer;
 import com.bukadong.tcg.api.inquiry.repository.InquiryAnswerRepository;
 import com.bukadong.tcg.api.inquiry.repository.InquiryRepository;
-import com.bukadong.tcg.api.media.entity.Media;
-import com.bukadong.tcg.api.media.entity.MediaKind;
 import com.bukadong.tcg.api.media.entity.MediaType;
-import com.bukadong.tcg.api.media.repository.MediaRepository;
 import com.bukadong.tcg.api.media.service.MediaUrlService;
 import com.bukadong.tcg.global.common.base.BaseResponseStatus;
 import com.bukadong.tcg.global.common.exception.BaseException;
-import com.bukadong.tcg.global.util.S3Uploader;
 
 import lombok.RequiredArgsConstructor;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,6 +40,7 @@ public class InquiryQueryService {
     private final InquiryRepository inquiryRepository;
     private final InquiryAnswerRepository answerRepository;
     private final MediaUrlService mediaViewService;
+    private final Logger log = LoggerFactory.getLogger(InquiryQueryService.class);
 
     /**
      * 내 문의 목록 조회
@@ -81,16 +82,26 @@ public class InquiryQueryService {
 
         // presign URL 생성 (5분 유효)
         List<String> imageUrls = mediaViewService.getPresignedImageUrls(MediaType.INQUIRY, inquiry.getId(),
-                MediaKind.IMAGE, Duration.ofMinutes(5));
+                Duration.ofMinutes(5));
 
         boolean canView = canViewSecret(inquiry, viewerId);
+        log.debug("canViewSecret: {}", canView);
 
-        return InquiryDetailResponse.builder().id(inquiry.getId())
-                .title(inquiry.getTitle() != null && !inquiry.getTitle().isBlank() ? inquiry.getTitle()
-                        : (inquiry.isSecret() && !canView ? "비밀글입니다." : trimAsTitle(inquiry.getContent())))
+        // 제목
+        String title = "비밀글입니다.";
+        if (canView) {
+            if (inquiry.getTitle() != null && !inquiry.getTitle().isBlank()) {
+                title = inquiry.getTitle();
+            } else {
+                title = trimAsTitle(inquiry.getContent());
+            }
+        }
+
+        return InquiryDetailResponse.builder().id(inquiry.getId()).title(title)
                 .content(inquiry.isSecret() && !canView ? null : inquiry.getContent())
                 .imageUrls(inquiry.isSecret() && !canView ? List.of() : imageUrls) // (이미지) 권한 없으면 빈 배열
-                .authorNickname(inquiry.getAuthor().getNickname()).createdAt(inquiry.getCreatedAt())
+                .authorNickname(inquiry.isSecret() && !canView ? null : inquiry.getAuthor().getNickname())
+                .createdAt(inquiry.isSecret() && !canView ? null : inquiry.getCreatedAt())
                 .answerId(ans == null ? null : ans.getId())
                 .answerContent((ans == null || (inquiry.isSecret() && !canView)) ? null : ans.getContent())
                 .answerAuthorNickname(ans == null ? null : ans.getSeller().getNickname())
@@ -102,8 +113,11 @@ public class InquiryQueryService {
             return true;
         if (viewerId == null)
             return false;
+        log.debug("inquiry.authorId={}, inquiry.sellerId={}, viewerId={}", inquiry.getAuthor().getId(),
+                inquiry.getAuction().getMember().getId(), viewerId);
         boolean author = inquiry.isAuthor(viewerId);
         boolean seller = inquiry.getAuction().getMember().getId().equals(viewerId);
+        log.debug("canViewSecret: author={}, seller={}", author, seller);
         return author || seller;
     }
 
