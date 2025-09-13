@@ -51,7 +51,7 @@ public class MediaUrlService {
         List<Media> mediaList = mediaRepository.findByTypeAndOwnerIdOrderBySeqNoAsc(type, ownerId);
         Duration effectiveTtl = (ttl == null ? Duration.ofMinutes(5) : ttl);
 
-        List<String> keys = mediaList.stream().filter(m -> m.getMediaKind() == kind).map(Media::getS3key).toList();
+        List<String> keys = mediaList.stream().filter(m -> m.getMediaKind() == kind).map(Media::getS3keyOrUrl).toList();
 
         if (log.isDebugEnabled()) {
             log.debug("[MediaPresign] 준비: type={} ownerId={} kind={} 전체미디어={} 대상키수={} TTL(초)={}", type, ownerId, kind,

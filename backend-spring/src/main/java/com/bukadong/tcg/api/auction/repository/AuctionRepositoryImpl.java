@@ -67,13 +67,13 @@ public class AuctionRepositoryImpl implements AuctionRepositoryCustom {
         // 콘텐츠 쿼리
         List<AuctionListProjection> content = queryFactory.select(Projections.constructor(AuctionListProjection.class,
                 auction.id, auction.grade, auction.title, auction.currentPrice, bidCountExpr, // 집계된 입찰수
-                auction.endDatetime, media.s3key // 대표 이미지 key (seq_no=1)
+                auction.endDatetime, media.s3keyOrUrl // 대표 이미지 key (seq_no=1)
         )).from(auction).leftJoin(auctionBid)
                 .on(auctionBid.auction.eq(auction).and(auctionBid.status.eq(AuctionBidStatus.VALID))).leftJoin(media)
                 .on(media.ownerId.eq(auction.id).and(media.type.eq(MediaType.AUCTION_ITEM)).and(media.seqNo.eq(1)))
                 .where(where)
                 .groupBy(auction.id, auction.grade, auction.title, auction.currentPrice, auction.endDatetime,
-                        media.s3key)
+                        media.s3keyOrUrl)
                 .orderBy(orderSpecifiers).offset(pageable.getOffset()).limit(pageable.getPageSize()).fetch();
 
         // 카운트 쿼리(조인/그룹 없이 where만)
