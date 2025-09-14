@@ -41,7 +41,6 @@ pipeline {
 
     COMPOSE_DEV_FILE = 'deploy/docker-compose.dev.yml'
     COMPOSE_PROD_FILE = 'deploy/docker-compose.prod.yml'
-    DEV_CONTAINER = ''  // 자동 배포 시에 채워질 예정
   }
 
   stages {
@@ -248,19 +247,27 @@ pipeline {
           def dev_source = env.GL_MR_SOURCE ?: ""
 
           if (dev_source.contains("/be/") || dev_source.contains("/BE/")) {
-              env.DEV_CONTAINER = "tako_back_dev"
+              sh ''' 
+                set -eux
+
+                docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" pull || true
+                docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" up -d --build tako_back_dev
+              '''
           } else if (dev_source.contains("/fe/") || dev_source.contains("/FE/")) {
-              env.DEV_CONTAINER = "tako_frontend_dev"
+              sh ''' 
+                set -eux
+
+                docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" pull || true
+                docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" up -d --build tako_front_dev
+              '''
           } else if (dev_source.contains("/ai/") || dev_source.contains("/AI/")) {
-              env.DEV_CONTAINER = "tako_ai_dev"
+              sh ''' 
+                set -eux
+
+                docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" pull || true
+                docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" up -d --build tako_ai_dev
+              '''
           }
-
-          sh ''' 
-          set -eux
-
-          docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" pull || true
-          docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" up -d --build "$DEV_CONTAINER"
-          '''
         }
       }
     }

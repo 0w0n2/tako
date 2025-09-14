@@ -143,13 +143,11 @@ pipeline {
       }
       steps {
         script {
-          env.DEV_CONTAINER = "tako_back_dev"
-
           sh ''' 
             set -eux
 
             docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" pull || true
-            docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" up -d --build "$DEV_CONTAINER"
+            docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" up -d --build tako_back_dev
           '''
         }
       }
@@ -169,7 +167,6 @@ pipeline {
           set -eux
 
           docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" pull || true
-          docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" build --progress=plain tako_front_dev
           docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" up -d --build tako_front_dev
         '''
       }
