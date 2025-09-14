@@ -40,6 +40,7 @@ pipeline {
     COMPOSE_DOCKER_CLI_BUILD = '1'
     COMPOSE_DEV_FILE = 'deploy/docker-compose.dev.yml'
     COMPOSE_PROD_FILE = 'deploy/docker-compose.prod.yml'
+    DEV_CONTAINER = ""
   }
 
   stages {
@@ -142,13 +143,13 @@ pipeline {
       }
       steps {
         script {
-          def dev_category = "tako_back_dev"
+          env.DEV_CONTAINER = "tako_back_dev"
 
           sh ''' 
             set -eux
 
             docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" pull || true
-            docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" up -d --build "$dev_category"
+            docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" up -d --build "$DEV_CONTAINER"
           '''
         }
       }

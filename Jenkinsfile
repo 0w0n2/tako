@@ -246,21 +246,20 @@ pipeline {
       steps {
         script {
           def dev_source = env.GL_MR_SOURCE ?: ""
-          def dev_category = ""
 
           if (dev_source.contains("/be/") || dev_source.contains("/BE/")) {
-              dev_category = "tako_back_dev"
+              env.DEV_CONTAINER = "tako_back_dev"
           } else if (dev_source.contains("/fe/") || dev_source.contains("/FE/")) {
-              dev_category = "tako_frontend_dev"
+              env.DEV_CONTAINER = "tako_frontend_dev"
           } else if (dev_source.contains("/ai/") || dev_source.contains("/AI/")) {
-              dev_category = "tako_ai_dev"
+              env.DEV_CONTAINER = "tako_ai_dev"
           }
 
           sh ''' 
           set -eux
 
           docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" pull || true
-          docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" up -d --build "$dev_category"
+          docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" up -d --build "$DEV_CONTAINER"
           '''
         }
       }
