@@ -141,12 +141,16 @@ pipeline {
         }
       }
       steps {
-        sh ''' 
-          set -eux
+        script {
+          def dev_category = "tako_back_dev"
 
-          docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" pull || true
-          docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" up -d --build tako_back_dev
-        '''
+          sh ''' 
+            set -eux
+
+            docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" pull || true
+            docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" up -d --build "$dev_category"
+          '''
+        }
       }
     }
 

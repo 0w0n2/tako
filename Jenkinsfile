@@ -249,28 +249,18 @@ pipeline {
           def dev_category = ""
 
           if (dev_source.contains("/be/") || dev_source.contains("/BE/")) {
-              dev_category = "backend"
+              dev_category = "tako_back_dev"
           } else if (dev_source.contains("/fe/") || dev_source.contains("/FE/")) {
-              dev_category = "frontend"
+              dev_category = "tako_frontend_dev"
           } else if (dev_source.contains("/ai/") || dev_source.contains("/AI/")) {
-              dev_category = "ai"
-          }
-
-          if (dev_category == "backend") {
-            env.DEV_CONTAINER = 'tako_back_dev'
-          } else if (dev_category == "frontend") {
-            env.DEV_CONTAINER = 'tako_frontend_dev'
-          } else if (dev_category == "ai") {
-            env.DEV_CONTAINER = 'tako_ai_dev'
-          } else {
-            error("Cannot determine category from source branch: ${dev_source}")
+              dev_category = "tako_ai_dev"
           }
 
           sh ''' 
           set -eux
 
           docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" pull || true
-          docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" up -d --build ${env.DEV_CONTAINER}
+          docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" up -d --build "$dev_category"
           '''
         }
       }
