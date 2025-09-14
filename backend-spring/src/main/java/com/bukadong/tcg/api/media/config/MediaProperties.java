@@ -7,9 +7,9 @@ import org.springframework.context.annotation.Configuration;
 import java.util.List;
 
 /**
- * 미디어 업로드 설정 바인딩
- * - application.properties / application.yml 의 "media.*" 키를 바인딩한다.
- * - 하이픈 표기법 → 카멜케이스 자동 매핑: base-dir → baseDir, public-base-url → publicBaseUrl
+ * 미디어 업로드 설정 바인딩 - application.properties / application.yml 의 "media.*" 키를
+ * 바인딩한다. - 하이픈 표기법 → 카멜케이스 자동 매핑: base-dir → baseDir, public-base-url →
+ * publicBaseUrl
  */
 @Data
 @Configuration
@@ -27,7 +27,7 @@ public class MediaProperties {
     private List<String> allowedMimeTypes;
 
     /** media.max-size-bytes=... (기본 10MB) */
-    private long maxSizeBytes = 10 * 1024 * 1024;
+    private long maxSizeBytes = 50L * 1024 * 1024;
 
     /** S3 설정 (미사용 시 비워둬도 됨) */
     @Data

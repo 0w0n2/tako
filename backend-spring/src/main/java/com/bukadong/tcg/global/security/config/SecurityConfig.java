@@ -1,11 +1,11 @@
 package com.bukadong.tcg.global.security.config;
 
 import com.bukadong.tcg.api.member.entity.Role;
-import com.bukadong.tcg.global.security.filter.BaseExceptionHandlerFilter;
 import com.bukadong.tcg.global.properties.SecurityCorsProperties;
 import com.bukadong.tcg.global.properties.SecurityOAuth2Properties;
 import com.bukadong.tcg.global.properties.SecurityRoleProperties;
 import com.bukadong.tcg.global.properties.SecurityWhitelistProperties;
+import com.bukadong.tcg.global.security.filter.BaseExceptionHandlerFilter;
 import com.bukadong.tcg.global.security.filter.JwtAuthenticationFilter;
 import com.bukadong.tcg.global.security.handler.CustomAccessDeniedHandler;
 import com.bukadong.tcg.global.security.handler.CustomAuthenticationEntryPoint;
@@ -37,12 +37,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-@EnableConfigurationProperties({
-        SecurityCorsProperties.class,
-        SecurityOAuth2Properties.class,
-        SecurityWhitelistProperties.class,
-        SecurityRoleProperties.class
-})
+@EnableConfigurationProperties({ SecurityCorsProperties.class, SecurityOAuth2Properties.class,
+        SecurityWhitelistProperties.class, SecurityRoleProperties.class })
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -66,26 +62,26 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 /* 기본 보안 설정 */
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))  // 커스텀 CORS 설정 적용
-                .csrf(AbstractHttpConfigurer::disable)                              // CSRF 보호 비활성화
-                .formLogin(AbstractHttpConfigurer::disable)                         // 폼 로그인 비활성화
-                .httpBasic(AbstractHttpConfigurer::disable)                         // HTTP Basic 인증 비활성화
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))   // 세션 인증 미사용
+                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // 커스텀 CORS 설정 적용
+                .csrf(AbstractHttpConfigurer::disable) // CSRF 보호 비활성화
+                .formLogin(AbstractHttpConfigurer::disable) // 폼 로그인 비활성화
+                .httpBasic(AbstractHttpConfigurer::disable) // HTTP Basic 인증 비활성화
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 세션 인증
+                                                                                                              // 미사용
 
                 /* 경로별 인가 규칙 설정 */
                 .authorizeHttpRequests(auth -> {
                     whitelistProperties.getParsedWhitelist().forEach((method, urls) -> {
                         if (urls != null && !urls.isEmpty()) {
-                            String[] urlPatterns = urls.stream()
-                                    .filter(StringUtils::hasText)
-                                    .map(String::trim)
+                            String[] urlPatterns = urls.stream().filter(StringUtils::hasText).map(String::trim)
                                     .toArray(String[]::new);
                             if (urlPatterns.length > 0) {
                                 auth.requestMatchers(method, urlPatterns).permitAll();
                             }
                         }
                     });
-                    auth.requestMatchers(roleProperties.admin().toArray(new String[0])).hasAuthority(Role.ADMIN.getRoleName());
+                    auth.requestMatchers(roleProperties.admin().toArray(new String[0]))
+                            .hasAuthority(Role.ADMIN.getRoleName());
                     auth.anyRequest().authenticated();
                 })
 
@@ -97,11 +93,10 @@ public class SecurityConfig {
                 .addFilterBefore(baseExceptionHandlerFilter, JwtAuthenticationFilter.class)
 
                 /* Exception Handler */
-                .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint(authenticationEntryPoint) // 인증 실패(401)
-                        .accessDeniedHandler(accessDeniedHandler)           // 인가 실패(403)
-                )
-                .build();
+                .exceptionHandling(exception -> exception.authenticationEntryPoint(authenticationEntryPoint) // 인증
+                                                                                                             // 실패(401)
+                        .accessDeniedHandler(accessDeniedHandler) // 인가 실패(403)
+                ).build();
     }
 
     /* 정적 리소스(js, css, image 등)에 대해 Spring Security 필터 체인을 적용하지 않도록 설정 */
@@ -132,7 +127,6 @@ public class SecurityConfig {
         configuration.setAllowCredentials(corsProperties.allowCredentials());
         configuration.setExposedHeaders(corsProperties.exposedHeaders());
         configuration.setMaxAge(corsProperties.maxAge());
-
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

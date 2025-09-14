@@ -7,11 +7,9 @@ import java.time.LocalDateTime;
 
 /**
  * 미디어 파일 메타정보 엔티티
- *
  * <p>
  * 경매/후기/카드/카테고리/회원 등의 리소스에 연결되는 이미지·영상의 메타데이터를 저장한다.
  * </p>
- *
  * <ul>
  * <li>(type, owner_id, seq_no) 복합 고유 제약으로 리소스별 대표/순번 유일성 보장</li>
  * <li>url은 고유(UNIQUE)하게 관리</li>
@@ -20,12 +18,9 @@ import java.time.LocalDateTime;
  */
 @Entity
 @Table(name = "media", uniqueConstraints = {
-        @UniqueConstraint(name = "uk_media_owner_seq", columnNames = { "type", "owner_id", "seq_no" }),
-        @UniqueConstraint(name = "uk_media_url", columnNames = "url")
-}, indexes = {
-        @Index(name = "idx_media_type_owner", columnList = "type,owner_id"),
-        @Index(name = "idx_media_owner", columnList = "owner_id")
-})
+        @UniqueConstraint(name = "uk_media_owner_seq", columnNames = { "type", "owner_id", "seq_no" }) }, indexes = {
+                @Index(name = "idx_media_type_owner", columnList = "type,owner_id"),
+                @Index(name = "idx_media_owner", columnList = "owner_id") })
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -46,14 +41,10 @@ public class Media {
     @Column(name = "owner_id", nullable = false)
     private Long ownerId;
 
-    /** 접근 URL (고유) */
-    @Column(name = "url", nullable = false, length = 255, unique = true)
-    private String url;
+    /** 접근 key (고유) */
+    @Column(name = "s3key_or_url", nullable = false, length = 255)
+    private String s3keyOrUrl;
 
-    /** 미디어 종류 (IMAGE/VIDEO) */
-    @Enumerated(EnumType.STRING)
-    @Column(name = "media_kind", nullable = false, length = 10)
-    private MediaKind mediaKind;
 
     /** MIME 타입 (예: image/jpeg) */
     @Column(name = "mime_type", length = 30)
@@ -73,5 +64,14 @@ public class Media {
         if (createdAt == null) {
             createdAt = LocalDateTime.now();
         }
+    }
+
+    /**
+     * 순번 설정
+     * 
+     * @param seq
+     */
+    public void setSeqNo(int seq) {
+        this.seqNo = seq;
     }
 }

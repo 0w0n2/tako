@@ -23,6 +23,7 @@ public enum BaseResponseStatus {
     DISALLOWED_ACTION(HttpStatus.BAD_REQUEST, false, 400, "올바르지 않은 행위 요청입니다."),
     INVALID_PARAMETER(HttpStatus.BAD_REQUEST, false, 400, "잘못된 매개변수입니다."),
     NOT_FOUND(HttpStatus.NOT_FOUND, false, 404, "요청하신 정보를 찾을 수 없습니다."),
+    PAYLOAD_TOO_LARGE(HttpStatus.PAYLOAD_TOO_LARGE, false, 413, "파일 업로드 용량 초과입니다. (파일당/요청합계 제한을 확인하세요)"),
 
     /* 401 UNAUTHORIZED: 인증 실패 */
     AUTHENTICATION_REQUIRED(HttpStatus.UNAUTHORIZED, false, 40101, "인증이 필요한 요청입니다."),
@@ -100,7 +101,24 @@ public enum BaseResponseStatus {
     CATEGORY_MEDIUM_NAME_DUPLICATED(HttpStatus.CONFLICT, false, 809, "이미 사용 중인 중분류명입니다."),
     CATEGORY_MAJOR_IN_USE(HttpStatus.CONFLICT, false, 809, "하위 중분류나 참조 데이터가 있어 삭제할 수 없습니다."),
     CATEGORY_MEDIUM_IN_USE(HttpStatus.CONFLICT, false, 809, "참조 데이터가 있어 삭제할 수 없습니다."),
-    CATEGORY_MAJOR_HAS_CHILDREN(HttpStatus.CONFLICT, false, 809, "하위 중분류가 존재하여 삭제할 수 없습니다.");
+    CATEGORY_MAJOR_HAS_CHILDREN(HttpStatus.CONFLICT, false, 809, "하위 중분류가 존재하여 삭제할 수 없습니다."),
+
+    /**
+     * 900: 문의 Error
+     */
+    INQUIRY_NOT_FOUND(HttpStatus.NOT_FOUND, false, 904, "문의가 존재하지 않습니다."),
+    INQUIRY_FORBIDDEN(HttpStatus.FORBIDDEN, false, 903, "문의에 대한 권한이 없습니다."),
+    INQUIRY_CONFLICT(HttpStatus.CONFLICT, false, 902, "문의 처리 중 충돌이 발생했습니다."),
+
+    /**
+     * 1000: 미디어 Error
+     */
+    MEDIA_NOT_FOUND(HttpStatus.NOT_FOUND, false, 1004, "미디어가 존재하지 않습니다."),
+    MEDIA_FORBIDDEN(HttpStatus.FORBIDDEN, false, 1003, "미디어에 대한 권한이 없습니다."),
+    MEDIA_CONFLICT(HttpStatus.CONFLICT, false, 1002, "미디어 처리 중 충돌이 발생했습니다."),
+    MEDIA_NOT_EDITABLE(HttpStatus.CONFLICT, false, 1002, "미디어를 더 이상 수정할 수 없습니다."),
+    MEDIA_UNSUPPORTED_TYPE(HttpStatus.UNSUPPORTED_MEDIA_TYPE, false, 1007, "지원하지 않는 미디어 형식입니다."),
+    MEDIA_FILE_RULE_VIOLATION(HttpStatus.BAD_REQUEST, false, 1008, "미디어 파일이 규격에 맞지 않습니다.");
 
     private final HttpStatusCode httpStatusCode;
     private final boolean isSuccess;
