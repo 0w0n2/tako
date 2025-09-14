@@ -1,10 +1,13 @@
 package com.bukadong.tcg.api.inquiry.dto.response;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+
+import com.bukadong.tcg.api.inquiry.entity.Inquiry;
+import com.bukadong.tcg.api.inquiry.entity.InquiryAnswer;
+import com.bukadong.tcg.api.inquiry.util.TitleTrimer;
 
 /**
  * 문의 상세 응답
@@ -41,4 +44,39 @@ public class InquiryDetailResponse {
     private String answerContent;
     private String answerAuthorNickname;
     private LocalDateTime answerCreatedAt;
+
+    /**
+     * 문의 상세 응답 생성 팩토리
+     * <P>
+     * 비밀글 권한(canView)에 따라 본문/이미지/작성자/답변 정보를 마스킹하고, 제목은 존재 시 그대로, 없으면 본문을 기반으로
+     * 생성합니다.
+     * </P>
+     * 
+     * @PARAM inquiry 문의 엔티티
+     * @PARAM answer 답변 엔티티(없으면 null)
+     * @PARAM canView 비밀글 열람 가능 여부
+     * @PARAM imageUrls presigned 이미지 URL 목록
+     * @RETURN InquiryDetailResponse
+     */
+    public static InquiryDetailResponse of(Inquiry inquiry, InquiryAnswer answer, boolean canView, boolean hide,
+            List<String> imageUrls) {
+
+        // 제목
+        String title;
+        if (canView) {
+            title = (inquiry.getTitle() != null && !inquiry.getTitle().isBlank()) ? inquiry.getTitle()
+                    : TitleTrimer.trimAsTitle(inquiry.getContent());
+        } else {
+            title = "비밀글입니다.";
+        }
+
+        return InquiryDetailResponse.builder().id(inquiry.getId()).title(title)
+                .content(hide ? null : inquiry.getContent()).imageUrls(imageUrls)
+                .authorNickname(hide ? null : inquiry.getAuthor().getNickname())
+                .createdAt(hide ? null : inquiry.getCreatedAt()).answerId(answer == null ? null : answer.getId())
+                .answerContent((answer == null || hide) ? null : answer.getContent())
+                .answerAuthorNickname(answer == null ? null : answer.getSeller().getNickname())
+                .answerCreatedAt(answer == null ? null : answer.getCreatedAt()).build();
+    }
+
 }

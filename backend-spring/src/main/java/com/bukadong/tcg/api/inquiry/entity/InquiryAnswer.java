@@ -2,6 +2,9 @@ package com.bukadong.tcg.api.inquiry.entity;
 
 import com.bukadong.tcg.api.member.entity.Member;
 import com.bukadong.tcg.global.common.base.BaseEntity;
+import com.bukadong.tcg.global.common.base.BaseResponseStatus;
+import com.bukadong.tcg.global.common.exception.BaseException;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -43,7 +46,7 @@ public class InquiryAnswer extends BaseEntity {
 
     public void updateContent(String content) {
         if (content == null || content.isBlank())
-            throw new IllegalArgumentException("content is blank");
+            throw new BaseException(BaseResponseStatus.INQUIRY_NO_CONTENT);
         this.content = content;
     }
 }

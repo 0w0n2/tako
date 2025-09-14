@@ -3,6 +3,10 @@ package com.bukadong.tcg.api.inquiry.entity;
 import com.bukadong.tcg.api.auction.entity.Auction;
 import com.bukadong.tcg.api.member.entity.Member;
 import com.bukadong.tcg.global.common.base.BaseEntity;
+import com.bukadong.tcg.global.common.base.BaseResponseStatus;
+import com.bukadong.tcg.global.common.exception.BaseException;
+import com.fasterxml.jackson.databind.JsonSerializable.Base;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -54,12 +58,33 @@ public class Inquiry extends BaseEntity {
         return this.author != null && this.author.getId().equals(memberId);
     }
 
-    public void updateBeforeAnswered(String title, String content, boolean secret) {
-        // 간단 불변식 가드
-        if (content == null || content.isBlank())
-            throw new IllegalArgumentException("content is blank");
-        this.title = (title != null && !title.isBlank()) ? title : this.title;
-        this.content = content;
-        this.secret = secret;
+    /**
+     * 문의 수정 (답변 등록 전까지만)
+     * <P>
+     * PATCH 시맨틱: null은 미변경, 빈 문자열은 무시(미변경). 전달된 값만 갱신합니다.
+     * </P>
+     * 
+     * @PARAM title 제목(선택, null/blank면 미변경)
+     * @PARAM content 본문(선택, null/blank면 미변경)
+     * @PARAM secret 비밀글 여부(선택, null이면 미변경)
+     * @RETURN 없음
+     */
+    public void updateBeforeAnswered(String title, String content, Boolean secret) {
+        if (title != null) {
+            String t = title.trim();
+            if (!t.isEmpty()) {
+                this.title = t;
+            }
+        }
+        if (content != null) {
+            String c = content.trim();
+            if (!c.isEmpty()) {
+                this.content = c;
+            }
+        }
+        if (secret != null) {
+            this.secret = secret;
+        }
     }
+
 }

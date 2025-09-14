@@ -1,13 +1,11 @@
 package com.bukadong.tcg.api.inquiry.service;
 
-import com.bukadong.tcg.api.inquiry.controller.InquiryController;
 import com.bukadong.tcg.api.inquiry.dto.response.InquiryDetailResponse;
 import com.bukadong.tcg.api.inquiry.dto.response.InquiryListRow;
 import com.bukadong.tcg.api.inquiry.entity.Inquiry;
 import com.bukadong.tcg.api.inquiry.entity.InquiryAnswer;
 import com.bukadong.tcg.api.inquiry.repository.InquiryAnswerRepository;
 import com.bukadong.tcg.api.inquiry.repository.InquiryRepository;
-import com.bukadong.tcg.api.inquiry.util.TitleTrimer;
 import com.bukadong.tcg.api.media.entity.MediaType;
 import com.bukadong.tcg.api.media.service.MediaUrlService;
 import com.bukadong.tcg.global.common.base.BaseResponseStatus;
@@ -53,7 +51,6 @@ public class InquiryQueryService {
      * @PARAM pageable 페이징 정보
      * @RETURN Page<InquiryListRow>
      */
-    @Transactional(readOnly = true)
     public Page<InquiryListRow> getMyList(Long memberId, Pageable pageable) {
         return inquiryRepository.fetchMyInquiries(memberId, pageable);
     }
@@ -78,35 +75,21 @@ public class InquiryQueryService {
         Inquiry inquiry = inquiryRepository.findById(inquiryId)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.NOT_FOUND));
 
-        // 답변
-        InquiryAnswer ans = answerRepository.findByInquiryId(inquiryId).orElse(null);
+        // 답변(없을 수 있음)
+        InquiryAnswer answer = answerRepository.findByInquiryId(inquiryId).orElse(null);
 
-        // presign URL 생성 (5분 유효)
-        List<String> imageUrls = mediaViewService.getPresignedImageUrls(MediaType.INQUIRY, inquiry.getId(),
-                Duration.ofMinutes(5));
-
+        // 비밀글 권한/숨김 여부
         boolean canView = canViewSecret(inquiry, viewerId);
+        boolean hide = inquiry.isSecret() && !canView;
+
+        // presign URL 생성 (5분 유효) - 권한 없으면 빈 배열
+        List<String> imageUrls = hide ? List.of()
+                : mediaViewService.getPresignedImageUrls(MediaType.INQUIRY, inquiry.getId(), Duration.ofMinutes(5));
+
         log.debug("canViewSecret: {}", canView);
 
-        // 제목
-        String title = "비밀글입니다.";
-        if (canView) {
-            if (inquiry.getTitle() != null && !inquiry.getTitle().isBlank()) {
-                title = inquiry.getTitle();
-            } else {
-                title = TitleTrimer.trimAsTitle(inquiry.getContent());
-            }
-        }
-
-        return InquiryDetailResponse.builder().id(inquiry.getId()).title(title)
-                .content(inquiry.isSecret() && !canView ? null : inquiry.getContent())
-                .imageUrls(inquiry.isSecret() && !canView ? List.of() : imageUrls) // (이미지) 권한 없으면 빈 배열
-                .authorNickname(inquiry.isSecret() && !canView ? null : inquiry.getAuthor().getNickname())
-                .createdAt(inquiry.isSecret() && !canView ? null : inquiry.getCreatedAt())
-                .answerId(ans == null ? null : ans.getId())
-                .answerContent((ans == null || (inquiry.isSecret() && !canView)) ? null : ans.getContent())
-                .answerAuthorNickname(ans == null ? null : ans.getSeller().getNickname())
-                .answerCreatedAt(ans == null ? null : ans.getCreatedAt()).build();
+        // 응답 생성(비밀글일 경우 null/빈배열 처리)
+        return InquiryDetailResponse.of(inquiry, answer, canView, hide, imageUrls);
     }
 
     private boolean canViewSecret(Inquiry inquiry, Long viewerId) {

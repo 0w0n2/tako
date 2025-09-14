@@ -58,9 +58,9 @@ public class MyInquiryController {
             @Parameter(description = "페이지 크기") @RequestParam(name = "size", defaultValue = "20") @Min(1) int size,
             @AuthenticationPrincipal CustomUserDetails user) {
         log.debug("principal={}", (user == null ? "null" : user.getUuid()));
-
+        // TODO: 공통 인증 체크 유틸로 리팩토링
         if (user == null) {
-            throw new BaseException(BaseResponseStatus.INQUIRY_NOT_LOGGED_IN);
+            throw new BaseException(BaseResponseStatus.AUTHENTICATION_REQUIRED);
         }
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
         Long id = memberQueryService.getByUuid(user.getUuid()).getId();

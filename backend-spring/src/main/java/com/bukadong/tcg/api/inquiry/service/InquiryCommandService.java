@@ -73,7 +73,7 @@ public class InquiryCommandService {
         if (answered)
             throw new BaseException(BaseResponseStatus.INQUIRY_ANSWER_CONFLICT); // 이미 답변됨 → 수정 불가
 
-        inquiry.updateBeforeAnswered(safeTitle(req.getTitle(), req.getContent()), req.getContent(), req.isSecret());
+        inquiry.updateBeforeAnswered(req.getTitle(), req.getContent(), req.getSecret());
     }
 
     /**

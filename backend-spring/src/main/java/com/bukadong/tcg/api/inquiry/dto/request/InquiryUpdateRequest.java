@@ -26,11 +26,11 @@ public class InquiryUpdateRequest {
     @Size(max = 100)
     private String title;
 
-    @Schema(description = "본문(필수, 1000자 이내)", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "본문(필수, 1000자 이내)")
     @NotBlank
     @Size(max = 1000)
     private String content;
 
-    @Schema(description = "비밀글 여부", defaultValue = "false")
-    private boolean secret;
+    @Schema(description = "비밀글 여부(선택). null이면 변경하지 않음", nullable = true)
+    private Boolean secret;
 }

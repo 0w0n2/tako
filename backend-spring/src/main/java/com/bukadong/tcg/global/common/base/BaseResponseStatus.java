@@ -5,6 +5,8 @@ import lombok.Getter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 
+import com.bukadong.tcg.api.inquiry.entity.Inquiry;
+
 // https://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml
 // following http status code standard from above
 
@@ -106,18 +108,18 @@ public enum BaseResponseStatus {
     /**
      * 900: 문의 Error
      */
-    INQUIRY_NOT_FOUND(HttpStatus.NOT_FOUND, false, 904, "문의가 존재하지 않습니다."),
-    INQUIRY_FORBIDDEN(HttpStatus.FORBIDDEN, false, 903, "문의에 대한 권한이 없습니다."),
-    INQUIRY_CONFLICT(HttpStatus.CONFLICT, false, 902, "문의 처리 중 충돌이 발생했습니다."),
+    INQUIRY_NO_CONTENT(HttpStatus.BAD_REQUEST, false, 900, "문의 내용이 비어있습니다."),
     INQUIRY_BAD_REQUEST(HttpStatus.BAD_REQUEST, false, 900, "문의 요청이 올바르지 않습니다."),
-    INQUIRY_ANSWER_NOT_FOUND(HttpStatus.NOT_FOUND, false, 904, "문의 답변이 존재하지 않습니다."),
-    INQUIRY_ANSWER_FORBIDDEN(HttpStatus.FORBIDDEN, false, 903, "문의 답변에 대한 권한이 없습니다."),
     INQUIRY_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, false, 901, "문의 작성자만 접근할 수 있습니다."),
     INQUIRY_ANSWER_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, false, 901, "문의 답변은 판매자만 등록할 수 있습니다."),
+    INQUIRY_CONFLICT(HttpStatus.CONFLICT, false, 902, "문의 처리 중 충돌이 발생했습니다."),
     INQUIRY_ANSWER_CONFLICT(HttpStatus.CONFLICT, false, 902, "이미 답변이 등록된 문의입니다."),
+    INQUIRY_ANSWER_FORBIDDEN(HttpStatus.FORBIDDEN, false, 903, "문의 답변에 대한 권한이 없습니다."),
+    INQUIRY_FORBIDDEN(HttpStatus.FORBIDDEN, false, 903, "문의에 대한 권한이 없습니다."),
     INQUIRY_CREATE_FORBIDDEN(HttpStatus.FORBIDDEN, false, 903, "판매자는 본인 경매에 문의할 수 없습니다."),
+    INQUIRY_NOT_FOUND(HttpStatus.NOT_FOUND, false, 904, "문의가 존재하지 않습니다."),
+    INQUIRY_ANSWER_NOT_FOUND(HttpStatus.NOT_FOUND, false, 904, "문의 답변이 존재하지 않습니다."),
     INQUIRY_AUCTION_NOT_FOUND(HttpStatus.NOT_FOUND, false, 904, "존재하지 않는 경매입니다."),
-    INQUIRY_NOT_LOGGED_IN(HttpStatus.UNAUTHORIZED, false, 901, "로그인 정보가 없습니다."),
     /**
      * 1000: 미디어 Error
      */
@@ -126,7 +128,27 @@ public enum BaseResponseStatus {
     MEDIA_CONFLICT(HttpStatus.CONFLICT, false, 1002, "미디어 처리 중 충돌이 발생했습니다."),
     MEDIA_NOT_EDITABLE(HttpStatus.CONFLICT, false, 1002, "미디어를 더 이상 수정할 수 없습니다."),
     MEDIA_UNSUPPORTED_TYPE(HttpStatus.UNSUPPORTED_MEDIA_TYPE, false, 1007, "지원하지 않는 미디어 형식입니다."),
-    MEDIA_FILE_RULE_VIOLATION(HttpStatus.BAD_REQUEST, false, 1008, "미디어 파일이 규격에 맞지 않습니다.");
+    MEDIA_FILE_RULE_VIOLATION(HttpStatus.BAD_REQUEST, false, 1008, "미디어 파일이 규격에 맞지 않습니다."),
+
+    /**
+     * 1100 : 경매 Error
+     */
+    AUCTION_NOT_FOUND(HttpStatus.NOT_FOUND, false, 1104, "경매가 존재하지 않습니다."),
+    AUCTION_FORBIDDEN(HttpStatus.FORBIDDEN, false, 1103, "경매에 대한 권한이 없습니다."),
+    AUCTION_CONFLICT(HttpStatus.CONFLICT, false, 1102, "경매 처리 중 충돌이 발생했습니다."),
+    AUCTION_BAD_REQUEST(HttpStatus.BAD_REQUEST, false, 1100, "경매 요청이 올바르지 않습니다."),
+    AUCTION_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, false, 1101, "경매 작성자만 접근할 수 있습니다."),
+    AUCTION_BID_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, false, 1101, "로그인한 회원만 입찰할 수 있습니다."),
+    AUCTION_BID_FORBIDDEN(HttpStatus.FORBIDDEN, false, 1103, "본인의 경매에는 입찰할 수 없습니다."),
+    AUCTION_BID_LESS_THAN_CURRENT(HttpStatus.BAD_REQUEST, false, 1100, "현재가보다 높은 금액으로 입찰해야 합니다."),
+    AUCTION_BID_INCREASE_LESS_THAN_UNIT(HttpStatus.BAD_REQUEST, false, 1100, "입찰 단위 이상으로 입찰해야 합니다."),
+    AUCTION_NOT_ACTIVE(HttpStatus.BAD_REQUEST, false, 1100, "종료되었거나 아직 시작하지 않은 경매입니다."),
+    AUCTION_ALREADY_ENDED(HttpStatus.BAD_REQUEST, false, 1100, "이미 종료된 경매입니다."),
+    AUCTION_NOT_ENDED(HttpStatus.BAD_REQUEST, false, 1100, "아직 종료되지 않은 경매입니다."),
+    AUCTION_IMPOSSIBLE_TO_EDIT(HttpStatus.BAD_REQUEST, false, 1100, "경매가 시작된 이후에는 수정할 수 없습니다."),
+    AUCTION_IMPOSSIBLE_TO_DELETE(HttpStatus.BAD_REQUEST, false, 1100, "경매가 시작된 이후에는 삭제할 수 없습니다."),
+    AUCTION_NO_MEDIA(HttpStatus.BAD_REQUEST, false, 1100, "경매 이미지는 최소 1장 이상 등록해야 합니다."),
+    AUCTION_DATE_INVALID(HttpStatus.BAD_REQUEST, false, 1100, "경매 종료 시간은 시작 시간보다 이후여야 합니다.");
 
     private final HttpStatusCode httpStatusCode;
     private final boolean isSuccess;

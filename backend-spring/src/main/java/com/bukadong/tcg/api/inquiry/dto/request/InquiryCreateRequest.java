@@ -5,8 +5,6 @@ import jakarta.validation.constraints.Size;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
-import java.util.List;
-
 /**
  * 문의 등록 요청
  * <P>
