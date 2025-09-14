@@ -1,7 +1,11 @@
 'use client'
 
-import {Accordion, AccordionItem} from "@heroui/accordion";
+import dynamic from "next/dynamic";
 import Image from "next/image";
+
+const Accordion = dynamic(() => import('@heroui/accordion').then(mod => mod.Accordion), { ssr: false });
+const AccordionItem = dynamic(() => import('@heroui/accordion').then(mod => mod.AccordionItem), { ssr: false });
+
 
 export default function SellAuction(){
     const details = [

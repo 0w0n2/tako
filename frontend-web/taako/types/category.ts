@@ -8,3 +8,9 @@ export interface AuctionCategoryData {
 export interface CreateAuctionCategoriesProps {
   onChange?: (data: AuctionCategoryData) => void
 }  
+
+export interface CategoryPageProps {
+  params: {
+    category_name: string
+  }
+}
