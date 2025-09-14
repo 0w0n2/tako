@@ -270,7 +270,7 @@ pipeline {
           set -eux
 
           docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" pull || true
-          docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" up -d --build "$DEV_CONTAINER"
+          docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" up -d --build ${env.DEV_CONTAINER}
           '''
         }
       }
