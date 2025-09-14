@@ -11,6 +11,7 @@ export default function CreateInquiryModal({ props, onClose }: InquiryProps){
     const [title, setTitle] = useState("")
     const [content, setContent] = useState("")
     const [isNotificationEnabled, setIsNotificationEnabled] = useState(true);
+    const [images, setImages] = useState<File[]>([]) // ✅ 이미지 파일 상태 추가
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
@@ -64,7 +65,7 @@ export default function CreateInquiryModal({ props, onClose }: InquiryProps){
 
                             <div>
                                 <label className="block mb-2">사진</label>
-                                <RegisterImage />
+                                <RegisterImage onChange={(files) => setImages(files)} />
                             </div>
 
                             <div>
