@@ -39,3 +39,19 @@ export interface WeeklyAuctions {
   maxPrice: number;
   avgPrice: number;
 }
+
+// 경매 등록 폼
+export interface AuctionFormProps {
+  images: File[];
+  category: {
+    majorCategoryName: string;
+    minorCategoryName: string;
+  };
+  title: string;
+  description: string;
+  calendar: any;
+  bidUnit: number;
+  startPrice: number;
+  buyItNow: boolean;
+  buyItNowPrice: number;
+}
