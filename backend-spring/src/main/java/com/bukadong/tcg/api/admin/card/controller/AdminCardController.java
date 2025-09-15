@@ -6,10 +6,11 @@ import com.bukadong.tcg.global.common.base.BaseResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-@Tag(name = "Admin - Cards", description = "카드 관리자 API")
+@Tag(name = "Admin")
 @RestController
 @RequestMapping("/v1/admin/cards")
 @RequiredArgsConstructor
@@ -17,7 +18,7 @@ public class AdminCardController {
 
     private final AdminCardService adminCardService;
 
-    @PostMapping(consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public BaseResponse<Void> createCard(
             @Valid @RequestPart CreateCardRequestDto requestDto,
             @RequestPart(value = "cardImage") MultipartFile cardImage
