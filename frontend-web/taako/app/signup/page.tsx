@@ -1,19 +1,23 @@
 'use client';
 
 import Image from 'next/image';
-import { useState } from 'react';
+import { useSignupForm } from "@/hooks/useSignupForm";
 
 export default function Signup(){
-    const [password, setPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
-
-    const isPasswordMismatch = password !== confirmPassword && password !== '' && confirmPassword !== '';
+  const {
+    isSocial, providerName, handleSignup,
+    email, setEmail, isEmailAvailable, emailError, emailLoading, formatted, handleCheckEmail,
+    password, passwordErrorMessage, setPassword, confirmPassword, setConfirmPassword,
+    nickname, setNickname, isNicknameAvailable, nicknameError, nicknameLoading, handleCheckNickname,
+  } = useSignupForm();
 
     return (
-        <div className="default-container">
+        <div className="default-container pb-20">
             <h2>일반 회원가입</h2>
             <div>
-                <form className="flex flex-col gap-10 my-10">
+                <form
+                className="flex flex-col gap-10"
+                onSubmit={(e) => e.preventDefault()}>
                     <div>
                         <p className="mb-4">이메일</p>
                         <div className='flex flex-col gap-3'>
@@ -21,8 +25,32 @@ export default function Signup(){
                                 <input
                                 className="w-[350px] px-5 py-3 bg-[#191924] rounded-lg border-1 border-[#353535] text-sm"
                                 type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                                 placeholder="이메일을 입력해주세요"/>
-                                <button className="min-w-[140px] px-8 py-3 bg-[#3E4C63] rounded-lg text-md">중복체크</button>
+                                <button
+                                    type="button"
+                                    onClick={handleCheckEmail}
+                                    className="min-w-[140px] px-8 py-3 bg-[#3E4C63] rounded-lg text-md cursor-pointer"
+                                >중복체크</button>
+                                {emailError && (
+                                  <div className="text-[#FF3737] text-md mt-1 flex gap-2 items-center">
+                                    <Image src="/icon/error.svg" width={18} height={18} alt="error" />
+                                    {emailError}
+                                  </div>
+                                )}
+                                {isEmailAvailable === true && (
+                                  <div className="text-[#40C057] text-md mt-1 flex gap-2 items-center">
+                                    <Image src="/icon/correct.svg" width={18} height={18} alt="success" />
+                                    사용 가능한 이메일입니다.
+                                  </div>
+                                )}
+                                {isEmailAvailable === false && (
+                                  <div className="text-[#FF3737] text-md mt-1 flex gap-2 items-center">
+                                    <Image src="/icon/error.svg" width={18} height={18} alt="error" />
+                                    이미 사용중인 이메일입니다.
+                                  </div>
+                                )}
                             </div>
                             <div className="flex gap-4">
                                 <div className='relative'>
@@ -30,9 +58,9 @@ export default function Signup(){
                                     className="w-[350px] px-5 py-3 bg-[#191924] rounded-lg border-1 border-[#353535] text-sm"
                                     type="email"
                                     placeholder="인증번호 입력해주세요"/>
-                                    <p className='absolute top-1/2 right-5 -translate-y-1/2'>10:00</p>
+                                    <p className='absolute top-1/2 right-5 -translate-y-1/2'>{formatted}</p>
                                 </div>
-                                <button className="min-w-[140px] px-6 bg-[#3E4C63] rounded-lg text-md">인증번호전송</button>
+                                <button className="min-w-[140px] px-6 bg-[#3E4C63] rounded-lg text-md cursor-pointer">인증번호전송</button>
                             </div>
                         </div>
                     </div>
@@ -51,18 +79,18 @@ export default function Signup(){
                             placeholder="비밀번호확인"
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}/>
-                            {isPasswordMismatch && (
+                            {passwordErrorMessage && (
                                 <div className="text-[#FF3737] text-md mt-1 flex gap-2 items-center">
-                                    <Image src="/icon/error.svg" width={18} height={18} alt="error" />
-                                    비밀번호가 일치하지 않습니다.
+                                  <Image src="/icon/error.svg" width={18} height={18} alt="error" />
+                                  {passwordErrorMessage}
                                 </div>
-                            )}
-                            {!isPasswordMismatch && password !== '' && confirmPassword !== '' && (
+                              )}
+                              {!passwordErrorMessage && password && confirmPassword && (
                                 <div className="text-[#40C057] text-md mt-1 flex gap-2 items-center">
-                                    <Image src="/icon/correct.svg" width={18} height={18} alt="error" />
-                                    비밀번호가 일치합니다.
+                                  <Image src="/icon/correct.svg" width={18} height={18} alt="correct" />
+                                  비밀번호가 유효합니다.
                                 </div>
-                            )}
+                              )}
                         </div>
                     </div>
                     <div>
@@ -72,25 +100,41 @@ export default function Signup(){
                                 <input
                                 className="w-[350px] px-5 py-3 bg-[#191924] rounded-lg border-1 border-[#353535] text-sm"
                                 type="text"
+                                value={nickname}
+                                onChange={(e) => setNickname(e.target.value)}
                                 placeholder="닉네임을 입력해주세요"/>
-                                <button className="min-w-[140px] px-8 bg-[#3E4C63] rounded-lg text-md">중복체크</button>
+                                <button
+                                    type="button"
+                                    className="min-w-[140px] px-8 bg-[#3E4C63] rounded-lg text-md cursor-pointer"
+                                    onClick={handleCheckNickname}
+                                >중복체크</button>
                             </div>
-                            { false && (
-                                <div className="text-[#FF3737] text-md mt-1 flex gap-2 items-center">
-                                    <Image src="/icon/error.svg" width={18} height={18} alt="error" />
-                                    이미 존재하는 닉네임입니다.
-                                </div>
-                            ) || (
-                                <div className="text-[#40C057] text-md mt-1 flex gap-2 items-center">
-                                    <Image src="/icon/correct.svg" width={18} height={18} alt="error" />
-                                    사용 가능한 닉네임입니다.
-                                </div>
+                            {/* 에러 메시지 */}
+                            {nicknameError && (
+                            <div className="text-[#FF3737] text-md mt-1 flex gap-2 items-center">
+                                <Image src="/icon/error.svg" width={18} height={18} alt="error" />
+                                {nicknameError}
+                            </div>
+                            )}
+
+                            {!nicknameError && isNicknameAvailable === true && (
+                            <div className="text-[#40C057] text-md mt-1 flex gap-2 items-center">
+                                <Image src="/icon/correct.svg" width={18} height={18} alt="correct" />
+                                사용 가능한 닉네임입니다.
+                            </div>
+                            )}
+                            {!nicknameError && isNicknameAvailable === false && (
+                            <div className="text-[#FF3737] text-md mt-1 flex gap-2 items-center">
+                                <Image src="/icon/error.svg" width={18} height={18} alt="error" />
+                                이미 존재하는 닉네임입니다.
+                            </div>
                             )}
                         </div>
                     </div>
                     <button
                         type="submit"
                         className='w-[150px] px-8 py-3 cursor-pointer rounded-lg bg-[#364153] text-[#7DB7CD] border-1 border-[#7DB7CD] hover:bg-[#3E4C63]'
+                        onClick={handleSignup}
                     >
                         회원가입
                     </button>

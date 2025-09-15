@@ -6,9 +6,18 @@ import SearchInput from "../atoms/Input/SearchInput"
 import LoginModal from "../modals/LoginModal"
 import NavigationMenu from './HeaderNavigationMenu';
 import Image from 'next/image';
+import { useAuthStore } from "@/stores/useAuthStore";
 
 export default function Header() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const { isLoggedIn } = useAuthStore();
+
+  // 로그인 시 모달 닫기
+  useEffect(() => {
+    if (isLoggedIn) {
+      setIsLoginModalOpen(false);
+    }
+  }, [isLoggedIn]);
 
   return (
     <div className="bg-[#141420] border-b border-[#353535] fixed top-0 right-0 w-full z-90">
