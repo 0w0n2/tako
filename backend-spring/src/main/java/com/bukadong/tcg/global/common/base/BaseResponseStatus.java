@@ -154,8 +154,8 @@ public enum BaseResponseStatus {
      * 1200: 카드 Error
      */
     CARD_RARITY_UNSUPPORTED(HttpStatus.BAD_REQUEST, false, 1200, "지원하지 않는 유형의 카드 희귀도입니다."),
-    CARD_ATTRIBUTE_UNSUPPORTED(HttpStatus.BAD_REQUEST, false, 1201, "지원하지 않는 유형의 카드 속성입니다.");
-
+    CARD_ATTRIBUTE_UNSUPPORTED(HttpStatus.BAD_REQUEST, false, 1201, "지원하지 않는 유형의 카드 속성입니다."),
+    CARD_NAME_DUPLICATED(HttpStatus.CONFLICT, false, 1202, "중복된 카드 이름은 등록할 수 없습니다.");
 
     private final HttpStatusCode httpStatusCode;
     private final boolean isSuccess;
