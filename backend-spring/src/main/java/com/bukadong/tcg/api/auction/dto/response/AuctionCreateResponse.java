@@ -13,7 +13,6 @@ import lombok.*;
  * @RETURN 없음
  */
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
