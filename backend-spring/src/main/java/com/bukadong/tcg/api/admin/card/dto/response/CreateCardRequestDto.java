@@ -5,7 +5,6 @@ import com.bukadong.tcg.api.card.entity.Card;
 import com.bukadong.tcg.api.card.entity.Rarity;
 import com.bukadong.tcg.api.category.entity.CategoryMajor;
 import com.bukadong.tcg.api.category.entity.CategoryMedium;
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -13,9 +12,6 @@ import lombok.Builder;
 
 @Builder
 public record CreateCardRequestDto(
-        @NotNull(message = "카테고리 대분류 ID를 입력해주세요.")
-        Long categoryMajorId,
-
         @NotNull(message = "카테고리 중분류 ID를 입력해주세요.")
         Long categoryMediumId,
 
