@@ -2,10 +2,14 @@ package com.bukadong.tcg.api.category.repository;
 
 import com.bukadong.tcg.api.category.entity.CategoryMedium;
 
+import io.lettuce.core.dynamic.annotation.Param;
+import lombok.NonNull;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * 중분류 리포지토리.
@@ -27,4 +31,8 @@ public interface CategoryMediumRepository extends JpaRepository<CategoryMedium, 
      */
     @EntityGraph(attributePaths = "categoryMajor")
     List<CategoryMedium> findByCategoryMajor_Id(Long majorId);
+
+    @EntityGraph(attributePaths = "categoryMajor")
+    @NonNull
+    Optional<CategoryMedium> findWithMajorById(@NonNull Long id);
 }
