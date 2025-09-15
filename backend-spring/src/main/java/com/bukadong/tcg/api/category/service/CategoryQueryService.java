@@ -1,10 +1,14 @@
 package com.bukadong.tcg.api.category.service;
 
+import com.bukadong.tcg.api.category.dto.response.CategoryMajorResponse;
+import com.bukadong.tcg.api.category.dto.response.CategoryMediumResponse;
 import com.bukadong.tcg.api.category.entity.CategoryMajor;
 import com.bukadong.tcg.api.category.entity.CategoryMedium;
 import com.bukadong.tcg.api.category.repository.CategoryMajorRepository;
 import com.bukadong.tcg.api.category.repository.CategoryMediumRepository;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,20 +33,22 @@ public class CategoryQueryService {
      *
      * @return 대분류 목록
      */
-    public List<CategoryMajor> listMajors() {
-        // 필요 시 정렬이 있다면 Sort.by("...")로 정렬 조건을 추가.
-        return categoryMajorRepository.findAll();
+    public List<CategoryMajorResponse> listMajors() {
+        return categoryMajorRepository.findAll(Sort.by(Sort.Direction.ASC, "name")).stream()
+                .map(m -> new CategoryMajorResponse(m.getId(), m.getName(), m.getDescription())).toList();
     }
 
     /**
      * 특정 대분류에 속한 중분류 목록을 조회한다.
      *
-     * @param majorId 대분류 ID (null 또는 0 이하인 경우 예외 처리 고려 가능)
-     * @return 중분류 목록
+     * @param majorId 대분류 ID
+     * @return 중분류 응답 DTO 목록
      */
-    public List<CategoryMedium> listMediumsByMajorId(Long majorId) {
-        // 중요 로직 주석: 기본적으로 연관 키로 전체 조회만 수행
-        // (엔티티 매핑이 major(@ManyToOne)인 경우 findByMajor_Id 사용)
-        return categoryMediumRepository.findByCategoryMajor_Id(majorId);
+    public List<CategoryMediumResponse> listMediumsByMajorId(Long majorId) {
+        return categoryMediumRepository.findByCategoryMajor_Id(majorId).stream()
+                .map(m -> new CategoryMediumResponse(m.getId(), m.getName(), m.getDescription(),
+                        m.getCategoryMajor().getId(), // 트랜잭션 내 + EntityGraph로 안전
+                        m.getCategoryMajor().getName()))
+                .toList();
     }
 }
