@@ -148,7 +148,14 @@ public enum BaseResponseStatus {
     AUCTION_IMPOSSIBLE_TO_EDIT(HttpStatus.BAD_REQUEST, false, 1100, "경매가 시작된 이후에는 수정할 수 없습니다."),
     AUCTION_IMPOSSIBLE_TO_DELETE(HttpStatus.BAD_REQUEST, false, 1100, "경매가 시작된 이후에는 삭제할 수 없습니다."),
     AUCTION_NO_MEDIA(HttpStatus.BAD_REQUEST, false, 1100, "경매 이미지는 최소 1장 이상 등록해야 합니다."),
-    AUCTION_DATE_INVALID(HttpStatus.BAD_REQUEST, false, 1100, "경매 종료 시간은 시작 시간보다 이후여야 합니다.");
+    AUCTION_DATE_INVALID(HttpStatus.BAD_REQUEST, false, 1100, "경매 종료 시간은 시작 시간보다 이후여야 합니다."),
+
+    /**
+     * 1200: 카드 Error
+     */
+    CARD_RARITY_UNSUPPORTED(HttpStatus.BAD_REQUEST, false, 1200, "지원하지 않는 유형의 카드 희귀도입니다."),
+    CARD_ATTRIBUTE_UNSUPPORTED(HttpStatus.BAD_REQUEST, false, 1201, "지원하지 않는 유형의 카드 속성입니다.");
+
 
     private final HttpStatusCode httpStatusCode;
     private final boolean isSuccess;
