@@ -99,21 +99,4 @@ public class AuctionQueryController {
         return BaseResponse.onSuccess(auctionQueryService.getDetail(id, historySize));
     }
 
-    /**
-     * 입찰 생성 (깡통)
-     * <P>
-     * 실제 입찰 처리 없이 성공 응답만 반환한다.
-     * </P>
-     * 
-     * @PARAM auctionId 경매 ID
-     * @RETURN BaseResponse<Void>
-     */
-    @AutoPopularityBid
-    @Operation(summary = "입찰 생성(샘플)", description = "실제 입찰 처리 없이 성공 응답만 반환합니다. (데모/연동용)")
-    @PostMapping("/{auctionId}/bids")
-    public BaseResponse<Void> placeBid(
-            @Parameter(description = "경매 ID", example = "1001") @PathVariable("auctionId") Long auctionId) {
-        return BaseResponse.onSuccess();
-    }
-
 }

@@ -44,6 +44,7 @@ import java.time.LocalDateTime;
                 @Index(name = "idx_auc_cat_medium", columnList = "category_medium_id"),
                 @Index(name = "idx_auc_start_end", columnList = "start_datetime,end_datetime") })
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
@@ -194,5 +195,41 @@ public class Auction extends BaseEntity {
         if (startDatetime != null && endDatetime != null && endDatetime.isBefore(startDatetime)) {
             throw new BaseException(BaseResponseStatus.AUCTION_DATE_INVALID);
         }
+    }
+
+    /**
+     * 경매가 주어진 시각에 진행 중인지 여부
+     * <P>
+     * isEnd=false 이고, startDatetime <= when <= endDatetime 이면 true.
+     * </P>
+     * 
+     * @PARAM when 기준 시각(Null 허용하지 않음)
+     * @RETURN 진행 중이면 true
+     */
+    public boolean isRunningAt(LocalDateTime when) {
+        if (when == null)
+            return false;
+        if (this.isEnd)
+            return false;
+        if (this.getStartDatetime() != null && when.isBefore(this.getStartDatetime()))
+            return false;
+        if (this.getEndDatetime() != null && when.isAfter(this.getEndDatetime()))
+            return false;
+        return true;
+    }
+
+    /**
+     * 경매가 이미 종료 상태인지 여부
+     * <P>
+     * isEnd=true 또는 when이 endDatetime 이후이면 종료로 간주.
+     * </P>
+     * 
+     * @PARAM when 기준 시각(Null 허용)
+     * @RETURN 종료면 true
+     */
+    public boolean isEndedAt(LocalDateTime when) {
+        if (this.isEnd)
+            return true;
+        return (when != null && this.getEndDatetime() != null && when.isAfter(this.getEndDatetime()));
     }
 }
