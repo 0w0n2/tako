@@ -5,6 +5,8 @@ import com.bukadong.tcg.api.card.entity.PhysicalCard;
 import com.bukadong.tcg.api.category.entity.CategoryMajor;
 import com.bukadong.tcg.api.category.entity.CategoryMedium;
 import com.bukadong.tcg.global.common.base.BaseEntity;
+import com.bukadong.tcg.global.common.base.BaseResponseStatus;
+import com.bukadong.tcg.global.common.exception.BaseException;
 import com.bukadong.tcg.api.delivery.entity.Delivery;
 import com.bukadong.tcg.api.member.entity.Member;
 import jakarta.persistence.*;
@@ -188,7 +190,7 @@ public class Auction extends BaseEntity {
     void preUpdateAuction() {
         // 중요한 무결성 체크(서비스/검증단에서도 보통 같이 체크)
         if (startDatetime != null && endDatetime != null && endDatetime.isBefore(startDatetime)) {
-            throw new IllegalStateException("endDatetime must be after startDatetime");
+            throw new BaseException(BaseResponseStatus.AUCTION_DATE_INVALID);
         }
     }
 }
