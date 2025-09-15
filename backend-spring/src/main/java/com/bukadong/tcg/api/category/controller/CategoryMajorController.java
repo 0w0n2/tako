@@ -1,5 +1,6 @@
 package com.bukadong.tcg.api.category.controller;
 
+import com.bukadong.tcg.api.category.dto.response.CategoryMajorResponse;
 import com.bukadong.tcg.api.category.entity.CategoryMajor;
 import com.bukadong.tcg.api.category.service.CategoryQueryService;
 import com.bukadong.tcg.global.common.base.BaseResponse;
@@ -33,7 +34,7 @@ public class CategoryMajorController {
      */
     @Operation(summary = "대분류 전체 조회", description = "등록된 모든 카테고리 대분류 목록을 반환합니다.")
     @GetMapping
-    public BaseResponse<List<CategoryMajor>> listMajors() {
-        return new BaseResponse<>(categoryQueryService.listMajors());
+    public BaseResponse<List<CategoryMajorResponse>> listMajors() {
+        return BaseResponse.onSuccess(categoryQueryService.listMajors());
     }
 }
