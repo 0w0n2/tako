@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -54,4 +55,15 @@ public class BaseExceptionHandler {
         }
         throw ex; // 업로드 초과 케이스가 아니면 기존 흐름 유지
     }
+
+    // @RestControllerAdvice
+    @ExceptionHandler(MissingServletRequestPartException.class)
+    public ResponseEntity<BaseResponse<Void>> handleMissingPart(MissingServletRequestPartException ex) {
+        // files 없으면 AUCTION_NO_MEDIA, metadata 없으면 INVALID_PARAMETER 등 상황에 맞게 매핑
+        BaseResponseStatus status = "files".equalsIgnoreCase(ex.getRequestPartName())
+                ? BaseResponseStatus.AUCTION_NO_MEDIA
+                : BaseResponseStatus.INVALID_PARAMETER;
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(BaseResponse.onFailure(status));
+    }
+
 }
