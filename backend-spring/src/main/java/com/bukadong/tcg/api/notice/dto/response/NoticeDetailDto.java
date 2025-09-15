@@ -1,6 +1,5 @@
 package com.bukadong.tcg.api.notice.dto.response;
 
-import com.bukadong.tcg.api.media.dto.MediaDto;
 import com.bukadong.tcg.api.notice.entity.Notice;
 
 import java.time.LocalDateTime;

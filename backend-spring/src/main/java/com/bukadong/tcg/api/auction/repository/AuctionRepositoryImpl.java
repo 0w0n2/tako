@@ -66,13 +66,13 @@ public class AuctionRepositoryImpl implements AuctionRepositoryCustom {
 
         // 콘텐츠 쿼리
         List<AuctionListProjection> content = queryFactory.select(Projections.constructor(AuctionListProjection.class,
-                auction.id, auction.grade, auction.title, auction.currentPrice, bidCountExpr, // 집계된 입찰수
+                auction.id, auction.grade.gradeCode, auction.title, auction.currentPrice, bidCountExpr, // 집계된 입찰수
                 auction.endDatetime, media.s3keyOrUrl // 대표 이미지 key (seq_no=1)
         )).from(auction).leftJoin(auctionBid)
                 .on(auctionBid.auction.eq(auction).and(auctionBid.status.eq(AuctionBidStatus.VALID))).leftJoin(media)
                 .on(media.ownerId.eq(auction.id).and(media.type.eq(MediaType.AUCTION_ITEM)).and(media.seqNo.eq(1)))
                 .where(where)
-                .groupBy(auction.id, auction.grade, auction.title, auction.currentPrice, auction.endDatetime,
+                .groupBy(auction.id, auction.grade.gradeCode, auction.title, auction.currentPrice, auction.endDatetime,
                         media.s3keyOrUrl)
                 .orderBy(orderSpecifiers).offset(pageable.getOffset()).limit(pageable.getPageSize()).fetch();
 
@@ -109,7 +109,7 @@ public class AuctionRepositoryImpl implements AuctionRepositoryCustom {
             where.and(auction.currentPrice.loe(currentPriceMax));
         }
         if (grades != null && !grades.isEmpty()) {
-            where.and(auction.grade.in(grades));
+            where.and(auction.grade.gradeCode.in(grades));
         }
         return where;
     }

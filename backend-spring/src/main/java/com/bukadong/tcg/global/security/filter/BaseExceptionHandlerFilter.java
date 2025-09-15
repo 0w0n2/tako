@@ -1,7 +1,5 @@
 package com.bukadong.tcg.global.security.filter;
 
-import com.bukadong.tcg.global.common.base.BaseResponse;
-import com.bukadong.tcg.global.common.base.BaseResponseStatus;
 import com.bukadong.tcg.global.common.exception.BaseException;
 import com.bukadong.tcg.global.util.ErrorResponseUtils;
 import jakarta.servlet.FilterChain;

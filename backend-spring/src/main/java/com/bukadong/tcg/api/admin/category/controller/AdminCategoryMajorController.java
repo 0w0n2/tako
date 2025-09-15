@@ -24,12 +24,11 @@ import org.springframework.web.bind.annotation.*;
  * @PARAM 없음
  * @RETURN BaseResponse
  */
-@Tag(name = "Admin - Categories (Major)", description = "카테고리 대분류 관리자 API")
+@Tag(name = "Admin", description = "관리자 API")
 @RestController
 @RequestMapping("/v1/admin/categories/majors")
 @RequiredArgsConstructor
 @Validated
-@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 public class AdminCategoryMajorController {
 
     private final AdminCategoryCommandService adminCategoryCommandService;
@@ -76,7 +75,6 @@ public class AdminCategoryMajorController {
      * @PARAM majorId 대분류 ID
      * @RETURN BaseResponse<Void>
      */
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @Operation(summary = "대분류 삭제", description = "카테고리 대분류를 삭제합니다. (ADMIN)")
     @DeleteMapping("/{majorId}")
     public BaseResponse<Void> delete(

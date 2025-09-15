@@ -3,9 +3,6 @@ package com.bukadong.tcg.api.inquiry.entity;
 import com.bukadong.tcg.api.auction.entity.Auction;
 import com.bukadong.tcg.api.member.entity.Member;
 import com.bukadong.tcg.global.common.base.BaseEntity;
-import com.bukadong.tcg.global.common.base.BaseResponseStatus;
-import com.bukadong.tcg.global.common.exception.BaseException;
-import com.fasterxml.jackson.databind.JsonSerializable.Base;
 
 import jakarta.persistence.*;
 import lombok.*;

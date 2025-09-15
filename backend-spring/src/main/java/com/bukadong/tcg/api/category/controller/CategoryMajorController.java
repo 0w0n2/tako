@@ -1,7 +1,6 @@
 package com.bukadong.tcg.api.category.controller;
 
 import com.bukadong.tcg.api.category.dto.response.CategoryMajorResponse;
-import com.bukadong.tcg.api.category.entity.CategoryMajor;
 import com.bukadong.tcg.api.category.service.CategoryQueryService;
 import com.bukadong.tcg.global.common.base.BaseResponse;
 

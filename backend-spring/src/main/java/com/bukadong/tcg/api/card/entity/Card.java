@@ -19,11 +19,10 @@ import lombok.*;
  * </ul>
  */
 @Entity
-@Table(name = "card", uniqueConstraints = {
-        @UniqueConstraint(name = "uk_card_category_name", columnNames = { "category_major_id",
-                "category_medium_id", "name" }) }, indexes = {
-                        @Index(name = "idx_card_category_major", columnList = "category_major_id"),
-                        @Index(name = "idx_card_category_medium", columnList = "category_medium_id") })
+@Table(name = "card", uniqueConstraints = { @UniqueConstraint(name = "uk_card_category_name", columnNames = {
+        "category_major_id", "category_medium_id", "name" }) }, indexes = {
+                @Index(name = "idx_card_category_major", columnList = "category_major_id"),
+                @Index(name = "idx_card_category_medium", columnList = "category_medium_id") })
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -54,7 +53,7 @@ public class Card extends BaseEntity {
     private String name;
 
     /** 카드 설명 */
-    @Column(name = "description", nullable = false, length = 100)
+    @Column(name = "description", nullable = false, columnDefinition = "TEXT")
     private String description;
 
     /** 희귀도 (A/B/C/DEFAULT) - not null, 기본값 DEFAULT */

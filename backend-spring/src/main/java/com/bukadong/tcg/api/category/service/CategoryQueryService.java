@@ -2,8 +2,6 @@ package com.bukadong.tcg.api.category.service;
 
 import com.bukadong.tcg.api.category.dto.response.CategoryMajorResponse;
 import com.bukadong.tcg.api.category.dto.response.CategoryMediumResponse;
-import com.bukadong.tcg.api.category.entity.CategoryMajor;
-import com.bukadong.tcg.api.category.entity.CategoryMedium;
 import com.bukadong.tcg.api.category.repository.CategoryMajorRepository;
 import com.bukadong.tcg.api.category.repository.CategoryMediumRepository;
 import lombok.RequiredArgsConstructor;

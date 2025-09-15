@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/v1/auth/availability")
 @RequiredArgsConstructor
-@Tag(name = "Auth-Availability", description = "회원가입 전 이메일/닉네임 가용성 확인 API")
+@Tag(name = "Auth")
 public class MemberAvailabilityController {
 
     private final MemberAvailabilityService memberAvailabilityService;
