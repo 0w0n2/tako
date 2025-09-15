@@ -44,7 +44,6 @@ import java.time.LocalDateTime;
                 @Index(name = "idx_auc_cat_medium", columnList = "category_medium_id"),
                 @Index(name = "idx_auc_start_end", columnList = "start_datetime,end_datetime") })
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
@@ -231,5 +230,15 @@ public class Auction extends BaseEntity {
         if (this.isEnd)
             return true;
         return (when != null && this.getEndDatetime() != null && when.isAfter(this.getEndDatetime()));
+    }
+
+    /**
+     * 현재 가격 변경
+     */
+    public void changeCurrentPrice(BigDecimal newPrice) {
+        if (newPrice == null || newPrice.compareTo(BigDecimal.ZERO) < 0) {
+            throw new BaseException(BaseResponseStatus.AUCTION_CONFLICT);
+        }
+        this.currentPrice = newPrice;
     }
 }

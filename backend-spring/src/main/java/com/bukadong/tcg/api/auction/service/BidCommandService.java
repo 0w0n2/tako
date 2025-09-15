@@ -87,7 +87,7 @@ public class BidCommandService {
         auctionBidRepository.save(bid);
 
         // 경매 갱신 (현재가)
-        auction.setCurrentPrice(request.getBidPrice());
+        auction.changeCurrentPrice(request.getBidPrice());
 
         // flush는 트랜잭션 종료 시점에 일괄 처리됨
         return new BidResultResponse(bid.getId(), auction.getId(), auction.getCurrentPrice(), now, "ACCEPTED");
