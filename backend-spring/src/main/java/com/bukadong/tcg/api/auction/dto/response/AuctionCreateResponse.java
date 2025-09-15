@@ -3,8 +3,6 @@ package com.bukadong.tcg.api.auction.dto.response;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
-import java.util.List;
-
 /**
  * 경매 생성 응답 DTO
  * <P>

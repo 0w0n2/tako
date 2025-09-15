@@ -45,23 +45,47 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull FilterChain filterChain) throws ServletException, IOException {
         String method = request.getMethod();
         String uri = request.getRequestURI();
+        boolean permitAll = isPermitAll(method, uri);
 
-        /* 인증이 필요한 요청에 대해서만 검사 */
-        if (!isPermitAll(method, uri)) {
-            String token = tokenProvider.getTokenFromRequest(request);
-            // logger.info("Requested URI: {}, Method: {}, Token: {}", uri, method, token !=
-            // null ? "Present" : "Absent");
+        String token = tokenProvider.getTokenFromRequest(request);
 
-            if (StringUtils.hasText(token) && tokenProvider.validateToken(token)) {
-                if (!tokenBlackListService.isBlacklistAccessToken(token)) { // 블랙리스트 검증
+        // 토큰이 아예 없으면: permitAll이면 게스트로 통과, 보호 경로면 이후 Authorization 단계에서 401/403
+        if (!StringUtils.hasText(token)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        // 토큰이 있으면 항상 시도
+        try {
+            // 토큰이 유효한지 검사
+            if (tokenProvider.validateToken(token)) {
+                // 블랙리스트에 있는지 검사
+                if (tokenBlackListService.isBlacklistAccessToken(token)) {
+                    // 보호 경로라면 즉시 에러, permitAll이면 게스트 처리
+                    if (!permitAll)
+                        throw new BaseException(INVALID_JWT_TOKEN);
+                    SecurityContextHolder.clearContext();
+                } else {
+                    // 토큰이 유효하면 인증 정보를 설정
                     Authentication authentication = tokenProvider.getAuthentication(token);
                     SecurityContextHolder.getContext().setAuthentication(authentication);
-                    // logger.info("Authentication set for user: {}", authentication.getName());
-                } else {
-                    // logger.warn("Token is blacklisted: {}", token);
+                }
+            } else {
+                // 유효하지 않은 토큰
+                if (!permitAll) {
                     throw new BaseException(INVALID_JWT_TOKEN);
                 }
+                SecurityContextHolder.clearContext(); // permitAll이면 게스트로
             }
+        } catch (BaseException ex) {
+            // 보호 경로에서의 에러는 그대로 던지게 하고,
+            // (전역 예외 핸들러/EntryPoint에서 401 응답 처리)
+            throw ex;
+        } catch (Exception ex) {
+            // 기타 예외도 보호 경로면 에러, permitAll이면 게스트
+            if (!permitAll)
+                throw ex;
+            SecurityContextHolder.clearContext();
         }
 
         filterChain.doFilter(request, response);
@@ -71,15 +95,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         return securityWhitelistProperties.getParsedWhitelist().entrySet().stream().anyMatch(entry -> {
             String httpMethodFromConfig = entry.getKey().name();
             boolean methodMatches = httpMethodFromConfig.equalsIgnoreCase(method);
-
             if (!methodMatches) {
-                // logger.info("Method does not match: {}", httpMethodFromConfig);
                 return false;
             }
-            // logger.info("Checking URI against patterns: {} for method: {}",
-            // entry.getValue(), method);
             return entry.getValue().stream().anyMatch(pattern -> antPathMatcher.match(pattern, uri));
-
         });
     }
 }

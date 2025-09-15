@@ -4,6 +4,7 @@ import com.bukadong.tcg.api.media.dto.response.MediaUploadResponse;
 import com.bukadong.tcg.api.media.entity.MediaType;
 import com.bukadong.tcg.api.media.service.MediaAttachmentService;
 import com.bukadong.tcg.api.media.util.MediaDirResolver;
+import com.bukadong.tcg.api.member.entity.Member;
 import com.bukadong.tcg.api.member.service.MemberQueryService;
 import com.bukadong.tcg.global.common.base.BaseResponse;
 import com.bukadong.tcg.global.security.dto.CustomUserDetails;
@@ -47,7 +48,7 @@ public class MediaAttachmentController {
             @Parameter(description = "소유 엔터티 ID", required = true) @PathVariable(name = "ownerId") Long ownerId,
             @Parameter(description = "업로드 파일들", required = true) @RequestPart(name = "files") List<MultipartFile> files,
             @AuthenticationPrincipal CustomUserDetails user) {
-        var me = memberQueryService.getByUuid(user.getUuid());
+        Member me = memberQueryService.getByUuid(user.getUuid());
         String dir = mediaDirResolver.resolve(type);
         MediaUploadResponse res = mediaAttachmentService.addByMultipart(type, ownerId, me, files, dir);
         return BaseResponse.onSuccess(res);

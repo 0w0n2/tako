@@ -11,7 +11,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,12 +23,11 @@ import org.springframework.web.bind.annotation.*;
  * @PARAM 없음
  * @RETURN BaseResponse
  */
-@Tag(name = "Admin - Categories (Medium)", description = "카테고리 중분류 관리자 API")
+@Tag(name = "Admin", description = "관리자 API")
 @RestController
 @RequestMapping("/v1/admin/categories/mediums")
 @RequiredArgsConstructor
 @Validated
-@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 public class AdminCategoryMediumController {
 
     private final AdminCategoryCommandService adminCategoryCommandService;

@@ -2,6 +2,7 @@ package com.bukadong.tcg.api.inquiry.controller;
 
 import com.bukadong.tcg.api.inquiry.dto.response.InquiryListRow;
 import com.bukadong.tcg.api.inquiry.service.InquiryQueryService;
+import com.bukadong.tcg.api.member.entity.Member;
 import com.bukadong.tcg.api.member.service.MemberQueryService;
 import com.bukadong.tcg.global.common.base.BaseResponse;
 import com.bukadong.tcg.global.common.base.BaseResponseStatus;
@@ -12,6 +13,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.*;
@@ -32,7 +34,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @Tag(name = "Inquiries", description = "경매 문의/답변 API")
 @RestController
-@RequestMapping("/v1/auctions/inquiries")
+@RequestMapping("/v1/members/me/inquiries")
 @RequiredArgsConstructor
 @Validated
 public class MyInquiryController {
@@ -52,19 +54,18 @@ public class MyInquiryController {
      * @RETURN BaseResponse<Page<InquiryListRow>>
      */
     @Operation(summary = "내 문의 목록 조회", description = "모든 경매에서 현재 로그인 사용자가 작성한 문의만 페이징으로 반환합니다.")
-    @GetMapping("/mine")
+    @GetMapping()
     public BaseResponse<Page<InquiryListRow>> listMyInquiries(
             @Parameter(description = "페이지 번호(0-base)") @RequestParam(name = "page", defaultValue = "0") @Min(0) int page,
             @Parameter(description = "페이지 크기") @RequestParam(name = "size", defaultValue = "20") @Min(1) int size,
             @AuthenticationPrincipal CustomUserDetails user) {
         log.debug("principal={}", (user == null ? "null" : user.getUuid()));
-        // TODO: 공통 인증 체크 유틸로 리팩토링
         if (user == null) {
             throw new BaseException(BaseResponseStatus.AUTHENTICATION_REQUIRED);
         }
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
-        Long id = memberQueryService.getByUuid(user.getUuid()).getId();
-        Page<InquiryListRow> result = inquiryQueryService.getMyList(id, pageable);
+        Member me = memberQueryService.getByUuid(user.getUuid());
+        Page<InquiryListRow> result = inquiryQueryService.getMyList(me.getId(), pageable);
         return BaseResponse.onSuccess(result);
     }
 }

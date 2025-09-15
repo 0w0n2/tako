@@ -19,7 +19,7 @@ import lombok.RequiredArgsConstructor;
 
 @Tag(name = "Reviews", description = "회원 후기 API")
 @RestController
-@RequestMapping("/v1/members")
+@RequestMapping("/v1/reviews")
 @RequiredArgsConstructor
 @Validated
 public class ReviewController {
@@ -36,10 +36,10 @@ public class ReviewController {
      * @RETURN BaseResponse<List<AuctionReviewResponse>>
      */
     @Operation(summary = "회원 후기 조회", description = "회원이 받은 모든 후기를 조회합니다.")
-    @GetMapping("/{id}/reviews")
+    @GetMapping("/{memberId}/reviews")
     public BaseResponse<List<AuctionReviewResponse>> getReviews(
-            @Parameter(description = "회원 ID", example = "1001") @PathVariable("id") Long id) {
-        List<AuctionReviewResponse> result = reviewQueryService.getReviewsByMember(id);
+            @Parameter(description = "회원 ID", example = "1001") @PathVariable("memberId") Long memberId) {
+        List<AuctionReviewResponse> result = reviewQueryService.getReviewsByMember(memberId);
         return BaseResponse.onSuccess(result);
     }
 }

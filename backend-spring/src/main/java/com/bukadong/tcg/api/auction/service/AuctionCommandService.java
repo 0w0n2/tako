@@ -1,6 +1,5 @@
 package com.bukadong.tcg.api.auction.service;
 
-import com.bukadong.tcg.api.auction.converter.AuctionBidUnitConverter;
 import com.bukadong.tcg.api.auction.dto.request.AuctionCreateRequest;
 import com.bukadong.tcg.api.auction.dto.response.AuctionCreateResponse;
 import com.bukadong.tcg.api.auction.entity.Auction;
