@@ -75,7 +75,6 @@ public class AdminCategoryMajorController {
      * @PARAM majorId 대분류 ID
      * @RETURN BaseResponse<Void>
      */
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @Operation(summary = "대분류 삭제", description = "카테고리 대분류를 삭제합니다. (ADMIN)")
     @DeleteMapping("/{majorId}")
     public BaseResponse<Void> delete(
