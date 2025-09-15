@@ -1,6 +1,8 @@
 package com.bukadong.tcg.api.auction.entity;
 
+import com.bukadong.tcg.api.auction.converter.AuctionBidUnitConverter;
 import com.bukadong.tcg.api.card.entity.Card;
+import com.bukadong.tcg.api.card.entity.CardAiGrade;
 import com.bukadong.tcg.api.card.entity.PhysicalCard;
 import com.bukadong.tcg.api.category.entity.CategoryMajor;
 import com.bukadong.tcg.api.category.entity.CategoryMedium;
@@ -83,10 +85,10 @@ public class Auction extends BaseEntity {
     @JoinColumn(name = "category_medium_id", nullable = false, foreignKey = @ForeignKey(name = "FK_auction_category_medium"))
     private CategoryMedium categoryMedium;
 
-    /** 카드 컨디션 등급 (예: PS/NM 등 2자리) */
-    @Size(min = 1, max = 2)
-    @Column(name = "grade", nullable = false, length = 2)
-    private String grade;
+    /** 카드 AI 등급 FK -> grade_id */
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "grade_id", nullable = false, foreignKey = @ForeignKey(name = "FK_auction_card_ai_grade"))
+    private CardAiGrade grade;
 
     /** 경매 코드 (외부 식별자) */
     @Size(min = 1, max = 40)
@@ -119,7 +121,7 @@ public class Auction extends BaseEntity {
 
     /** 입찰 단위 (예: 0.01/0.1/0.3/0.5/1/5/10) */
     @NotNull
-    @Convert(converter = com.bukadong.tcg.api.auction.converter.AuctionBidUnitConverter.class)
+    @Convert(converter = AuctionBidUnitConverter.class)
     @Column(name = "bid_unit", nullable = false, length = 10)
     private AuctionBidUnit bidUnit;
 

@@ -41,8 +41,9 @@ public class AuctionDetailRepositoryImpl implements AuctionDetailRepository {
 
     @Override
     public AuctionInfo mapAuctionInfo(Auction a) {
-        return AuctionInfo.builder().id(a.getId()).title(a.getTitle()).detail(a.getDetail()).grade(a.getGrade())
-                .code(a.getCode()).startPrice(a.getStartPrice()).currentPrice(a.getCurrentPrice())
+        return AuctionInfo.builder().id(a.getId()).title(a.getTitle()).detail(a.getDetail())
+                .grade(a.getGrade() != null ? a.getGrade().getGradeCode() : null).code(a.getCode())
+                .startPrice(a.getStartPrice()).currentPrice(a.getCurrentPrice())
                 .bidUnit(a.getBidUnit() != null ? new BigDecimal(a.getBidUnit().value()) : null)
                 .startDatetime(a.getStartDatetime()).endDatetime(a.getEndDatetime()).end(a.isEnd())
                 .buyNowFlag(a.isBuyNowFlag()).buyNowPrice(a.getBuyNowPrice()).extensionFlag(a.isExtensionFlag())
@@ -130,9 +131,9 @@ public class AuctionDetailRepositoryImpl implements AuctionDetailRepository {
 
         // 3) 프로필 이미지 조회 (대표 이미지만 1개)
         String profileImageUrl = mediaUrlService
-                .getPresignedImageUrls(MediaType.MEMBER_PROFILE, sellerId, Duration.ofMinutes(5))
-                .stream().findFirst().orElse(null);
-                
+                .getPresignedImageUrls(MediaType.MEMBER_PROFILE, sellerId, Duration.ofMinutes(5)).stream().findFirst()
+                .orElse(null);
+
         return SellerInfo.builder().id(sellerId).nickname(nickname).reviewCount(reviewCount).reviewStarAvg(starAvg)
                 .profileImageUrl(profileImageUrl).build();
     }
