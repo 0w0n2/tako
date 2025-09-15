@@ -19,7 +19,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/v1/admin/cards")
 @RequiredArgsConstructor
-// @PreAuthorize("hasAuthority('ROLE_ADMIN')")
 public class AdminCardController {
 
     private final AdminCardService adminCardService;
