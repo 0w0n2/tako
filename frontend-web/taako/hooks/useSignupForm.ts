@@ -62,6 +62,31 @@ export function useSignupForm() {
   const [nicknameError, setNicknameError] = useState<string | null>(null);
   const [nicknameLoading, setNicknameLoading] = useState(false);
 
+  // 닉네임 형식 검사: 영문/한글/숫자만 허용, 길이 2~10
+  const isValidNickname = (value: string) => {
+    const trimmed = value.trim();
+    return /^[0-9A-Za-z가-힣]{2,10}$/.test(trimmed);
+  };
+
+  // 닉네임 입력 시 즉시 검증하여 메시지 표시
+  useEffect(() => {
+    if (!nickname) {
+      setNicknameError(null);
+      setIsNicknameAvailable(null);
+      return;
+    }
+
+    if (!isValidNickname(nickname)) {
+      setNicknameError("닉네임은 2~10자의 영문/한글/숫자만 가능합니다.");
+      setIsNicknameAvailable(null);
+      return;
+    }
+
+    // 형식이 유효하면 에러 제거하고 사용 가능 메시지 표시
+    setNicknameError(null);
+    setIsNicknameAvailable(true);
+  }, [nickname]);
+
   // 이메일 형식 검사
   const isValidEmail = (email: string) => {
     const trimmed = email.trim();
@@ -112,8 +137,15 @@ export function useSignupForm() {
   
     try {
       setNicknameLoading(true);
+      // 형식 재검증 후 부적합하면 종료
+      if (!isValidNickname(nickname)) {
+        setNicknameError("닉네임은 2~10자의 영문/한글/숫자만 가능합니다.");
+        setIsNicknameAvailable(null);
+        return;
+      }
+      // 형식 유효하면 일단 사용 가능으로 유지
       setNicknameError(null);
-      setIsNicknameAvailable(null);
+      setIsNicknameAvailable(true);
   
       const result = await checkNicknameDuplicate(nickname);
         // console.log(result)
