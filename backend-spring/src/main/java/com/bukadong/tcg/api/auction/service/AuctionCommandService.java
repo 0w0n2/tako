@@ -24,6 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 /**
  * 경매 생성 서비스
@@ -61,38 +63,37 @@ public class AuctionCommandService {
      * @RETURN AuctionCreateResponse(auctionId만)
      */
     @Transactional
-    public AuctionCreateResponse create(AuctionCreateRequest request, Member me, List<MultipartFile> files,
+    public AuctionCreateResponse create(AuctionCreateRequest requestDto, Member me, List<MultipartFile> files,
             String dir) {
 
         // 필수 엔티티 로드 (DB 의존 검증)
-        CardAiGrade grade = cardAiGradeRepository.findByHash(request.getGradeHash())
+        CardAiGrade grade = cardAiGradeRepository.findByHash(requestDto.getGradeHash())
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.AUCTION_GRADE_NOT_FOUND));
 
-        Card card = cardRepository.findById(request.getCardId())
+        Card card = cardRepository.findById(requestDto.getCardId())
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.AUCTION_CARD_NOT_FOUND));
 
-        CategoryMajor major = categoryMajorRepository.findById(request.getCategoryMajorId())
+        CategoryMajor major = categoryMajorRepository.findById(requestDto.getCategoryMajorId())
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.AUCTION_CATEGORY_MAJOR_NOT_FOUND));
 
-        CategoryMedium medium = categoryMediumRepository.findById(request.getCategoryMediumId())
+        CategoryMedium medium = categoryMediumRepository.findById(requestDto.getCategoryMediumId())
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.AUCTION_CATEGORY_MEDIUM_NOT_FOUND));
 
         // Auction 생성/저장 (PhysicalCard는 현재 미구현 → null)
-        AuctionBidUnit bidUnit = AuctionBidUnit.fromValue(request.getBidUnit());
-        if (request.getEndDatetime().isBefore(request.getStartDatetime())) {
+        AuctionBidUnit bidUnit = AuctionBidUnit.fromValue(requestDto.getBidUnit());
+        if (requestDto.getEndDatetime().isBefore(requestDto.getStartDatetime())) {
             throw new BaseException(BaseResponseStatus.AUCTION_DATE_INVALID);
         }
         int durationDays = Math.max(1,
-                (int) java.time.Duration.between(request.getStartDatetime(), request.getEndDatetime()).toDays());
+                (int) java.time.Duration.between(requestDto.getStartDatetime(), requestDto.getEndDatetime()).toDays());
 
         Auction auction = Auction.builder().member(me).delivery(null).physicalCard(null) // ← 명시적으로 null
-                .card(card).categoryMajor(major).categoryMedium(medium).grade(grade)
-                .code(java.util.UUID.randomUUID().toString()).title(request.getTitle()).detail(request.getDetail())
-                .startPrice(request.getStartPrice())
-                .currentPrice(java.util.Optional.ofNullable(request.getCurrentPrice()).orElse(request.getStartPrice()))
-                .bidUnit(bidUnit).startDatetime(request.getStartDatetime()).endDatetime(request.getEndDatetime())
-                .durationDays(durationDays).isEnd(false).buyNowFlag(request.isBuyNowFlag())
-                .buyNowPrice(request.getBuyNowPrice()).extensionFlag(true).taxFlag(false).build();
+                .card(card).categoryMajor(major).categoryMedium(medium).grade(grade).code(UUID.randomUUID().toString())
+                .title(requestDto.getTitle()).detail(requestDto.getDetail()).startPrice(requestDto.getStartPrice())
+                .currentPrice(Optional.ofNullable(requestDto.getCurrentPrice()).orElse(requestDto.getStartPrice()))
+                .bidUnit(bidUnit).startDatetime(requestDto.getStartDatetime()).endDatetime(requestDto.getEndDatetime())
+                .durationDays(durationDays).isEnd(false).buyNowFlag(requestDto.isBuyNowFlag())
+                .buyNowPrice(requestDto.getBuyNowPrice()).extensionFlag(true).taxFlag(false).build();
 
         Auction saved = auctionRepository.save(auction);
 
