@@ -10,10 +10,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.PersistenceException;
 import jakarta.persistence.PessimisticLockException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.LockAcquisitionException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.TransientDataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,7 +40,7 @@ public class BidEventApplyService {
     private final AuctionLockRepository auctionLockRepository;
     private final AuctionBidRepository auctionBidRepository;
     private final AuctionCacheService auctionCacheService;
-    private final ObjectMapper om = new ObjectMapper();
+    private final ObjectMapper om;
 
     @PersistenceContext
     private EntityManager em;
@@ -59,8 +61,13 @@ public class BidEventApplyService {
             n = om.readTree(json);
         } catch (Exception e) {
             // 포맷 오류는 영구 실패 → 버림(사망 큐로 보낼 필요 없음)
-            log.error("JSON parsing failed: {}", json, e);
-            return;
+            throw new NonRetryableException("BAD_JSON", e);
+        }
+
+        // 필수 필드 검증
+        if (!n.hasNonNull("auctionId") || !n.hasNonNull("memberId") || !n.hasNonNull("bidPrice")
+                || !n.hasNonNull("eventId")) {
+            throw new NonRetryableException("BAD_PAYLOAD_FIELDS");
         }
 
         Long auctionId = n.get("auctionId").asLong();
@@ -76,7 +83,6 @@ public class BidEventApplyService {
         }
 
         BigDecimal bid = new BigDecimal(bidStr);
-
         try {
             // 행락
             Auction auction = auctionLockRepository.findByIdForUpdate(auctionId).orElse(null);
@@ -94,7 +100,7 @@ public class BidEventApplyService {
                 auctionBidRepository.save(ab);
                 return;
             }
-            // 2) ACCEPT 이벤트인데 경매가 없으면 → 비재시도(dead-letter)
+            // ACCEPT 이벤트인데 경매가 없으면 DLQ
             if (auction == null) {
                 log.error("ACCEPT event but auction missing: auctionId={}, eventId={}", auctionId, eventId);
                 throw new NonRetryableException("AUCTION_NOT_FOUND:" + auctionId);
@@ -106,35 +112,45 @@ public class BidEventApplyService {
                     .status(AuctionBidStatus.VALID).eventId(eventId).build();
             auctionBidRepository.save(ab);
 
-            auction.changeCurrentPrice(bid);
-            auctionCacheService.overwritePrice(auctionId, bid.toPlainString());
-
+            auction.changeCurrentPrice(bid); // DB 현재가 갱신
+            auctionCacheService.overwritePrice(auctionId, bid.toPlainString()); // Redis 캐시 보정(상승만 반영)
         } catch (PessimisticLockException | LockAcquisitionException e) {
-            // 락 경합 등 일시 실패 → 재시도
-            throw new RetryableException("Lock contention", e);
+            // 락 경합 등 일시 오류 → 재시도
+            throw new RetryableException("LOCK_CONTENTION", e);
         } catch (TransientDataAccessException e) {
-            // 일시적 데이터 접근 오류 → 재시도
-            throw new RetryableException("Transient DB error", e);
+            // 일시적 DB 접근 오류 → 재시도
+            throw new RetryableException("TRANSIENT_DB_ERROR", e);
+        } catch (DataIntegrityViolationException | PersistenceException e) {
+            // 제약 위반/영구 오류 → FAILED 기록 시도 후 DLQ
+            safelyRecordFailed(auctionId, memberId, bid, eventId, "DB_CONSTRAINT");
+            throw new NonRetryableException("DB_CONSTRAINT", e);
         } catch (NonRetryableException non) {
-            throw non; // 그대로 전파 → dead-letter
+            // 위에서 명시적으로 분류된 영구 실패
+            throw non;
         } catch (Exception ex) {
-            // 기타 예외: 경매가 실제 존재할 때만 FAILED 기록(없으면 FK 위반 위험)
-            log.error("Bid DB apply failed, eventId={}, err={}", eventId, ex.toString());
-            if (!auctionBidRepository.existsByEventId(eventId)) {
-                Auction auctionExists = em.find(Auction.class, auctionId);
-                if (auctionExists != null) {
-                    AuctionBid fail = AuctionBid.builder().auction(auctionExists)
-                            .member(em.getReference(Member.class, memberId)).bidPrice(bid)
-                            .status(AuctionBidStatus.FAILED).eventId(eventId).reasonCode("DB_ERROR").build();
-                    auctionBidRepository.save(fail);
-                } else {
-                    // 경매 미존재면 기록 생략(죽은 부모 FK 방지)
-                    log.warn("Skip FAILED record because auction missing: auctionId={}, eventId={}", auctionId,
-                            eventId);
-                }
-            }
-            // 영구 실패로 간주 → dead-letter
-            throw new NonRetryableException("UNEXPECTED_ERROR:" + ex.getClass().getSimpleName(), ex);
+            // 예기치 못한 오류 → FAILED 기록 시도 후 DLQ
+            safelyRecordFailed(auctionId, memberId, bid, eventId, "UNEXPECTED");
+            throw new NonRetryableException("UNEXPECTED", ex);
+        }
+    }
+
+    /**
+     * FAILED 레코드 안전 기록 (절대 2차 예외 던지지 않음)
+     */
+    private void safelyRecordFailed(Long auctionId, Long memberId, BigDecimal bid, String eventId, String code) {
+        try {
+            if (auctionBidRepository.existsByEventId(eventId))
+                return;
+            Auction a = em.find(Auction.class, auctionId);
+            if (a == null)
+                return; // 부모 FK 보호
+            Member m = em.find(Member.class, memberId);
+            if (m == null)
+                return; // member FK 보호(컬럼이 NOT NULL일 수 있으므로 스킵)
+            auctionBidRepository.save(AuctionBid.builder().auction(a).member(m).bidPrice(bid)
+                    .status(AuctionBidStatus.FAILED).reasonCode(code).eventId(eventId).build());
+        } catch (Exception ignore) {
+            // 기록 실패도 무시 (로그 노이즈/2차 실패 방지)
         }
     }
 
