@@ -268,6 +268,8 @@ pipeline {
                 docker compose --env-file deploy/.env.dev -f "$COMPOSE_AI_FILE" pull || true
                 docker compose --env-file deploy/.env.dev -f "$COMPOSE_AI_FILE" up -d --build tako_ai
               '''
+          } else {
+              echo "No deploy target matched for source branch: ${dev_source}"
           }
         }
       }
