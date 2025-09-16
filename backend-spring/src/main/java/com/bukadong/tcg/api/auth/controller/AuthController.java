@@ -64,4 +64,11 @@ public class AuthController {
     public BaseResponse<RandomNicknameResponseDto> randomNickname() {
         return BaseResponse.onSuccess(RandomNicknameResponseDto.toDto(nicknameService.getRandomNickname()));
     }
+
+    @Operation(summary = "이메일 인증코드 발급/전송 API",
+            description = "회원가입/분실 비밀번호 재설정 공용 사용")
+    @PostMapping("/email/verification")
+    public BaseResponse<?> sendEmailWithCode() {
+        return BaseResponse.onSuccess();
+    }
 }
