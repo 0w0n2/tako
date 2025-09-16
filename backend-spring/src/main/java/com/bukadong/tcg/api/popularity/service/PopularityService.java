@@ -156,7 +156,7 @@ public class PopularityService {
                 double score = (t.getScore() != null) ? t.getScore() : 0.0;
                 Card card = (cardId != null) ? cardMap.get(cardId) : null;
 
-                String rarity = Rarity.DEFAULT.name();
+                String rarity = Rarity.COMMON.name();
                 if (card != null && card.getRarity() != null) {
                     rarity = card.getRarity().name();
                 }

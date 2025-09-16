@@ -56,9 +56,9 @@ public class Card extends BaseEntity {
     @Column(name = "description", nullable = false, columnDefinition = "TEXT")
     private String description;
 
-    /** 희귀도 (A/B/C/DEFAULT) - not null, 기본값 DEFAULT */
+    /** 희귀도 - not null, 기본값 COMMON */
     @Enumerated(EnumType.STRING)
-    @Column(name = "rarity", nullable = false, length = 20, columnDefinition = "varchar(20) default 'DEFAULT'")
+    @Column(name = "rarity", nullable = false, length = 40, columnDefinition = "varchar(20) default 'COMMON'")
     private Rarity rarity;
 
     /** 속성 (ROCK, PAPER, SCISSORS) */
@@ -77,7 +77,7 @@ public class Card extends BaseEntity {
     @PrePersist
     void prePersistCard() {
         if (this.rarity == null) {
-            this.rarity = Rarity.DEFAULT;
+            this.rarity = Rarity.COMMON;
         }
     }
 }
