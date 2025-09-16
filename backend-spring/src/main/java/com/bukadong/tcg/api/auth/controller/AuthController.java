@@ -29,6 +29,7 @@ public class AuthController {
     private final SignUpService signUpService;
     private final NicknameService nicknameService;
 
+
     @Operation(summary = "일반 로그인 API")
     @PostMapping("/sign-in")
     public BaseResponse<Void> signIn(@Valid @RequestBody SignInRequestDto requestDto, HttpServletResponse response) {
