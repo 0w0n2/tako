@@ -103,7 +103,8 @@ public class AuctionCancelService {
             // 이미 종료 등
             throw new BaseException(BaseResponseStatus.AUCTION_CONFLICT);
         }
-
+        LocalDateTime now = LocalDateTime.now(KST);
+        // 트랜잭션 커밋 이후 Redis is_end=1로 동기화
         afterCommitMarkRedisEnded(auctionId);
 
         return AuctionCancelResponse.builder().auctionId(auctionId).cancelledBy("ADMIN").cancelledAt(now).build();
