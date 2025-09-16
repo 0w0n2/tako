@@ -31,7 +31,7 @@ public class AuthEmailController {
     @Operation(summary = "이메일 인증코드 발급/전송 API",
             description = "회원가입/분실 비밀번호 재설정 공용 사용")
     @PostMapping("/verification")
-    public BaseResponse<EmailCodeResponseDto> sendEmailWithCode(EmailCodeRequestDto requestDto) {
+    public BaseResponse<EmailCodeResponseDto> sendEmailWithCode(@Valid @RequestBody EmailCodeRequestDto requestDto) {
         MailType mailType = MailType.getMailType(requestDto.verificationType());
         VerificationCode code = mailCodeVerificationService.generateVerificationCode(requestDto.email(), MailType.getMailType(requestDto.verificationType()));
         MailContext context = new MailContext().withVerificationCode(code);
