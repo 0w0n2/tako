@@ -41,6 +41,7 @@ pipeline {
 
     COMPOSE_DEV_FILE = 'deploy/docker-compose.dev.yml'
     COMPOSE_PROD_FILE = 'deploy/docker-compose.prod.yml'
+    COMPOSE_AI_FILE = 'deploy/docker-compose.ai.yml'
   }
 
   stages {
@@ -79,10 +80,10 @@ pipeline {
         sh '''
           set -eu
 
-          MR_TITLE_COMMON='^\\[(🔀|⛑️|🛫)\\s+(FE|BE|INFRA)\\]\\s+.+$'
-          MR_TITLE_DEV='^\\[🔀\\s+(FE|BE|INFRA)\\]\\s+.+$'
-          MR_TITLE_HOT='^\\[⛑️\\s+(FE|BE|INFRA)\\]\\s+.+$'
-          MR_TITLE_REL='^\\[🛫\\s+(FE|BE|INFRA)\\]\\s+.+$'
+          MR_TITLE_COMMON='^\\[(🔀|⛑️|🛫)\\s+(FE|BE|INFRA|AI|BC)\\]\\s+.+$'
+          MR_TITLE_DEV='^\\[🔀\\s+(FE|BE|INFRA|AI|BC)\\]\\s+.+$'
+          MR_TITLE_HOT='^\\[⛑️\\s+(FE|BE|INFRA|AI|BC)\\]\\s+.+$'
+          MR_TITLE_REL='^\\[🛫\\s+(FE|BE|INFRA|AI|BC)\\]\\s+.+$'
 
           RELEASE_REGEX='v[0-9]+\\.[0-9]+\\.[0-9]+(-\\S+)?$'
 
@@ -264,9 +265,11 @@ pipeline {
               sh ''' 
                 set -eux
 
-                docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" pull || true
-                docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" up -d --build tako_ai_dev
+                docker compose --env-file deploy/.env.dev -f "$COMPOSE_AI_FILE" pull || true
+                docker compose --env-file deploy/.env.dev -f "$COMPOSE_AI_FILE" up -d --build tako_ai
               '''
+          } else {
+              echo "No deploy target matched for source branch: ${dev_source}"
           }
         }
       }
@@ -397,9 +400,10 @@ pipeline {
           set -eux
 
           docker compose --env-file deploy/.env.prod -f "$COMPOSE_PROD_FILE" pull || true
+          docker compose --env-file deploy/.env.prod -f "$COMPOSE_AI_FILE" pull || true
           docker compose --env-file deploy/.env.prod -f "$COMPOSE_PROD_FILE" up -d --build tako_back
           docker compose --env-file deploy/.env.prod -f "$COMPOSE_PROD_FILE" up -d --build tako_front
-          docker compose --env-file deploy/.env.prod -f "$COMPOSE_PROD_FILE" up -d --build tako_ai
+          docker compose --env-file deploy/.env.prod -f "$COMPOSE_AI_FILE" up -d --build tako_ai
           '''
         }
       }
