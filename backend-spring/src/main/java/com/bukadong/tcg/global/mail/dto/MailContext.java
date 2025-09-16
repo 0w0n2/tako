@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import static com.bukadong.tcg.global.constant.MailConstants.*;
+import static com.bukadong.tcg.global.mail.constants.MailConstants.*;
 
 public class MailContext {
 

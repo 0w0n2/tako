@@ -1,4 +1,4 @@
-package com.bukadong.tcg.global.constant;
+package com.bukadong.tcg.global.mail.constants;
 
 import java.time.Duration;
 

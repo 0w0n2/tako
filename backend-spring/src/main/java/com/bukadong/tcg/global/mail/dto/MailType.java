@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.util.StringUtils;
 
-import static com.bukadong.tcg.global.constant.MailConstants.*;
+import static com.bukadong.tcg.global.mail.constants.MailConstants.*;
 
 import java.util.Locale;
 import java.util.Map;

@@ -1,11 +1,13 @@
-package com.bukadong.tcg.global.mail.dto;
+package com.bukadong.tcg.global.mail.provider;
 
 import com.bukadong.tcg.global.common.base.BaseResponseStatus;
 import com.bukadong.tcg.global.common.exception.BaseException;
+import com.bukadong.tcg.global.mail.dto.MailContext;
+import com.bukadong.tcg.global.mail.dto.VerificationCode;
 import com.bukadong.tcg.global.properties.WebUrlProperties;
 import lombok.RequiredArgsConstructor;
 
-import static com.bukadong.tcg.global.constant.MailConstants.*;
+import static com.bukadong.tcg.global.mail.constants.MailConstants.*;
 
 import java.util.Map;
 
