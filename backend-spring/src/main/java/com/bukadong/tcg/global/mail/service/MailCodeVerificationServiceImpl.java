@@ -56,7 +56,7 @@ public class MailCodeVerificationServiceImpl implements MailCodeVerificationServ
             return EmailCodeConfirmResponseDto.toDto(false, true); // 만료 O
         }
         boolean isMatch = redisCode.toString().equals(requestDto.code());
-        // redisUtils.deleteValue(redisKey);   // 1회 검증 후엔 만료 처리 (필요 시 주석 해제)
+        redisUtils.deleteValue(redisKey);   // 1회 검증 후엔 만료 처리 (필요 시 주석 해제)
         return EmailCodeConfirmResponseDto.toDto(isMatch, false);
     }
 
