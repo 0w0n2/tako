@@ -118,6 +118,7 @@ public enum BaseResponseStatus {
     INQUIRY_NOT_FOUND(HttpStatus.NOT_FOUND, false, 904, "문의가 존재하지 않습니다."),
     INQUIRY_ANSWER_NOT_FOUND(HttpStatus.NOT_FOUND, false, 904, "문의 답변이 존재하지 않습니다."),
     INQUIRY_AUCTION_NOT_FOUND(HttpStatus.NOT_FOUND, false, 904, "존재하지 않는 경매입니다."),
+
     /**
      * 1000: 미디어 Error
      */
@@ -160,7 +161,13 @@ public enum BaseResponseStatus {
      */
     CARD_RARITY_UNSUPPORTED(HttpStatus.BAD_REQUEST, false, 1200, "지원하지 않는 유형의 카드 희귀도입니다."),
     CARD_ATTRIBUTE_UNSUPPORTED(HttpStatus.BAD_REQUEST, false, 1201, "지원하지 않는 유형의 카드 속성입니다."),
-    CARD_NAME_DUPLICATED(HttpStatus.CONFLICT, false, 1202, "중복된 카드 이름은 등록할 수 없습니다.");
+    CARD_NAME_DUPLICATED(HttpStatus.CONFLICT, false, 1202, "중복된 카드 이름은 등록할 수 없습니다."),
+
+    /**
+     * 1300: 메일(SMTP) Error
+     */
+    MAIL_UNSUPPORTED_TYPE(HttpStatus.BAD_REQUEST, false, 1300, "지원하지 않는 메일 타입입니다."),
+    MAIL_SEND_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, false, 1301, "메일 발송에 실패했습니다.");
 
     private final HttpStatusCode httpStatusCode;
     private final boolean isSuccess;

@@ -8,6 +8,8 @@ services:
       "--character-set-server=utf8mb4",
       "--collation-server=utf8mb4_unicode_ci"
     ]
+    expose:
+      - "3306"
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
       MYSQL_DATABASE: tcg
@@ -15,6 +17,9 @@ services:
       MYSQL_PASSWORD: ${DB_PASSWORD}
     volumes:
       - mysql_prod_data:/var/lib/mysql
+    mem_limit: 1536m
+    memswap_limit: 1536m
+    cpus: "1.0"
     restart: unless-stopped
     networks:
       - e104_net
@@ -23,21 +28,29 @@ services:
     image: redis:8.0
     container_name: redis_prod
     command: ["redis-server","--maxmemory","128mb","--maxmemory-policy","volatile-lru"]
+    expose:
+      - "6379"
     volumes:
       - redis_prod_data:/data
+    mem_limit: 256m
+    memswap_limit: 256m
+    cpus: "0.2"
     restart: unless-stopped
     networks:
       - e104_net
 
   tako_back:
-    # prod에선 레지스트리 이미지를 쓰려면 아래처럼 image로 교체하면 됨:
-    # image: seok1419/backend_app:latest
     build:
       context: ../backend-spring
       dockerfile: Dockerfile
     container_name: tako_back
+    expose:
+      - "8080"
     env_file:
-      - .env.prod
+      - .env.prod'
+    mem_limit: 1536m
+    memswap_limit: 1536m
+    cpus: "1.2"
     depends_on:
       - mysql_prod
       - redis_prod
@@ -53,20 +66,13 @@ services:
       args:
         APP_STAGE: "prod"
     container_name: tako_front
+    expose:
+      - "3000"
     env_file:
       - .env.prod
-    restart: unless-stopped
-    networks:
-      - e104_net
-
-  tako_ai:
-    # image: seok1419/ai-fastapi:latest
-    build:
-      context: ../backend-fastapi
-      dockerfile: Dockerfile
-    container_name: tako_ai
-    env_file:
-      - .env.prod
+    mem_limit: 512m
+    memswap_limit: 512m
+    cpus: "0.2"
     restart: unless-stopped
     networks:
       - e104_net
