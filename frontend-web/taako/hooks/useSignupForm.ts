@@ -1,7 +1,7 @@
 'use client';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from "react";
-import { checkEmailDuplicate, checkNicknameDuplicate, signup } from "@/lib/auth/signup";
+import { authenticationConfirmEmail, authenticationEmail, checkEmailDuplicate, checkNicknameDuplicate, signup } from "@/lib/auth/signup";
 
 export function useSignupForm() {
   const router = useRouter();
@@ -15,6 +15,8 @@ export function useSignupForm() {
   const [isEmailAvailable, setIsEmailAvailable] = useState<boolean | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [emailLoading, setEmailLoading] = useState(false);
+  const [emailConfirm, setEmailConfirm] = useState(false);
+  const [emailExpired, setEmailExpired] = useState(false);
   
   // 인증번호 카운트다운 관련
   const [expiredAt, setExpiredAt] = useState<string | null>(null);
@@ -23,7 +25,23 @@ export function useSignupForm() {
   
   useEffect(() => {
     if (!expiredAt) return;
-    const endTime = new Date(expiredAt).getTime();
+
+    // ISO 문자열에 나노초(최대 9자리)가 포함된 경우를 안전하게 파싱하여 ms 단위로 변환
+    const parseIsoToMs = (input: string): number => {
+      const match = input.match(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(?:\.(\d{1,9}))?(Z|[+-]\d{2}:?\d{2})?$/);
+      if (match) {
+        const base = match[1];
+        const frac = (match[2] ?? '').slice(0, 3).padEnd(3, '0'); // ms로 보정
+        const tz = match[3] ?? 'Z';
+        const iso = frac ? `${base}.${frac}${tz}` : `${base}${tz}`;
+        return new Date(iso).getTime();
+      }
+      // 기본 파싱 시도
+      const t = new Date(input).getTime();
+      return isNaN(t) ? 0 : t;
+    };
+
+    const endTime = parseIsoToMs(expiredAt);
 
     const update = () => {
       const diff = Math.max(0, Math.floor((endTime - Date.now()) / 1000));
@@ -113,12 +131,7 @@ export function useSignupForm() {
       const result = await checkEmailDuplicate(email);
       console.log(result)
       setIsEmailAvailable(result.result.available);
-      
-      // 이메일 인증 로직 실행
-      // if (result.result.available) {
-      //  const authRes = await authenticationEmail(email, "SIGN_UP");
-      //  setExpiredAt(authRes.expiredAt);
-      //}
+
     } catch (err: any) {
         console.log(err.message)
       setEmailError("중복 확인 요청 중 오류가 발생했습니다.");
@@ -126,6 +139,30 @@ export function useSignupForm() {
       setEmailLoading(false);
     }
   };
+
+  // 이메일 인증 체크
+  const handleVerificationEmail = async (verificationType:string) => {
+    try{
+        const res = await authenticationEmail(email, verificationType);
+        //console.log(res)
+        setExpiredAt(res.result.expiredAt);
+    }catch(err){
+      console.log(err)
+    }
+  }
+
+  // 이메일 인증 코드 검증
+  const handleVerificationEmailConfirm = async(verificationType:string, code:string)=>{
+    try{
+      const res = await authenticationConfirmEmail(email, verificationType, code);
+      console.log(res)
+      // 인증 성공과 만료여부
+      setEmailConfirm(res.result.verified);
+      setEmailExpired(res.result.expired);
+    }catch(err){
+      console.log(err)
+    }
+  }
 
   // 닉네임 중복 체크
   const handleCheckNickname = async () => {
@@ -184,7 +221,6 @@ export function useSignupForm() {
         alert("회원가입에 성공했습니다.")
         router.push('/');
       }
-      
     } catch (err) {
       alert('회원가입 중 오류가 발생했습니다.');
     } finally {
@@ -197,8 +233,10 @@ export function useSignupForm() {
       isSocial, providerName,
       // 이메일
       email, setEmail, isEmailAvailable, emailError, emailLoading, handleCheckEmail,
+      // 인증, 인증확인
+      handleVerificationEmail, handleVerificationEmailConfirm, emailConfirm, emailExpired, expiredAt,
       // 인증번호 카운트다운
-      expiredAt, timeLeft, formatted,
+      timeLeft, formatted,
       // 비밀번호
       password, passwordErrorMessage, setPassword, confirmPassword, setConfirmPassword,
       // 닉네임
