@@ -16,7 +16,7 @@ import java.util.function.Function;
 @RequiredArgsConstructor
 public enum MailType {
 
-    SIGN_UP_EMAIL_VERIFICATION(
+    SIGN_UP_MAIL_VERIFICATION(
             // TODO-MAIL: 이메일 템플릿 로고 이미지를 S3 메인 로고로 교체
             "[TAKO] 이메일 인증을 완료해주세요",
             values -> """
@@ -60,7 +60,7 @@ public enum MailType {
                     """.formatted(values.get(MAIN_URL_KEY), values.get(LOGO_IMAGE_URL_KEY), values.get(CODE_KEY))
     ),
 
-    PASSWORD_RESET_EMAIL_VERIFICATION(
+    PASSWORD_RESET_MAIL_VERIFICATION(
             "[TAKO] 비밀번호 재설정을 완료해주세요",
             values -> """
                     <html><body><div><table border="0" cellpadding="0"

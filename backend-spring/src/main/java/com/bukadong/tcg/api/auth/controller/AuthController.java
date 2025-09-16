@@ -11,6 +11,7 @@ import com.bukadong.tcg.global.common.base.BaseResponse;
 
 import static com.bukadong.tcg.global.constant.SecurityConstants.*;
 
+import com.bukadong.tcg.global.mail.dto.MailContext;
 import com.bukadong.tcg.global.mail.dto.MailType;
 import com.bukadong.tcg.global.mail.dto.VerificationCode;
 import com.bukadong.tcg.global.mail.service.MailCodeVerificationService;
@@ -76,11 +77,10 @@ public class AuthController {
             description = "회원가입/분실 비밀번호 재설정 공용 사용")
     @PostMapping("/email/verification")
     public BaseResponse<?> sendEmailWithCode(EmailVerificationRequestDto requestDto) {
-        MailType mailType = MailType.getMailType(requestDto.email());
+        MailType mailType = MailType.getMailType(requestDto.verificationType());
         VerificationCode code = mailCodeVerificationService.generateVerificationCode(requestDto.email());
-        mailSendService.sendHtmlMail(requestDto.email(),
-                mailType,
-                );
+        MailContext context = new MailContext().withVerificationCode(code);
+        mailSendService.sendMail(requestDto.email(), mailType, context);
 
         return BaseResponse.onSuccess();
     }
