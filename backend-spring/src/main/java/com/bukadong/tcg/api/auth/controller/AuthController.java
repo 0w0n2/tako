@@ -5,6 +5,7 @@ import com.bukadong.tcg.api.auth.dto.request.SignInRequestDto;
 import com.bukadong.tcg.api.auth.dto.request.SignUpRequestDto;
 import com.bukadong.tcg.api.auth.dto.response.RandomNicknameResponseDto;
 import com.bukadong.tcg.api.auth.service.NicknameService;
+import com.bukadong.tcg.api.auth.service.PasswordResetService;
 import com.bukadong.tcg.api.auth.service.TokenAuthService;
 import com.bukadong.tcg.api.auth.service.SignUpService;
 import com.bukadong.tcg.api.member.service.MemberQueryService;
@@ -30,7 +31,7 @@ public class AuthController {
     private final TokenAuthService tokenAuthService;
     private final SignUpService signUpService;
     private final NicknameService nicknameService;
-    private final MemberQueryService memberQueryService;
+    private final PasswordResetService passwordResetService;
 
     @Operation(summary = "일반 로그인 API")
     @PostMapping("/sign-in")
@@ -71,7 +72,7 @@ public class AuthController {
     @Operation(summary = "분실 비밀번호 재설정 API")
     @PatchMapping("/password-resets")
     public BaseResponse<Void> passwordReset(@Valid @RequestBody PasswordResetRequestDto requestDto) {
-        memberQueryService.updatePasswordWithResetCode(requestDto);
+        passwordResetService.updatePasswordWithResetCode(requestDto);
         return BaseResponse.onSuccess();
     }
 }

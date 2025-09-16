@@ -29,8 +29,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class MemberQueryService {
 
     private final MemberRepository memberRepository;
-    private final BCryptPasswordEncoder bCryptPasswordEncoder;
-    private final RedisUtils redisUtils;
 
     /**
      * uuid로 Member 조회
@@ -42,36 +40,5 @@ public class MemberQueryService {
         return memberRepository.findByUuid(uuid).orElseThrow(() -> new BaseException(BaseResponseStatus.NOT_FOUND));
     }
 
-    /**
-     * 잃어버린 비밀번호 재설정
-     */
-    @Transactional
-    public void updatePasswordWithResetCode(PasswordResetRequestDto requestDto) {
-        verifyPasswordResetCode(requestDto.email(), requestDto.passwordResetCode());
-        updatePassword(requestDto.email(), requestDto.password());
-    }
 
-    private void updatePassword(String email, String newPassword) {
-        Member member = memberRepository.findByEmail(email)
-                .orElseThrow(() -> new BaseException(BaseResponseStatus.NO_EXIST_USER));
-
-        String encodedPassword = bCryptPasswordEncoder.encode(newPassword);
-
-        member.updatePassword(encodedPassword);
-    }
-
-    private void verifyPasswordResetCode(String email, String resetCode) {
-        String redisKey = MailConstants.PASSWORD_RESET_PREFIX + email;
-        Object redisCode = redisUtils.getValue(redisKey);
-
-        if (redisCode == null) {
-            throw new BaseException(BaseResponseStatus.PASSWORD_RESET_CODE_EXPIRED);
-        }
-
-        if (!redisCode.toString().equals(resetCode)) {
-            throw new BaseException(BaseResponseStatus.PASSWORD_RESET_CODE_MISMATCH);
-        }
-
-        redisUtils.deleteValue(redisKey);
-    }
 }
