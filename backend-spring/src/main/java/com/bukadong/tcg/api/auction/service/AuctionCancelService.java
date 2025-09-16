@@ -106,7 +106,7 @@ public class AuctionCancelService {
 
         afterCommitMarkRedisEnded(auctionId);
 
-        return AuctionCancelResponse.builder().auctionId(auctionId).cancelledBy("ADMIN").build();
+        return AuctionCancelResponse.builder().auctionId(auctionId).cancelledBy("ADMIN").cancelledAt(now).build();
     }
 
     /** 커밋 후 Redis is_end=1 동기화 */
