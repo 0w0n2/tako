@@ -1,6 +1,9 @@
 package com.bukadong.tcg.global.mail.service;
 
+import com.bukadong.tcg.api.auth.dto.request.EmailCodeConfirmRequestDto;
+import com.bukadong.tcg.api.auth.dto.response.EmailCodeConfirmResponseDto;
 import com.bukadong.tcg.api.member.repository.MemberRepository;
+import com.bukadong.tcg.global.mail.dto.MailType;
 import com.bukadong.tcg.global.mail.dto.VerificationCode;
 import com.bukadong.tcg.global.util.RedisUtils;
 import lombok.RequiredArgsConstructor;
@@ -19,34 +22,28 @@ import java.util.UUID;
 public class MailCodeVerificationService {
 
     private final RedisUtils redisUtils;
-    private final MemberRepository memberRepository;
 
-    public VerificationCode generateVerificationCode(String email) {
+    public VerificationCode generateVerificationCode(String email, MailType mailType) {
         String code = UUID.randomUUID().toString().substring(0, 6);
 
-        String redisKey = SIGNUP_CODE_PREFIX + email;
-        redisUtils.setValue(redisKey, code, signUpMailCodeExpMin);  // value: signup-code:email, key: code(UUID)
+        String redisKey = MAIL_VERIFICATION_CODE_PREFIX + mailType + ":" + email;
+        redisUtils.setValue(redisKey, code, mailCodeExpMin);  // value: signup-code:email, key: code(UUID)
 
-        String expiredAt = LocalDateTime.now().plus(signUpMailCodeExpMin)
+        String expiredAt = LocalDateTime.now().plus(mailCodeExpMin)
                 .format(DateTimeFormatter.ISO_DATE_TIME);
 
         return VerificationCode.toDto(code, expiredAt);
     }
 
-//    @Transactional(readOnly = true)
-//    public VerifyEmailResponseDto verifyEmailCode(VerifyEmailRequestDto requestDto) {
-//        String redisKey = SIGNUP_CODE_PREFIX + requestDto.getEmail();
-//        Object redisCode = redisUtils.getValue(redisKey);
-//        if (redisCode == null) { // redis 에 key 존재 X -> TTL 완료
-//            return VerifyEmailResponseDto.toDto(false, true); // 만료 O
-//        }
-//        boolean isMatch = redisCode.toString().equals(requestDto.getCode());
-//        return VerifyEmailResponseDto.toDto(isMatch, false);
-//    }
-//
-//    @Transactional(readOnly = true)
-//    public CheckEmailResponseDto checkEmail(CheckEmailRequestDto requestDto) {
-//        return CheckEmailResponseDto.toDto(memberRepository.existsByEmailAndIsDeletedIsFalse(requestDto.getEmail()));
-//    }
+    public EmailCodeConfirmResponseDto verifyEmailCode(EmailCodeConfirmRequestDto requestDto) {
+        String redisKey = MAIL_VERIFICATION_CODE_PREFIX + ":" + MailType.getMailType(requestDto.verificationType()) + requestDto.email();
+        Object redisCode = redisUtils.getValue(redisKey);
+        if (redisCode == null) { // redis 에 key 존재 X -> TTL 완료
+            return EmailCodeConfirmResponseDto.toDto(false, true); // 만료 O
+        }
+        boolean isMatch = redisCode.toString().equals(requestDto.code());
+        redisUtils.deleteValue(redisKey);   // 1회 검증 후엔 만료 처리
+        return EmailCodeConfirmResponseDto.toDto(isMatch, false);
+    }
 
 }

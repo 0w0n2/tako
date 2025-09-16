@@ -1,8 +1,11 @@
 package com.bukadong.tcg.api.auth.controller;
 
-import com.bukadong.tcg.api.auth.dto.request.EmailVerificationRequestDto;
+import com.bukadong.tcg.api.auth.dto.request.EmailCodeConfirmRequestDto;
+import com.bukadong.tcg.api.auth.dto.request.EmailCodeRequestDto;
 import com.bukadong.tcg.api.auth.dto.request.SignInRequestDto;
 import com.bukadong.tcg.api.auth.dto.request.SignUpRequestDto;
+import com.bukadong.tcg.api.auth.dto.response.EmailCodeConfirmResponseDto;
+import com.bukadong.tcg.api.auth.dto.response.EmailCodeResponseDto;
 import com.bukadong.tcg.api.auth.dto.response.RandomNicknameResponseDto;
 import com.bukadong.tcg.api.auth.service.NicknameService;
 import com.bukadong.tcg.api.auth.service.TokenAuthService;
@@ -76,12 +79,19 @@ public class AuthController {
     @Operation(summary = "이메일 인증코드 발급/전송 API",
             description = "회원가입/분실 비밀번호 재설정 공용 사용")
     @PostMapping("/email/verification")
-    public BaseResponse<?> sendEmailWithCode(EmailVerificationRequestDto requestDto) {
+    public BaseResponse<EmailCodeResponseDto> sendEmailWithCode(EmailCodeRequestDto requestDto) {
         MailType mailType = MailType.getMailType(requestDto.verificationType());
-        VerificationCode code = mailCodeVerificationService.generateVerificationCode(requestDto.email());
+        VerificationCode code = mailCodeVerificationService.generateVerificationCode(requestDto.email(), MailType.getMailType(requestDto.verificationType()));
         MailContext context = new MailContext().withVerificationCode(code);
         mailSendService.sendMail(requestDto.email(), mailType, context);
 
-        return BaseResponse.onSuccess();
+        return BaseResponse.onSuccess(EmailCodeResponseDto.toDto(code));
+    }
+
+    @Operation(summary = "이메일 인증코드 검증 API",
+            description = "회원가입/분실 비밀번호 재설정 공용 사용")
+    @PostMapping("/email/verification/confirm")
+    public BaseResponse<EmailCodeConfirmResponseDto> confirmEmailCode(@Valid @RequestBody EmailCodeConfirmRequestDto requestDto) {
+        return BaseResponse.onSuccess(mailCodeVerificationService.verifyEmailCode(requestDto));
     }
 }
