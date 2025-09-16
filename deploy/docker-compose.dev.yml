@@ -18,7 +18,8 @@ services:
     volumes:
       - mysql_dev_data:/var/lib/mysql
     mem_limit: 512m
-    cpus: "0.5"
+    memswap_limit: 512m
+    cpus: "0.2"
     restart: unless-stopped
     networks:
       - e104_net
@@ -30,7 +31,8 @@ services:
       - "6379:6379"
     command: ["redis-server","--maxmemory","128mb","--maxmemory-policy","volatile-lru"]
     mem_limit: 256m
-    cpus: "0.25"
+    memswap_limit: 256m
+    cpus: "0.1"
     volumes:
       - redis_dev_data:/data
     restart: unless-stopped
@@ -47,7 +49,8 @@ services:
     env_file:
       - .env.dev
     mem_limit: 768m
-    cpus: "0.75"
+    memswap_limit: 768m
+    cpus: "0.3"
     depends_on:
       - mysql_dev
       - redis_dev
@@ -65,7 +68,8 @@ services:
     ports:
       - "3000:3000"
     mem_limit: 256m
-    cpus: "0.25"
+    memswap_limit: 256m
+    cpus: "0.15"
     restart: unless-stopped
     networks:
       - e104_net
@@ -82,7 +86,8 @@ services:
     env_file:
       - .env.dev
     mem_limit: 512m
-    cpus: "0.5"
+    memswap_limit: 512m
+    cpus: "0.25"
     restart: unless-stopped
     networks:
       - e104_net

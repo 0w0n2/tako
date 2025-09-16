@@ -1,12 +1,16 @@
+import { useLogin } from "@/hooks/useLogin";
+
 interface LoginModalProps {
     onClose: () => void;
 }
 
 export default function LoginModal({ onClose }: LoginModalProps) {
+    const {
+        email, setEmail, password, setPassword, handleLogin,
+    } = useLogin()
+
     return (
-        <div 
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-        >
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <div 
                 className="relative bg-[#191924] rounded-lg p-6 border border-[#353535]"
                 onClick={(e) => e.stopPropagation()}
@@ -19,11 +23,16 @@ export default function LoginModal({ onClose }: LoginModalProps) {
                 </button>
                 <div className="w-80">
                     <h2 className="text-xl mb-6">로그인</h2>
-                    <form className="space-y-4">
+                    <form
+                        className="space-y-4"
+                        onSubmit={(e) => e.preventDefault()}
+                    >
                         {/* 이메일 입력 */}
                         <div>
                             <input
                                 type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                                 placeholder="이메일"
                                 className="w-full px-4 py-3 bg-[#2a2a3a] border border-[#353535] rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#863BA9]"
                             />
@@ -34,6 +43,8 @@ export default function LoginModal({ onClose }: LoginModalProps) {
                             <input
                                 type="password"
                                 placeholder="비밀번호"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
                                 className="w-full px-4 py-3 bg-[#2a2a3a] border border-[#353535] rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#863BA9]"
                             />
                         </div>
@@ -52,9 +63,7 @@ export default function LoginModal({ onClose }: LoginModalProps) {
                         <button
                             type="submit"
                             className="w-full py-3 bg-gradient-to-r rounded-lg"
-                            style={{
-                                background: 'linear-gradient(137deg, #4557BF 20%, #3A468C 100%)'
-                            }}
+                            onClick={handleLogin}
                         >
                             로그인
                         </button>

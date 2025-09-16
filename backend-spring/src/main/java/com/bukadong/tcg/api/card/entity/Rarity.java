@@ -9,17 +9,29 @@ import java.util.Locale;
 /**
  * 카드 희귀도 ENUM
  * <p>
- * A, B, C, DEFAULT 네 가지 희귀도를 표현한다.
  * </P>
  *
  * @RETURN 없음
  */
 public enum Rarity {
-    A, B, C, DEFAULT;
+    RADIANT_RARE,
+    TRAINER_GALLERY_RARE_HOLO,
+    RARE_HOLO_COSMOS,
+    RARE_HOLO_V,
+    UNCOMMON,
+    RARE_HOLO_VSTAR,
+    RARE_HOLO_VMAX,
+    COMMON,
+    RARE_HOLO,
+    AMAZING_RARE,
+    RARE_SHINY,
+    RARE_RAINBOW,
+    RARE_SECRET,
+    RARE_ULTRA;
 
     public static Rarity getRarity(String rarity) {
         if (!StringUtils.hasText(rarity)) {
-            return null; // 기본값은 DEFAULT 이나 Card 엔티티에서 처리함
+            return COMMON;
         }
         try {
             return Rarity.valueOf(rarity.toUpperCase(Locale.ROOT));
