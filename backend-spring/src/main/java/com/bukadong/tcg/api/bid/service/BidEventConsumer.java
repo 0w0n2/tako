@@ -41,10 +41,10 @@ public class BidEventConsumer {
     public void poll() {
         try {
             for (String q : scan("auction:*:bidq", 200)) {
-                // 1) retry 큐 먼저 소진
+                // retry 큐 먼저 소진
                 drain(q + ":retry", 50);
 
-                // 2) 메인 큐 드레인 (비어질 때까지 처리)
+                // 메인 큐 드레인 (비어질 때까지 처리)
                 while (true) {
                     String json = redisTemplate.opsForList().leftPop(q);
                     if (json == null)

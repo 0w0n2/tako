@@ -237,10 +237,7 @@ public class Auction extends BaseEntity {
      * 현재 가격 변경
      */
     public void changeCurrentPrice(BigDecimal newPrice) {
-        if (newPrice == null || newPrice.compareTo(BigDecimal.ZERO) < 0) {
-            throw new BaseException(BaseResponseStatus.AUCTION_CONFLICT);
-        }
-        if (this.currentPrice.compareTo(newPrice) > 0) {
+        if (newPrice == null || newPrice.compareTo(BigDecimal.ZERO) < 0 || this.currentPrice.compareTo(newPrice) > 0) {
             throw new BaseException(BaseResponseStatus.AUCTION_CONFLICT);
         }
         this.currentPrice = newPrice;
