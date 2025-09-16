@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image';
+import Image from 'next/image';
 import SearchInput from "../atoms/Input/SearchInput"
 import LoginModal from "../modals/LoginModal"
 import HeaderNavigationMenu from './HeaderNavigationMenu';
@@ -33,8 +34,25 @@ const components: { image: string; title:string}[] = [
   },
 ]
 
+const components: { image: string; title:string}[] = [
+  {
+    image:"/logo/PokemonCardGame.webp",
+    title:"Pokemon",
+  },
+  {
+    image:"/logo/YuGiOh.webp",
+    title:"YuGiOh",
+  },
+  {
+    image:"/logo/cookierunBRAVERSE.webp",
+    title:"CookieRun",
+  },
+]
+
 export default function Header() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [currentScrollY, setCurrentScrollY] = useState(0);
+  const [isHeaderOpen, setIsHeaderOpen] = useState(true);
   const [currentScrollY, setCurrentScrollY] = useState(0);
   const [isHeaderOpen, setIsHeaderOpen] = useState(true);
   const { isLoggedIn } = useAuthStore();
@@ -161,7 +179,9 @@ export default function Header() {
         </div>
       </div>
       
+      
       {isLoginModalOpen && <LoginModal onClose={() => setIsLoginModalOpen(false)} />}
+    </>
     </>
   );
 }
