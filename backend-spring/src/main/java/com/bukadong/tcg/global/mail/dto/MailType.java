@@ -1,4 +1,4 @@
-package com.bukadong.tcg.global.mail.entity;
+package com.bukadong.tcg.global.mail.dto;
 
 import com.bukadong.tcg.global.common.base.BaseResponseStatus;
 import com.bukadong.tcg.global.common.exception.BaseException;

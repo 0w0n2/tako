@@ -1,5 +1,6 @@
 package com.bukadong.tcg.api.auth.controller;
 
+import com.bukadong.tcg.api.auth.dto.request.EmailVerificationRequestDto;
 import com.bukadong.tcg.api.auth.dto.request.SignInRequestDto;
 import com.bukadong.tcg.api.auth.dto.request.SignUpRequestDto;
 import com.bukadong.tcg.api.auth.dto.response.RandomNicknameResponseDto;
@@ -10,6 +11,10 @@ import com.bukadong.tcg.global.common.base.BaseResponse;
 
 import static com.bukadong.tcg.global.constant.SecurityConstants.*;
 
+import com.bukadong.tcg.global.mail.dto.MailType;
+import com.bukadong.tcg.global.mail.dto.VerificationCode;
+import com.bukadong.tcg.global.mail.service.MailCodeVerificationService;
+import com.bukadong.tcg.global.mail.service.MailSendService;
 import com.bukadong.tcg.global.security.dto.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -28,6 +33,8 @@ public class AuthController {
     private final TokenAuthService tokenAuthService;
     private final SignUpService signUpService;
     private final NicknameService nicknameService;
+    private final MailCodeVerificationService mailCodeVerificationService;
+    private final MailSendService mailSendService;
 
     @Operation(summary = "일반 로그인 API")
     @PostMapping("/sign-in")
@@ -68,7 +75,13 @@ public class AuthController {
     @Operation(summary = "이메일 인증코드 발급/전송 API",
             description = "회원가입/분실 비밀번호 재설정 공용 사용")
     @PostMapping("/email/verification")
-    public BaseResponse<?> sendEmailWithCode() {
+    public BaseResponse<?> sendEmailWithCode(EmailVerificationRequestDto requestDto) {
+        MailType mailType = MailType.getMailType(requestDto.email());
+        VerificationCode code = mailCodeVerificationService.generateVerificationCode(requestDto.email());
+        mailSendService.sendHtmlMail(requestDto.email(),
+                mailType,
+                );
+
         return BaseResponse.onSuccess();
     }
 }
