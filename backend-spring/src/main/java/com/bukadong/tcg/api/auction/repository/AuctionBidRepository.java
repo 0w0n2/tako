@@ -15,4 +15,6 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface AuctionBidRepository extends JpaRepository<AuctionBid, Long> {
+    boolean existsByEventId(String eventId);
+
 }

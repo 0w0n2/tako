@@ -239,6 +239,9 @@ public class Auction extends BaseEntity {
         if (newPrice == null || newPrice.compareTo(BigDecimal.ZERO) < 0) {
             throw new BaseException(BaseResponseStatus.AUCTION_CONFLICT);
         }
+        if (this.currentPrice.compareTo(newPrice) > 0) {
+            throw new BaseException(BaseResponseStatus.AUCTION_CONFLICT);
+        }
         this.currentPrice = newPrice;
     }
 }
