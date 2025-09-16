@@ -1,22 +1,21 @@
-package com.bukadong.tcg.api.auction.controller;
+package com.bukadong.tcg.api.bid.controller;
 
-import com.bukadong.tcg.api.auction.dto.request.BidQueueRequest;
-import com.bukadong.tcg.api.auction.dto.response.BidResultResponse;
-import com.bukadong.tcg.api.auction.service.AuctionCacheService;
-import com.bukadong.tcg.api.auction.service.BidQueueProducer;
+import com.bukadong.tcg.api.bid.dto.request.BidQueueRequest;
+import com.bukadong.tcg.api.bid.dto.response.BidResultResponse;
+import com.bukadong.tcg.api.bid.service.AuctionCacheService;
+import com.bukadong.tcg.api.bid.service.BidQueueProducer;
 import com.bukadong.tcg.api.member.service.MemberQueryService;
 import com.bukadong.tcg.global.common.base.BaseResponse;
 import com.bukadong.tcg.global.common.base.BaseResponseStatus;
 import com.bukadong.tcg.global.security.dto.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
+import com.bukadong.tcg.api.popularity.aop.AutoPopularityBid;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -27,7 +26,7 @@ import java.time.ZoneId;
  * Redis Lua 원자 처리 + 비동기 DB 반영 경로.
  * </P>
  */
-@Tag(name = "Bids (Queue)", description = "큐 기반(비동기) 입찰 API")
+@Tag(name = "Auctions")
 @RestController
 @RequestMapping("/v1/auctions")
 @RequiredArgsConstructor
@@ -48,6 +47,7 @@ public class BidQueueController {
      * @PARAM auctionId 경매 ID
      * @RETURN BaseResponse<BidResultResponse>
      */
+    @AutoPopularityBid
     @Operation(summary = "입찰 생성(큐)", description = "Redis Lua로 원자 검증/적재 후 비동기로 DB 반영합니다.")
     @PostMapping("/{auctionId}/bids/queue")
     public BaseResponse<BidResultResponse> placeQueued(
@@ -65,6 +65,8 @@ public class BidQueueController {
             return BaseResponse.onFailure(BaseResponseStatus.AUCTION_NOT_RUNNING);
         } else if ("LOW_PRICE".equals(code)) {
             return BaseResponse.onFailure(BaseResponseStatus.AUCTION_BID_NOT_POSSIBLE_PRICE);
+        } else if ("SELF_BID".equals(code)) {
+            return BaseResponse.onFailure(BaseResponseStatus.AUCTION_BID_FORBIDDEN);
         } else if (!"OK".equals(code)) {
             return BaseResponse.onFailure(BaseResponseStatus.INTERNAL_SERVER_ERROR);
         }

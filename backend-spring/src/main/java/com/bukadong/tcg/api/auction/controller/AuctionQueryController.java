@@ -4,7 +4,6 @@ import com.bukadong.tcg.api.auction.dto.response.AuctionDetailResponse;
 import com.bukadong.tcg.api.auction.dto.response.AuctionListItemResponse;
 import com.bukadong.tcg.api.auction.repository.AuctionSort;
 import com.bukadong.tcg.api.auction.service.AuctionQueryService;
-import com.bukadong.tcg.api.popularity.aop.AutoPopularityBid;
 import com.bukadong.tcg.api.popularity.aop.AutoPopularityView;
 import com.bukadong.tcg.global.common.base.BaseResponse;
 import com.bukadong.tcg.global.common.dto.PageResponse;

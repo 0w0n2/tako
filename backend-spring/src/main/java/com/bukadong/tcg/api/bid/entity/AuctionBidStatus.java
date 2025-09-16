@@ -1,4 +1,4 @@
-package com.bukadong.tcg.api.auction.entity;
+package com.bukadong.tcg.api.bid.entity;
 
 /** 입찰 상태 */
 public enum AuctionBidStatus {

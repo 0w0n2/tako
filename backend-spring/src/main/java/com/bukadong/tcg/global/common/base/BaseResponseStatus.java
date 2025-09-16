@@ -152,6 +152,8 @@ public enum BaseResponseStatus {
     AUCTION_BID_NOT_POSSIBLE_PRICE(HttpStatus.BAD_REQUEST, false, 1118, "[현재가 + 입찰 단위]보다 높은 금액으로 입찰해야 합니다."),
     AUCTION_BID_CONFLICT(HttpStatus.BAD_REQUEST, false, 1120, "입찰이 이미 처리되었거나 충돌이 발생했습니다. 현재가를 확인해주세요."),
     AUCTION_DUPLICATE_REQUEST(HttpStatus.BAD_REQUEST, false, 1121, "이미 처리된 요청입니다. 중복 요청은 허용되지 않습니다."),
+    AUCTION_ALREADY_ENDED(HttpStatus.BAD_REQUEST, false, 1122, "이미 종료된 경매입니다."),
+    AUCTION_EXISTING_BID(HttpStatus.BAD_REQUEST, false, 1123, "입찰이 존재하는 경매는 취소할 수 없습니다."),
 
     /**
      * 1200: 카드 Error

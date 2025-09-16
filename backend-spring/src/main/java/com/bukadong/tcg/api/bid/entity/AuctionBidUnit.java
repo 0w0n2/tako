@@ -1,4 +1,4 @@
-package com.bukadong.tcg.api.auction.entity;
+package com.bukadong.tcg.api.bid.entity;
 
 import com.bukadong.tcg.global.common.exception.BaseException;
 import com.bukadong.tcg.global.common.base.BaseResponseStatus;

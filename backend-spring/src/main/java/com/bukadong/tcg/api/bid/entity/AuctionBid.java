@@ -1,5 +1,6 @@
-package com.bukadong.tcg.api.auction.entity;
+package com.bukadong.tcg.api.bid.entity;
 
+import com.bukadong.tcg.api.auction.entity.Auction;
 import com.bukadong.tcg.api.member.entity.Member;
 import jakarta.persistence.*;
 import lombok.*;

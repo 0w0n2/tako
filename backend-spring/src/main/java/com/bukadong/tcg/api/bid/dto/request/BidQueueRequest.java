@@ -1,4 +1,4 @@
-package com.bukadong.tcg.api.auction.dto.request;
+package com.bukadong.tcg.api.bid.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.DecimalMin;

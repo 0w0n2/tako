@@ -1,4 +1,4 @@
-package com.bukadong.tcg.api.auction.repository;
+package com.bukadong.tcg.api.bid.repository;
 
 import com.bukadong.tcg.api.auction.entity.Auction;
 import jakarta.persistence.EntityManager;

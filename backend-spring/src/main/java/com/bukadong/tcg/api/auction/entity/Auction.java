@@ -1,6 +1,7 @@
 package com.bukadong.tcg.api.auction.entity;
 
-import com.bukadong.tcg.api.auction.converter.AuctionBidUnitConverter;
+import com.bukadong.tcg.api.bid.converter.AuctionBidUnitConverter;
+import com.bukadong.tcg.api.bid.entity.AuctionBidUnit;
 import com.bukadong.tcg.api.card.entity.Card;
 import com.bukadong.tcg.api.card.entity.CardAiGrade;
 import com.bukadong.tcg.api.card.entity.PhysicalCard;
