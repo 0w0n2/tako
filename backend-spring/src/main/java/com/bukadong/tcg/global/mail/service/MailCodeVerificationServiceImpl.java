@@ -29,7 +29,7 @@ public class MailCodeVerificationServiceImpl implements MailCodeVerificationServ
 
     @Override
     public VerificationCode generateVerificationCode(String email, MailType mailType) {
-        if (Objects.requireNonNull(mailType) == MailType.PASSWORD_RESET_MAIL_VERIFICATION) {
+        if (Objects.requireNonNull(mailType) == MailType.PASSWORD_RESET) {
             if (!memberRepository.existsByEmail(email)) {
                 throw new BaseException(BaseResponseStatus.NO_EXIST_USER);
             }
@@ -48,16 +48,39 @@ public class MailCodeVerificationServiceImpl implements MailCodeVerificationServ
 
     @Override
     public EmailCodeConfirmResponseDto verifyEmailCode(EmailCodeConfirmRequestDto requestDto) {
+
         MailType mailType = MailType.getMailType(requestDto.verificationType());
 
         String redisKey = MAIL_VERIFICATION_CODE_PREFIX + mailType + ":" + requestDto.email();
         Object redisCode = redisUtils.getValue(redisKey);
-        if (redisCode == null) { // redis 에 key 존재 X -> TTL 완료
-            return EmailCodeConfirmResponseDto.toDto(false, true); // 만료 O
+
+        /* 코드 만료 시 (검증 실패) */
+        if (redisCode == null) {
+            return new EmailCodeConfirmResponseDto(false, true); // 만료 O
         }
+
         boolean isMatch = redisCode.toString().equals(requestDto.code());
         redisUtils.deleteValue(redisKey);   // 1회 검증 후엔 만료 처리 (필요 시 주석 해제)
-        return EmailCodeConfirmResponseDto.toDto(isMatch, false);
+
+        /* 코드 불일치 (검증 실패) */
+        if (!isMatch) {
+            return new EmailCodeConfirmResponseDto(false, false);
+        }
+
+        /* 코드 일치 (검증 성공) */
+        if (mailType == MailType.PASSWORD_RESET) {
+            String passwordResetCode = generatePasswordResetCode(requestDto.email());
+            return new EmailCodeConfirmResponseDto(true, false, passwordResetCode);
+        }
+        return new EmailCodeConfirmResponseDto(true, false);
+    }
+
+    private String generatePasswordResetCode(String email) {
+        String code = UUID.randomUUID().toString();
+        String redisKey = PASSWORD_RESET_PREFIX + email;
+        redisUtils.setValue(redisKey, code, passwordResetCodeExpMin);
+
+        return code;
     }
 
 }
