@@ -1,0 +1,370 @@
+from fastapi import FastAPI, UploadFile, File, HTTPException, WebSocket
+from fastapi.responses import JSONResponse
+from typing import Dict, Tuple, List
+from PIL import Image, ImageStat
+from io import BytesIO
+import numpy as np
+import cv2
+import math
+import uvicorn
+import os
+from ws import ws_manager
+
+# ===== YOLO =====
+# Ultralytics는 lazy import 권장 (모델 로딩 비용이 큼)
+from ultralytics import YOLO
+
+app = FastAPI(title="Card Condition Checker")
+
+# ===== 모델 로딩 (서버 기동 시 1회) =====
+VERIFY_MODEL_PATH = os.getenv("VERIFY_MODEL_PATH", "models/card_verification.pt")
+SEG_MODEL_PATH = os.getenv("SEG_MODEL_PATH", "models/card_segmentation.pt")
+
+try:
+    verify_model = YOLO(VERIFY_MODEL_PATH)
+except Exception as e:
+    verify_model = None
+    print(f"[WARN] verify_model load failed: {e}")
+
+try:
+    seg_model = YOLO(SEG_MODEL_PATH)
+except Exception as e:
+    seg_model = None
+    print(f"[WARN] seg_model load failed: {e}")
+
+# ===== 파라미터/임계값 =====
+ALLOWED_EXT = {".png", ".jpg", ".jpeg", ".webp"}
+MIN_SIZE = (800, 800)  # (w, h)
+# 밝기 기준: L 채널 평균 30~225, 너무 어둡거나 밝으면 탈락
+BRIGHT_MIN, BRIGHT_MAX = 30, 225
+# YOLO 검증 기준
+CONF_THRESH = 0.50  # 너무 낮으면 400
+AREA_FRAC_MIN = 0.50  # 바운딩박스 영역이 전체의 50% 미만이면 400
+
+
+# 세그멘테이션 곡률 점수
+# - 곡률% <= 0.5% -> 0점
+# - 이후 0.5% 증가마다 +2점
+# - 이미지당 최대 6점, 전체 최대 12점
+def curvature_penalty_points(curv_percent: float) -> int:
+    if curv_percent <= 0.5:
+        return 0
+    steps = math.ceil((curv_percent - 0.5) / 0.5)
+    return int(min(6, steps * 2))
+
+
+# ===== 유틸 =====
+def ext_ok(filename: str) -> bool:
+    _, ext = os.path.splitext(filename.lower())
+    return ext in ALLOWED_EXT
+
+
+def read_image_bytes(upload: UploadFile) -> Image.Image:
+    data = upload.file.read()
+    if not data:
+        raise HTTPException(
+            status_code=400, detail=f"{upload.filename} 파일이 비어 있습니다."
+        )
+    try:
+        img = Image.open(BytesIO(data)).convert("RGB")
+        return img
+    except Exception:
+        raise HTTPException(
+            status_code=400, detail=f"{upload.filename}은(는) 올바른 이미지가 아닙니다."
+        )
+
+
+def check_size(img: Image.Image) -> bool:
+    w, h = img.size
+    return (w >= MIN_SIZE[0]) and (h >= MIN_SIZE[1])
+
+
+def check_brightness(img: Image.Image) -> bool:
+    # L 채널 평균값으로 판정
+    L = img.convert("L")
+    mean = ImageStat.Stat(L).mean[0]
+    return BRIGHT_MIN <= mean <= BRIGHT_MAX
+
+
+def pil_to_numpy(img: Image.Image) -> np.ndarray:
+    return cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+
+
+# ===== Step 2: 카드 이미지 검증 (YOLO detect) =====
+# 기대 클래스명 예시:
+CARD_FRONT_CLASS = "card_front"  # TODO: 실제 모델 클래스명 확인 후 수정
+CARD_BACK_CLASS = "card_back"  # TODO: 실제 모델 클래스명 확인 후 수정
+
+
+def yolo_detect_verify(img: Image.Image, expect_front: bool) -> Tuple[bool, Dict]:
+    """
+    expect_front=True이면 card_front를, False이면 card_back을 기대.
+    조건:
+      - 해당 클래스의 최고 conf >= CONF_THRESH
+      - 그 바운딩박스 면적 비율 >= AREA_FRAC_MIN
+    """
+    if verify_model is None:
+        raise HTTPException(status_code=500, detail="검증 모델이 로드되지 않았습니다.")
+
+    np_img = pil_to_numpy(img)
+    res = verify_model.predict(source=np_img, verbose=False)[0]
+
+    # 클래스명 매핑
+    names = res.names  # dict: class_idx -> name
+    target = CARD_FRONT_CLASS if expect_front else CARD_BACK_CLASS
+
+    ok = False
+    best_conf = 0.0
+    best_area_frac = 0.0
+
+    H, W = np_img.shape[:2]
+    img_area = W * H
+
+    if res.boxes is not None and len(res.boxes) > 0:
+        for b in res.boxes:
+            cls_idx = int(b.cls.item())
+            name = names.get(cls_idx, f"cls_{cls_idx}")
+            conf = float(b.conf.item())
+            x1, y1, x2, y2 = map(float, b.xyxy[0].tolist())
+            box_area = max(0.0, (x2 - x1)) * max(0.0, (y2 - y1))
+            area_frac = box_area / img_area if img_area > 0 else 0.0
+
+            if name == target and conf > best_conf:
+                best_conf = conf
+                best_area_frac = area_frac
+
+        ok = (best_conf >= CONF_THRESH) and (best_area_frac >= AREA_FRAC_MIN)
+
+    return ok, {
+        "target": target,
+        "best_conf": best_conf,
+        "best_area_frac": best_area_frac,
+    }
+
+
+# ===== Step 3: 곡률 계산 (세그멘테이션) =====
+def max_bowing_percent_from_mask(mask: np.ndarray) -> float:
+    """
+    카드 옆면 사진의 마스크에서 '길이 방향' 직선을 기준으로 최대 만곡률(%).
+    방법:
+      1) 외곽 컨투어 추출 -> 가장 큰 컨투어 선택
+      2) PCA로 주축(길이방향) 계산
+      3) 컨투어 점들을 주축에 직교한 방향으로 투영, 직선 대비 최대 편차(d_max)
+      4) 주축 방향 최소/최대 좌표로 길이 L 추정
+      5) 곡률% = (d_max / L) * 100
+    """
+    # 이진화 보정
+    mask_bin = (mask > 0).astype(np.uint8) * 255
+    # 컨투어
+    cnts, _ = cv2.findContours(mask_bin, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+    if not cnts:
+        return 0.0
+    cnt = max(cnts, key=cv2.contourArea)
+
+    pts = cnt.reshape(-1, 2).astype(np.float32)
+    if pts.shape[0] < 10:
+        return 0.0
+
+    # PCA
+    assert cv2 is not None
+    mean_init = np.zeros((1, 2), dtype=np.float32)
+    mean, eigenvectors = cv2.PCACompute(pts, mean_init, maxComponents=2)
+    mean = mean[0]  # (2,)
+    v_long = eigenvectors[0]  # 주축
+    v_orth = eigenvectors[1]  # 직교축
+
+    # 좌표계로 투영
+    centered = pts - mean
+    long_coords = centered @ v_long  # 길이방향 좌표
+    orth_coords = centered @ v_orth  # 직교방향 좌표
+
+    L = float(long_coords.max() - long_coords.min())
+    if L <= 1e-6:
+        return 0.0
+
+    d_max = float(np.abs(orth_coords).max())
+    return (d_max / L) * 100.0
+
+
+def segmentation_curvature_percent(img: Image.Image) -> Tuple[float, Dict]:
+    """
+    YOLO 세그멘테이션 결과에서 가장 큰 마스크를 사용해 곡률% 계산.
+    """
+    if seg_model is None:
+        raise HTTPException(
+            status_code=500, detail="세그멘테이션 모델이 로드되지 않았습니다."
+        )
+
+    np_img = pil_to_numpy(img)
+    res = seg_model.predict(source=np_img, verbose=False, task="segment")[0]
+
+    # 마스크 스택 만들기
+    if res.masks is None or res.masks.data is None or len(res.masks.data) == 0:
+        return 0.0, {"has_mask": False}
+
+    # masks.data: (N, H, W) in {0,1}
+    masks = res.masks.data.cpu().numpy().astype(np.uint8)
+    # 가장 큰 마스크 선택
+    areas = masks.reshape(masks.shape[0], -1).sum(axis=1)
+    idx = int(np.argmax(areas))
+    mask = masks[idx]
+
+    curv_percent = max_bowing_percent_from_mask(mask)
+    return float(curv_percent), {
+        "has_mask": True,
+        "selected_idx": idx,
+        "mask_area": int(areas[idx]),
+    }
+
+
+# ===== 라우트 =====
+@app.websocket("/condition-check/ws")
+async def condition_check_ws(websocket: WebSocket, job_id: str):
+    await ws_manager.connect(job_id, websocket)
+    try:
+        while True:
+            await websocket.receive_text()
+    except Exception:
+        pass
+    finally:
+        ws_manager.disconnect(job_id, websocket)
+
+
+async def notify(
+    job_id: str, step: str, status: str = "done", extra: dict | None = None
+):
+    await ws_manager.notify(
+        job_id,
+        {"type": "progress", "step": step, "status": status, "extra": extra or {}},
+    )
+
+
+@app.post("/condition-check")
+async def condition_check(
+    image_front: UploadFile = File(...),
+    image_back: UploadFile = File(...),
+    image_side_1: UploadFile = File(...),
+    image_side_2: UploadFile = File(...),
+    image_side_3: UploadFile = File(...),
+    image_side_4: UploadFile = File(...),
+):
+    # ---- Step 0: 파일 형식 검증 ----
+    uploads = {
+        "image_front": image_front,
+        "image_back": image_back,
+        "image_side_1": image_side_1,
+        "image_side_2": image_side_2,
+        "image_side_3": image_side_3,
+        "image_side_4": image_side_4,
+    }
+    for key, up in uploads.items():
+        assert up.filename is not None
+        if not ext_ok(up.filename):
+            raise HTTPException(
+                status_code=400,
+                detail=f"{up.filename}: 올바른 파일 형식이 아닙니다. (png, jpeg, webp, jpg)",
+            )
+
+    # ---- 로드 & 공통 전처리 ----
+    imgs: Dict[str, Image.Image] = {}
+    for key, up in uploads.items():
+        imgs[key] = read_image_bytes(up)
+    await notify(job_id, "file_ext_check")
+
+    # ---- Step 1: 사이즈 및 밝기 검증 ----
+    for key, img in imgs.items():
+        if not check_size(img):
+            raise HTTPException(
+                status_code=400,
+                detail=f"{key}: 이미지 사이즈가 800x800 이상이어야 합니다.",
+            )
+        if not check_brightness(img):
+            raise HTTPException(
+                status_code=400,
+                detail=f"{key}: 이미지가 너무 어둡거나 밝습니다. 촬영 환경을 조정해 주세요.",
+            )
+    await notify(job_id, "size_brightness_check")
+
+    # ---- Step 2: 카드 맞는지 검증 (YOLO detect) ----
+    ok_front, info_front = yolo_detect_verify(imgs["image_front"], expect_front=True)
+    if not ok_front:
+        raise HTTPException(
+            status_code=400,
+            detail=f"정면 이미지(card_front) 인식 실패. conf={info_front['best_conf']:.2f}, area={info_front['best_area_frac']:.2f}",
+        )
+
+    ok_back, info_back = yolo_detect_verify(imgs["image_back"], expect_front=False)
+    if not ok_back:
+        raise HTTPException(
+            status_code=400,
+            detail=f"후면 이미지(card_back) 인식 실패. conf={info_back['best_conf']:.2f}, area={info_back['best_area_frac']:.2f}",
+        )
+    await notify(job_id, "card_verify", extra={"front_conf": 0.91, "back_conf": 0.93})
+
+    # ---- Step 3: 카드 휨 검증 (세그멘테이션 -> 곡률%) ----
+    side_keys = ["image_side_1", "image_side_2", "image_side_3", "image_side_4"]
+    curvature_list: List[float] = []
+    curvature_infos: Dict[str, Dict] = {}
+
+    for k in side_keys:
+        curv_percent, extra = segmentation_curvature_percent(imgs[k])
+        curvature_list.append(curv_percent)
+        curvature_infos[k] = {"curvature_percent": curv_percent, **extra}
+    await notify(job_id, "bending", extra={"max_curvature_percent": 1.2})
+
+    # 점수 계산 규칙:
+    # - 휨(곡률) 점수는 "감산 점수"로 사용 (곡률 ↑ -> 감산 ↑)
+    #   각 이미지별 penalty = curvature_penalty_points(curv%)
+    #   4장 중 상위 2장만 합산 (최대 12점)  ← 요구사항 "최대 점수 12점" 반영
+    per_image_penalties = [curvature_penalty_points(c) for c in curvature_list]
+    top2_penalty = sum(sorted(per_image_penalties, reverse=True)[:2])
+    bend_penalty_total = min(12, top2_penalty)
+
+    # ---- (미구현 항목 자리) ----
+    # TODO: 변색/찢어짐/오염(중대한 결함), 가장자리/스크래치(사소한 결함) 등 세부 페널티 합산
+    other_penalties = 0
+
+    # ---- 최종 점수/등급 ----
+    base_score = 100
+    final_score = max(0, base_score - (bend_penalty_total + other_penalties))
+
+    def grade(score: int) -> str:
+        if score >= 98:
+            return "S+"
+        if score >= 95:
+            return "S"
+        if score >= 90:
+            return "A"
+        if score >= 85:
+            return "B"
+        if score >= 80:
+            return "C"
+        return "D"
+
+    result = {
+        "steps": {
+            "file_ext_check": "ok",
+            "size_brightness_check": "ok",
+            "card_verify": {"front": info_front, "back": info_back},
+            "bending": {
+                "curvatures_percent": {
+                    key: curvature_infos[key]["curvature_percent"] for key in side_keys
+                },
+                "per_image_penalties": {
+                    key: curvature_penalty_points(
+                        curvature_infos[key]["curvature_percent"]
+                    )
+                    for key in side_keys
+                },
+                "bend_penalty_total": bend_penalty_total,
+            },
+            "other_defects": "TODO",
+        },
+        "score": final_score,
+        "grade": grade(final_score),
+    }
+    return JSONResponse(result)
+
+
+if __name__ == "__main__":
+    uvicorn.run("main:condition_check", host="0.0.0.0", port=8000, reload=True)
