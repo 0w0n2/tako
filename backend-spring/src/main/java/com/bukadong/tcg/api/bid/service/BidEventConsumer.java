@@ -29,6 +29,7 @@ public class BidEventConsumer {
 
     private final RedisTemplate<String, String> redisTemplate;
     private final BidEventApplyService bidEventApplyService;
+    private static final String RETRY_KEY_PREFIX = ":retry";
 
     /**
      * 간단 폴링
@@ -42,7 +43,7 @@ public class BidEventConsumer {
         try {
             for (String q : scan("auction:*:bidq", 200)) {
                 // retry 큐 먼저 소진
-                drain(q + ":retry", 50);
+                drain(q + RETRY_KEY_PREFIX, 50);
 
                 // 메인 큐 드레인 (비어질 때까지 처리)
                 while (true) {
@@ -71,7 +72,7 @@ public class BidEventConsumer {
         try {
             bidEventApplyService.applyEvent(json);
         } catch (RetryableException re) {
-            redisTemplate.opsForList().rightPush(queue + ":retry", json);
+            redisTemplate.opsForList().rightPush(queue + RETRY_KEY_PREFIX, json);
             log.warn("Retryable event pushed: {}", re.getMessage());
         } catch (Exception fatal) {
             redisTemplate.opsForList().rightPush(queue + ":dead", json);
@@ -94,7 +95,7 @@ public class BidEventConsumer {
             String json = redisTemplate.opsForList().leftPop(queue);
             if (json == null)
                 break;
-            handleOne(queue.replace(":retry", ""), json);
+            handleOne(queue.replace(RETRY_KEY_PREFIX, ""), json);
         }
     }
 

@@ -32,15 +32,7 @@ public class BidQueueRequest {
         return bidPrice;
     }
 
-    public void setBidPrice(BigDecimal bidPrice) {
-        this.bidPrice = bidPrice;
-    }
-
     public String getRequestId() {
         return requestId;
-    }
-
-    public void setRequestId(String requestId) {
-        this.requestId = requestId;
     }
 }

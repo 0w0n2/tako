@@ -28,6 +28,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class BidQueueProducer {
 
+    private static final String AUCTION_KEY_PREFIX = "auction:";
     private final RedisTemplate<String, String> redisTemplate;
     private final DefaultRedisScript<List> bidAtomicScript; // ⬅️ 빈 주입
 
@@ -44,8 +45,8 @@ public class BidQueueProducer {
      * @RETURN Map(code, currentPriceAfter)
      */
     public Map<String, String> enqueue(Long auctionId, Long memberId, BigDecimal bidPrice, String eventId) {
-        String auctionKey = "auction:" + auctionId;
-        String queueKey = "auction:" + auctionId + ":bidq";
+        String auctionKey = AUCTION_KEY_PREFIX + auctionId;
+        String queueKey = AUCTION_KEY_PREFIX + auctionId + ":bidq";
         String idemKey = "idem:" + eventId;
 
         long now = Instant.now().getEpochSecond();
