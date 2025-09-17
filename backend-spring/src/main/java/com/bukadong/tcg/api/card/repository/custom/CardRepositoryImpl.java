@@ -4,6 +4,8 @@ import com.bukadong.tcg.api.card.dto.response.CardListRow;
 import com.bukadong.tcg.api.card.entity.CardAttribute;
 import com.bukadong.tcg.api.card.entity.QCard;
 import com.bukadong.tcg.api.card.entity.Rarity;
+import com.bukadong.tcg.api.card.util.FullTextBooleanQuery;
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -70,12 +72,8 @@ public class CardRepositoryImpl implements CardRepositoryCustom {
         if (hasName || hasDesc) {
             // --- FULLTEXT 또는 LIKE 폴백 경로 (네이티브 SQL) ---
             final int ngram = detectedNgramTokenSize;
-            final String qName = hasName
-                    ? com.bukadong.tcg.api.card.util.FullTextBooleanQuery.buildForMySQLNgram(rawName, ngram)
-                    : null;
-            final String qDesc = hasDesc
-                    ? com.bukadong.tcg.api.card.util.FullTextBooleanQuery.buildForMySQLNgram(rawDesc, ngram)
-                    : null;
+            final String qName = hasName ? FullTextBooleanQuery.buildForMySQLNgram(rawName, ngram) : null;
+            final String qDesc = hasDesc ? FullTextBooleanQuery.buildForMySQLNgram(rawDesc, ngram) : null;
 
             final boolean useLikeName = hasName && (qName == null);
             final boolean useLikeDesc = hasDesc && (qDesc == null);
@@ -168,7 +166,7 @@ public class CardRepositoryImpl implements CardRepositoryCustom {
             q.setParameter("offset", (int) pageable.getOffset());
 
             @SuppressWarnings("unchecked")
-            java.util.List<Object[]> rows = q.getResultList();
+            List<Object[]> rows = q.getResultList();
 
             // 0건이면 최후의 방어선: 둘 다 LIKE로 재시도(UX 보완)
             if (rows.isEmpty() && (hasName || hasDesc)) {
@@ -203,10 +201,8 @@ public class CardRepositoryImpl implements CardRepositoryCustom {
                 Long id = ((Number) r[0]).longValue();
                 String name = (String) r[1];
                 String code = (String) r[2];
-                com.bukadong.tcg.api.card.entity.CardAttribute attribute = com.bukadong.tcg.api.card.entity.CardAttribute
-                        .valueOf((String) r[3]);
-                com.bukadong.tcg.api.card.entity.Rarity rarity = com.bukadong.tcg.api.card.entity.Rarity
-                        .valueOf((String) r[4]);
+                CardAttribute attribute = CardAttribute.valueOf((String) r[3]);
+                Rarity rarity = Rarity.valueOf((String) r[4]);
                 Double score = (r[5] == null) ? 0.0 : ((Number) r[5]).doubleValue();
 
                 content.add(new CardListRow(id, name, code, attribute, rarity, score));
@@ -214,24 +210,24 @@ public class CardRepositoryImpl implements CardRepositoryCustom {
 
             Number totalNum = (Number) qc.getSingleResult();
             long total = totalNum == null ? 0L : totalNum.longValue();
-            return new org.springframework.data.domain.PageImpl<>(content, pageable, total);
+            return new PageImpl<>(content, pageable, total);
         }
 
         // ---- 키워드가 전혀 없을 때: 기존 QueryDSL 경로 (id desc) ----
-        com.querydsl.core.BooleanBuilder where = new com.querydsl.core.BooleanBuilder();
+        BooleanBuilder where = new BooleanBuilder();
         if (cond.getCategoryMajorId() != null)
             where.and(c.categoryMajor.id.eq(cond.getCategoryMajorId()));
         if (cond.getCategoryMediumId() != null)
             where.and(c.categoryMedium.id.eq(cond.getCategoryMediumId()));
 
-        java.util.List<CardListRow> content = jpa
-                .select(com.querydsl.core.types.Projections.constructor(CardListRow.class, c.id, c.name, c.code,
-                        c.attribute, c.rarity, com.querydsl.core.types.dsl.Expressions.constant(0.0)))
+        List<CardListRow> content = jpa
+                .select(Projections.constructor(CardListRow.class, c.id, c.name, c.code, c.attribute, c.rarity,
+                        Expressions.constant(0.0)))
                 .from(c).where(where).orderBy(c.id.desc()).offset(pageable.getOffset()).limit(pageable.getPageSize())
                 .fetch();
 
         Long total = jpa.select(c.count()).from(c).where(where).fetchOne();
-        return new org.springframework.data.domain.PageImpl<>(content, pageable, total == null ? 0 : total);
+        return new PageImpl<>(content, pageable, total == null ? 0 : total);
     }
 
 }

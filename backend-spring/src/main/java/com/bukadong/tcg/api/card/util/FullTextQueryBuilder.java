@@ -1,5 +1,8 @@
 package com.bukadong.tcg.api.card.util;
 
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
 /**
  * FULLTEXT BOOLEAN MODE 질의 문자열 빌더
  * <P>
@@ -15,7 +18,7 @@ public final class FullTextQueryBuilder {
     }
 
     public static String buildAndPrefixQuery(String keyword) {
-        return java.util.Arrays.stream(keyword.trim().split("\\s+")).filter(s -> !s.isBlank()).map(s -> "+" + s + "*")
-                .collect(java.util.stream.Collectors.joining(" "));
+        return Arrays.stream(keyword.trim().split("\\s+")).filter(s -> !s.isBlank()).map(s -> "+" + s + "*")
+                .collect(Collectors.joining(" "));
     }
 }
