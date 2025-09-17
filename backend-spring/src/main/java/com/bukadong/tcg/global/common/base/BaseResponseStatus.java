@@ -84,6 +84,8 @@ public enum BaseResponseStatus {
      * 600: 멤버 에러
      */
     NICKNAME_GENERATION_FAILED(HttpStatus.CONFLICT, false, 680, "랜덤 닉네임 생성을 실패했습니다."),
+    PASSWORD_RESET_CODE_EXPIRED(HttpStatus.BAD_REQUEST, false, 690, "비밀번호 재설정 시간이 만료되었습니다."),
+    PASSWORD_RESET_CODE_MISMATCH(HttpStatus.BAD_REQUEST, false, 691, "비밀번호 재설정 암호가 일치하지 않습니다."),
 
     /**
      * 700: AWS 에러

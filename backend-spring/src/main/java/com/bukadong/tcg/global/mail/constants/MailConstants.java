@@ -16,4 +16,7 @@ public final class MailConstants {
 
     public static final String MAIL_VERIFICATION_CODE_PREFIX = "mail-verification-code:";
     public static final Duration mailCodeExpMin = Duration.ofMinutes(5);
+
+    public static final String PASSWORD_RESET_PREFIX = "password-reset:";
+    public static final Duration passwordResetCodeExpMin = Duration.ofMinutes(5);
 }

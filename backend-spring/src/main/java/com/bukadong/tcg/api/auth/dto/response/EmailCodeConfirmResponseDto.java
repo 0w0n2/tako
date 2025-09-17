@@ -5,15 +5,12 @@ import lombok.Builder;
 /**
  * 이메일 코드 검증 응답 DTO
  */
-@Builder
 public record EmailCodeConfirmResponseDto(
         boolean verified,
-        boolean expired
+        boolean expired,
+        String passwordResetCode
 ) {
-    public static EmailCodeConfirmResponseDto toDto(Boolean verified, Boolean expired) {
-        return EmailCodeConfirmResponseDto.builder()
-                .verified(verified)
-                .expired(expired)
-                .build();
+    public EmailCodeConfirmResponseDto(boolean verified, boolean expired) {
+        this(verified, expired, null);
     }
 }

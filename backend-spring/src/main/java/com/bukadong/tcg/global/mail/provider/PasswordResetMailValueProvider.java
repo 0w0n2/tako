@@ -9,7 +9,7 @@ public class PasswordResetMailValueProvider extends AbstractVerificationMailValu
 
     @Override
     public MailType getMailType() {
-        return MailType.PASSWORD_RESET_MAIL_VERIFICATION;
+        return MailType.PASSWORD_RESET;
     }
 
     public PasswordResetMailValueProvider(WebUrlProperties webUrlProperties) {

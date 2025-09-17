@@ -9,7 +9,7 @@ public class SignUpMailValueProvider extends AbstractVerificationMailValueProvid
 
     @Override
     public MailType getMailType() {
-        return MailType.SIGN_UP_MAIL_VERIFICATION;
+        return MailType.SIGN_UP;
     }
 
     public SignUpMailValueProvider(WebUrlProperties webUrlProperties) {
