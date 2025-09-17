@@ -2,6 +2,7 @@ package com.bukadong.tcg.api.auction.repository;
 
 import com.bukadong.tcg.api.auction.dto.response.AuctionDetailResponse.*;
 import com.bukadong.tcg.api.auction.entity.Auction;
+import com.bukadong.tcg.api.bid.entity.AuctionBidStatus;
 import com.bukadong.tcg.api.media.entity.MediaType;
 import com.bukadong.tcg.api.media.service.MediaUrlService;
 import com.querydsl.core.Tuple;
@@ -18,7 +19,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.bukadong.tcg.api.auction.entity.QAuction.auction;
-import static com.bukadong.tcg.api.auction.entity.QAuctionBid.auctionBid;
+import static com.bukadong.tcg.api.bid.entity.QAuctionBid.auctionBid;
 import static com.bukadong.tcg.api.member.entity.QMember.member;
 import static com.bukadong.tcg.api.auction.entity.QAuctionReview.auctionReview;
 
@@ -85,7 +86,8 @@ public class AuctionDetailRepositoryImpl implements AuctionDetailRepository {
     @Override
     public List<BidHistoryItem> findBidHistory(Long auctionId, int limit) {
         List<Tuple> tuples = queryFactory.select(auctionBid.createdAt, auctionBid.bidPrice, member.nickname)
-                .from(auctionBid).join(auctionBid.member, member).where(auctionBid.auction.id.eq(auctionId))
+                .from(auctionBid).join(auctionBid.member, member)
+                .where(auctionBid.auction.id.eq(auctionId).and(auctionBid.status.eq(AuctionBidStatus.VALID)))
                 .orderBy(auctionBid.createdAt.desc()).limit(limit).fetch();
 
         return tuples.stream()

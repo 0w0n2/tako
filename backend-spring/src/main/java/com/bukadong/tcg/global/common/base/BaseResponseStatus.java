@@ -136,7 +136,7 @@ public enum BaseResponseStatus {
      */
     AUCTION_NOT_FOUND(HttpStatus.NOT_FOUND, false, 1100, "경매가 존재하지 않습니다."),
     AUCTION_FORBIDDEN(HttpStatus.FORBIDDEN, false, 1101, "경매에 대한 권한이 없습니다."),
-    AUCTION_ALREADY_ENDED(HttpStatus.BAD_REQUEST, false, 1102, "이미 종료된 경매입니다."),
+    AUCTION_NOT_RUNNING(HttpStatus.BAD_REQUEST, false, 1102, "진행중인 경매가 아닙니다."),
     AUCTION_CONFLICT(HttpStatus.CONFLICT, false, 1103, "경매 처리 중 충돌이 발생했습니다."),
     AUCTION_NOT_ENDED(HttpStatus.BAD_REQUEST, false, 1104, "아직 종료되지 않은 경매입니다."),
     AUCTION_BAD_REQUEST(HttpStatus.BAD_REQUEST, false, 1105, "경매 요청이 올바르지 않습니다."),
@@ -152,8 +152,11 @@ public enum BaseResponseStatus {
     AUCTION_CATEGORY_MEDIUM_NOT_FOUND(HttpStatus.NOT_FOUND, false, 1115, "카테고리 중분류를 찾을 수 없습니다."),
     AUCTION_IMPOSSIBLE_TO_EDIT(HttpStatus.BAD_REQUEST, false, 1116, "경매가 시작된 이후에는 수정할 수 없습니다."),
     AUCTION_IMPOSSIBLE_TO_DELETE(HttpStatus.BAD_REQUEST, false, 1117, "경매가 시작된 이후에는 삭제할 수 없습니다."),
-    AUCTION_BID_LESS_THAN_CURRENT(HttpStatus.BAD_REQUEST, false, 1118, "현재가보다 높은 금액으로 입찰해야 합니다."),
-    AUCTION_BID_INCREASE_LESS_THAN_UNIT(HttpStatus.BAD_REQUEST, false, 1119, "입찰 단위 이상으로 입찰해야 합니다."),
+    AUCTION_BID_NOT_POSSIBLE_PRICE(HttpStatus.BAD_REQUEST, false, 1118, "[현재가 + 입찰 단위]보다 높은 금액으로 입찰해야 합니다."),
+    AUCTION_BID_CONFLICT(HttpStatus.BAD_REQUEST, false, 1120, "입찰이 이미 처리되었거나 충돌이 발생했습니다. 현재가를 확인해주세요."),
+    AUCTION_DUPLICATE_REQUEST(HttpStatus.BAD_REQUEST, false, 1121, "이미 처리된 요청입니다. 중복 요청은 허용되지 않습니다."),
+    AUCTION_ALREADY_ENDED(HttpStatus.BAD_REQUEST, false, 1122, "이미 종료된 경매입니다."),
+    AUCTION_EXISTING_BID(HttpStatus.BAD_REQUEST, false, 1123, "입찰이 존재하는 경매는 취소할 수 없습니다."),
 
     /**
      * 1200: 카드 Error

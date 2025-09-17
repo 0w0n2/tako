@@ -40,15 +40,17 @@ export default function HeaderNavigationMenu({ onLoginClick }: HeaderNavigationM
                     <button className="cursor-pointer hover:text-[#f2b90c]" onClick={onLoginClick}>로그인</button>
               </NavigationMenuItem>
             ) : (
-              <NavigationMenuItem className="list-none">
-                    <button className="cursor-pointer hover:text-[#f2b90c]" onClick={handleLogout}>로그아웃</button>
-              </NavigationMenuItem>
+              <>
+                <NavigationMenuItem className="list-none">
+                      <button className="cursor-pointer hover:text-[#f2b90c]" onClick={handleLogout}>로그아웃</button>
+                </NavigationMenuItem>
+                <NavigationMenuItem className="list-none">
+                    <NavigationMenuLink asChild>
+                        <Link href="/mypage" className="hover:text-[#f2b90c]">마이페이지</Link>
+                    </NavigationMenuLink>
+                </NavigationMenuItem>
+              </>
             )}
-            <NavigationMenuItem className="list-none">
-                <NavigationMenuLink asChild>
-                    <Link href="/mypage" className="hover:text-[#f2b90c]">마이페이지</Link>
-                </NavigationMenuLink>
-            </NavigationMenuItem>
             <NavigationMenuItem className="list-none">
                 <NavigationMenuLink asChild>
                     <Link href="/notification" className="flex items-center gap-1 hover:text-[#f2b90c]">알림
