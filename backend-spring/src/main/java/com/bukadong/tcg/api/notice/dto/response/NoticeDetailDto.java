@@ -7,30 +7,33 @@ import java.util.List;
 
 /**
  * 공지사항 상세 응답 DTO
- * <p>
- * 제목, 본문, 작성자(닉네임), 조회수, 생성/수정일, 첨부파일을 담는다.
- * </p>
- *
- * @param id          공지 ID
- * @param title       제목
- * @param text        본문
- * @param nickname    작성자 닉네임
- * @param viewCount   조회수
- * @param createdAt   생성일시
- * @param updatedAt   수정일시
- * @param attachments 첨부파일 목록
- * @return 없음
+ * <P>
+ * 제목, 본문, 작성자(닉네임), 조회수, 생성/수정일, 첨부파일(이미지/일반)을 담습니다.
+ * </P>
+ * 
+ * @PARAM id 공지 ID
+ * @PARAM title 제목
+ * @PARAM text 본문
+ * @PARAM nickname 작성자 닉네임
+ * @PARAM viewCount 조회수
+ * @PARAM imageUrls 이미지 URL 목록
+ * @PARAM attachmentUrls 일반 첨부 URL 목록(zip/pdf 등)
+ * @PARAM createdAt 생성일시
+ * @PARAM updatedAt 수정일시
+ * @RETURN 없음
  */
 public record NoticeDetailDto(Long id, String title, String text, String nickname, Long viewCount,
-        List<String> imageUrls, LocalDateTime createdAt, LocalDateTime updatedAt) {
+        List<String> imageUrls, List<String> attachmentUrls, LocalDateTime createdAt, LocalDateTime updatedAt) {
     /**
      * Notice 엔티티로 상세 DTO를 생성한다.
-     *
-     * @param n Notice 엔티티
-     * @return NoticeDetailDto
+     * 
+     * @PARAM n Notice 엔티티
+     * @PARAM imageUrls 이미지 URL
+     * @PARAM attachmentUrls 일반 첨부 URL
+     * @RETURN NoticeDetailDto
      */
-    public static NoticeDetailDto of(Notice n, List<String> imageUrls) {
+    public static NoticeDetailDto of(Notice n, List<String> imageUrls, List<String> attachmentUrls) {
         return new NoticeDetailDto(n.getId(), n.getTitle(), n.getText(), n.getAuthor().getNickname(), n.getViewCount(),
-                imageUrls, n.getCreatedAt(), n.getUpdatedAt());
+                imageUrls, attachmentUrls, n.getCreatedAt(), n.getUpdatedAt());
     }
 }
