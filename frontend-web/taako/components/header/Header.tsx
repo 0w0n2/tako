@@ -126,7 +126,7 @@ export default function Header() {
         >
           <NavigationMenu className='flex gap-4 items-center'>
             <NavigationMenuItem className="list-none">
-            <NavigationMenuTrigger className="flex gap-1 items-center cursor-pointer hover:text-[#f2b90c]"><Image src="icon/hbg-btn.svg" alt="btn" width={25} height={25} /></NavigationMenuTrigger>
+            <NavigationMenuTrigger className="flex gap-1 items-center cursor-pointer hover:text-[#f2b90c]"><Image src="/icon/hbg-btn.svg" alt="btn" width={25} height={25} /></NavigationMenuTrigger>
               <NavigationMenuContent>
                 <ul className="grid grid-cols-3 w-[600px] p-3">
                   {components.map((component) => (

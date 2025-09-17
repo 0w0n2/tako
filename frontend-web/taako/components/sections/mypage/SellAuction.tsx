@@ -1,17 +1,14 @@
 'use client'
 
-import dynamic from "next/dynamic";
 import Image from "next/image";
-
-const Accordion = dynamic(() => import('@heroui/accordion').then(mod => mod.Accordion), { ssr: false });
-const AccordionItem = dynamic(() => import('@heroui/accordion').then(mod => mod.AccordionItem), { ssr: false });
-
+import {Accordion, AccordionItem} from "@heroui/react";
 
 export default function SellAuction(){
     const details = [
         { date: '25/03/22 08:23', bidder: 'pokemonhunter', price: '0.999 BTC' },
         { date: '25/03/22 05:10', bidder: 'cardlover', price: '0.801 BTC' },
     ]
+
     return(
         <div>
             {/* 헤더 */}
@@ -47,7 +44,7 @@ export default function SellAuction(){
                     {details.map((d, idx) => (
                         <div
                             key={idx}
-                            className={`flex items-center [&>div]:py-4`}
+                            className={`flex items-center [&>div]:py-3`}
                         >
                             <div className="w-[150px] text-[#eaeaea] text-sm"></div>
                             <div className="w-[270px] text-md"></div>
