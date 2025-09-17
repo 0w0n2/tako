@@ -20,7 +20,7 @@ public class AdminCardController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public BaseResponse<Void> createCard(
-            @Valid @RequestPart CreateCardRequestDto requestDto,
+            @Valid @RequestPart(value = "requestDto") CreateCardRequestDto requestDto,
             @RequestPart(value = "cardImage") MultipartFile cardImage
     ) {
         adminCardService.saveCard(requestDto, cardImage);

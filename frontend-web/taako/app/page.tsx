@@ -6,7 +6,7 @@ export default function Home() {
   return (
     <div>
       <MainInfoSection />
-      <MainCategorySection />
+      {/* <MainCategorySection /> */}
       <MainItemListSection />
     </div>
   );

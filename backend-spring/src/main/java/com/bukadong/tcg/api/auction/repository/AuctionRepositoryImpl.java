@@ -1,7 +1,7 @@
 package com.bukadong.tcg.api.auction.repository;
 
 import com.bukadong.tcg.api.auction.dto.projection.AuctionListProjection;
-import com.bukadong.tcg.api.auction.entity.AuctionBidStatus;
+import com.bukadong.tcg.api.bid.entity.AuctionBidStatus;
 import com.bukadong.tcg.api.media.entity.MediaType;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Set;
 
 import static com.bukadong.tcg.api.auction.entity.QAuction.auction;
-import static com.bukadong.tcg.api.auction.entity.QAuctionBid.auctionBid;
+import static com.bukadong.tcg.api.bid.entity.QAuctionBid.auctionBid;
 import static com.bukadong.tcg.api.media.entity.QMedia.media;
 
 /**

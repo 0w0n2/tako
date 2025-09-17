@@ -121,6 +121,40 @@ public class MediaAttachmentService {
     }
 
     /**
+     * 첨부 전체 삭제 (일괄)
+     * <P>
+     * type/ownerId에 매칭되는 모든 첨부를 권한 검증 후 S3와 DB에서 제거합니다. 권한 정책은 항목별(delete) 검증을 반복
+     * 적용합니다. 일부 항목에서 권한 오류가 발생하면 전체 트랜잭션이 롤백됩니다.
+     * </P>
+     * 
+     * @PARAM type 미디어 타입
+     * @PARAM ownerId 도메인 소유 ID
+     * @PARAM actor 수행자(Member)
+     * @RETURN 없음
+     */
+    public void removeAll(MediaType type, Long ownerId, Member actor) {
+        // 전체 목록 조회
+        List<Media> list = mediaRepository.findByTypeAndOwnerIdOrderBySeqNoAsc(type, ownerId);
+        if (list == null || list.isEmpty()) {
+            return; // idempotent
+        }
+
+        // 항목별 권한 검증 (기존 단건 삭제 권한 로직 재사용)
+        for (Media m : list) {
+            permissionRegistry.get(type).checkCanDelete(type, ownerId, m.getId(), actor);
+        }
+
+        // S3 삭제 (best-effort)
+        for (Media m : list) {
+            tryDeleteS3Object(m.getS3keyOrUrl());
+        }
+
+        // DB 일괄 삭제
+        mediaRepository.deleteAllInBatch(list);
+        // 전체 삭제이므로 resequence 불필요
+    }
+
+    /**
      * 첨부 삭제 후 seq_no 재정렬
      * 
      * @param type

@@ -21,7 +21,7 @@ import lombok.*;
 public class AnswerUpdateRequest {
 
     @Schema(description = "답변 본문(1000자 이내)", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotBlank
+    @NotBlank(message = "답변 본문은 필수입니다.")
     @Size(max = 1000)
     private String content;
 }

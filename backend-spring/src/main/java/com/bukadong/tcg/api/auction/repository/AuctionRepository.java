@@ -4,6 +4,7 @@ import com.bukadong.tcg.api.auction.entity.Auction;
 
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -72,4 +73,7 @@ public interface AuctionRepository extends JpaRepository<Auction, Long> {
     @Query("select count(a) from Auction a where a.categoryMedium.id = :mediumId")
     long countByCategoryMediumId(@Param("mediumId") Long mediumId);
 
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query(value = "UPDATE auction SET is_end = 1 WHERE id = :id AND is_end = 0", nativeQuery = true)
+    int markEnded(@org.springframework.data.repository.query.Param("id") Long id);
 }

@@ -40,6 +40,7 @@ pipeline {
     COMPOSE_DOCKER_CLI_BUILD = '1'
     COMPOSE_DEV_FILE = 'deploy/docker-compose.dev.yml'
     COMPOSE_PROD_FILE = 'deploy/docker-compose.prod.yml'
+    COMPOSE_AI_FILE = 'deploy/docker-compose.ai.yml'
     DEV_CONTAINER = ""
   }
 
@@ -172,25 +173,6 @@ pipeline {
       }
     }
 
-    stage('AI dev Deploy (compose up)') {
-      when {
-        expression {
-          (params.MANUAL_DEV_DEPLOY && params.MANUAL_AI) || (
-            ((env.GL_MR_ACTION ?: "") == "merge" || (env.GL_MR_STATE ?: "") == "merged") &&
-            (env.GL_MR_TARGET == env.DEVELOP_BRANCH)
-          )
-        }
-      }
-      steps {
-        sh '''
-          set -eux
-
-          docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" pull || true
-          docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" up -d --build tako_ai_dev
-        '''
-      }
-    }
-
     stage('Back prod Deploy (compose up)') {
       when {
         expression {
@@ -229,12 +211,12 @@ pipeline {
       }
     }
 
-    stage('AI prod Deploy (compose up)') {
+    stage('AI Deploy (compose up)') {
       when {
         expression {
-          (params.MANUAL_PROD_DEPLOY && params.MANUAL_AI) || (
+          params.MANUAL_AI || (
             ((env.GL_MR_ACTION ?: "") == "merge" || (env.GL_MR_STATE ?: "") == "merged") &&
-            (env.GL_MR_TARGET == env.RELEASE_BRANCH)
+            (env.GL_MR_TARGET == env.DEVELOP_BRANCH)
           )
         }
       }
@@ -242,13 +224,11 @@ pipeline {
         sh '''
           set -eux
 
-          docker compose --env-file deploy/.env.prod -f "$COMPOSE_PROD_FILE" pull || true
-          docker compose --env-file deploy/.env.prod -f "$COMPOSE_PROD_FILE" up -d --build tako_ai
+          docker compose --env-file deploy/.env.dev -f "$COMPOSE_AI_FILE" pull || true
+          docker compose --env-file deploy/.env.dev -f "$COMPOSE_AI_FILE" up -d --build tako_ai
         '''
       }
     }
-
-    
   }
 
   post {

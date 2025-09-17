@@ -1,6 +1,7 @@
 package com.bukadong.tcg.api.auction.entity;
 
-import com.bukadong.tcg.api.auction.converter.AuctionBidUnitConverter;
+import com.bukadong.tcg.api.bid.converter.AuctionBidUnitConverter;
+import com.bukadong.tcg.api.bid.entity.AuctionBidUnit;
 import com.bukadong.tcg.api.card.entity.Card;
 import com.bukadong.tcg.api.card.entity.CardAiGrade;
 import com.bukadong.tcg.api.card.entity.PhysicalCard;
@@ -106,37 +107,37 @@ public class Auction extends BaseEntity {
     private String detail;
 
     /** 시작 가격 (코인 단위, 소수점 8자리) */
-    @NotNull
+    @NotNull(message = "시작 가격은 필수입니다.")
     @DecimalMin(value = "0.00000000")
     @Digits(integer = 12, fraction = 8) // precision=20,scale=8 중 비즈니스상 안전범위 검증
     @Column(name = "start_price", nullable = false, precision = 20, scale = 8)
     private BigDecimal startPrice;
 
     /** 현재가 (코인 단위, 소수점 8자리) */
-    @NotNull
+    @NotNull(message = "현재가는 필수입니다.")
     @DecimalMin(value = "0.00000000")
     @Digits(integer = 12, fraction = 8)
     @Column(name = "current_price", nullable = false, precision = 20, scale = 8)
     private BigDecimal currentPrice;
 
     /** 입찰 단위 (예: 0.01/0.1/0.3/0.5/1/5/10) */
-    @NotNull
+    @NotNull(message = "입찰 단위는 필수입니다.")
     @Convert(converter = AuctionBidUnitConverter.class)
     @Column(name = "bid_unit", nullable = false, length = 10)
     private AuctionBidUnit bidUnit;
 
     /** 시작 일시 */
-    @NotNull
+    @NotNull(message = "시작 일시는 필수입니다.")
     @Column(name = "start_datetime", nullable = false)
     private LocalDateTime startDatetime;
 
     /** 종료 일시 (시작보다 뒤) */
-    @NotNull
+    @NotNull(message = "종료 일시는 필수입니다.")
     @Column(name = "end_datetime", nullable = false)
     private LocalDateTime endDatetime;
 
     /** 경매 기간(일) */
-    @NotNull
+    @NotNull(message = "경매 기간은 필수입니다.")
     @Min(1)
     @Column(name = "duration_days", nullable = false)
     private Integer durationDays;
@@ -194,5 +195,51 @@ public class Auction extends BaseEntity {
         if (startDatetime != null && endDatetime != null && endDatetime.isBefore(startDatetime)) {
             throw new BaseException(BaseResponseStatus.AUCTION_DATE_INVALID);
         }
+    }
+
+    /**
+     * 경매가 주어진 시각에 진행 중인지 여부
+     * <P>
+     * isEnd=false 이고, startDatetime <= when <= endDatetime 이면 true.
+     * </P>
+     * 
+     * @PARAM when 기준 시각(Null 허용하지 않음)
+     * @RETURN 진행 중이면 true
+     */
+    public boolean isRunningAt(LocalDateTime when) {
+        if (when == null)
+            return false;
+        if (this.isEnd)
+            return false;
+        if (this.getStartDatetime() != null && when.isBefore(this.getStartDatetime()))
+            return false;
+        if (this.getEndDatetime() != null && when.isAfter(this.getEndDatetime()))
+            return false;
+        return true;
+    }
+
+    /**
+     * 경매가 이미 종료 상태인지 여부
+     * <P>
+     * isEnd=true 또는 when이 endDatetime 이후이면 종료로 간주.
+     * </P>
+     * 
+     * @PARAM when 기준 시각(Null 허용)
+     * @RETURN 종료면 true
+     */
+    public boolean isEndedAt(LocalDateTime when) {
+        if (this.isEnd)
+            return true;
+        return (when != null && this.getEndDatetime() != null && when.isAfter(this.getEndDatetime()));
+    }
+
+    /**
+     * 현재 가격 변경
+     */
+    public void changeCurrentPrice(BigDecimal newPrice) {
+        if (newPrice == null || newPrice.compareTo(BigDecimal.ZERO) < 0 || this.currentPrice.compareTo(newPrice) > 0) {
+            throw new BaseException(BaseResponseStatus.AUCTION_CONFLICT);
+        }
+        this.currentPrice = newPrice;
     }
 }
