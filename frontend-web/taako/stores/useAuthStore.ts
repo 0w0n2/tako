@@ -1,5 +1,7 @@
-import { create } from "zustand";
 import api from "@/lib/api";
+
+import { create } from "zustand";
+// import { persist, createJSONStorage } from 'zustand/middleware' // persist사용해서 토큰 스토리지 저장하기
 
 interface AuthState {
   isLoggedIn: boolean | null;
