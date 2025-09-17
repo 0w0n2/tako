@@ -91,8 +91,8 @@ export default function Header() {
       {isHome && currentScrollY > 0 && (
         <button
           onClick={toggleHeader}
-          className={`fixed left-1/2 -translate-x-1/2 z-50 bg-[#191924] border border-[#353535] rounded-full p-2 hover:bg-[#2a2a3a] transition-all duration-300 ease-in-out ${
-            effectiveIsHeaderOpen ? 'top-20' : 'top-4'
+          className={`cursor-pointer fixed left-1/2 -translate-x-1/2 z-50 bg-[#191924] border border-[#353535] rounded-full p-2 hover:bg-[#2a2a3a] transition-all duration-300 ease-in-out ${
+            effectiveIsHeaderOpen ? 'top-22' : 'top-4'
           }`}
           aria-label="헤더 토글"
         >
@@ -116,7 +116,7 @@ export default function Header() {
         } ${isScrolledStyle ? 'border border-[#353535] bg-[#191924]' : 'translate-y-4'}`}
       >
         <div 
-          className={`header rounded-xl default-container flex justify-between items-center transition-all duration-300 ease-in-out ${
+          className={`header relative rounded-xl default-container flex justify-between items-center transition-all duration-300 ease-in-out ${
             isScrolledStyle 
               ? 'py-3' 
               : 'py-6'

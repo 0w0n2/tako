@@ -10,7 +10,7 @@ type TopPaddingProps = {
 export default function TopPadding({ children }: TopPaddingProps) {
   const pathname = usePathname()
   const isHome = pathname === '/'
-  const paddingClass = isHome ? 'pt-0' : 'pt-[110px]'
+  const paddingClass = isHome ? 'pt-0' : 'py-[110px]'
 
   return (
     <div className={paddingClass}>

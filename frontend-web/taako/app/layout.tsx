@@ -26,7 +26,6 @@ export default function RootLayout({
     <html lang="ko" className="dark">
       <body className={`${montserrat.className}`}>
         <MosaicReveal />
-        <MosaicReveal />
         <Header />
         <TopPadding>
           <div>
