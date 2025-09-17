@@ -2,6 +2,7 @@ package com.bukadong.tcg.api.bid.controller;
 
 import com.bukadong.tcg.api.bid.dto.request.BidQueueRequest;
 import com.bukadong.tcg.api.bid.dto.response.BidResultResponse;
+import com.bukadong.tcg.api.bid.entity.AuctionBidReason;
 import com.bukadong.tcg.api.bid.service.AuctionCacheService;
 import com.bukadong.tcg.api.bid.service.BidQueueProducer;
 import com.bukadong.tcg.api.member.service.MemberQueryService;
@@ -59,15 +60,15 @@ public class BidQueueController {
         var r = bidQueueProducer.enqueue(auctionId, memberId, request.getBidPrice(), request.getRequestId());
         String code = r.get("code");
 
-        if ("DUPLICATE".equals(code)) {
+        if (AuctionBidReason.DUPLICATE.name().equals(code)) {
             return BaseResponse.onFailure(BaseResponseStatus.AUCTION_DUPLICATE_REQUEST);
-        } else if ("NOT_RUNNING".equals(code) || "MISSING".equals(code)) {
+        } else if (AuctionBidReason.NOT_RUNNING.name().equals(code) || AuctionBidReason.MISSING.name().equals(code)) {
             return BaseResponse.onFailure(BaseResponseStatus.AUCTION_NOT_RUNNING);
-        } else if ("LOW_PRICE".equals(code)) {
+        } else if (AuctionBidReason.LOW_PRICE.name().equals(code)) {
             return BaseResponse.onFailure(BaseResponseStatus.AUCTION_BID_NOT_POSSIBLE_PRICE);
-        } else if ("SELF_BID".equals(code)) {
+        } else if (AuctionBidReason.SELF_BID.name().equals(code)) {
             return BaseResponse.onFailure(BaseResponseStatus.AUCTION_BID_FORBIDDEN);
-        } else if (!"OK".equals(code)) {
+        } else if (!AuctionBidReason.OK.name().equals(code)) {
             return BaseResponse.onFailure(BaseResponseStatus.INTERNAL_SERVER_ERROR);
         }
 

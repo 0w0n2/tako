@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.ZoneOffset;
 import java.util.Map;
@@ -27,6 +28,7 @@ public class AuctionCacheService {
 
     private final AuctionRepository auctionRepository;
     private final RedisTemplate<String, String> redisTemplate;
+    private static final String AUCTION_KEY_PREFIX = "auction:";
 
     /**
      * 경매 메타 캐시 보정/워밍
@@ -37,12 +39,13 @@ public class AuctionCacheService {
      * @PARAM auctionId 경매 ID
      * @RETURN 없음
      */
+    @Transactional(readOnly = true)
     public void ensureLoaded(Long auctionId) {
         Auction a = auctionRepository.findById(auctionId).orElse(null);
         if (a == null)
             return;
 
-        String key = "auction:" + auctionId;
+        String key = AUCTION_KEY_PREFIX + auctionId;
         HashOperations<String, String, String> h = redisTemplate.opsForHash();
 
         if (Boolean.FALSE.equals(redisTemplate.hasKey(key)) || h.entries(key).isEmpty()
@@ -68,7 +71,7 @@ public class AuctionCacheService {
      * @RETURN 없음
      */
     public void overwritePrice(Long auctionId, String currentPriceStr) {
-        String key = "auction:" + auctionId;
+        String key = AUCTION_KEY_PREFIX + auctionId;
         String cur = (String) redisTemplate.opsForHash().get(key, "current_price");
         try {
             if (cur == null) {
@@ -95,7 +98,7 @@ public class AuctionCacheService {
      * @RETURN 없음
      */
     public void markEnded(Long auctionId) {
-        String key = "auction:" + auctionId;
+        String key = AUCTION_KEY_PREFIX + auctionId;
         redisTemplate.opsForHash().put(key, "is_end", "1");
     }
 
@@ -110,7 +113,7 @@ public class AuctionCacheService {
      * @RETURN 없음
      */
     public void reopenUntil(Long auctionId, long newEndTsEpoch) {
-        String key = "auction:" + auctionId;
+        String key = AUCTION_KEY_PREFIX + auctionId;
         redisTemplate.opsForHash().putAll(key, Map.of("end_ts", String.valueOf(newEndTsEpoch), "is_end", "0"));
     }
 
@@ -126,7 +129,7 @@ public class AuctionCacheService {
      * @RETURN 없음
      */
     public void applyAdminChange(Long auctionId, boolean isEnd, long endTsEpoch) {
-        String key = "auction:" + auctionId;
+        String key = AUCTION_KEY_PREFIX + auctionId;
         redisTemplate.opsForHash().putAll(key,
                 Map.of("is_end", isEnd ? "1" : "0", "end_ts", String.valueOf(endTsEpoch)));
     }

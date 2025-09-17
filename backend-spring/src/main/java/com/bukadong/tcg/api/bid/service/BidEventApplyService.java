@@ -2,6 +2,7 @@ package com.bukadong.tcg.api.bid.service;
 
 import com.bukadong.tcg.api.auction.entity.Auction;
 import com.bukadong.tcg.api.bid.entity.AuctionBid;
+import com.bukadong.tcg.api.bid.entity.AuctionBidReason;
 import com.bukadong.tcg.api.bid.entity.AuctionBidStatus;
 import com.bukadong.tcg.api.bid.repository.AuctionBidRepository;
 import com.bukadong.tcg.api.bid.repository.AuctionLockRepository;
@@ -165,18 +166,18 @@ public class BidEventApplyService {
      */
     private String mapRejectReason(String r) {
         if (r == null)
-            return "REJECTED";
+            return AuctionBidReason.REJECTED.name();
         switch (r) {
         case "LOW_PRICE":
-            return "LOW_PRICE";
+            return AuctionBidReason.LOW_PRICE.name();
         case "NOT_RUNNING":
-            return "NOT_RUNNING";
+            return AuctionBidReason.NOT_RUNNING.name();
         case "MISSING":
-            return "MISSING";
+            return AuctionBidReason.MISSING.name();
         case "PRECHECK":
-            return "PRECHECK";
+            return AuctionBidReason.PRECHECK.name();
         case "SELF_BID":
-            return "SELF_BID";
+            return AuctionBidReason.SELF_BID.name();
         default:
             return r;
         }
