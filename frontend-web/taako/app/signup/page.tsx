@@ -1,5 +1,8 @@
 'use client';
 
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+
 import Image from 'next/image';
 import { useSignupForm } from "@/hooks/useSignupForm";
 
@@ -7,7 +10,8 @@ export default function Signup(){
   const {
     isSocial, providerName, handleSignup,
     email, setEmail, isEmailAvailable, emailError, emailLoading,
-    handleVerificationEmail, formatted, timeLeft, handleCheckEmail,
+    handleVerificationEmail, expiredAt, formatted, timeLeft,
+    handleCheckEmail, handleVerificationEmailConfirm, emailConfirm, emailExpired, code, setCode,
     password, passwordErrorMessage, setPassword, confirmPassword, setConfirmPassword,
     nickname, setNickname, isNicknameAvailable, nicknameError, nicknameLoading, handleCheckNickname,
   } = useSignupForm();
@@ -23,17 +27,19 @@ export default function Signup(){
                         <p className="mb-4">이메일</p>
                         <div className='flex flex-col gap-3'>
                             <div className="flex gap-4">
-                                <input
-                                className="w-[350px] px-5 py-3 bg-[#191924] rounded-lg border-1 border-[#353535] text-sm"
+                                <Input 
+                                className="w-full px-5 py-3 bg-[#191924] rounded-lg border-1 border-[#353535] text-sm"
                                 type="email"
                                 value={email}
+                                required
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder="이메일을 입력해주세요"/>
-                                <button
+                                <Button
                                     type="button"
+                                    variant="secondary"
                                     onClick={handleCheckEmail}
-                                    className="min-w-[140px] px-8 py-3 bg-[#3E4C63] rounded-lg text-md cursor-pointer"
-                                >중복체크</button>
+                                    className="min-w-[140px] py-6 bg-[#3E4C63] rounded-lg text-md cursor-pointer hover:bg-[#324c63]"
+                                >중복체크</Button>
                             </div>
                             {emailError && (
                               <div className="text-[#FF3737] flex gap-2 items-center">
@@ -41,48 +47,85 @@ export default function Signup(){
                                 {emailError}
                               </div>
                             )}
-                            {isEmailAvailable === true && (
+                            {isEmailAvailable===true && (
                               <div className="text-[#40C057] flex gap-2 items-center">
                                 <Image src="/icon/correct.svg" width={18} height={18} alt="success" />
                                 사용 가능한 이메일입니다.
                               </div>
                             )}
-                            {isEmailAvailable === false && (
+                            {isEmailAvailable===false && (
                               <div className="text-[#FF3737] flex gap-2 items-center">
                                 <Image src="/icon/error.svg" width={18} height={18} alt="error" />
                                 이미 사용중인 이메일입니다.
                               </div>
                             )}
                             <div className="flex gap-4">
-                                <div className='relative'>
-                                    <input
-                                    className="w-[350px] px-5 py-3 bg-[#191924] rounded-lg border-1 border-[#353535] text-sm"
-                                    type="email"
+                                <div className='w-full relative'>
+                                    <Input
+                                    className="w-full px-5 py-3 bg-[#191924] rounded-lg border-1 border-[#353535] text-sm"
+                                    value={code}
+                                    onChange={(e) => setCode(e.target.value)}
+                                    required
+                                    disabled={!isEmailAvailable || emailExpired === true || (emailConfirm===true && !emailExpired)}
                                     placeholder="인증번호 입력해주세요"/>
                                     <p className='absolute top-1/2 right-5 -translate-y-1/2'>
-                                      {timeLeft > 0 ? formatted : ''}
+                                      {timeLeft > 0 && !emailExpired && !(emailConfirm && !emailExpired) ? formatted : ''}
                                     </p>
                                 </div>
-                                <button
-                                type="button"
-                                className="min-w-[140px] px-6 bg-[#3E4C63] rounded-lg text-md cursor-pointer"
-                                onClick={() => handleVerificationEmail("SIGN_UP_MAIL_VERIFICATION")}
-                                >인증번호전송</button>
+                                {expiredAt === null && emailExpired === null ? (
+                                  <Button
+                                    type="button"
+                                    disabled={!isEmailAvailable}
+                                    className="min-w-[140px] py-6 bg-[#3E4C63] rounded-lg text-md text-white cursor-pointer hover:bg-[#324c63]"
+                                    onClick={() => handleVerificationEmail("SIGN_UP_MAIL_VERIFICATION")}
+                                  >
+                                    인증번호전송
+                                  </Button>
+                                ) : (
+                                  <Button
+                                    type="button"
+                                    disabled={emailExpired === true || (emailConfirm===true && !emailExpired)}
+                                    className="min-w-[140px] py-6 bg-[#3E4C63] rounded-lg text-md text-white cursor-pointer hover:bg-[#324c63]"
+                                    onClick={() => handleVerificationEmailConfirm("SIGN_UP_MAIL_VERIFICATION", code)}
+                                  >
+                                    인증하기
+                                  </Button>
+                                )}
                             </div>
+                            {emailConfirm===true && emailExpired===false && (
+                              <div className="text-[#40C057] flex gap-2 items-center">
+                                <Image src="/icon/correct.svg" width={18} height={18} alt="success" />
+                                인증에 성공했습니다.
+                              </div>
+                            )}
+                            {!emailConfirm && emailExpired===false && (
+                              <div className="text-[#FF3737] flex gap-2 items-center">
+                                <Image src="/icon/error.svg" width={18} height={18} alt="error" />
+                                인증에 실패했습니다.
+                              </div>
+                            )}
+                            {emailExpired && !emailConfirm && (
+                              <div className="text-[#FF3737] flex gap-2 items-center">
+                                <Image src="/icon/error.svg" width={18} height={18} alt="error" />
+                                인증시간이 만료되었습니다.
+                              </div>
+                            )}
                         </div>
                     </div>
                     <div>
                         <p className="mb-4">비밀번호</p>
                         <div className="flex flex-col gap-3">
-                            <input
-                            className="w-[350px] px-5 py-3 bg-[#191924] rounded-lg border-1 border-[#353535] text-sm"
+                            <Input
+                            className="w-full px-5 py-3 bg-[#191924] rounded-lg border-1 border-[#353535] text-sm"
                             type="password"
+                            required
                             placeholder="비밀번호"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}/>
-                            <input
-                            className="w-[350px] px-5 py-3 bg-[#191924] rounded-lg border-1 border-[#353535] text-sm"
+                            <Input
+                            className="w-full px-5 py-3 bg-[#191924] rounded-lg border-1 border-[#353535] text-sm"
                             type="password"
+                            required
                             placeholder="비밀번호확인"
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}/>
@@ -104,17 +147,19 @@ export default function Signup(){
                         <p className="mb-4">닉네임</p>
                         <div className="flex flex-col gap-3">
                             <div className='flex gap-4'>
-                                <input
-                                className="w-[350px] px-5 py-3 bg-[#191924] rounded-lg border-1 border-[#353535] text-sm"
+                                <Input
+                                className="w-full px-5 py-3 bg-[#191924] rounded-lg border-1 border-[#353535] text-sm"
                                 type="text"
                                 value={nickname}
+                                required
                                 onChange={(e) => setNickname(e.target.value)}
                                 placeholder="닉네임을 입력해주세요"/>
-                                <button
+                                <Button
                                     type="button"
-                                    className="min-w-[140px] px-8 bg-[#3E4C63] rounded-lg text-md cursor-pointer"
+                                    variant="secondary"
+                                    className="min-w-[140px] py-6 bg-[#3E4C63] rounded-lg text-md text-white cursor-pointer hover:bg-[#324c63]"
                                     onClick={handleCheckNickname}
-                                >중복체크</button>
+                                >중복체크</Button>
                             </div>
                             {/* 에러 메시지 */}
                             {nicknameError && (

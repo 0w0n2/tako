@@ -15,14 +15,17 @@ export function useSignupForm() {
   const [isEmailAvailable, setIsEmailAvailable] = useState<boolean | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [emailLoading, setEmailLoading] = useState(false);
-  const [emailConfirm, setEmailConfirm] = useState(false);
-  const [emailExpired, setEmailExpired] = useState(false);
+  const [emailConfirm, setEmailConfirm] = useState<boolean | null>(null);
+  const [emailExpired, setEmailExpired] = useState<boolean | null>(null);
   
   // 인증번호 카운트다운 관련
   const [expiredAt, setExpiredAt] = useState<string | null>(null);
   const [timeLeft, setTimeLeft] = useState<number>(0);
   const [formatted, setFormatted] = useState<string>("00:00");
   
+  // 인증코드
+  const [code, setCode] = useState("");
+
   useEffect(() => {
     if (!expiredAt) return;
 
@@ -69,7 +72,7 @@ export function useSignupForm() {
 
   let passwordErrorMessage: string | null = null;
   if (password && !isValidPassword(password)) {
-    passwordErrorMessage = "비밀번호 형식이 올바르지 않습니다. (8~21자, 대문자/소문자/숫자/특수문자 포함)";
+    passwordErrorMessage = "비밀번호 형식이 올바르지 않습니다. (8~21자, 대문자/소문자/숫자/특수문자(!,@,$) 포함)";
   } else if (password && confirmPassword && password !== confirmPassword) {
     passwordErrorMessage = "비밀번호가 일치하지 않습니다.";
   }
@@ -90,19 +93,18 @@ export function useSignupForm() {
   useEffect(() => {
     if (!nickname) {
       setNicknameError(null);
-      setIsNicknameAvailable(null);
+      setIsNicknameAvailable(null); // 서버 체크 전 메시지 없애기
       return;
     }
-
-    if (!isValidNickname(nickname)) {
+  
+    // 형식이 올바르지 않으면 빨간 경고
+    if (!/^[0-9A-Za-z가-힣]{2,10}$/.test(nickname)) {
       setNicknameError("닉네임은 2~10자의 영문/한글/숫자만 가능합니다.");
-      setIsNicknameAvailable(null);
-      return;
+      setIsNicknameAvailable(null); // 서버 체크 결과 초기화
+    } else {
+      setNicknameError(null); // 형식이 맞으면 에러 제거
+      setIsNicknameAvailable(null); // 서버 체크 전까지는 사용 가능 메시지 X
     }
-
-    // 형식이 유효하면 에러 제거하고 사용 가능 메시지 표시
-    setNicknameError(null);
-    setIsNicknameAvailable(true);
   }, [nickname]);
 
   // 이메일 형식 검사
@@ -129,7 +131,7 @@ export function useSignupForm() {
     try {
       setEmailLoading(true);
       const result = await checkEmailDuplicate(email);
-      console.log(result)
+      // console.log(result)
       setIsEmailAvailable(result.result.available);
 
     } catch (err: any) {
@@ -144,7 +146,7 @@ export function useSignupForm() {
   const handleVerificationEmail = async (verificationType:string) => {
     try{
         const res = await authenticationEmail(email, verificationType);
-        //console.log(res)
+        console.log(res)
         setExpiredAt(res.result.expiredAt);
     }catch(err){
       console.log(err)
@@ -153,6 +155,9 @@ export function useSignupForm() {
 
   // 이메일 인증 코드 검증
   const handleVerificationEmailConfirm = async(verificationType:string, code:string)=>{
+    setEmailConfirm(null);
+    setEmailExpired(null);
+
     try{
       const res = await authenticationConfirmEmail(email, verificationType, code);
       console.log(res)
@@ -213,11 +218,16 @@ export function useSignupForm() {
     try {
       setLoading(true);
       const res = await signup(email, password, nickname, isSocial, providerName);
-      console.log(res)
+      
+      if(!emailConfirm){
+        alert("인증이 완료되지 않았습니다.")
+        return;
+      }
 
       if(res.code!==200){
         alert(res.message)
       }else{
+        console.log(res)
         alert("회원가입에 성공했습니다.")
         router.push('/');
       }
@@ -234,7 +244,7 @@ export function useSignupForm() {
       // 이메일
       email, setEmail, isEmailAvailable, emailError, emailLoading, handleCheckEmail,
       // 인증, 인증확인
-      handleVerificationEmail, handleVerificationEmailConfirm, emailConfirm, emailExpired, expiredAt,
+      handleVerificationEmail, handleVerificationEmailConfirm, emailConfirm, emailExpired, expiredAt, code, setCode,
       // 인증번호 카운트다운
       timeLeft, formatted,
       // 비밀번호
