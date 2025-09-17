@@ -28,6 +28,7 @@ import java.util.List;
  * @RETURN 없음
  */
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class AdminNoticeCommandService {
 
@@ -49,7 +50,6 @@ public class AdminNoticeCommandService {
      * @PARAM attachDir 첨부 업로드 디렉토리(예: "notice-attach")
      * @RETURN NoticeResponse
      */
-    @Transactional
     public NoticeResponse create(Member me, NoticeCreateRequest requestDto, List<MultipartFile> images, String imageDir,
             List<MultipartFile> attachments, String attachDir) {
         Notice notice = Notice.create(me, requestDto.getTitle(), requestDto.getText());
@@ -82,7 +82,6 @@ public class AdminNoticeCommandService {
      * @PARAM clearAttachments 기존 첨부 전체 삭제 여부
      * @RETURN NoticeResponse
      */
-    @Transactional
     public NoticeResponse update(Long noticeId, NoticeUpdateRequest requestDto, Member me, List<MultipartFile> images,
             String imageDir, boolean clearImages, List<MultipartFile> attachments, String attachDir,
             boolean clearAttachments) {
@@ -119,7 +118,6 @@ public class AdminNoticeCommandService {
      * @PARAM me 삭제자(관리자) Member
      * @RETURN 없음
      */
-    @Transactional
     public void delete(Long noticeId, Member me) {
         Notice notice = noticeRepository.findById(noticeId)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.NOT_FOUND));

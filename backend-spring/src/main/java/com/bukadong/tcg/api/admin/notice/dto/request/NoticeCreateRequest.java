@@ -20,11 +20,11 @@ import lombok.NoArgsConstructor;
 public class NoticeCreateRequest {
 
     @Schema(description = "공지 제목(최대 50자)", example = "서비스 점검 안내")
-    @NotBlank
+    @NotBlank(message = "공지 제목은 필수입니다.")
     @Size(max = 50)
     private String title;
 
     @Schema(description = "공지 본문", example = "9/20 02:00~03:00 점검 예정입니다.")
-    @NotBlank
+    @NotBlank(message = "공지 본문은 필수입니다.")
     private String text;
 }

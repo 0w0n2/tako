@@ -5,6 +5,8 @@ import com.bukadong.tcg.api.member.entity.Member;
 import jakarta.persistence.*;
 import lombok.*;
 
+import org.springframework.util.StringUtils;
+
 /**
  * 공지사항 엔티티
  * <p>
@@ -76,8 +78,11 @@ public class Notice extends BaseEntity {
      * @RETURN 없음
      */
     public void update(String title, String text) {
-        this.title = title;
-        this.text = text;
+        if (StringUtils.hasText(title)) {
+            this.title = title;
+        }
+        if (StringUtils.hasText(text)) {
+            this.text = text;
+        }
     }
-
 }

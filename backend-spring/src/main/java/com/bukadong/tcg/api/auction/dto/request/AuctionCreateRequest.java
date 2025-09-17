@@ -24,39 +24,39 @@ import java.time.LocalDateTime;
 public class AuctionCreateRequest {
 
     @Schema(description = "경매 제목", example = "블루아이즈 화이트 드래곤 1st")
-    @NotBlank
+    @NotBlank(message = "경매 제목은 필수입니다.")
     @Size(min = 1, max = 40)
     private String title;
 
     @Schema(description = "카테고리 대분류 ID", example = "1000")
-    @NotNull
+    @NotNull(message = "카테고리 대분류 ID는 필수입니다.")
     private Long categoryMajorId;
 
     @Schema(description = "카테고리 중분류 ID", example = "10000")
-    @NotNull
+    @NotNull(message = "카테고리 중분류 ID는 필수입니다.")
     private Long categoryMediumId;
 
     @Schema(description = "카드 ID", example = "123")
-    @NotNull
+    @NotNull(message = "카드 ID는 필수입니다.")
     private Long cardId;
 
     @Schema(description = "외부 AI 등급 해시", example = "ai_2fa1c5...") // UNIQUE
-    @NotBlank
+    @NotBlank(message = "외부 AI 등급 해시는 필수입니다.")
     private String gradeHash;
 
     @Schema(description = "(옵션) 실물카드 해시 - 있으면 물리카드 매핑", example = "pc_b1a2c3...")
     private String physicalCardHash;
 
     @Schema(description = "상세 설명(LONGTEXT)", example = "상세 설명입니다.")
-    @NotBlank
+    @NotBlank(message = "상세 설명은 필수입니다.")
     private String detail;
 
     @Schema(description = "입찰 단위", example = "0.1")
-    @NotBlank
+    @NotBlank(message = "입찰 단위는 필수입니다.")
     private String bidUnit; // Converter에서 AuctionBidUnit으로 변환
 
     @Schema(description = "시작가", example = "1.00000000")
-    @NotNull
+    @NotNull(message = "시작가는 필수입니다.")
     @DecimalMin("0.00000000")
     @Digits(integer = 12, fraction = 8)
     private BigDecimal startPrice;
@@ -67,11 +67,11 @@ public class AuctionCreateRequest {
     private BigDecimal currentPrice;
 
     @Schema(description = "경매 시작일시", example = "2025-09-16T10:00:00")
-    @NotNull
+    @NotNull(message = "경매 시작일시는 필수입니다.")
     private LocalDateTime startDatetime;
 
     @Schema(description = "경매 마감일시", example = "2025-09-20T10:00:00")
-    @NotNull
+    @NotNull(message = "경매 마감일시는 필수입니다.")
     private LocalDateTime endDatetime;
 
     @Schema(description = "즉시구매 가능 여부", example = "false")
