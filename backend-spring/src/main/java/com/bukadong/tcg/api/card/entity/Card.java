@@ -22,7 +22,8 @@ import lombok.*;
 @Table(name = "card", uniqueConstraints = { @UniqueConstraint(name = "uk_card_category_name", columnNames = {
         "category_major_id", "category_medium_id", "name" }) }, indexes = {
                 @Index(name = "idx_card_category_major", columnList = "category_major_id"),
-                @Index(name = "idx_card_category_medium", columnList = "category_medium_id") })
+                @Index(name = "idx_card_category_medium", columnList = "category_medium_id"),
+                @Index(name = "idx_card_name_prefix", columnList = "name") })
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -64,7 +65,7 @@ public class Card extends BaseEntity {
     /** 속성 (ROCK, PAPER, SCISSORS) */
     @Enumerated(EnumType.STRING)
     @Column(name = "attribute", length = 20, nullable = true)
-    private Attribute attribute;
+    private CardAttribute attribute;
 
     /**
      * 저장 전 훅
