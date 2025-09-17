@@ -94,4 +94,8 @@ public class Member {
         this.isDeleted = true;
         this.deletedAt = LocalDateTime.now();
     }
+
+    public void updatePassword(String encodedPassword) {
+        this.password = encodedPassword;
+    }
 }
