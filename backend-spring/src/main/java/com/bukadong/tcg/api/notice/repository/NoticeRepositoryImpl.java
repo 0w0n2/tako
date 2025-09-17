@@ -15,16 +15,16 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Repository;
 
-import static com.bukadong.tcg.api.notice.entity.QNotice.notice;
-
 import java.time.Duration;
 import java.util.List;
 
+import static com.bukadong.tcg.api.notice.entity.QNotice.notice;
+
 /**
  * 공지사항 커스텀 레포지토리 구현체
- * <p>
- * QueryDSL을 활용하여 공지사항 관련 커스텀 쿼리를 정의한다.
- * </p>
+ * <P>
+ * QueryDSL을 활용한 공지 목록/상세/조회수 증가.
+ * </P>
  */
 @Repository
 @RequiredArgsConstructor
@@ -43,7 +43,6 @@ public class NoticeRepositoryImpl implements NoticeRepositoryCustom {
                 .fetch();
 
         Long total = queryFactory.select(QNotice.notice.count()).from(QNotice.notice).fetchOne();
-
         return new PageImpl<>(content, pageable, total == null ? 0 : total);
     }
 
@@ -57,22 +56,18 @@ public class NoticeRepositoryImpl implements NoticeRepositoryCustom {
             throw new BaseException(BaseResponseStatus.NOT_FOUND);
         }
 
-        // 미디어 URL 조회 (5분짜리 presigned URL)
-        List<String> imageUrls = mediaUrlService.getPresignedImageUrls(MediaType.NOTICE, noticeEntity.getId(),
-                Duration.ofMinutes(5));
-        return NoticeDetailDto.of(noticeEntity, imageUrls);
+        // 미디어 URL (5분 유효) - 이미지/첨부 각각 조회
+        Duration ttl = Duration.ofMinutes(5);
+        List<String> imageUrls = mediaUrlService.getPresignedImageUrls(MediaType.NOTICE, noticeEntity.getId(), ttl);
+        List<String> attachmentUrls = mediaUrlService.getPresignedImageUrls(MediaType.NOTICE_ATTACHMENT,
+                noticeEntity.getId(), ttl);
+
+        return NoticeDetailDto.of(noticeEntity, imageUrls, attachmentUrls);
     }
 
-    /**
-     * 조회수 증가 (원자적 증가 처리)
-     *
-     * @param id 공지 ID
-     * @return 업데이트된 행 수
-     */
     @Override
     public int incrementViewCount(Long id) {
         return (int) queryFactory.update(notice).set(notice.viewCount, notice.viewCount.add(1)).where(notice.id.eq(id))
                 .execute();
     }
-
 }

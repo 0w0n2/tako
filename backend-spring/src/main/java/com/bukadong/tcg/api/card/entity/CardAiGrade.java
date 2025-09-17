@@ -29,13 +29,13 @@ public class CardAiGrade extends BaseEntity {
     private Long id;
 
     /** 컨디션 등급 (예: PS/NM 등 1~2자리) */
-    @NotBlank
+    @NotBlank(message = "컨디션 등급은 필수입니다.")
     @Size(min = 1, max = 2)
     @Column(name = "grade_code", nullable = false, length = 2)
     private String gradeCode;
 
     /** 외부 AI가 발급한 고유 해시 (UNIQUE) */
-    @NotBlank
+    @NotBlank(message = "해시는 필수입니다.")
     @Size(min = 10, max = 255)
     @Column(name = "hash", nullable = false, length = 255, unique = true)
     private String hash;

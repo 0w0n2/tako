@@ -28,7 +28,7 @@ public class InquiryCreateRequest {
     private String title;
 
     @Schema(description = "본문(필수, 1000자 이내)", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotBlank
+    @NotBlank(message = "본문은 필수입니다.")
     @Size(max = 1000)
     private String content;
 
