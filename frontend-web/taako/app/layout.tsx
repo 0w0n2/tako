@@ -4,6 +4,7 @@ import "./globals.css";
 import Header from "@/components/header/Header";
 import Footer from "@/components/Footer";
 import dynamic from 'next/dynamic'
+import TopPadding from "@/components/TopPadding";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -26,9 +27,11 @@ export default function RootLayout({
       <body className={`${montserrat.className}`}>
         <MosaicReveal />
         <Header />
-        <div>
-          {children}
-        </div>
+        <TopPadding>
+          <div>
+            {children}
+          </div>
+        </TopPadding>
         <Footer />
       </body>
     </html>
