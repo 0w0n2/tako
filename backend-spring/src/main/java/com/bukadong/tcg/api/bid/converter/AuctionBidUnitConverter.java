@@ -1,27 +1,23 @@
-package com.bukadong.tcg.api.auction.converter;
+package com.bukadong.tcg.api.bid.converter;
 
-import com.bukadong.tcg.api.auction.entity.AuctionBidUnit;
 import com.bukadong.tcg.global.common.exception.BaseException;
+import com.bukadong.tcg.api.bid.entity.AuctionBidUnit;
 import com.bukadong.tcg.global.common.base.BaseResponseStatus;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
 /**
  * JPA {@link AttributeConverter} 구현체.
- *
  * <p>
- * 경매 입찰 단위({@link AuctionBidUnit}) Enum과
- * DB 문자열 컬럼 값(예: "0.01", "0.1", "1") 간의 변환을 처리한다.
+ * 경매 입찰 단위({@link AuctionBidUnit}) Enum과 DB 문자열 컬럼 값(예: "0.01", "0.1", "1") 간의
+ * 변환을 처리한다.
  * </p>
- *
  * <ul>
  * <li>엔티티 → DB 저장 시: {@link AuctionBidUnit#value()} 반환</li>
  * <li>DB → 엔티티 로드 시: {@link AuctionBidUnit#fromValue(String)} 호출</li>
  * </ul>
- *
  * <p>
- * {@code @Converter(autoApply = true)} 설정으로
- * JPA가 해당 Enum 타입 필드를 자동으로 변환한다.
+ * {@code @Converter(autoApply = true)} 설정으로 JPA가 해당 Enum 타입 필드를 자동으로 변환한다.
  * </p>
  */
 @Converter(autoApply = true)

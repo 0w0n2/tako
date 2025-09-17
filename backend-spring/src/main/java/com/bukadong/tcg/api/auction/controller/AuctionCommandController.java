@@ -41,9 +41,9 @@ public class AuctionCommandController {
     private final MemberQueryService memberQueryService;
     private final MediaDirResolver mediaDirResolver;
 
-    @Operation(summary = "경매 생성", description = "metadata(JSON)과 files(이미지들)는 모두 필수입니다.", requestBody = @RequestBody(required = true, content = @Content(mediaType = MULTIPART_FORM_DATA_VALUE, schema = @Schema(type = "object", requiredProperties = {
-            "metadata", "files" }), schemaProperties = {
-                    @SchemaProperty(name = "metadata", schema = @Schema(implementation = AuctionCreateRequest.class, description = "경매 메타데이터(JSON)")),
+    @Operation(summary = "경매 생성", description = "requestDto(JSON)과 files(이미지들)는 모두 필수입니다.", requestBody = @RequestBody(required = true, content = @Content(mediaType = MULTIPART_FORM_DATA_VALUE, schema = @Schema(type = "object", requiredProperties = {
+            "requestDto", "files" }), schemaProperties = {
+                    @SchemaProperty(name = "requestDto", schema = @Schema(implementation = AuctionCreateRequest.class, description = "경매 메타데이터(JSON)")),
                     @SchemaProperty(name = "files", array = @ArraySchema(minItems = 1, schema = @Schema(type = "string", format = "binary"))) })))
     @PostMapping(consumes = MULTIPART_FORM_DATA_VALUE)
     public BaseResponse<AuctionCreateResponse> createAuction(

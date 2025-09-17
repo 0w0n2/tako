@@ -4,7 +4,6 @@ import com.bukadong.tcg.api.auction.dto.response.AuctionDetailResponse;
 import com.bukadong.tcg.api.auction.dto.response.AuctionListItemResponse;
 import com.bukadong.tcg.api.auction.repository.AuctionSort;
 import com.bukadong.tcg.api.auction.service.AuctionQueryService;
-import com.bukadong.tcg.api.popularity.aop.AutoPopularityBid;
 import com.bukadong.tcg.api.popularity.aop.AutoPopularityView;
 import com.bukadong.tcg.global.common.base.BaseResponse;
 import com.bukadong.tcg.global.common.dto.PageResponse;
@@ -97,23 +96,6 @@ public class AuctionQueryController {
     public BaseResponse<AuctionDetailResponse> getDetail(@Parameter(description = "경매 ID") @PathVariable("id") Long id,
             @Parameter(description = "히스토리 개수(기본 5)") @RequestParam(name = "historySize", required = false, defaultValue = "5") @Min(1) int historySize) {
         return BaseResponse.onSuccess(auctionQueryService.getDetail(id, historySize));
-    }
-
-    /**
-     * 입찰 생성 (깡통)
-     * <P>
-     * 실제 입찰 처리 없이 성공 응답만 반환한다.
-     * </P>
-     * 
-     * @PARAM auctionId 경매 ID
-     * @RETURN BaseResponse<Void>
-     */
-    @AutoPopularityBid
-    @Operation(summary = "입찰 생성(샘플)", description = "실제 입찰 처리 없이 성공 응답만 반환합니다. (데모/연동용)")
-    @PostMapping("/{auctionId}/bids")
-    public BaseResponse<Void> placeBid(
-            @Parameter(description = "경매 ID", example = "1001") @PathVariable("auctionId") Long auctionId) {
-        return BaseResponse.onSuccess();
     }
 
 }

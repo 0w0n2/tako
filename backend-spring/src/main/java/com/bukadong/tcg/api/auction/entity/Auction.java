@@ -1,6 +1,7 @@
 package com.bukadong.tcg.api.auction.entity;
 
-import com.bukadong.tcg.api.auction.converter.AuctionBidUnitConverter;
+import com.bukadong.tcg.api.bid.converter.AuctionBidUnitConverter;
+import com.bukadong.tcg.api.bid.entity.AuctionBidUnit;
 import com.bukadong.tcg.api.card.entity.Card;
 import com.bukadong.tcg.api.card.entity.CardAiGrade;
 import com.bukadong.tcg.api.card.entity.PhysicalCard;
@@ -194,5 +195,51 @@ public class Auction extends BaseEntity {
         if (startDatetime != null && endDatetime != null && endDatetime.isBefore(startDatetime)) {
             throw new BaseException(BaseResponseStatus.AUCTION_DATE_INVALID);
         }
+    }
+
+    /**
+     * 경매가 주어진 시각에 진행 중인지 여부
+     * <P>
+     * isEnd=false 이고, startDatetime <= when <= endDatetime 이면 true.
+     * </P>
+     * 
+     * @PARAM when 기준 시각(Null 허용하지 않음)
+     * @RETURN 진행 중이면 true
+     */
+    public boolean isRunningAt(LocalDateTime when) {
+        if (when == null)
+            return false;
+        if (this.isEnd)
+            return false;
+        if (this.getStartDatetime() != null && when.isBefore(this.getStartDatetime()))
+            return false;
+        if (this.getEndDatetime() != null && when.isAfter(this.getEndDatetime()))
+            return false;
+        return true;
+    }
+
+    /**
+     * 경매가 이미 종료 상태인지 여부
+     * <P>
+     * isEnd=true 또는 when이 endDatetime 이후이면 종료로 간주.
+     * </P>
+     * 
+     * @PARAM when 기준 시각(Null 허용)
+     * @RETURN 종료면 true
+     */
+    public boolean isEndedAt(LocalDateTime when) {
+        if (this.isEnd)
+            return true;
+        return (when != null && this.getEndDatetime() != null && when.isAfter(this.getEndDatetime()));
+    }
+
+    /**
+     * 현재 가격 변경
+     */
+    public void changeCurrentPrice(BigDecimal newPrice) {
+        if (newPrice == null || newPrice.compareTo(BigDecimal.ZERO) < 0 || this.currentPrice.compareTo(newPrice) > 0) {
+            throw new BaseException(BaseResponseStatus.AUCTION_CONFLICT);
+        }
+        this.currentPrice = newPrice;
     }
 }
