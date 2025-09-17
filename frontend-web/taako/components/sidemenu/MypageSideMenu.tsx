@@ -42,6 +42,14 @@ export default function MypageSideMenu() {
                                     : 'text-[#A5A5A5] hover:text-[#F2B90C]'
                             }`}
                         >관심 경매</Link></li>
+                        <li><Link 
+                            href="/mypage/reviews" 
+                            className={`text-sm transition-all duration-300 ${
+                                pathname === '/mypage/reviews' 
+                                    ? 'text-[#F2B90C]' 
+                                    : 'text-[#A5A5A5] hover:text-[#F2B90C]'
+                            }`}
+                        >리뷰 쓰기</Link></li>
                     </ul>
                 </li>
                 <li>
@@ -67,7 +75,15 @@ export default function MypageSideMenu() {
                                     ? 'text-[#F2B90C]' 
                                     : 'text-[#A5A5A5] hover:text-[#F2B90C]'
                             }`}
-                        >내 정보 수정</Link></li>
+                        >프로필 관리</Link></li>
+                        <li><Link 
+                            href="/mypage/payment" 
+                            className={`text-sm transition-all duration-300 ${
+                                pathname === '/mypage/payment' 
+                                    ? 'text-[#F2B90C]' 
+                                    : 'text-[#A5A5A5] hover:text-[#F2B90C]'
+                            }`}
+                        >결제 정보</Link></li>
                         <li>
                             <button 
                                 onClick={() => setOpenWithdraw(true)} 
