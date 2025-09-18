@@ -48,7 +48,14 @@ public class CardQueryService {
         CardSearchCond cond = CardSearchCond.builder().categoryMajorId(request.getCategoryMajorId())
                 .categoryMediumId(request.getCategoryMediumId()).nameKeyword(request.getName())
                 .descriptionKeyword(request.getDescription()).build();
-        return cardRepository.search(cond, pageable, memberId);
+
+        Page<CardListRow> page = cardRepository.search(cond, pageable, memberId);
+
+        // 페이지 결과에 이미지 URL(5분 TTL) 주입
+        for (CardListRow row : page.getContent()) {
+            row.setImageUrls(mediaUrlService.getPresignedImageUrls(MediaType.CARD, row.getId(), Duration.ofMinutes(5)));
+        }
+        return page;
     }
 
     /**
