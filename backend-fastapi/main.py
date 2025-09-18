@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException, WebSocket
+from fastapi import FastAPI, UploadFile, File, HTTPException, WebSocket, APIRouter
 from fastapi.responses import JSONResponse
 from typing import Dict, Tuple, List
 from PIL import Image, ImageStat
@@ -14,7 +14,15 @@ from ws import ws_manager
 # Ultralytics는 lazy import 권장 (모델 로딩 비용이 큼)
 from ultralytics import YOLO
 
-app = FastAPI(title="Card Condition Checker", root_path="/ai", docs_url="/ai/docs")
+app = FastAPI(title="Card Condition Checker")
+
+api_router = APIRouter(prefix="/ai")
+
+@api_router.get("/docs")
+async def docs():
+    return {"message": "docs"}
+
+app.include_router(api_router)
 
 # ===== 모델 로딩 (서버 기동 시 1회) =====
 VERIFY_MODEL_PATH = os.getenv("VERIFY_MODEL_PATH", "models/card_verification.pt")
