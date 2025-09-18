@@ -34,10 +34,12 @@ const components: { image: string; title:string}[] = [
 ]
 
 export default function Header() {
+  const token = useAuthStore((state) => state.token);
+  const isLoggedIn = !!token;
+  
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [currentScrollY, setCurrentScrollY] = useState(0);
   const [isHeaderOpen, setIsHeaderOpen] = useState(true);
-  const { isLoggedIn } = useAuthStore();
   const pathname = usePathname();
   const isHome = pathname === '/';
 
