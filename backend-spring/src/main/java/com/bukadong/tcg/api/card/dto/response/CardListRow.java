@@ -37,4 +37,7 @@ public class CardListRow {
 
     @Schema(description = "전문검색 점수(설명 검색 시)", example = "5.321")
     private Double score;
+
+    @Schema(description = "관심 등록 여부(멤버별, 인증된 경우에만)", example = "true")
+    private boolean wished;
 }

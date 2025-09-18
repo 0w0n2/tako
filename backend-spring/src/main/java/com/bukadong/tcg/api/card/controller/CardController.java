@@ -4,8 +4,11 @@ import com.bukadong.tcg.api.card.dto.request.CardSearchRequest;
 import com.bukadong.tcg.api.card.dto.response.CardDetailResponse;
 import com.bukadong.tcg.api.card.dto.response.CardListRow;
 import com.bukadong.tcg.api.card.service.CardQueryService;
+import com.bukadong.tcg.api.member.service.MemberQueryService;
 import com.bukadong.tcg.global.common.base.BaseResponse;
 import com.bukadong.tcg.global.common.dto.PageResponse;
+import com.bukadong.tcg.global.security.dto.CustomUserDetails;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -14,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,6 +38,7 @@ import org.springframework.web.bind.annotation.*;
 public class CardController {
 
     private final CardQueryService cardQueryService;
+    private final MemberQueryService memberQueryService;
 
     /**
      * 카드 검색
@@ -46,9 +51,11 @@ public class CardController {
      */
     @Operation(summary = "카드 검색", description = "카테고리/이름/설명 조건으로 페이지 검색합니다.")
     @GetMapping
-    public BaseResponse<PageResponse<CardListRow>> search(@ParameterObject @Valid CardSearchRequest request) {
+    public BaseResponse<PageResponse<CardListRow>>
 
-        Page<CardListRow> page = cardQueryService.search(request);
+            search(@ParameterObject @Valid CardSearchRequest request, @AuthenticationPrincipal CustomUserDetails user) {
+        Long memberId = (user == null) ? null : memberQueryService.getByUuid(user.getUuid()).getId();
+        Page<CardListRow> page = cardQueryService.search(request, memberId);
         return BaseResponse.onSuccess(PageResponse.from(page));
     }
 

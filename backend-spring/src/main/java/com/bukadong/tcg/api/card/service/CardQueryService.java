@@ -42,12 +42,12 @@ public class CardQueryService {
      * </P>
      */
     @Transactional(readOnly = true)
-    public Page<CardListRow> search(CardSearchRequest request) {
+    public Page<CardListRow> search(CardSearchRequest request, Long memberId) {
         Pageable pageable = PageRequest.of(request.getPage(), request.getSize());
         CardSearchCond cond = CardSearchCond.builder().categoryMajorId(request.getCategoryMajorId())
                 .categoryMediumId(request.getCategoryMediumId()).nameKeyword(request.getName())
                 .descriptionKeyword(request.getDescription()).build();
-        return cardRepository.search(cond, pageable);
+        return cardRepository.search(cond, pageable, memberId);
     }
 
     /**
