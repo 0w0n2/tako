@@ -8,7 +8,6 @@ import com.bukadong.tcg.api.auth.service.NicknameService;
 import com.bukadong.tcg.api.auth.service.PasswordResetService;
 import com.bukadong.tcg.api.auth.service.TokenAuthService;
 import com.bukadong.tcg.api.auth.service.SignUpService;
-import com.bukadong.tcg.api.member.service.MemberQueryService;
 import com.bukadong.tcg.global.common.base.BaseResponse;
 
 import static com.bukadong.tcg.global.constant.SecurityConstants.*;

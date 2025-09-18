@@ -15,6 +15,9 @@ import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
+import com.bukadong.tcg.api.wish.entity.QWishCard;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.JPAExpressions;
 
 import org.springframework.data.domain.*;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -58,17 +61,17 @@ public class CardRepositoryImpl implements CardRepositoryCustom {
     }
 
     @Override
-    public Page<CardListRow> search(CardSearchCond cond, Pageable pageable) {
+    public Page<CardListRow> search(CardSearchCond cond, Pageable pageable, Long memberId) {
         QCard c = QCard.card;
 
-        // 키워드 존재 여부 판단
         final String rawName = (cond.getNameKeyword() == null) ? null : cond.getNameKeyword().trim();
         final String rawDesc = (cond.getDescriptionKeyword() == null) ? null : cond.getDescriptionKeyword().trim();
         final boolean hasName = rawName != null && !rawName.isEmpty();
         final boolean hasDesc = rawDesc != null && !rawDesc.isEmpty();
+        final Long memberParam = (memberId == null ? -1L : memberId); // 비로그인 방지용
 
         if (hasName || hasDesc) {
-            // --- FULLTEXT 또는 LIKE 폴백 경로 (네이티브 SQL) ---
+            // --- FULLTEXT 또는 LIKE 경로 (네이티브 SQL) + wish_card LEFT JOIN ---
             final int ngram = detectedNgramTokenSize;
             final String qName = hasName ? FullTextBooleanQuery.buildForMySQLNgram(rawName, ngram) : null;
             final String qDesc = hasDesc ? FullTextBooleanQuery.buildForMySQLNgram(rawDesc, ngram) : null;
@@ -78,8 +81,7 @@ public class CardRepositoryImpl implements CardRepositoryCustom {
 
             StringBuilder select = new StringBuilder().append("SELECT c.id, c.name, c.code, c.attribute, c.rarity, ");
 
-            // 점수 계산: FT 점수들의 합 + LIKE 가중치
-            List<String> scoreParts = new java.util.ArrayList<>();
+            List<String> scoreParts = new ArrayList<>();
             if (hasName && !useLikeName)
                 scoreParts.add("IFNULL(MATCH(c.name) AGAINST (:qn IN BOOLEAN MODE), 0)");
             if (hasDesc && !useLikeDesc)
@@ -91,9 +93,12 @@ public class CardRepositoryImpl implements CardRepositoryCustom {
 
             if (scoreParts.isEmpty())
                 scoreParts.add("0");
-            select.append(String.join(" + ", scoreParts)).append(" AS score ");
+            select.append(String.join(" + ", scoreParts)).append(" AS score, ");
+            select.append("CASE WHEN wc.id IS NULL THEN 0 ELSE 1 END AS wished ");
 
-            StringBuilder fromWhere = new StringBuilder("FROM card c WHERE 1=1 ");
+            StringBuilder fromWhere = new StringBuilder().append("FROM card c ").append("LEFT JOIN wish_card wc ")
+                    .append("  ON wc.card_id = c.id ").append(" AND wc.member_id = :memberId ")
+                    .append(" AND wc.wish_flag = b'1' ").append("WHERE 1=1 ");
 
             StringBuilder countSql = new StringBuilder("SELECT COUNT(*) FROM card c WHERE 1=1 ");
 
@@ -129,7 +134,7 @@ public class CardRepositoryImpl implements CardRepositoryCustom {
 
             String orderLimit = " ORDER BY score DESC, c.id DESC LIMIT :limit OFFSET :offset";
 
-            var q = em.createNativeQuery(select.toString() + fromWhere.toString() + orderLimit);
+            var q = em.createNativeQuery(select.toString() + fromWhere + orderLimit);
             var qc = em.createNativeQuery(countSql.toString());
 
             // 바인딩
@@ -162,14 +167,19 @@ public class CardRepositoryImpl implements CardRepositoryCustom {
 
             q.setParameter("limit", pageable.getPageSize());
             q.setParameter("offset", (int) pageable.getOffset());
+            q.setParameter("memberId", memberParam);
 
             @SuppressWarnings("unchecked")
             List<Object[]> rows = q.getResultList();
 
-            // 0건이면 최후의 방어선: 둘 다 LIKE로 재시도(UX 보완)
+            // LIKE 폴백 (관심조인 동일 유지)
             if (rows.isEmpty() && (hasName || hasDesc)) {
-                var fb = new StringBuilder().append("SELECT c.id, c.name, c.code, c.attribute, c.rarity, 0.0 AS score ")
-                        .append("FROM card c WHERE 1=1 ");
+                var fb = new StringBuilder()
+                        .append("SELECT c.id, c.name, c.code, c.attribute, c.rarity, 0.0 AS score, ")
+                        .append("CASE WHEN wc.id IS NULL THEN 0 ELSE 1 END AS wished ").append("FROM card c ")
+                        .append("LEFT JOIN wish_card wc ").append("  ON wc.card_id = c.id ")
+                        .append(" AND wc.member_id = :memberId ").append(" AND wc.wish_flag = b'1' ")
+                        .append("WHERE 1=1 ");
                 if (cond.getCategoryMajorId() != null)
                     fb.append(" AND c.category_major_id = :majorId ");
                 if (cond.getCategoryMediumId() != null)
@@ -179,6 +189,7 @@ public class CardRepositoryImpl implements CardRepositoryCustom {
                 if (hasDesc)
                     fb.append(" AND c.description LIKE :likeDesc ");
                 fb.append(" ORDER BY c.id DESC LIMIT :limit OFFSET :offset ");
+
                 var qfb = em.createNativeQuery(fb.toString());
                 if (cond.getCategoryMajorId() != null)
                     qfb.setParameter("majorId", cond.getCategoryMajorId());
@@ -190,8 +201,9 @@ public class CardRepositoryImpl implements CardRepositoryCustom {
                     qfb.setParameter("likeDesc", "%" + rawDesc + "%");
                 qfb.setParameter("limit", pageable.getPageSize());
                 qfb.setParameter("offset", (int) pageable.getOffset());
+                qfb.setParameter("memberId", memberParam);
+
                 rows = qfb.getResultList();
-                // count는 기존 qc 결과를 그대로 사용(대체 가능하지만 성능상 재사용)
             }
 
             List<CardListRow> content = new ArrayList<>(rows.size());
@@ -202,8 +214,9 @@ public class CardRepositoryImpl implements CardRepositoryCustom {
                 CardAttribute attribute = CardAttribute.valueOf((String) r[3]);
                 Rarity rarity = Rarity.valueOf((String) r[4]);
                 Double score = (r[5] == null) ? 0.0 : ((Number) r[5]).doubleValue();
+                boolean wished = ((Number) r[6]).intValue() == 1;
 
-                content.add(new CardListRow(id, name, code, attribute, rarity, score));
+                content.add(new CardListRow(id, name, code, attribute, rarity, score, wished));
             }
 
             Number totalNum = (Number) qc.getSingleResult();
@@ -211,16 +224,24 @@ public class CardRepositoryImpl implements CardRepositoryCustom {
             return new PageImpl<>(content, pageable, total);
         }
 
-        // ---- 키워드가 전혀 없을 때: 기존 QueryDSL 경로 (id desc) ----
+        // ---- 키워드 전무 시: QueryDSL 경로 (id desc) + wished EXISTS 템플릿 ----
         BooleanBuilder where = new BooleanBuilder();
         if (cond.getCategoryMajorId() != null)
             where.and(c.categoryMajor.id.eq(cond.getCategoryMajorId()));
         if (cond.getCategoryMediumId() != null)
             where.and(c.categoryMedium.id.eq(cond.getCategoryMediumId()));
 
+        QWishCard wc = QWishCard.wishCard;
+        BooleanExpression wishedExpr = JPAExpressions.selectOne().from(wc)
+                .where(wc.cardId.eq(c.id).and(wc.memberId.eq(memberParam)) // memberParam: (memberId == null ? -1L :
+                                                                           // memberId)
+                        .and(wc.wishFlag.isTrue()) // ⚠ 엔티티 매핑이 Boolean일 때
+                // .and(wc.wishFlag.eq(1)) // ⚠ 만약 wishFlag가 숫자(Byte/Integer)면 이 라인으로 교체
+                ).exists();
+
         List<CardListRow> content = queryFactory
                 .select(Projections.constructor(CardListRow.class, c.id, c.name, c.code, c.attribute, c.rarity,
-                        Expressions.constant(0.0)))
+                        Expressions.constant(0.0), wishedExpr))
                 .from(c).where(where).orderBy(c.id.desc()).offset(pageable.getOffset()).limit(pageable.getPageSize())
                 .fetch();
 

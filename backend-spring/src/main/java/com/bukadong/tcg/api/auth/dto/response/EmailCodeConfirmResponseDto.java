@@ -1,7 +1,5 @@
 package com.bukadong.tcg.api.auth.dto.response;
 
-import lombok.Builder;
-
 /**
  * 이메일 코드 검증 응답 DTO
  */

@@ -4,10 +4,12 @@ import com.bukadong.tcg.api.auction.dto.response.AuctionDetailResponse;
 import com.bukadong.tcg.api.auction.dto.response.AuctionListItemResponse;
 import com.bukadong.tcg.api.auction.repository.AuctionSort;
 import com.bukadong.tcg.api.auction.service.AuctionQueryService;
+import com.bukadong.tcg.api.member.service.MemberQueryService;
 import com.bukadong.tcg.api.popularity.aop.AutoPopularityView;
 import com.bukadong.tcg.global.common.base.BaseResponse;
 import com.bukadong.tcg.global.common.dto.PageResponse;
-
+import com.bukadong.tcg.global.security.dto.CustomUserDetails;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -39,6 +41,7 @@ import java.util.stream.Collectors;
 public class AuctionQueryController {
 
     private final AuctionQueryService auctionQueryService;
+    private final MemberQueryService memberQueryService;
 
     /**
      * 경매 목록 조회
@@ -69,13 +72,15 @@ public class AuctionQueryController {
             @Parameter(description = "현재가 최소(원)") @RequestParam(name = "currentPriceMin", required = false) BigDecimal currentPriceMin,
             @Parameter(description = "현재가 최대(원)") @RequestParam(name = "currentPriceMax", required = false) BigDecimal currentPriceMax,
             @Parameter(description = "등급 CSV(쉼표 구분). 예: \"PS,NM\"") @RequestParam(name = "grades", required = false) String grades,
-            @Parameter(description = "정렬 기준: ENDTIME_ASC | ENDTIME_DESC | BIDCOUNT_DESC | BIDCOUNT_ASC") @RequestParam(name = "sort", required = false) AuctionSort sort) {
+            @Parameter(description = "정렬 기준: ENDTIME_ASC | ENDTIME_DESC | BIDCOUNT_DESC | BIDCOUNT_ASC") @RequestParam(name = "sort", required = false) AuctionSort sort,
+            @AuthenticationPrincipal CustomUserDetails user) {
         Set<String> gradeSet = (grades == null || grades.isBlank()) ? null
                 : Arrays.stream(grades.split(",")).map(String::trim).filter(s -> !s.isEmpty())
                         .collect(Collectors.toSet());
+        Long memberId = (user == null) ? null : memberQueryService.getByUuid(user.getUuid()).getId();
 
         var pageData = auctionQueryService.getAuctionList(categoryMajorId, categoryMediumId, title, cardId,
-                currentPriceMin, currentPriceMax, gradeSet, sort, page);
+                currentPriceMin, currentPriceMax, gradeSet, sort, page, memberId);
 
         return BaseResponse.onSuccess(pageData);
     }
@@ -92,10 +97,14 @@ public class AuctionQueryController {
      */
     @AutoPopularityView
     @Operation(summary = "경매 상세 조회", description = "경매/카드/이미지/일주일 시세/입찰 히스토리를 반환합니다.")
-    @GetMapping("/{id}")
-    public BaseResponse<AuctionDetailResponse> getDetail(@Parameter(description = "경매 ID") @PathVariable("id") Long id,
-            @Parameter(description = "히스토리 개수(기본 5)") @RequestParam(name = "historySize", required = false, defaultValue = "5") @Min(1) int historySize) {
-        return BaseResponse.onSuccess(auctionQueryService.getDetail(id, historySize));
+    @GetMapping("/{auctionId}")
+    public BaseResponse<AuctionDetailResponse> getDetail(
+            @Parameter(description = "경매 ID") @PathVariable("auctionId") Long auctionId,
+            @Parameter(description = "히스토리 개수(기본 5)") @RequestParam(name = "historySize", required = false, defaultValue = "5") @Min(1) int historySize,
+            @AuthenticationPrincipal CustomUserDetails user) {
+
+        Long memberId = memberQueryService.getByUuid(user.getUuid()).getId();
+        return BaseResponse.onSuccess(auctionQueryService.getDetail(auctionId, historySize, memberId));
     }
 
 }

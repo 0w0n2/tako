@@ -61,10 +61,10 @@ public class NoticeController {
      * @return 공지사항 단건
      */
     @Operation(summary = "공지사항 단건 조회", description = "공지사항의 상세 정보를 반환합니다.")
-    @GetMapping("/{id}")
+    @GetMapping("/{noticeId}")
     public BaseResponse<NoticeDetailDto> get(
-            @Parameter(description = "공지사항 ID(1 이상)") @PathVariable("id") @Min(1) Long id) {
-        NoticeDetailDto notice = noticeService.getDetail(id);
+            @Parameter(description = "공지사항 ID(1 이상)") @PathVariable("noticeId") @Min(1) Long noticeId) {
+        NoticeDetailDto notice = noticeService.getDetail(noticeId);
         return new BaseResponse<>(notice);
     }
 }

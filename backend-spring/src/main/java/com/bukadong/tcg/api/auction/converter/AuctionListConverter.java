@@ -2,12 +2,10 @@ package com.bukadong.tcg.api.auction.converter;
 
 import com.bukadong.tcg.api.auction.dto.projection.AuctionListProjection;
 import com.bukadong.tcg.api.auction.dto.response.AuctionListItemResponse;
-import com.bukadong.tcg.api.media.entity.MediaType;
 import com.bukadong.tcg.api.media.service.MediaUrlService;
 
 import java.time.Duration;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.LocalDateTime;
 
 /**
  * 경매 목록 행 → 외부 응답 DTO 컨버터
@@ -23,24 +21,37 @@ import java.time.ZonedDateTime;
  */
 public final class AuctionListConverter {
 
-    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
-
     private AuctionListConverter() {
     }
 
     public static AuctionListItemResponse toItem(AuctionListProjection row, MediaUrlService mediaUrlService,
             Duration ttl) {
-        // 남은 초 계산(KST 기준, 0 하한)
-        long remainingSeconds = Math.max(0L,
-                Duration.between(ZonedDateTime.now(KST), row.endDatetime().atZone(KST)).getSeconds());
+        return toItem(row, mediaUrlService, ttl, false);
+    }
 
-        // 대표 이미지: 반드시 MediaUrlService 메서드를 통해 presign
-        // 목록이 반환되므로 첫 번째 이미지를 대표로 사용 (없으면 null)
-        String primaryUrl = mediaUrlService
-                .getPresignedImageUrls(MediaType.AUCTION_ITEM, row.id(), ttl).stream().findFirst()
-                .orElse(null);
+    /**
+     * 경매 목록 행 → 응답 DTO 변환(위시 여부 포함)
+     * <P>
+     * 대표 이미지 key를 presign하여 URL로 치환, 남은초는 0 미만이면 0으로 보정.
+     * </P>
+     * 
+     * @PARAM row 프로젝션
+     * @PARAM mediaUrlService presign 서비스
+     * @PARAM ttl presign TTL
+     * @PARAM wished 로그인 회원의 위시 여부
+     * @RETURN AuctionListItemResponse
+     */
+    public static AuctionListItemResponse toItem(AuctionListProjection row, MediaUrlService mediaUrlService,
+            Duration ttl, boolean wished) {
+        String primaryUrl = null;
+        if (row.primaryImageKey() != null && !row.primaryImageKey().isBlank()) {
+            primaryUrl = mediaUrlService.getPresignedUrl(row.primaryImageKey(), ttl);
+        }
+        long remainingSeconds = Duration.between(LocalDateTime.now(), row.endDatetime()).getSeconds();
+        if (remainingSeconds < 0)
+            remainingSeconds = 0;
 
         return new AuctionListItemResponse(row.id(), row.grade(), row.title(), row.currentPrice(), row.bidCount(),
-                remainingSeconds, primaryUrl);
+                remainingSeconds, primaryUrl, wished);
     }
 }

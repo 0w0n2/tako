@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
@@ -21,6 +22,8 @@ import lombok.Setter;
  * @RETURN 없음
  */
 @Getter
+@Setter // ]컨트롤러 쿼리파라미터 바인딩에 필요
+@NoArgsConstructor // 바인딩용 기본 생성자
 public class CardSearchRequest {
 
     @Schema(description = "대분류 ID", example = "1")

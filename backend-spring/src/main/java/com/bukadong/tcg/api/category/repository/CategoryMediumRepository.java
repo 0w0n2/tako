@@ -2,11 +2,9 @@ package com.bukadong.tcg.api.category.repository;
 
 import com.bukadong.tcg.api.category.entity.CategoryMedium;
 
-import io.lettuce.core.dynamic.annotation.Param;
 import lombok.NonNull;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 import java.util.Optional;
