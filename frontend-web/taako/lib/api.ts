@@ -43,7 +43,7 @@ api.interceptors.response.use(
           }
       } catch (refreshError) {
           console.error("토큰 재발급 실패:", refreshError);
-          useAuthStore.getState().logout();
+          // useAuthStore.getState().logout();
       }
     }
     return Promise.reject(error);
