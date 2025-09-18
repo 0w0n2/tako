@@ -5,7 +5,7 @@ export const getMajorCategories = async () => {
     return res.data;
 };
 
-export const getMinorCategories = async () => {
-    const res = await api.get("/v1/categories/mediums");
+export const getMinorCategories = async (majorId:number) => {
+    const res = await api.get(`/v1/categories/mediums/${majorId}`);
     return res.data;
 }

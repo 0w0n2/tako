@@ -4,20 +4,29 @@ import { MajorCategories } from "@/types/category";
 
 export function useMajorCategories() {
   const [majorCategories, setMajorCategories] = useState<MajorCategories[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [majorCategoryId, setMajorCategoryId] = useState<number|null>(null);
+  const [majorCategoryName, setMajorCategoryName] = useState<string|null>(null);
+  const [majorLoading, setMajorLoading] = useState(true);
 
   useEffect(() => {
     const fetchCategories = async () => {
+      setMajorLoading(true);
       try {
         const res = await getMajorCategories();
         // console.log(res);
         setMajorCategories(res.result);
       } catch (err) {
         console.error(err);
+      } finally{
+        setMajorLoading(false);
       }
     };
     fetchCategories();
   }, []);
 
-  return { majorCategories, loading };
+  return {
+    setMajorCategoryId, setMajorCategoryName,
+    majorCategories, majorCategoryId, majorCategoryName,
+    majorLoading,
+  };
 }

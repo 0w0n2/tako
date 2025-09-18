@@ -21,12 +21,8 @@ import { useMajorCategories } from '@/hooks/useMajorCategories';
 import { MajorCategories } from '@/types/category';
 
 export default function Header() {
-  const { majorCategories } = useMajorCategories();
-
-  const getCategoryId = (categoryName: string): number => {
-    const found = majorCategories.find((item: MajorCategories) => item.name === categoryName);
-    return found ? found.id : 0;
-  };
+  const { majorCategories, majorLoading } = useMajorCategories();
+  // console.log(majorCategories)
 
   const token = useAuthStore((state) => state.token);
   const isLoggedIn = !!token;
