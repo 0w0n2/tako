@@ -120,7 +120,7 @@ popularity:
 
 logging:
   level:
-    com.bukadong.tcg.api.media.service.MediaUrlService: DEBUG
+    com.bukadong.tcg.api.media.service.MediaPresignQueryService: DEBUG
     com.bukadong.tcg.api.inquiry.service.InquiryQueryService: DEBUG
     com.bukadong.tcg.api.inquiry.service.InquiryCommandService: DEBUG
     com.bukadong.tcg.api.inquiry.controller.InquiryController: DEBUG

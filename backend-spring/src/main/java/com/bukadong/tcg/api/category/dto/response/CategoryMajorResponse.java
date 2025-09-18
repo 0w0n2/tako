@@ -14,5 +14,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Schema(description = "대분류 카테고리 응답")
 public record CategoryMajorResponse(@Schema(description = "대분류 ID", example = "1001") Long id,
         @Schema(description = "대분류 이름", example = "TCG") String name,
-        @Schema(description = "설명", example = "트레이딩 카드 게임") String description) {
+        @Schema(description = "설명", example = "트레이딩 카드 게임") String description,
+        @Schema(description = "대표 이미지 URL(프리사인, 5분 유효)", example = "https://s3.example.com/...") String imageUrl) {
 }
