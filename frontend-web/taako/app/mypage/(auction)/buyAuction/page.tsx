@@ -51,6 +51,6 @@ export default function BuyAuctionPage() {
           <BuyEndedAuction />
         )}
       </div>
-    </div>
+  </div>
   );
 }
