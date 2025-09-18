@@ -17,4 +17,6 @@ import java.util.Optional;
  */
 public interface WishCardRepository extends JpaRepository<WishCard, Long>, WishCardRepositoryCustom {
     Optional<WishCard> findByMemberIdAndCardId(Long memberId, Long cardId);
+
+    boolean existsByMemberIdAndCardIdAndWishFlagTrue(Long memberId, Long cardId);
 }
