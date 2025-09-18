@@ -45,11 +45,14 @@ h1 {
 /* 소제목 */
 h2 {
   font-size: 24px;
-  margin-bottom: 20px;
 }
 
 h3 {
   font-size: 18px;
+}
+h3.bid {
+  font-size: 16px;
+  font-weight: 300;
 }
 
 .sell-auction-tbody {

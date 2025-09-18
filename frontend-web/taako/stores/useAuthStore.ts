@@ -63,6 +63,7 @@ export const useAuthStore = create<AuthState>()(
               withCredentials: true,
             }
           );
+          console.log(res);
           const token = res.headers["authorization"];
           if (token) set({ token });
           return token;

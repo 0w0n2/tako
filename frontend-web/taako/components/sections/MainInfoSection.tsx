@@ -72,7 +72,7 @@ export default function MainInfoSection() {
                 </div>
             </div>
             {/* 하단 그라디언트 페이드 오버레이 */}
-            <div className="pointer-events-none z-10 absolute inset-x-0 bottom-0 h-15 bg-gradient-to-t from-[#1f1f1f] via-[#1f1f1f]/60 to-transparent" />
+            {/* <div className="pointer-events-none z-10 absolute inset-x-0 bottom-0 h-15 bg-gradient-to-t from-[#141420] via-[#141420]/60 to-transparent" /> */}
         </div>
     )
 }
