@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.28;
 
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+
 /**
-    @title AuctionEscrow
+    @title AuctionEscrow (Upgradeable)
     @dev 낙찰된 경매 건에 대한 대금을 안전하게 예치(escrow)하고 정산하는 컨트랙트
     [동작 플로우]
     1. 백엔드 서버(Spring)가 (판매자, 구매자, 낙찰가) 정보를 담아 컨트랙트를 배포
@@ -10,7 +12,7 @@ pragma solidity ^0.8.28;
     3. 구매자가 상품 수령 후 구매 확정 (confirmReceipt)
     4. 판매자가 예치된 대금을 인출 (releaseFunds)
  */
-contract AuctionEscrow {
+contract AuctionEscrow is Initializable {
     // --- 상태 변수, Enum ---
     address public seller; // 판매자 주소
     address public buyer; // 구매자 주소
@@ -60,7 +62,11 @@ contract AuctionEscrow {
         @param _buyer 경매 낙찰자(구매자)의 주소(address)
         @param _amount 낙찰 금액
      */
-    constructor(address _seller, address _buyer, uint256 _amount) {
+    function initialize(
+        address _seller,
+        address _buyer,
+        uint256 _amount
+    ) public initializer {
         seller = _seller;
         buyer = _buyer;
         amount = _amount; // 컨트랙트 배포와 함께 전송된 ETH를 거래액으로 설정
