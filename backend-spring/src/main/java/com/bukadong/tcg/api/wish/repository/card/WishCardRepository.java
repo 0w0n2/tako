@@ -1,4 +1,4 @@
-package com.bukadong.tcg.api.wish.repository;
+package com.bukadong.tcg.api.wish.repository.card;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -16,6 +16,5 @@ import java.util.Optional;
  * @RETURN 없음
  */
 public interface WishCardRepository extends JpaRepository<WishCard, Long>, WishCardRepositoryCustom {
-
     Optional<WishCard> findByMemberIdAndCardId(Long memberId, Long cardId);
 }

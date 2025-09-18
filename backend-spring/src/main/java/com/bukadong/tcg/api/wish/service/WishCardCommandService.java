@@ -2,7 +2,7 @@ package com.bukadong.tcg.api.wish.service;
 
 import com.bukadong.tcg.api.card.repository.CardRepository;
 import com.bukadong.tcg.api.wish.entity.WishCard;
-import com.bukadong.tcg.api.wish.repository.WishCardRepository;
+import com.bukadong.tcg.api.wish.repository.card.WishCardRepository;
 import com.bukadong.tcg.global.common.base.BaseResponseStatus;
 import com.bukadong.tcg.global.common.exception.BaseException;
 import lombok.RequiredArgsConstructor;
@@ -61,6 +61,5 @@ public class WishCardCommandService {
     @Transactional
     public void remove(Long memberId, Long cardId) {
         wishCardRepository.findByMemberIdAndCardId(memberId, cardId).ifPresent(WishCard::disable);
-        // JPA dirty checking
     }
 }

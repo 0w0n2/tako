@@ -1,4 +1,4 @@
-package com.bukadong.tcg.api.wish.repository;
+package com.bukadong.tcg.api.wish.repository.card;
 
 import com.bukadong.tcg.api.card.entity.QCard;
 import com.bukadong.tcg.api.wish.dto.response.WishCardListRow;

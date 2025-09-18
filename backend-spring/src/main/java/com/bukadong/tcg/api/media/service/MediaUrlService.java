@@ -68,6 +68,23 @@ public class MediaUrlService {
     }
 
     /**
+     * S3 key(또는 URL) 단건 Presign URL 발급
+     * <P>
+     * 입력이 http(s) URL이면 그대로 반환하고, key이면 presignWithCache를 통해 TTL 캐시를 적용해 URL을 반환한다.
+     * TTL이 null이면 기본 5분을 사용한다.
+     * </P>
+     * 
+     * @PARAM s3keyOrUrl S3 key 또는 완전한 URL
+     * @PARAM ttl presign 유효기간 (null 허용)
+     * @RETURN presign URL(또는 입력이 URL이면 그대로)
+     */
+    @Transactional(readOnly = true)
+    public String getPresignedUrl(String s3keyOrUrl, Duration ttl) {
+        Duration effectiveTtl = (ttl == null ? Duration.ofMinutes(5) : ttl);
+        return presignWithCache(s3keyOrUrl, effectiveTtl);
+    }
+
+    /**
      * S3 key → presign URL 변환(캐시 적용)
      * <P>
      * http(s)로 시작하면 그대로 반환(캐시 미사용). key인 경우 캐시를 먼저 확인하고, 없으면 presign 생성 후 TTL-5초(최소

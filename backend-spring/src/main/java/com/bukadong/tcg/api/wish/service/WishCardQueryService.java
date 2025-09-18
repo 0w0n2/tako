@@ -3,7 +3,7 @@ package com.bukadong.tcg.api.wish.service;
 import com.bukadong.tcg.api.media.entity.MediaType;
 import com.bukadong.tcg.api.media.service.MediaUrlService;
 import com.bukadong.tcg.api.wish.dto.response.WishCardListRow;
-import com.bukadong.tcg.api.wish.repository.WishCardRepository;
+import com.bukadong.tcg.api.wish.repository.card.WishCardRepository;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
