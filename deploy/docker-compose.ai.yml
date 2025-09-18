@@ -4,8 +4,8 @@ services:
       context: ../backend-fastapi
       dockerfile: Dockerfile
     container_name: tako_ai
-    expose:
-      - "8000"
+    ports:
+      - "8000:8000"
     mem_limit: 1024m
     memswap_limit: 1024m
     cpus: "0.6"
