@@ -1,5 +1,6 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException, WebSocket
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, UploadFile, File, HTTPException, WebSocket, APIRouter, Security, status, Request
+from fastapi.responses import JSONResponse 
+from fastapi.security import HTTPBearer
 from typing import Dict, Tuple, List
 from PIL import Image, ImageStat
 from io import BytesIO
@@ -14,7 +15,26 @@ from ws import ws_manager
 # Ultralytics는 lazy import 권장 (모델 로딩 비용이 큼)
 from ultralytics import YOLO
 
-app = FastAPI(title="Card Condition Checker")
+app = FastAPI(title="Card Condition Checker", root_path="/ai")
+
+api_router = APIRouter(prefix="/ai")
+
+@api_router.get("/docs")
+async def docs():
+    return {"message": "docs"}
+
+app.include_router(api_router)
+
+
+security = HTTPBearer(auto_error=False)
+
+async def optional_auth(request: Request, token=Security(security)):
+    if request.url.path in ["/docs", "/redoc", "/openapi.json"]:
+        return None  # 인증 건너뜀
+    if token is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+    return token.credentials
+
 
 # ===== 모델 로딩 (서버 기동 시 1회) =====
 VERIFY_MODEL_PATH = os.getenv("VERIFY_MODEL_PATH", "models/card_verification.pt")
