@@ -27,9 +27,9 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
  * @PARAM 없음
  * @RETURN BaseResponse
  */
-@Tag(name = "Wish Cards", description = "관심 카드 추가/삭제/조회 API")
+@Tag(name = "Wish", description = "관심 카드/경매 추가/삭제/조회 API")
 @RestController
-@RequestMapping("/v1")
+@RequestMapping("/v1/wishes")
 @RequiredArgsConstructor
 @Validated
 public class WishCardController {
@@ -48,7 +48,7 @@ public class WishCardController {
      * @RETURN BaseResponse<Void>
      */
     @Operation(summary = "관심 카드 추가", description = "카드 ID로 관심 목록에 등록합니다.")
-    @PostMapping("/cards/{cardId}/wish")
+    @PostMapping("/cards/{cardId}")
     public BaseResponse<Void> add(
             @Parameter(description = "카드 ID", required = true) @PathVariable("cardId") @Min(1) Long cardId,
             @AuthenticationPrincipal CustomUserDetails user) {
@@ -67,7 +67,7 @@ public class WishCardController {
      * @RETURN BaseResponse<Void>
      */
     @Operation(summary = "관심 카드 삭제", description = "카드 ID로 관심 목록에서 해제합니다.")
-    @DeleteMapping("/cards/{cardId}/wish")
+    @DeleteMapping("/cards/{cardId}")
     public BaseResponse<Void> remove(
             @Parameter(description = "카드 ID", required = true) @PathVariable("cardId") @Min(1) Long cardId,
             @AuthenticationPrincipal CustomUserDetails user) {
@@ -87,7 +87,7 @@ public class WishCardController {
      * @RETURN BaseResponse<PageResponse<WishCardListRow>>
      */
     @Operation(summary = "내 관심 카드 목록", description = "본인이 관심으로 추가한 카드 목록을 조회합니다.")
-    @GetMapping("/wish-cards")
+    @GetMapping("/cards")
     public BaseResponse<PageResponse<WishCardListRow>> listMy(
             @Parameter(description = "페이지 번호(0-base)", required = false) @RequestParam(name = "page", defaultValue = "0") @Min(0) int page,
             @Parameter(description = "페이지 크기(1~100)", required = false) @RequestParam(name = "size", defaultValue = "20") @Min(1) int size,
