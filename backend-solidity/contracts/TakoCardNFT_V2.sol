@@ -1,56 +1,57 @@
 // SPDX-License-Identifier: MIT
-// NFT 발행 후, 각 NFT의 경매 이력을 블록체인에 영구적으로 기록
-// 백엔드 서버가 관리자 역할 수행 발행 및 이력 기록 통제하는 중앙 관리형 구조
 pragma solidity ^0.8.28;
 
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+// V1과 동일한 업그레이드 가능 버전의 컨트랙트들을 임포트합니다.
 import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-contract TakoCardNFT is Initializable, ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable {
+// --- V2 변경사항 1: 컨트랙트 이름 변경 ---
+contract TakoCardNFT_V2 is Initializable, ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable {
     struct AuctionHistory {
-        address seller;         // 경매 개시자 지갑 주소
-        address buyer;          // 입찰자 지갑 주소
+        address seller;
+        address buyer;
         uint256 price;
         uint256 gradeId;
         uint256 timestamp;
     }
 
-    // 핵심 데이터 구조: tokenId별 경매 이력 배열
     mapping(uint256 => AuctionHistory[]) private auctionHistories;
-    // 백엔드 서버의 지갑주소
     address private backendAdmin;
 
+    // --- V2 변경사항 2: 새로운 이벤트 추가 ---
+    event HistoryAddedV2(uint256 indexed tokenId, address buyer);
+
     /// @custom:oz-upgrades-unsafe-allow constructor
-       constructor() {
+    constructor() {
         _disableInitializers();
     }
 
     function initialize(address initialOwner) public initializer {
-        // 상속받은 컨트랙트들의 초기화 함수를 호출
         __ERC721_init("TakoNFT", "TAKO_RECORD");
         __Ownable_init(initialOwner);
         __UUPSUpgradeable_init();
-
-        // 기존 constructor의 로직을 그대로 가져옴
         backendAdmin = initialOwner;
+    }
+
+    // --- V2 변경사항 3: 새로운 함수 추가 ---
+    function version() public pure returns (string memory) {
+        return "V2";
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
-    // backendAdmin만 접근 가능
     modifier onlyBackendAdmin() {
         require(msg.sender == backendAdmin, "Not authorized: backend only");
         _;
     }
 
-    // 관리자만 호출 가능한 NFT 발행 함수
     function safeMint(address to, uint256 tokenId) external onlyBackendAdmin {
         _safeMint(to, tokenId);
     }
 
-    // 관리자만 호출 가능한 경매 이력 추가 함수
+    // --- V2 변경사항 4: 기존 함수 수정 ---
     function addAuctionHistory(
         uint256 tokenId,
         address seller,
@@ -65,14 +66,15 @@ contract TakoCardNFT is Initializable, ERC721Upgradeable, OwnableUpgradeable, UU
             gradeId: gradeId,
             timestamp: block.timestamp
         }));
+
+        // V2에서 추가된 이벤트 발생
+        emit HistoryAddedV2(tokenId, buyer);
     }
 
-    // cardId별 경매 이력 조회 함수 (읽기용, 누구나 호출 가능)
     function getAuctionHistories(uint256 cardId) external view returns (AuctionHistory[] memory) {
         return auctionHistories[cardId];
     }
     
-    // 필요한 경우 backendAdmin 주소 변경 함수 (소유자만 가능)
     function setBackendAdmin(address newAdmin) external onlyOwner {
         backendAdmin = newAdmin;
     }
