@@ -21,7 +21,6 @@ import lombok.Setter;
  * @RETURN 없음
  */
 @Getter
-@Setter
 public class CardSearchRequest {
 
     @Schema(description = "대분류 ID", example = "1")
