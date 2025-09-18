@@ -1,4 +1,5 @@
-tako_ai:
+services:
+  tako_ai:
     build:
       context: ../backend-fastapi
       dockerfile: Dockerfile
