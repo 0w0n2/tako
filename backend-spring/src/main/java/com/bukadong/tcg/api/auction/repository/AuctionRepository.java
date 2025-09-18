@@ -75,5 +75,5 @@ public interface AuctionRepository extends JpaRepository<Auction, Long> {
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query(value = "UPDATE auction SET is_end = 1 WHERE id = :id AND is_end = 0", nativeQuery = true)
-    int markEnded(@org.springframework.data.repository.query.Param("id") Long id);
+    int markEnded(@Param("id") Long id);
 }

@@ -20,8 +20,9 @@ import java.math.BigDecimal;
  * @RETURN 단건 응답 DTO
  */
 public record AuctionListItemResponse(@Schema(description = "경매 ID") Long id,
-                @Schema(description = "카드 등급") String grade, @Schema(description = "경매 제목") String title,
-                @Schema(description = "현재가") BigDecimal currentPrice, @Schema(description = "유효 입찰 수") long bidCount,
-                @Schema(description = "마감까지 남은 초") long remainingSeconds,
-                @Schema(description = "대표 이미지 프리사인 URL") String primaryImageUrl) {
+        @Schema(description = "카드 등급") String grade, @Schema(description = "경매 제목") String title,
+        @Schema(description = "현재가") BigDecimal currentPrice, @Schema(description = "유효 입찰 수") long bidCount,
+        @Schema(description = "마감까지 남은 초") long remainingSeconds,
+        @Schema(description = "대표 이미지 프리사인 URL") String primaryImageUrl,
+        @Schema(description = "로그인 회원이 위시했는지 여부") boolean wished) {
 }
