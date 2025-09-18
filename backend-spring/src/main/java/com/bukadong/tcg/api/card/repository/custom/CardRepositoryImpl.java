@@ -134,7 +134,6 @@ public class CardRepositoryImpl implements CardRepositoryCustom {
 
             String orderLimit = " ORDER BY score DESC, c.id DESC LIMIT :limit OFFSET :offset";
 
-            var q = em.createNativeQuery(select.toString() + fromWhere.toString() + orderLimit);
             var q = em.createNativeQuery(select.toString() + fromWhere + orderLimit);
             var qc = em.createNativeQuery(countSql.toString());
 
