@@ -11,6 +11,10 @@ springdoc:
     tags-sorter: alpha
     operations-sorter: alpha
 
+db:
+  init:
+    fulltext: ${DB_INIT_FULLTEXT}
+
 spring:
   data:
     redis:

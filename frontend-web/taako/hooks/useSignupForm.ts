@@ -206,23 +206,24 @@ export function useSignupForm() {
   };
 
   const handleSignup = async () => {
+    // 예외처리
     if (!isPasswordValid) {
       alert("비밀번호 형식이 올바르지 않거나 비밀번호가 일치하지 않습니다.");
       return;
     }
-
     if (!isValidEmail(email)) {
         alert(emailError)
         return;
     }
+    if(!emailConfirm){
+      alert("인증이 완료되지 않았습니다.")
+      return;
+    }
+
     try {
       setLoading(true);
       const res = await signup(email, password, nickname, isSocial, providerName);
       
-      if(!emailConfirm){
-        alert("인증이 완료되지 않았습니다.")
-        return;
-      }
 
       if(res.code!==200){
         alert(res.message)
