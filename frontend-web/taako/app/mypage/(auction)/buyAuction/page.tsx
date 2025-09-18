@@ -13,11 +13,16 @@ export default function BuyAuctionPage() {
 
       {/* 구분 탭 */}
       <div className="border-b border-[#a5a5a5] flex relative py-2 mt-3">
+      <div className="border-b border-[#a5a5a5] flex relative py-2 mt-3">
         {/* 경매 중 */}
         <button
           onClick={() => setActiveTab('ongoing')}
           className="flex-1 flex gap-2 items-center justify-center cursor-pointer"
+          className="flex-1 flex gap-2 items-center justify-center cursor-pointer"
         >
+          <div className={`${activeTab === 'ongoing' ? 'text-white font-medium' : 'font-light text-[#a5a5a5]'}`}>경매 중</div>
+          <div className={`text-lg mb-0.5 ${
+            activeTab === 'ongoing' ? 'text-[#F2B90C] font-medium' : 'font-light text-[#a5a5a5]'
           <div className={`${activeTab === 'ongoing' ? 'text-white font-medium' : 'font-light text-[#a5a5a5]'}`}>경매 중</div>
           <div className={`text-lg mb-0.5 ${
             activeTab === 'ongoing' ? 'text-[#F2B90C] font-medium' : 'font-light text-[#a5a5a5]'
@@ -27,7 +32,11 @@ export default function BuyAuctionPage() {
         <button
           onClick={() => setActiveTab('ended')}
           className="flex-1 flex gap-2 items-center justify-center cursor-pointer"
+          className="flex-1 flex gap-2 items-center justify-center cursor-pointer"
         >
+          <div className={`${activeTab === 'ended' ? 'text-white font-medium' : 'font-light text-[#a5a5a5]'}`}>종료</div>
+          <div className={`text-lg mb-0.5 ${
+            activeTab === 'ended' ? 'text-[#F2B90C] font-medium' : 'font-light text-[#a5a5a5]'
           <div className={`${activeTab === 'ended' ? 'text-white font-medium' : 'font-light text-[#a5a5a5]'}`}>종료</div>
           <div className={`text-lg mb-0.5 ${
             activeTab === 'ended' ? 'text-[#F2B90C] font-medium' : 'font-light text-[#a5a5a5]'
@@ -36,6 +45,7 @@ export default function BuyAuctionPage() {
         
         {/* 활성 탭 표시 바 */}
         <div 
+          className={`absolute bottom-0 w-[50%] h-[1px] bg-white transition-all duration-300 ease-in-out z-1 ${
           className={`absolute bottom-0 w-[50%] h-[1px] bg-white transition-all duration-300 ease-in-out z-1 ${
             activeTab === 'ongoing' ? 'left-0' : 'left-[50%] w-[50%]'
           }`}
