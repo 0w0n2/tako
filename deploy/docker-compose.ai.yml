@@ -3,8 +3,6 @@ tako_ai:
       context: ../backend-fastapi
       dockerfile: Dockerfile
     container_name: tako_ai
-    env_file:
-      - .env.ai
     expose:
       - "8000"
     mem_limit: 1024m
