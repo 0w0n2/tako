@@ -1,11 +1,13 @@
 package com.bukadong.tcg.api.card.controller;
 
 import com.bukadong.tcg.api.card.dto.request.CardSearchRequest;
+import com.bukadong.tcg.api.card.dto.response.CardDetailResponse;
 import com.bukadong.tcg.api.card.dto.response.CardListRow;
 import com.bukadong.tcg.api.card.service.CardQueryService;
 import com.bukadong.tcg.global.common.base.BaseResponse;
 import com.bukadong.tcg.global.common.dto.PageResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -48,5 +50,21 @@ public class CardController {
 
         Page<CardListRow> page = cardQueryService.search(request);
         return BaseResponse.onSuccess(PageResponse.from(page));
+    }
+
+    /**
+     * 카드 상세 조회
+     * <P>
+     * id로 단일 카드를 조회한다. 존재하지 않으면 NOT_FOUND 예외를 발생시킨다.
+     * </P>
+     * 
+     * @PARAM id 카드 ID
+     * @RETURN BaseResponse<CardDetailResponse>
+     */
+    @Operation(summary = "카드 상세 조회", description = "카드의 기본 메타(id, categoryMajorId, categoryMediumId, code, name, description, attribute, rarity)를 반환합니다.")
+    @GetMapping("/{id}")
+    public BaseResponse<CardDetailResponse> getDetail(
+            @Parameter(name = "id", description = "카드 ID", required = true) @PathVariable("id") Long id) {
+        return BaseResponse.onSuccess(cardQueryService.getDetail(id));
     }
 }

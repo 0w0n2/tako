@@ -1,5 +1,6 @@
 package com.bukadong.tcg.api.card.repository.custom;
 
+import com.bukadong.tcg.api.card.dto.response.CardDetailResponse;
 import com.bukadong.tcg.api.card.dto.response.CardListRow;
 import com.bukadong.tcg.api.card.entity.CardAttribute;
 import com.bukadong.tcg.api.card.entity.QCard;
@@ -15,15 +16,12 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * 카드 커스텀 검색 구현
@@ -40,7 +38,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CardRepositoryImpl implements CardRepositoryCustom {
 
-    private final JPAQueryFactory jpa;
+    private final JPAQueryFactory queryFactory;
 
     @PersistenceContext
     private EntityManager em;
@@ -196,7 +194,7 @@ public class CardRepositoryImpl implements CardRepositoryCustom {
                 // count는 기존 qc 결과를 그대로 사용(대체 가능하지만 성능상 재사용)
             }
 
-            java.util.List<CardListRow> content = new java.util.ArrayList<>(rows.size());
+            List<CardListRow> content = new ArrayList<>(rows.size());
             for (Object[] r : rows) {
                 Long id = ((Number) r[0]).longValue();
                 String name = (String) r[1];
@@ -220,14 +218,25 @@ public class CardRepositoryImpl implements CardRepositoryCustom {
         if (cond.getCategoryMediumId() != null)
             where.and(c.categoryMedium.id.eq(cond.getCategoryMediumId()));
 
-        List<CardListRow> content = jpa
+        List<CardListRow> content = queryFactory
                 .select(Projections.constructor(CardListRow.class, c.id, c.name, c.code, c.attribute, c.rarity,
                         Expressions.constant(0.0)))
                 .from(c).where(where).orderBy(c.id.desc()).offset(pageable.getOffset()).limit(pageable.getPageSize())
                 .fetch();
 
-        Long total = jpa.select(c.count()).from(c).where(where).fetchOne();
+        Long total = queryFactory.select(c.count()).from(c).where(where).fetchOne();
         return new PageImpl<>(content, pageable, total == null ? 0 : total);
     }
 
+    @Override
+    public CardDetailResponse findDetailById(Long id) {
+        final QCard card = QCard.card;
+
+        return queryFactory
+                .select(Projections.fields(CardDetailResponse.class, card.id.as("id"),
+                        card.categoryMajor.id.as("categoryMajorId"), card.categoryMedium.id.as("categoryMediumId"),
+                        card.code.as("code"), card.name.as("name"), card.description.as("description"),
+                        card.attribute.stringValue().as("attribute"), card.rarity.stringValue().as("rarity")))
+                .from(card).where(card.id.eq(id)).fetchOne(); // 없으면 null
+    }
 }
