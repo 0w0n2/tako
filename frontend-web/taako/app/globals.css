@@ -50,6 +50,10 @@ h2 {
 h3 {
   font-size: 18px;
 }
+h3.bid {
+  font-size: 16px;
+  font-weight: 300;
+}
 
 .sell-auction-tbody {
   border-radius: 24px !important;

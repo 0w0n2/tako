@@ -28,19 +28,22 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
+    if (originalRequest.url.includes("/v1/auth/token/refresh")) {
+      return Promise.reject(error);
+    }
+
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true; // 무한 루프 방지 플래그
 
       try {
-        const newToken = await useAuthStore.getState().refreshAccessToken();
-
-        if (newToken) {
-          originalRequest.headers["Authorization"] = newToken;
-          return api(originalRequest); // 실패한 요청 재실행
-        }
+          const newToken = await useAuthStore.getState().refreshAccessToken();
+          if (newToken) {
+            originalRequest.headers["Authorization"] = newToken;
+            return api(originalRequest); // 실패한 요청 재실행
+          }
       } catch (refreshError) {
-        console.error("토큰 재발급 실패:", refreshError);
-        useAuthStore.getState().logout(); // 강제 로그아웃
+          console.error("토큰 재발급 실패:", refreshError);
+          useAuthStore.getState().logout();
       }
     }
     return Promise.reject(error);
