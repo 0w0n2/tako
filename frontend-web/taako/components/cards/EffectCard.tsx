@@ -24,7 +24,7 @@ type TCGCardProps = {
   mask?: string;
 };
 
-export default function TCGCard({
+export default function EffectCard({
   id,
   name,
   number,
