@@ -164,7 +164,7 @@ public enum BaseResponseStatus {
     CARD_RARITY_UNSUPPORTED(HttpStatus.BAD_REQUEST, false, 1200, "지원하지 않는 유형의 카드 희귀도입니다."),
     CARD_ATTRIBUTE_UNSUPPORTED(HttpStatus.BAD_REQUEST, false, 1201, "지원하지 않는 유형의 카드 속성입니다."),
     CARD_NAME_DUPLICATED(HttpStatus.CONFLICT, false, 1202, "중복된 카드 이름은 등록할 수 없습니다."),
-
+    CARD_NOT_FOUND(HttpStatus.NOT_FOUND, false, 1203, "카드 정보를 찾을 수 없습니다."),
     /**
      * 1300: 메일(SMTP) Error
      */
