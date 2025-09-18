@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: MIT
+// NFT 발행 후, 각 NFT의 경매 이력을 블록체인에 영구적으로 기록
+// 백엔드 서버가 관리자 역할 수행 발행 및 이력 기록 통제하는 중앙 관리형 구조
 pragma solidity ^0.8.28;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
@@ -6,20 +8,19 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract TakoCardNFT is ERC721, Ownable {
     struct AuctionHistory {
-        address bidder;     // 입찰자
-        string uuid;           // 입찰자 고유 아이디
-        string cardid;         // 카드 아이디
-        uint256 bidAmount;  // 입찰 금액
-        uint256 timestamp;  // 입찰 시간
-        // string txHash;        // 거래 해시
-        // string cardimage;     // 카드 이미지
-        // string cardname;      // 카드 이름
+        address seller;         // 경매 개시자 지갑 주소
+        address buyer;          // 입찰자 지갑 주소
+        uint256 price;
+        uint256 gradeId;
+        uint256 timestamp;
     }
 
+    // 핵심 데이터 구조: tokenId별 경매 이력 배열
     mapping(uint256 => AuctionHistory[]) private auctionHistories;
-    
+    // 백엔드 서버의 지갑주소
     address private backendAdmin;
 
+    // 컨트랙트 생성자(한 번 실행)
     constructor(address initialOwner) ERC721("TakoNFT", "TAKO_RECORD") Ownable(initialOwner) {
         backendAdmin = initialOwner;
     }
@@ -37,19 +38,18 @@ contract TakoCardNFT is ERC721, Ownable {
 
     // 관리자만 호출 가능한 경매 이력 추가 함수
     function addAuctionHistory(
-        uint256 cardId,
-        address bidder,
-        string memory uuid,
-        string memory cardid,
-        uint256 bidAmount,
-        uint256 timestamp
+        uint256 tokenId,
+        address seller,
+        address buyer,
+        uint256 price,
+        uint256 gradeId
     ) external onlyBackendAdmin {
-        auctionHistories[cardId].push(AuctionHistory({
-            bidder: bidder,
-            uuid: uuid,
-            cardid: cardid,
-            bidAmount: bidAmount,
-            timestamp: timestamp
+        auctionHistories[tokenId].push(AuctionHistory({
+            seller: seller,
+            buyer: buyer,
+            price: price,
+            gradeId: gradeId,
+            timestamp: block.timestamp
         }));
     }
 
