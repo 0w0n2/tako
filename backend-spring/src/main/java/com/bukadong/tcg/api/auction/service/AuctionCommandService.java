@@ -22,8 +22,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import com.bukadong.tcg.api.notification.service.NotificationCommandService;
+import com.bukadong.tcg.api.wish.repository.WishQueryPort;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -49,6 +52,8 @@ public class AuctionCommandService {
     private final CategoryMajorRepository categoryMajorRepository;
     private final CategoryMediumRepository categoryMediumRepository;
     private final MediaAttachmentService mediaAttachmentService;
+    private final NotificationCommandService notificationCommandService;
+    private final WishQueryPort wishQueryPort;
 
     /**
      * 경매 생성 서비스
@@ -101,6 +106,11 @@ public class AuctionCommandService {
         if (files != null && !files.isEmpty()) {
             mediaAttachmentService.addByMultipart(MediaType.AUCTION_ITEM, saved.getId(), me, files, dir);
         }
+
+        // 알림 트리거: 카드 위시한 회원들에게 알림 발송
+        wishQueryPort.findMemberIdsWhoWishedCard(card.getId()).stream().filter(mid -> !mid.equals(me.getId()))
+                .forEach(mid -> notificationCommandService.notifyWishCardListed(mid, saved.getId(),
+                        Map.of("auctionId", saved.getId())));
 
         // 응답은 id만
         return AuctionCreateResponse.builder().auctionId(saved.getId()).build();
