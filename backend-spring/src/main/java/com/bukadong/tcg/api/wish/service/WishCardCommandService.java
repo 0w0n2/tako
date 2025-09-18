@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @RETURN 없음
  */
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class WishCardCommandService {
 
@@ -35,7 +36,6 @@ public class WishCardCommandService {
      * @PARAM cardId 카드 ID
      * @RETURN 없음
      */
-    @Transactional
     public void add(Long memberId, Long cardId) {
         // 존재성 검증(서비스 레이어 DB 의존 검증)
         if (!cardRepository.existsById(cardId)) {
@@ -58,7 +58,6 @@ public class WishCardCommandService {
      * @PARAM cardId 카드 ID
      * @RETURN 없음
      */
-    @Transactional
     public void remove(Long memberId, Long cardId) {
         wishCardRepository.findByMemberIdAndCardId(memberId, cardId).ifPresent(WishCard::disable);
         // JPA dirty checking
