@@ -2,13 +2,10 @@ package com.bukadong.tcg.api.auction.converter;
 
 import com.bukadong.tcg.api.auction.dto.projection.AuctionListProjection;
 import com.bukadong.tcg.api.auction.dto.response.AuctionListItemResponse;
-import com.bukadong.tcg.api.media.entity.MediaType;
 import com.bukadong.tcg.api.media.service.MediaUrlService;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 
 /**
  * 경매 목록 행 → 외부 응답 DTO 컨버터

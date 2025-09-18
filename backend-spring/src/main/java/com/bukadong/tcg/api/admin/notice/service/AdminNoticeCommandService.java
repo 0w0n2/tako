@@ -10,7 +10,6 @@ import com.bukadong.tcg.api.notice.entity.Notice;
 import com.bukadong.tcg.api.notice.repository.NoticeRepository;
 import com.bukadong.tcg.global.common.base.BaseResponseStatus;
 import com.bukadong.tcg.global.common.exception.BaseException;
-import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,7 +32,6 @@ import java.util.List;
 public class AdminNoticeCommandService {
 
     private final NoticeRepository noticeRepository;
-    private final EntityManager em;
     private final MediaAttachmentService mediaAttachmentService;
 
     /**

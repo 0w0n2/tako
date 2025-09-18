@@ -4,7 +4,6 @@ import com.bukadong.tcg.api.card.dto.request.CardSearchRequest;
 import com.bukadong.tcg.api.card.dto.response.CardDetailResponse;
 import com.bukadong.tcg.api.card.dto.response.CardListRow;
 import com.bukadong.tcg.api.card.repository.CardRepository;
-import com.bukadong.tcg.api.card.repository.custom.CardRepositoryCustom;
 import com.bukadong.tcg.api.card.repository.custom.CardSearchCond;
 import com.bukadong.tcg.api.media.entity.MediaType;
 import com.bukadong.tcg.api.media.service.MediaUrlService;
