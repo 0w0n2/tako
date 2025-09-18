@@ -77,7 +77,7 @@ export default function Signup(){
                                     type="button"
                                     disabled={!isEmailAvailable}
                                     className="min-w-[140px] py-6 bg-[#3E4C63] rounded-lg text-md text-white cursor-pointer hover:bg-[#324c63]"
-                                    onClick={() => handleVerificationEmail("SIGN_UP_MAIL_VERIFICATION")}
+                                    onClick={() => handleVerificationEmail("SIGN_UP")}
                                   >
                                     인증번호전송
                                   </Button>
@@ -86,7 +86,7 @@ export default function Signup(){
                                     type="button"
                                     disabled={emailExpired === true || (emailConfirm===true && !emailExpired)}
                                     className="min-w-[140px] py-6 bg-[#3E4C63] rounded-lg text-md text-white cursor-pointer hover:bg-[#324c63]"
-                                    onClick={() => handleVerificationEmailConfirm("SIGN_UP_MAIL_VERIFICATION", code)}
+                                    onClick={() => handleVerificationEmailConfirm("SIGN_UP", code)}
                                   >
                                     인증하기
                                   </Button>
