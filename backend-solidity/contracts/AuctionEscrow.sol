@@ -104,7 +104,6 @@ contract AuctionEscrow is Initializable {
         @dev [판매자] 대금 인출
      */
     function releaseFunds() external onlySeller inState(State.Complete) {
-        // 상태를 먼저 변경하여 Re-entrancy 공격 방지
         emit FundsReleased(seller, amount);
 
         (bool success, ) = seller.call{value: amount}("");
