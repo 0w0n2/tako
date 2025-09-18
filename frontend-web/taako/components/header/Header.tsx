@@ -20,9 +20,8 @@ import { useAuthStore } from "@/stores/useAuthStore";
 import { useMajorCategories } from '@/hooks/useMajorCategories';
 
 export default function Header() {
-  const { majorCategories, loading } = useMajorCategories();
-  console.log(majorCategories)
-
+  const { majorCategories, majorLoading } = useMajorCategories();
+  // console.log(majorCategories)
 
   const token = useAuthStore((state) => state.token);
   const isLoggedIn = !!token;
