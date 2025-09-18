@@ -36,7 +36,7 @@ export default function MainInfoSection() {
                         onSlideChange={() => console.log('slide change')}
                     >
                         <SwiperSlide className='bg-gradient-to-b from-yellow-300 to-black/30 backdrop-blur-xl'>
-                            <Link href="#pokemon">
+                            <Link href="/categories?category=Pokemon">
                                 <div>
                                     <h2 className='main'>Pokemon</h2>
                                     <p>포켓몬</p>
@@ -47,7 +47,7 @@ export default function MainInfoSection() {
                             </Link>
                         </SwiperSlide>
                         <SwiperSlide className='bg-gradient-to-b from-pink-800 to-black/50 backdrop-blur-xl'>
-                            <Link href="#yugioh">
+                            <Link href="/categories?category=YuGiOh">
                                 <div>
                                     <h2 className='main'>Yu-Gi-OH!</h2>
                                     <p>유희왕</p>
@@ -58,7 +58,7 @@ export default function MainInfoSection() {
                             </Link>
                         </SwiperSlide>
                         <SwiperSlide className='bg-gradient-to-b from-orange-800 to-black/30 backdrop-blur-xl'>
-                            <Link href="cookierun">
+                            <Link href="/categories?category=CookieRun">
                                 <div>
                                     <h2 className='main'>CookieRun</h2>
                                     <p>쿠키런</p>
