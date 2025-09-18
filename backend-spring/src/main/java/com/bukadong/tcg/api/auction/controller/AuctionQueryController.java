@@ -97,13 +97,14 @@ public class AuctionQueryController {
      */
     @AutoPopularityView
     @Operation(summary = "경매 상세 조회", description = "경매/카드/이미지/일주일 시세/입찰 히스토리를 반환합니다.")
-    @GetMapping("/{id}")
-    public BaseResponse<AuctionDetailResponse> getDetail(@Parameter(description = "경매 ID") @PathVariable("id") Long id,
+    @GetMapping("/{auctionId}")
+    public BaseResponse<AuctionDetailResponse> getDetail(
+            @Parameter(description = "경매 ID") @PathVariable("auctionId") Long auctionId,
             @Parameter(description = "히스토리 개수(기본 5)") @RequestParam(name = "historySize", required = false, defaultValue = "5") @Min(1) int historySize,
             @AuthenticationPrincipal CustomUserDetails user) {
 
         Long memberId = memberQueryService.getByUuid(user.getUuid()).getId();
-        return BaseResponse.onSuccess(auctionQueryService.getDetail(id, historySize, memberId));
+        return BaseResponse.onSuccess(auctionQueryService.getDetail(auctionId, historySize, memberId));
     }
 
 }

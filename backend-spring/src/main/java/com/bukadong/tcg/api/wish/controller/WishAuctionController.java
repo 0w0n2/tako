@@ -75,8 +75,9 @@ public class WishAuctionController {
      * @RETURN BaseResponse<Void>
      */
     @Operation(summary = "관심 경매 추가", description = "경매를 관심목록에 추가합니다.")
-    @PostMapping("/{id}")
-    public BaseResponse<Void> add(@Parameter(description = "경매 ID", required = true) @PathVariable("id") Long auctionId,
+    @PostMapping("/{auctionId}")
+    public BaseResponse<Void> add(
+            @Parameter(description = "경매 ID", required = true) @PathVariable("auctionId") Long auctionId,
             @AuthenticationPrincipal CustomUserDetails user) {
         Long memberId = memberQueryService.getByUuid(user.getUuid()).getId();
         wishAuctionCommandService.add(memberId, auctionId);
@@ -94,9 +95,9 @@ public class WishAuctionController {
      * @RETURN BaseResponse<Void>
      */
     @Operation(summary = "관심 경매 삭제", description = "관심목록에서 해당 경매를 제거합니다.")
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{auctionId}")
     public BaseResponse<Void> remove(
-            @Parameter(description = "경매 ID", required = true) @PathVariable("id") Long auctionId,
+            @Parameter(description = "경매 ID", required = true) @PathVariable("auctionId") Long auctionId,
             @AuthenticationPrincipal CustomUserDetails user) {
         Long memberId = memberQueryService.getByUuid(user.getUuid()).getId();
         wishAuctionCommandService.remove(memberId, auctionId);
