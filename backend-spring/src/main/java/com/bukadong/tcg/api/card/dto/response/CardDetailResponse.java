@@ -1,5 +1,7 @@
 package com.bukadong.tcg.api.card.dto.response;
 
+import java.util.List;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -43,4 +45,12 @@ public class CardDetailResponse {
 
     @Schema(description = "희귀도", example = "RADIANT_RARE")
     private String rarity;
+
+    @Schema(description = "이미지 URL 목록(대표=첫번째)", example = "[\"https://.../card/1/1.png\",\"https://.../card/1/2.png\"]")
+    private List<String> imageUrls;
+
+    /** 서비스에서 프리사인 URL 주입용 세터 (프로젝션과 충돌 방지 차원에서 최소 공개) */
+    public void setImageUrls(List<String> imageUrls) {
+        this.imageUrls = imageUrls;
+    }
 }

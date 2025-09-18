@@ -6,10 +6,15 @@ import com.bukadong.tcg.api.card.dto.response.CardListRow;
 import com.bukadong.tcg.api.card.repository.CardRepository;
 import com.bukadong.tcg.api.card.repository.custom.CardRepositoryCustom;
 import com.bukadong.tcg.api.card.repository.custom.CardSearchCond;
+import com.bukadong.tcg.api.media.entity.MediaType;
+import com.bukadong.tcg.api.media.service.MediaUrlService;
 import com.bukadong.tcg.global.common.base.BaseResponseStatus;
 import com.bukadong.tcg.global.common.exception.BaseException;
 
 import lombok.RequiredArgsConstructor;
+
+import java.time.Duration;
+
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class CardQueryService {
 
     private final CardRepository cardRepository;
+    private final MediaUrlService mediaUrlService;
 
     /**
      * 카드 검색
@@ -47,7 +53,7 @@ public class CardQueryService {
     /**
      * 카드 상세 조회 서비스
      * <P>
-     * DB 의존 존재성 검증만 수행. 조회는 readOnly.
+     * DB 의존 존재성 검증만 수행. + 이미지 URL 주입 조회는 readOnly.
      * </P>
      * 
      * @PARAM id 카드 ID
@@ -58,6 +64,7 @@ public class CardQueryService {
         CardDetailResponse dto = cardRepository.findDetailById(id);
         if (dto == null)
             throw new BaseException(BaseResponseStatus.CARD_NOT_FOUND);
+        dto.setImageUrls(mediaUrlService.getPresignedImageUrls(MediaType.CARD, id, Duration.ofMinutes(5)));
         return dto;
     }
 }
