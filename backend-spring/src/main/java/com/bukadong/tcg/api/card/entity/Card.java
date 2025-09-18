@@ -64,7 +64,7 @@ public class Card extends BaseEntity {
     /** 속성 (ROCK, PAPER, SCISSORS) */
     @Enumerated(EnumType.STRING)
     @Column(name = "attribute", length = 20, nullable = true)
-    private Attribute attribute;
+    private CardAttribute attribute;
 
     /**
      * 저장 전 훅
