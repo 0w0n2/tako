@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import BuyOnGoingAuction from '@/components/sections/mypage/BuyOnGoingAuction';
-import BuyEndedAuction from '@/components/sections/mypage/BuyEndedAuction';
+import BuyOnGoingAuction from '@/components/mypage/BuyOnGoingAuction';
+import BuyEndedAuction from '@/components/mypage/BuyEndedAuction';
 
 export default function BuyAuctionPage() {
   const [activeTab, setActiveTab] = useState<'ongoing' | 'ended'>('ongoing');
@@ -43,7 +43,7 @@ export default function BuyAuctionPage() {
       </div>
 
       {/* 경매 목록 테이블 */}
-      <div className='mt-6'>
+      <div className=''>
         {activeTab==='ongoing' && (
           <BuyOnGoingAuction />
         )}

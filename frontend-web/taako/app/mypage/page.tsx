@@ -25,10 +25,10 @@ export default function Mypage() {
   return (
     <div className="flex flex-col gap-10">
       {/* 기본정보 */}
-      <div className="flex gap-10 p-8 rounded-xl relative">
+      <div className="flex gap-10 p-8 rounded-xl relative bg-gradient-to-b from-[#073A4B] to-[#3B80FF]">
         <div className="flex-1 h-50 rounded-xl overflow-hidden relative z-1">
           <Image
-            src="/no-image.jpg"
+            src="/basic-profile.png"
             alt="profile"
             fill
             style={{ objectFit: 'cover' }}
@@ -43,17 +43,17 @@ export default function Mypage() {
         <Button variant="outline" className="absolute top-10 right-10">
           <Link href="/mypage/edit">Edit Profile</Link>
         </Button>
-        <div className="pl-8 flex gap-10 w-full bg-[#353444] absolute bottom-0 left-0 rounded-bl-xl rounded-br-xl overflow-hidden">
+        <div className="pl-8 flex gap-10 w-full bg-[#3D3D4D] absolute bottom-0 left-0 rounded-bl-xl rounded-br-xl overflow-hidden">
           <div className="flex-1"></div>
           <div className="flex-5 relative">
             <ul className={`grid grid-cols-${tabs.length}`}>
               {tabs.map(tab => (
                 <li
                   key={tab.id}
-                  className="text-center py-4 hover:bg-gray-600 cursor-pointer"
-                  onClick={() => {
-                    setStatus(tab.id);
-                  }}
+                  className={`text-center py-4 cursor-pointer hover:text-white ${
+                    status === tab.id ? "text-white font-medium" : "text-[#a5a5a5]"
+                  }`}
+                  onClick={() => { setStatus(tab.id); }}
                 >
                   {tab.label}
                 </li>

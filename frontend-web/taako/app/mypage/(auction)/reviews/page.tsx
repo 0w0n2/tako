@@ -1,5 +1,7 @@
 'use client';
 
+import AddReviews from '@/components/mypage/AddReviews';
+import MyReviews from '@/components/mypage/MyReviews';
 import { useState } from 'react';
 
 export default function CreateReviewPage(){
@@ -34,6 +36,15 @@ export default function CreateReviewPage(){
                     activeTab === 'ongoing' ? 'left-0' : 'left-[50%] w-[50%]'
                 }`}
                 />
+            </div>
+
+            <div className=''>
+            {activeTab==='ongoing' && (
+                <AddReviews />
+            )}
+            {activeTab==='ended' && (
+                <MyReviews />
+            )}
             </div>
         </div>
     )
