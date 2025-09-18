@@ -30,12 +30,10 @@ public class WishCard extends BaseEntity {
     private Long id;
 
     /** 카드 */
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "card_id", nullable = false, foreignKey = @ForeignKey(name = "FK_wish_card_card"))
     private Long cardId;
 
     /** 회원 */
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "member_id", nullable = false, foreignKey = @ForeignKey(name = "FK_wish_card_member"))
     private Long memberId;
 
