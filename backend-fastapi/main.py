@@ -39,17 +39,17 @@ MIN_SIZE = (800, 800)  # (w, h)
 BRIGHT_MIN, BRIGHT_MAX = 30, 225
 # YOLO 검증 기준
 CONF_THRESH = 0.50  # 너무 낮으면 400
-AREA_FRAC_MIN = 0.50  # 바운딩박스 영역이 전체의 50% 미만이면 400
+AREA_FRAC_MIN = 0.20  # 바운딩박스 영역이 전체의 50% 미만이면 400
 
 
 # 세그멘테이션 곡률 점수
 # - 곡률% <= 0.5% -> 0점
 # - 이후 0.5% 증가마다 +2점
 # - 이미지당 최대 6점, 전체 최대 12점
-def curvature_penalty_points(curv_percent: float) -> int:
-    if curv_percent <= 0.5:
+def curvature_penalty_points(curve_percent: float) -> int:
+    if curve_percent <= 0.5:
         return 0
-    steps = math.ceil((curv_percent - 0.5) / 0.5)
+    steps = math.ceil((curve_percent - 0.5) / 0.5)
     return int(min(6, steps * 2))
 
 
@@ -92,13 +92,13 @@ def pil_to_numpy(img: Image.Image) -> np.ndarray:
 
 # ===== Step 2: 카드 이미지 검증 (YOLO detect) =====
 # 기대 클래스명 예시:
-CARD_FRONT_CLASS = "card_front"  # TODO: 실제 모델 클래스명 확인 후 수정
-CARD_BACK_CLASS = "card_back"  # TODO: 실제 모델 클래스명 확인 후 수정
+Cardfront_CLASS = "Cardfront"  # TODO: 실제 모델 클래스명 확인 후 수정
+Cardback_CLASS = "Cardback"  # TODO: 실제 모델 클래스명 확인 후 수정
 
 
 def yolo_detect_verify(img: Image.Image, expect_front: bool) -> Tuple[bool, Dict]:
     """
-    expect_front=True이면 card_front를, False이면 card_back을 기대.
+    expect_front=True이면 Cardfront를, False이면 Cardback을 기대.
     조건:
       - 해당 클래스의 최고 conf >= CONF_THRESH
       - 그 바운딩박스 면적 비율 >= AREA_FRAC_MIN
@@ -107,11 +107,30 @@ def yolo_detect_verify(img: Image.Image, expect_front: bool) -> Tuple[bool, Dict
         raise HTTPException(status_code=500, detail="검증 모델이 로드되지 않았습니다.")
 
     np_img = pil_to_numpy(img)
-    res = verify_model.predict(source=np_img, verbose=False)[0]
+    res = verify_model.predict(
+        source=np_img, verbose=False, imgsz=640, conf=0.001, iou=0.7
+    )[0]
+
+    det_cnt = 0
+    best_any_conf = 0.0
+    best_any_name = None
+
+    if res.boxes is not None and len(res.boxes) > 0:
+        for b in res.boxes:
+            det_cnt += 1
+            cls_idx = int(b.cls.item())
+            name = res.names.get(cls_idx, f"cls_{cls_idx}")
+            conf = float(b.conf.item())
+            if conf > best_any_conf:
+                best_any_conf, best_any_name = conf, name
+
+        print(
+            f"[VERIFY] boxes={det_cnt}, best_any=({best_any_name}, {best_any_conf:.3f})"
+        )
 
     # 클래스명 매핑
     names = res.names  # dict: class_idx -> name
-    target = CARD_FRONT_CLASS if expect_front else CARD_BACK_CLASS
+    target = Cardfront_CLASS if expect_front else Cardback_CLASS
 
     ok = False
     best_conf = 0.0
@@ -156,10 +175,10 @@ def max_bowing_percent_from_mask(mask: np.ndarray) -> float:
     # 이진화 보정
     mask_bin = (mask > 0).astype(np.uint8) * 255
     # 컨투어
-    cnts, _ = cv2.findContours(mask_bin, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-    if not cnts:
+    counts, _ = cv2.findContours(mask_bin, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+    if not counts:
         return 0.0
-    cnt = max(cnts, key=cv2.contourArea)
+    cnt = max(counts, key=cv2.contourArea)
 
     pts = cnt.reshape(-1, 2).astype(np.float32)
     if pts.shape[0] < 10:
@@ -209,8 +228,8 @@ def segmentation_curvature_percent(img: Image.Image) -> Tuple[float, Dict]:
     idx = int(np.argmax(areas))
     mask = masks[idx]
 
-    curv_percent = max_bowing_percent_from_mask(mask)
-    return float(curv_percent), {
+    curve_parent = max_bowing_percent_from_mask(mask)
+    return float(curve_parent), {
         "has_mask": True,
         "selected_idx": idx,
         "mask_area": int(areas[idx]),
@@ -230,17 +249,21 @@ async def condition_check_ws(websocket: WebSocket, job_id: str):
         ws_manager.disconnect(job_id, websocket)
 
 
-async def notify(
-    job_id: str, step: str, status: str = "done", extra: dict | None = None
-):
-    await ws_manager.notify(
-        job_id,
-        {"type": "progress", "step": step, "status": status, "extra": extra or {}},
-    )
+# async def notify(
+#     job_id: str, step: str, status: str = "done", extra: dict | None = None
+# ):
+#     await ws_manager.notify(
+#         job_id,
+#         {"type": "progress", "step": step, "status": status, "extra": extra or {}},
+#     )
+
+
+from fastapi import Form
 
 
 @app.post("/condition-check")
 async def condition_check(
+    job_id: str = Form(...),
     image_front: UploadFile = File(...),
     image_back: UploadFile = File(...),
     image_side_1: UploadFile = File(...),
@@ -269,7 +292,7 @@ async def condition_check(
     imgs: Dict[str, Image.Image] = {}
     for key, up in uploads.items():
         imgs[key] = read_image_bytes(up)
-    await notify(job_id, "file_ext_check")
+    # await notify(job_id, "file_ext_check")
 
     # ---- Step 1: 사이즈 및 밝기 검증 ----
     for key, img in imgs.items():
@@ -283,23 +306,23 @@ async def condition_check(
                 status_code=400,
                 detail=f"{key}: 이미지가 너무 어둡거나 밝습니다. 촬영 환경을 조정해 주세요.",
             )
-    await notify(job_id, "size_brightness_check")
+    # await notify(job_id, "size_brightness_check")
 
     # ---- Step 2: 카드 맞는지 검증 (YOLO detect) ----
     ok_front, info_front = yolo_detect_verify(imgs["image_front"], expect_front=True)
     if not ok_front:
         raise HTTPException(
             status_code=400,
-            detail=f"정면 이미지(card_front) 인식 실패. conf={info_front['best_conf']:.2f}, area={info_front['best_area_frac']:.2f}",
+            detail=f"정면 이미지(Cardfront) 인식 실패. conf={info_front['best_conf']:.2f}, area={info_front['best_area_frac']:.2f}",
         )
 
     ok_back, info_back = yolo_detect_verify(imgs["image_back"], expect_front=False)
     if not ok_back:
         raise HTTPException(
             status_code=400,
-            detail=f"후면 이미지(card_back) 인식 실패. conf={info_back['best_conf']:.2f}, area={info_back['best_area_frac']:.2f}",
+            detail=f"후면 이미지(Cardback) 인식 실패. conf={info_back['best_conf']:.2f}, area={info_back['best_area_frac']:.2f}",
         )
-    await notify(job_id, "card_verify", extra={"front_conf": 0.91, "back_conf": 0.93})
+    # await notify(job_id, "card_verify", extra={"front_conf": 0.91, "back_conf": 0.93})
 
     # ---- Step 3: 카드 휨 검증 (세그멘테이션 -> 곡률%) ----
     side_keys = ["image_side_1", "image_side_2", "image_side_3", "image_side_4"]
@@ -307,14 +330,14 @@ async def condition_check(
     curvature_infos: Dict[str, Dict] = {}
 
     for k in side_keys:
-        curv_percent, extra = segmentation_curvature_percent(imgs[k])
-        curvature_list.append(curv_percent)
-        curvature_infos[k] = {"curvature_percent": curv_percent, **extra}
-    await notify(job_id, "bending", extra={"max_curvature_percent": 1.2})
+        curve_percent, extra = segmentation_curvature_percent(imgs[k])
+        curvature_list.append(curve_percent)
+        curvature_infos[k] = {"curvature_percent": curve_percent, **extra}
+    # await notify(job_id, "bending", extra={"max_curvature_percent": 1.2})
 
     # 점수 계산 규칙:
     # - 휨(곡률) 점수는 "감산 점수"로 사용 (곡률 ↑ -> 감산 ↑)
-    #   각 이미지별 penalty = curvature_penalty_points(curv%)
+    #   각 이미지별 penalty = curvature_penalty_points(curve%)
     #   4장 중 상위 2장만 합산 (최대 12점)  ← 요구사항 "최대 점수 12점" 반영
     per_image_penalties = [curvature_penalty_points(c) for c in curvature_list]
     top2_penalty = sum(sorted(per_image_penalties, reverse=True)[:2])
