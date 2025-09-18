@@ -14,7 +14,7 @@ from ws import ws_manager
 # Ultralytics는 lazy import 권장 (모델 로딩 비용이 큼)
 from ultralytics import YOLO
 
-app = FastAPI(title="Card Condition Checker")
+app = FastAPI(title="Card Condition Checker", root_path="/ai", docs_url="/ai/docs")
 
 # ===== 모델 로딩 (서버 기동 시 1회) =====
 VERIFY_MODEL_PATH = os.getenv("VERIFY_MODEL_PATH", "models/card_verification.pt")
