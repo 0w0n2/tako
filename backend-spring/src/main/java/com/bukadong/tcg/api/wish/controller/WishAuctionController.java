@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.*;
  * @PARAM 없음
  * @RETURN 없음
  */
-@Tag(name = "Wish Auctions", description = "내 관심 경매 API")
+@Tag(name = "Wish")
 @RestController
 @RequestMapping("/v1/wishes/auctions")
 @RequiredArgsConstructor
