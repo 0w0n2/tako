@@ -46,7 +46,7 @@ export interface AuctionFormProps {
   requestDto: {
     gradeHash:string|null,
     categoryMajorId: number|null,
-    categoryMinorId: number|null,
+    categoryMediumId: number|null,
     cardId: number|null,
     title: string;
     detail: string;

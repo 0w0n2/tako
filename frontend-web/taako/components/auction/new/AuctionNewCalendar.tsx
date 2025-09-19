@@ -50,6 +50,9 @@ export default function AuctionNewCalendar({ onChange }: AuctionNewCalendarProps
                 setEndDate(date);
                 setEndOpen(false);
               }}
+              disabled={(date) =>
+                date < new Date() || date < new Date("1900-01-01")
+              }
             />
           </PopoverContent>
         </Popover>
