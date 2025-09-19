@@ -19,4 +19,7 @@ public final class Patterns {
 
     // 공백 불가
     public static final String NO_WHITESPACE = "^(?=\\s*\\S).*$";
+
+    // 지갑 주소 형식 검증
+    public static final String WALLET_ADDRESS_REGEX = "^0x[a-fA-F0-9]{40}$";
 }
