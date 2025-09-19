@@ -67,9 +67,9 @@ services:
     container_name: tako_front_dev
     ports:
       - "3000:3000"
-    mem_limit: 256m
-    memswap_limit: 256m
-    cpus: "0.15"
+    mem_limit: 768m
+    memswap_limit: 768m
+    cpus: "0.5"
     restart: unless-stopped
     networks:
       - e104_net
