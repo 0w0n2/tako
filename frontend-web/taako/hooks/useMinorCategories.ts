@@ -6,21 +6,24 @@ export function useMinorCategories() {
   const [minorCategories, setMinorCategories] = useState<MinorCategories[]>([]);
   const [minorCategoryId, setMinorCategoryId] = useState<number|null>(null);
   const [minorCategoryName, setMinorCategoryName] = useState<string|null>(null);
-  const [loading, setLoading] = useState(true);
+  const [minorLoading, setMinorLoading] = useState(true);
 
   const handleGetMinorCategories = async (majorId:number) => {
+    setMinorLoading(true)
     try{
       const res = await getMinorCategories(majorId);
       // console.log(res)
       setMinorCategories(res.result);
     }catch(err){
       console.error(err);
+    } finally{
+      setMinorLoading(false);
     }
   }
 
   return {
     handleGetMinorCategories, setMinorCategoryId, setMinorCategoryName,
     minorCategories, minorCategoryId, minorCategoryName,
-    loading,
+    minorLoading,
   };
 }
