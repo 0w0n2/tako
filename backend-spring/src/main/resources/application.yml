@@ -81,6 +81,7 @@ auction:
   extension:
     enabled: true
     threshold-seconds: 300 # 마감 300초 이내면
+    extend-by-seconds: 60 # 60초 연장
   finalize:
     tick-ms: 1000 # 스케줄 주기
     batch-size: 500 # 한 번에 가져올 최대 개수
