@@ -2,6 +2,12 @@
 pragma solidity ^0.8.28;
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
+
+// TakoCardNFT의 함수를 호출하기 위한 인터페이스 정의
+interface ITakoCardNFT {
+    function transferFrom(address from, address to, uint256 tokenId) external;
+}
 
 /**
     @title AuctionEscrow (Upgradeable)
@@ -12,7 +18,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
     3. 구매자가 상품 수령 후 구매 확정 (confirmReceipt)
     4. 판매자가 예치된 대금을 인출 (releaseFunds)
  */
-contract AuctionEscrow is Initializable {
+contract AuctionEscrow is Initializable, ReentrancyGuardUpgradeable {
     // --- 상태 변수, Enum ---
     address public seller; // 판매자 주소
     address public buyer; // 구매자 주소
@@ -26,6 +32,10 @@ contract AuctionEscrow is Initializable {
         Canceled // 3: 거래 취소 (구매자에게 환불)
     }
     State public currentState; // 현재 거래 상태
+
+    // --- 1. 어떤 NFT를 거래할지 저장할 변수 추가 ---
+    ITakoCardNFT public takoNFT;
+    uint256 public tokenId;
 
     // --- 이벤트 ---
     event Deposited(address indexed buyer, uint256 amount); // 입금 완료 이벤트
@@ -56,6 +66,11 @@ contract AuctionEscrow is Initializable {
         _;
     }
 
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
     /**
         @dev 컨트랙트 생성자. 백엔드 서버가 배포하며 거래 당사자와 금액을 설정.
         @param _seller 판매자의 주소(address)
@@ -65,12 +80,18 @@ contract AuctionEscrow is Initializable {
     function initialize(
         address _seller,
         address _buyer,
-        uint256 _amount
+        uint256 _amount,
+        // --- 2. NFT 정보를 생성자에 추가 ---
+        address _takoNFTAddress,
+        uint256 _tokenId
     ) public initializer {
         seller = _seller;
         buyer = _buyer;
         amount = _amount; // 컨트랙트 배포와 함께 전송된 ETH를 거래액으로 설정
         currentState = State.AwaitingPayment; // 초기 상태 : 입금 대기
+        takoNFT = ITakoCardNFT(_takoNFTAddress);
+        tokenId = _tokenId;
+        __ReentrancyGuard_init();
     }
 
     /**
@@ -103,9 +124,10 @@ contract AuctionEscrow is Initializable {
     /**
         @dev [판매자] 대금 인출
      */
-    function releaseFunds() external onlySeller inState(State.Complete) {
-        emit FundsReleased(seller, amount);
+    function releaseFunds() external onlySeller inState(State.Complete) nonReentrant {
+        takoNFT.transferFrom(seller, buyer, tokenId);
 
+        emit FundsReleased(seller, amount);
         (bool success, ) = seller.call{value: amount}("");
         if (!success) revert TransferFailed();
     }
