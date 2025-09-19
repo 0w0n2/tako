@@ -42,11 +42,48 @@ export default function NewAuctionPage() {
   const isBuyItNow = watch("requestDto.buyNowFlag");
 
   const onSubmit: SubmitHandler<AuctionFormProps> = data => {
-    // console.log("Total data: ", data)
-    try{
-      const res = createAuction(data.requestDto, data.files);
-      // console.log(res)
-    }catch(err){
+    const { requestDto, files } = data;
+
+    // 시작,종료 시간 비교
+      if (requestDto.startDatetime && requestDto.endDatetime) {
+        const start = new Date(requestDto.startDatetime);
+        const end = new Date(requestDto.endDatetime);
+        if (end <= start) {
+          alert("종료시간이 시작시간보다 빠를 수 없습니다.");
+          return;
+        }
+      }
+      
+    const requiredFields = [
+      "categoryMajorId",
+      "categoryMediumId",
+      "cardId",
+      "title",
+      "detail",
+      "startDatetime",
+      "endDatetime",
+      "bidUnit",
+      "startPrice"
+    ] as const;
+
+    let emptyFields: string[] = requiredFields.filter((key) => {
+      const value = requestDto[key as keyof typeof requestDto];
+      return value === null || value === "" || (typeof value === "number" && value <= 0);
+    });
+
+    // buyNowFlag true일 때 buyNowPrice 필수 체크
+    if (requestDto.buyNowFlag && (!requestDto.buyNowPrice || requestDto.buyNowPrice <= 0)) {
+      emptyFields.push("buyNowPrice");
+    }
+
+    if (!files || files.length === 0 || emptyFields.length > 0) {
+      alert("입력하지 않은 필수값이 있습니다.");
+      return;
+    }
+
+    try {
+      const res = createAuction(requestDto, files);
+    } catch (err) {
       console.error(err);
     }
   };
@@ -61,7 +98,10 @@ export default function NewAuctionPage() {
         <Controller
           name="files"
           control={control}
-          rules={{ required: "이미지를 1개 이상 등록해주세요." }}
+          rules={{
+            validate: value =>
+              (value && value.length > 0) || "이미지를 1개 이상 등록해주세요."
+          }}
           render={({ field: { value, onChange }, fieldState }) => (
             <div className="flex flex-col gap-5">
               <div className="flex-1 flex items-center gap-2">
@@ -220,12 +260,12 @@ export default function NewAuctionPage() {
           </div>
         </div>
 
-        {/* 경매 종료 날짜 */}
-        <div className="pt-10 border-t border-[#353535]">
+        {/* 경매 기간 */}
+        <div className="">
           <Controller
-            name="requestDto.endDatetime"
+            name="requestDto.startDatetime"
             control={control}
-            rules={{ required: "경매 기간을 설정해주세요." }}
+            rules={{ required: "경매 시작일을 설정해주세요." }}
             render={({ field, fieldState }) => (
               <div className="flex items-start gap-5">
                 <div className="flex-1 flex items-center gap-2 mt-2">
@@ -234,16 +274,27 @@ export default function NewAuctionPage() {
                 </div>
                 <div className="flex-5">
                   <AuctionNewCalendar
-                    onChange={({ endDate, endTime }) => {
+                    onChange={({ startDate, startTime, endDate, endTime }) => {
+                      // 시작일시 저장
+                      if (startDate) {
+                        const startDateStr = startDate.toISOString().split("T")[0];
+                        const startIso = `${startDateStr}T${startTime}`;
+                        setValue("requestDto.startDatetime", startIso, { shouldValidate: true });
+                      }
+
+                      // 종료일시 저장
                       if (endDate) {
-                        const dateStr = endDate.toISOString().split("T")[0];
-                        const isoDatetime = `${dateStr}T${endTime}`;
-                        field.onChange(isoDatetime);
+                        const endDateStr = endDate.toISOString().split("T")[0];
+                        const endIso = `${endDateStr}T${endTime}`;
+                        setValue("requestDto.endDatetime", endIso, { shouldValidate: true });
                       }
                     }}
                   />
                   {fieldState.error && (
                     <p className="text-red-500 text-sm mt-1">{fieldState.error.message}</p>
+                  )}
+                  {errors.requestDto?.endDatetime && (
+                    <p className="text-red-500 text-sm mt-1">{errors.requestDto?.endDatetime.message}</p>
                   )}
                 </div>
               </div>
@@ -251,66 +302,73 @@ export default function NewAuctionPage() {
           />
         </div>
 
+
         {/* 시작 입찰가 */}
         <div className="flex items-start gap-5">
           <div className="flex-1 flex items-center gap-2 mt-2">
             <Label>시작 입찰가</Label>
             <span className="text-red-500">*</span>
           </div>
-          <div className="flex-5 flex gap-2">
-            <Input
-              type="number"
-              className="w-[200px]"
-              {...register("requestDto.startPrice", {
-                required: "시작가를 입력해주세요.",
-                valueAsNumber: true,
-                min: { value: 0, message: "0 이상의 값을 입력해주세요." }
-              })}
-              placeholder="0"
-            />
-
-            {/* 입찰단위 */}
-            <div className="w-[150px]">
-              <Controller
-                name="requestDto.bidUnit"
-                control={control}
-                rules={{ required: "입찰 단위를 선택해주세요." }}
-                render={({ field }) => (
-                  <Select onValueChange={(value) => field.onChange(parseInt(value))} defaultValue={field.value ? String(field.value) : ""}>
-                    <SelectTrigger className="h-[50px] bg-[#191924] border-[#353535]">
-                      <SelectValue placeholder="입찰 단위 선택" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-[#191924] border-[#353535] text-white">
-                      <SelectItem value="0.01">0.01</SelectItem>
-                      <SelectItem value="0.05">0.05</SelectItem>
-                      <SelectItem value="0.1">0.1</SelectItem>
-                      <SelectItem value="0.5">0.5</SelectItem>
-                      <SelectItem value="1">1</SelectItem>
-                      <SelectItem value="5">5</SelectItem>
-                      <SelectItem value="10">10</SelectItem>
-                      <SelectItem value="50">50</SelectItem>
-                      <SelectItem value="100">100</SelectItem>
-                      <SelectItem value="500">500</SelectItem>
-                      <SelectItem value="1000">1000</SelectItem>
-                      <SelectItem value="5000">5000</SelectItem>
-                    </SelectContent>
-                  </Select>
-                )}
+          <div className="flex-5">
+            <div className="flex gap-2">
+              <Input
+                type="number"
+                className="w-[200px]"
+                {...register("requestDto.startPrice", {
+                  required: "시작 입찰가를 입력해주세요.",
+                  valueAsNumber: true,
+                  min: { value: 0.01, message: "0 이상의 값을 입력해주세요." },
+                })}
+                placeholder="0"
               />
+
+              {/* 입찰단위 */}
+              <div className="w-[150px]">
+                <Controller
+                  name="requestDto.bidUnit"
+                  control={control}
+                  rules={{ required: "입찰 단위를 선택해주세요." }}
+                  render={({ field, fieldState }) => (
+                    <>
+                      <Select
+                        onValueChange={(value) => field.onChange(parseFloat(value))}
+                        value={field.value ? String(field.value) : ""}
+                      >
+                        <SelectTrigger className="h-[50px] bg-[#191924] border-[#353535]">
+                          <SelectValue placeholder="입찰 단위 선택" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-[#191924] border-[#353535] text-white">
+                          {["0.01","0.05","0.1","0.5","1","5","10","50","100","500","1000","5000"].map(v => (
+                            <SelectItem key={v} value={v}>{v}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {fieldState.error && (
+                        <p className="text-red-500 text-sm mt-1">{fieldState.error.message}</p>
+                      )}
+                    </>
+                  )}
+                />
+              </div>
             </div>
-          </div>
-          {errors.requestDto?.startPrice && <p className="text-red-500 text-sm mt-1">{errors.requestDto?.startPrice.message}</p>}
-          {errors.requestDto?.bidUnit && <p className="text-red-500 text-sm mt-1">{errors.requestDto?.bidUnit.message}</p>}
+            {errors.requestDto?.startPrice && (
+              <p className="text-red-500 text-sm mt-1">{errors.requestDto.startPrice.message}</p>
+            )}
+            {errors.requestDto?.startPrice && errors.requestDto?.bidUnit && (
+              <p className="text-red-500 text-sm mt-1">{errors.requestDto.startPrice.message}</p>
+            )}
+            </div>
         </div>
 
 
         {/* 즉시구매 */}
-        <div className="flex items-start gap-5">
-          <div className="flex-1 mt-2">
-            <Label htmlFor="buyNowFlag">즉시구매</Label>
+        <div className="flex items-center gap-5">
+          <div className="flex-1">
+            <Label>즉시구매</Label>
           </div>
-          <div className="flex-5">
+          <div className="flex-5 flex items-center gap-2">
             <input type="checkbox" {...register("requestDto.buyNowFlag")} id="buyNowFlag" />
+            <Label htmlFor="buyNowFlag" className="text-sm text-[#a5a5a5]">즉시구매가능</Label>
           </div>
         </div>
 
