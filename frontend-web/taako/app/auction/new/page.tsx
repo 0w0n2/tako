@@ -29,6 +29,7 @@ export default function NewAuctionPage() {
         cardId: null,
         title: "",
         detail: "",
+        startDatetime:'',
         endDatetime: '',
         buyNowFlag: false,
         buyNowPrice: 0,
