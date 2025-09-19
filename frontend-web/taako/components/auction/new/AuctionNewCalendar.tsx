@@ -19,7 +19,6 @@ export default function AuctionNewCalendar({ onChange }: AuctionNewCalendarProps
   const [endDate, setEndDate] = React.useState<Date | undefined>(undefined);
   const [endTime, setEndTime] = React.useState("10:30:00");
 
-  // 상태 바뀔 때마다 부모에 알려줌
   React.useEffect(() => {
     onChange?.({ endDate, endTime });
   }, [endDate, endTime, onChange]);
