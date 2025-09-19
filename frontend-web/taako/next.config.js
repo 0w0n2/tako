@@ -9,6 +9,17 @@ const DOMAINS = {
 const { SITE, API } = DOMAINS[APP_STAGE] || DOMAINS.dev;
 
 module.exports = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'bukadong-bucket.s3.ap-northeast-2.amazonaws.com',
+        port: '',
+        pathname: '/media/card/**',
+      },
+    ],
+  },
+
   reactStrictMode: true,
   swcMinify: true,
 

@@ -1,5 +1,14 @@
 export interface CreateAuctionCategoriesProps {
-  onChange: (majorName: string, minorName: string) => void;
+  onChange: (
+    majorId: number|null,
+    majorName: string|null,
+    minorId: number|null,
+    minorName: string|null,
+    cardId:number|null,
+    cardName:string|null,
+    cardImageUrl:string|null,
+  ) => void;
+  onReset?: () => void;
 }
 
 export interface CategoryPageProps {
