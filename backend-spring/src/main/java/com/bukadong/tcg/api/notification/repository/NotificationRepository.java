@@ -8,7 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-
+import org.springframework.data.repository.query.Param;
 import com.bukadong.tcg.api.notification.entity.Notification;
 import com.bukadong.tcg.api.notification.entity.NotificationType;
 
@@ -64,7 +64,7 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
      */
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("update Notification n set n.read = true, n.readAt = :when where n.memberId = :memberId and n.read = false")
-    int markAllReadByMemberId(Long memberId, LocalDateTime when);
+    int markAllReadByMemberId(@Param("memberId") Long memberId, @Param("when") LocalDateTime when);
 
     /**
      * 미읽음 카운트
