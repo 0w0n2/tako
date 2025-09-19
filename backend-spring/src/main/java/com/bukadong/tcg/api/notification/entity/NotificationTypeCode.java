@@ -17,5 +17,14 @@ public enum NotificationTypeCode {
     WISH_CARD_LISTED,
 
     // 문의
-    AUCTION_NEW_INQUIRY, INQUIRY_ANSWERED
+    AUCTION_NEW_INQUIRY, INQUIRY_ANSWERED,
+
+    // 경매
+    AUCTION_WON,
+
+    // 판매자 알림 추가
+    AUCTION_CLOSED_SELLER,
+
+    // 경매 취소
+    AUCTION_CANCELED
 }

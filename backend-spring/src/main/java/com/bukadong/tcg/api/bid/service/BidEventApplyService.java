@@ -1,7 +1,7 @@
 package com.bukadong.tcg.api.bid.service;
 
 import com.bukadong.tcg.api.auction.entity.Auction;
-import com.bukadong.tcg.api.auction.util.AuctionRedisKeys;
+import com.bukadong.tcg.api.auction.util.AuctionDeadlineIndex;
 import com.bukadong.tcg.api.bid.entity.AuctionBid;
 import com.bukadong.tcg.api.bid.entity.AuctionBidReason;
 import com.bukadong.tcg.api.bid.entity.AuctionBidStatus;
@@ -52,7 +52,7 @@ public class BidEventApplyService {
 
     /** 데드라인 스케줄 반영용 Redis */
     private final StringRedisTemplate stringRedisTemplate;
-
+    private final AuctionDeadlineIndex deadlineIndex;
     /** 연장 기능 on/off */
     @Value("${auction.extension.enabled:true}")
     private boolean extensionEnabled;
@@ -88,14 +88,14 @@ public class BidEventApplyService {
         }
 
         // 필수 필드 검증
-        if (!n.hasNonNull("auctionId") || !n.hasNonNull("memberId") || !n.hasNonNull("bidPrice")
+        if (!n.hasNonNull("auctionId") || !n.hasNonNull("memberId") || !n.hasNonNull("amount")
                 || !n.hasNonNull("eventId")) {
             throw new NonRetryableException("BAD_PAYLOAD_FIELDS");
         }
 
         Long auctionId = n.get("auctionId").asLong();
         Long memberId = n.get("memberId").asLong();
-        String bidStr = n.get("bidPrice").asText();
+        String bidStr = n.get("amount").asText();
         String eventId = n.get("eventId").asText();
         String intended = n.hasNonNull("intended") ? n.get("intended").asText() : "ACCEPT";
         String reasonIn = n.hasNonNull("reason") ? n.get("reason").asText() : null;
@@ -119,7 +119,7 @@ public class BidEventApplyService {
                     return;
                 }
                 AuctionBid ab = AuctionBid.builder().auction(auction).member(em.getReference(Member.class, memberId))
-                        .bidPrice(bid).status(AuctionBidStatus.REJECTED).eventId(eventId)
+                        .amount(bid).status(AuctionBidStatus.REJECTED).eventId(eventId)
                         .reasonCode(mapRejectReason(reasonIn)).build();
                 auctionBidRepository.save(ab);
                 return;
@@ -133,7 +133,7 @@ public class BidEventApplyService {
 
             // 4) 정상 ACCEPT 처리: 입찰 저장
             AuctionBid ab = AuctionBid.builder().auction(auction).member(em.getReference(Member.class, memberId))
-                    .bidPrice(bid).status(AuctionBidStatus.VALID).eventId(eventId).build();
+                    .amount(bid).status(AuctionBidStatus.VALID).eventId(eventId).build();
             auctionBidRepository.save(ab);
 
             // 5) DB 현재가 갱신
@@ -159,20 +159,17 @@ public class BidEventApplyService {
                         auction.setEndDatetime(newEndAt.atZone(ZoneId.systemDefault()).toLocalDateTime());
 
                         // (b) Redis ZSET 스코어 갱신(epochMillis)
-                        stringRedisTemplate.opsForZSet().add(AuctionRedisKeys.DEADLINES_ZSET, String.valueOf(auctionId),
-                                newEndAt.toEpochMilli());
+                        deadlineIndex.upsert(auctionId, newEndAt.toEpochMilli());
 
                         log.debug("Auction end extended: auctionId={}, old={}, new={}", auctionId, endAt, newEndAt);
                     } else {
                         // 연장 조건 미충족 → 그래도 ZSET에 보장 등록
-                        stringRedisTemplate.opsForZSet().add(AuctionRedisKeys.DEADLINES_ZSET, String.valueOf(auctionId),
-                                endAt.toEpochMilli());
+                        deadlineIndex.upsert(auctionId, endAt.toEpochMilli());
                     }
                 } else if (auction.getEndDatetime() != null) {
                     // 연장 기능 OFF이거나 확장 비대상이어도, 최소 1회 ZSET 등록은 보장
                     Instant endAt = auction.getEndDatetime().atZone(ZoneId.systemDefault()).toInstant();
-                    stringRedisTemplate.opsForZSet().add(AuctionRedisKeys.DEADLINES_ZSET, String.valueOf(auctionId),
-                            endAt.toEpochMilli());
+                    deadlineIndex.upsert(auctionId, endAt.toEpochMilli());
                 }
             } catch (Exception schedEx) {
                 // 스케줄 갱신 실패는 입찰 자체 실패로 만들지 않음 (워커/리컨실 보정으로 회복 가능)
@@ -224,7 +221,7 @@ public class BidEventApplyService {
             if (m == null)
                 return; // member FK 보호(컬럼 NOT NULL일 수 있으므로 스킵)
 
-            auctionBidRepository.save(AuctionBid.builder().auction(a).member(m).bidPrice(bid)
+            auctionBidRepository.save(AuctionBid.builder().auction(a).member(m).amount(bid)
                     .status(AuctionBidStatus.FAILED).reasonCode(code).eventId(eventId).build());
         } catch (Exception ignore) {
             // 기록 실패도 무시 (로그 노이즈/2차 실패 방지)

@@ -1,45 +1,97 @@
 package com.bukadong.tcg.api.auction.service;
 
-import com.bukadong.tcg.api.auction.event.AuctionClosedEvent;
-import com.bukadong.tcg.api.auction.repository.AuctionRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Optional;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import com.bukadong.tcg.api.auction.entity.Auction;
+import com.bukadong.tcg.api.auction.entity.AuctionCloseReason;
+import com.bukadong.tcg.api.auction.repository.AuctionRepository;
+import com.bukadong.tcg.api.auction.service.dto.WinnerSnapshot;
+import com.bukadong.tcg.api.auction.util.AuctionDeadlineIndex;
+import com.bukadong.tcg.global.common.base.BaseResponseStatus;
+import com.bukadong.tcg.global.common.exception.BaseException;
 
-import java.time.Clock;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
- * 경매 종료 확정 서비스
+ * 경매 종료 서비스
  * <P>
- * DB에서 status=OPEN && end_at<=now 조건으로 CLOSED 전이를 원자적으로 시도한다. 영향 행이 1이면 유일 종료자로
- * 확정되며 낙찰 스냅샷을 조회해 도메인 이벤트를 발행한다.
+ * 마감 도달 시 낙찰/유찰을 결정하고 후속 처리를 트리거한다.
  * </P>
  * 
  * @PARAM auctionId 경매 ID
- * @RETURN true(이번 호출이 종료 처리자) / false(연장/중복 처리 등)
+ * @RETURN 없음
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuctionFinalizeService {
 
     private final AuctionRepository auctionRepository;
-    private final AuctionWinnerQuery winnerQuery;
-    private final ApplicationEventPublisher publisher;
-    private final Clock clock = Clock.systemDefaultZone();
+    private final AuctionWinnerQuery auctionWinnerQuery;
+    private final AuctionSettlementService settlementService;
+    private final AuctionEventPublisher eventPublisher;
+    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
+    private final AuctionDeadlineIndex deadlineIndex;
 
     /**
-     * 종료 조건 만족 시 CLOSED 전이 + 이벤트 발행
+     * 경매 종료 처리 (마감 도달 시에만)
+     * <P>
+     * 입찰 0건이면 UNSOLD(유찰)로 정상 종료한다.
+     * </P>
+     * 
+     * @PARAM auctionId 경매 ID
+     * @RETURN 없음
      */
     @Transactional
-    public boolean finalizeIfDue(long auctionId) {
-        int updated = auctionRepository.closeIfDue(auctionId);
-        if (updated == 1) {
-            var w = winnerQuery.getWinnerSnapshot(auctionId);
-            publisher.publishEvent(
-                    new AuctionClosedEvent(auctionId, w.memberId(), w.amount(), w.bidId(), clock.instant()));
-            return true;
+    public void finalizeIfDue(Long auctionId) {
+        Auction auction = auctionRepository.findByIdForUpdate(auctionId)
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.NOT_FOUND));
+
+        if (!auction.isClosableNow()) {
+            return; // 아직 마감 시간이 아님
         }
-        return false;
+
+        Optional<WinnerSnapshot> winnerOpt = auctionWinnerQuery.tryGetWinnerSnapshot(auctionId);
+
+        // 유찰(입찰 0건) → 정상 종료
+        if (winnerOpt.isEmpty()) {
+            auction.markClosed(AuctionCloseReason.NO_BIDS, LocalDateTime.now(KST));
+            auctionRepository.save(auction);
+            eventPublisher.publishAuctionUnsold(auctionId);
+            afterCommitRemoveIndex(auctionId); // 트랜잭션 커밋 후에 제거
+            log.info("Auction closed as UNSOLD (no bids). auctionId={}", auctionId);
+            return;
+        }
+
+        // 낙찰 처리
+        WinnerSnapshot winner = winnerOpt.get();
+        auction.setWinner(winner.memberId(), winner.bidId(), winner.amount());
+        auction.markClosed(AuctionCloseReason.SOLD, LocalDateTime.now(KST));
+        auctionRepository.save(auction);
+
+        Instant closedAt = auction.getClosedAt().atZone(KST).toInstant();
+        eventPublisher.publishAuctionSold(auctionId, winner.memberId(), winner.bidId(), winner.amount(), closedAt);
+
+        settlementService.enqueue(auctionId, winner.memberId(), winner.amount());
+        afterCommitRemoveIndex(auctionId); // 커밋 성공 후에 제거
+        log.info("Auction closed as SOLD. auctionId={}, winner={}, amount={}", auctionId, winner.memberId(),
+                winner.amount());
+    }
+
+    private void afterCommitRemoveIndex(Long auctionId) {
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                deadlineIndex.remove(auctionId);
+            }
+        });
     }
 }

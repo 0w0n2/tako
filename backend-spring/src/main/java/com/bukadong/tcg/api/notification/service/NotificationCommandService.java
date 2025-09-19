@@ -1,5 +1,6 @@
 package com.bukadong.tcg.api.notification.service;
 
+import com.bukadong.tcg.api.member.repository.MemberRepository;
 import com.bukadong.tcg.api.notification.entity.Notification;
 import com.bukadong.tcg.api.notification.entity.NotificationType;
 import com.bukadong.tcg.api.notification.entity.NotificationTypeCode;
@@ -11,8 +12,11 @@ import com.bukadong.tcg.global.common.exception.BaseException;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.Map;
 
 /**
@@ -32,6 +36,7 @@ public class NotificationCommandService {
     private final NotificationRepository notificationRepository;
     private final NotificationTypeRepository notificationTypeRepository;
     private final NotificationTargetUrlBuilder targetUrlBuilder;
+    private final MemberRepository memberRepository;
 
     /**
      * 공통 생성 로직
@@ -49,16 +54,16 @@ public class NotificationCommandService {
     @Transactional
     public Long create(Long memberId, NotificationTypeCode typeCode, Long causeId, String title, String message) {
 
+        // FK 보호: 수신자 없으면 기록 스킵 (경고만)
+        if (memberId == null || !memberRepository.existsById(memberId)) {
+            // 로컬/개발 데이터 불일치 방지용 가드
+            return null;
+        }
+
         NotificationType type = notificationTypeRepository.findByCode(typeCode)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.NOTIFICATION_NOT_FOUND));
 
-        // URL 정책: 지금은 빈 문자열. 타입별 분기만 미리 구성.
-        String targetUrl = switch (typeCode) {
-        case WISH_AUCTION_STARTED, WISH_AUCTION_DUE_SOON, WISH_AUCTION_ENDED, AUCTION_NEW_INQUIRY -> targetUrlBuilder
-                .buildForAuction(causeId);
-        case WISH_CARD_LISTED -> targetUrlBuilder.buildForCard(causeId);
-        case INQUIRY_ANSWERED -> targetUrlBuilder.buildForInquiry(causeId);
-        };
+        String targetUrl = buildTargetUrl(typeCode, causeId);
 
         Notification n = Notification.builder().memberId(memberId).type(type).causeId(causeId).title(title)
                 .message(message).targetUrl(targetUrl) // 현재는 ""
@@ -121,10 +126,10 @@ public class NotificationCommandService {
      * 내 경매에 문의 생성
      */
     @Transactional
-    public Long notifyAuctionNewInquiry(Long ownerId, Long auctionId, Map<String, Object> extras) {
+    public Long notifyAuctionNewInquiry(Long memberId, Long auctionId, Map<String, Object> extras) {
         String title = "내 경매에 문의가 달렸습니다";
         String message = "새 문의를 확인해 주세요.";
-        return create(ownerId, NotificationTypeCode.AUCTION_NEW_INQUIRY, auctionId, title, message);
+        return create(memberId, NotificationTypeCode.AUCTION_NEW_INQUIRY, auctionId, title, message);
     }
 
     /**
@@ -135,5 +140,61 @@ public class NotificationCommandService {
         String title = "문의에 답변이 등록되었습니다";
         String message = "답변 내용을 확인해 보세요.";
         return create(inquirerId, NotificationTypeCode.INQUIRY_ANSWERED, inquiryId, title, message);
+    }
+    // ------------------ 경매 종료 관련 (낙찰/종료/취소) ------------------
+
+    /** 낙찰자에게: 경매 낙찰 */
+    @Transactional
+    public Long notifyAuctionWon(Long memberId, Long auctionId, BigDecimal amount, Instant closedAt) {
+        String title = "경매에 낙찰되었습니다";
+        String message = "축하합니다! 해당 경매의 낙찰자로 선정되었어요. 낙찰가: " + safeAmount(amount);
+        return create(memberId, NotificationTypeCode.AUCTION_WON, auctionId, title, message);
+    }
+
+    /** 판매자에게: 경매 종료(낙찰) */
+    @Transactional
+    public Long notifyAuctionSellerClosed(Long memberId, Long auctionId, BigDecimal amount, Instant closedAt) {
+        String title = "내 경매가 종료되었습니다";
+        String message = "경매가 종료되어 낙찰이 확정되었습니다. 낙찰가: " + safeAmount(amount);
+        return create(memberId, NotificationTypeCode.AUCTION_CLOSED_SELLER, auctionId, title, message);
+    }
+
+    /** 판매자에게: 관리자 강제 종료 알림 */
+    @Transactional
+    public Long notifyAdminCanceled(Long memberId, Long auctionId) {
+        String title = "경매가 관리자에 의해 종료되었습니다";
+        String message = "운영자 정책에 따라 경매가 종료되었어요. 자세한 사유는 고객센터를 확인해 주세요.";
+        return create(memberId, NotificationTypeCode.AUCTION_CANCELED, auctionId, title, message);
+    }
+
+    /** 판매자에게: 사용자(본인) 취소로 종료 알림 */
+    @Transactional
+    public Long notifySellerCanceled(Long memberId, Long auctionId) {
+        String title = "경매가 취소되었습니다";
+        String message = "요청하신 취소 처리로 경매가 종료되었습니다.";
+        return create(memberId, NotificationTypeCode.AUCTION_CANCELED, auctionId, title, message);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public Long notifyAuctionSellerClosedUnsold(Long sellerId, Long auctionId) {
+        String title = "내 경매가 유찰되었습니다";
+        String message = "입찰이 없어 경매가 종료되었어요.";
+        // 타입은 스키마 변경 없이 AUCTION_CLOSED_SELLER 재사용
+        return create(sellerId, NotificationTypeCode.AUCTION_CLOSED_SELLER, auctionId, title, message);
+    }
+
+    // ============================ 유틸 ============================
+
+    private String buildTargetUrl(NotificationTypeCode typeCode, Long causeId) {
+        return switch (typeCode) {
+        case WISH_AUCTION_STARTED, WISH_AUCTION_DUE_SOON, WISH_AUCTION_ENDED, AUCTION_NEW_INQUIRY, AUCTION_WON, AUCTION_CLOSED_SELLER, AUCTION_CANCELED -> targetUrlBuilder
+                .buildForAuction(causeId);
+        case WISH_CARD_LISTED -> targetUrlBuilder.buildForCard(causeId);
+        case INQUIRY_ANSWERED -> targetUrlBuilder.buildForInquiry(causeId);
+        };
+    }
+
+    private String safeAmount(BigDecimal amount) {
+        return (amount == null) ? "-" : amount.toPlainString();
     }
 }

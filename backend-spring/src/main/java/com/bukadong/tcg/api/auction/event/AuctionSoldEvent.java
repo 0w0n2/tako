@@ -16,5 +16,5 @@ import java.time.Instant;
  * @PARAM closedAt 종료 시각
  * @RETURN 없음
  */
-public record AuctionClosedEvent(long auctionId, long winnerId, BigDecimal amount, long bidId, Instant closedAt) {
+public record AuctionSoldEvent(long auctionId, long winnerId, BigDecimal amount, long bidId, Instant closedAt) {
 }

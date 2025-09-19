@@ -19,7 +19,7 @@ import java.util.Map;
  * 
  * @PARAM auctionId 경매 ID
  * @PARAM memberId 입찰자 ID
- * @PARAM bidPrice 입찰가
+ * @PARAM amount 입찰가
  * @PARAM eventId 멱등키(=requestId)
  * @RETURN Map(code, currentPriceAfter)
  */
@@ -40,41 +40,41 @@ public class BidQueueProducer {
      * 
      * @PARAM auctionId 경매 ID
      * @PARAM memberId 입찰자
-     * @PARAM bidPrice 입찰가
+     * @PARAM amount 입찰가
      * @PARAM eventId 멱등키(=requestId)
      * @RETURN Map(code, currentPriceAfter)
      */
-    public Map<String, String> enqueue(Long auctionId, Long memberId, BigDecimal bidPrice, String eventId) {
+    public Map<String, String> enqueue(Long auctionId, Long memberId, BigDecimal amount, String eventId) {
         String auctionKey = AUCTION_KEY_PREFIX + auctionId;
         String queueKey = AUCTION_KEY_PREFIX + auctionId + ":bidq";
         String idemKey = "idem:" + eventId;
 
         long now = Instant.now().getEpochSecond();
-        String priceStr = bidPrice.toPlainString();
+        String priceStr = amount.toPlainString();
 
         String payloadOk = String.format(
                 "{\"event\":\"BID\",\"intended\":\"ACCEPT\",\"reason\":null,"
-                        + "\"auctionId\":%d,\"memberId\":%d,\"bidPrice\":\"%s\",\"eventId\":\"%s\",\"ts\":%d}",
+                        + "\"auctionId\":%d,\"memberId\":%d,\"amount\":\"%s\",\"eventId\":\"%s\",\"ts\":%d}",
                 auctionId, memberId, priceStr, eventId, now);
 
         String payloadMissing = String.format(
                 "{\"event\":\"BID\",\"intended\":\"REJECT\",\"reason\":\"MISSING\","
-                        + "\"auctionId\":%d,\"memberId\":%d,\"bidPrice\":\"%s\",\"eventId\":\"%s\",\"ts\":%d}",
+                        + "\"auctionId\":%d,\"memberId\":%d,\"amount\":\"%s\",\"eventId\":\"%s\",\"ts\":%d}",
                 auctionId, memberId, priceStr, eventId, now);
 
         String payloadNotRunning = String.format(
                 "{\"event\":\"BID\",\"intended\":\"REJECT\",\"reason\":\"NOT_RUNNING\","
-                        + "\"auctionId\":%d,\"memberId\":%d,\"bidPrice\":\"%s\",\"eventId\":\"%s\",\"ts\":%d}",
+                        + "\"auctionId\":%d,\"memberId\":%d,\"amount\":\"%s\",\"eventId\":\"%s\",\"ts\":%d}",
                 auctionId, memberId, priceStr, eventId, now);
 
         String payloadLowPrice = String.format(
                 "{\"event\":\"BID\",\"intended\":\"REJECT\",\"reason\":\"LOW_PRICE\","
-                        + "\"auctionId\":%d,\"memberId\":%d,\"bidPrice\":\"%s\",\"eventId\":\"%s\",\"ts\":%d}",
+                        + "\"auctionId\":%d,\"memberId\":%d,\"amount\":\"%s\",\"eventId\":\"%s\",\"ts\":%d}",
                 auctionId, memberId, priceStr, eventId, now);
 
         String payloadSelfBid = String.format(
                 "{\"event\":\"BID\",\"intended\":\"REJECT\",\"reason\":\"SELF_BID\","
-                        + "\"auctionId\":%d,\"memberId\":%d,\"bidPrice\":\"%s\",\"eventId\":\"%s\",\"ts\":%d}",
+                        + "\"auctionId\":%d,\"memberId\":%d,\"amount\":\"%s\",\"eventId\":\"%s\",\"ts\":%d}",
                 auctionId, memberId, priceStr, eventId, now);
 
         List<String> keys = Arrays.asList(auctionKey, queueKey, idemKey);

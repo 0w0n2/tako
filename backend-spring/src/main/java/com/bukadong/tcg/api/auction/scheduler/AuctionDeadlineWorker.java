@@ -1,58 +1,117 @@
 package com.bukadong.tcg.api.auction.scheduler;
 
-import com.bukadong.tcg.api.auction.service.AuctionFinalizeService;
-import com.bukadong.tcg.api.auction.util.AuctionRedisKeys;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import java.util.List;
+import java.util.concurrent.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import com.bukadong.tcg.api.auction.service.AuctionFinalizeService;
+import com.bukadong.tcg.api.auction.service.AuctionQueryService;
+import com.bukadong.tcg.global.common.exception.BaseException;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
-import java.time.Instant;
-import java.util.List;
-
-/**
- * 경매 마감 워커
- * <P>
- * Redis ZSET(DEADLINES_ZSET)의 score(now 이하)를 조회하여 DB에서 OPEN→CLOSED 전이를 시도한다. 성공
- * 시 결과/알림 이벤트가 이어서 발생한다. 연장되면 score가 미래로 바뀌므로 재예약이 불필요하다.
- * </P>
- * 
- * @PARAM 없음
- * @RETURN 없음
- */
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "auction.deadline.worker.enabled", havingValue = "true", matchIfMissing = true)
 public class AuctionDeadlineWorker {
 
-    private final StringRedisTemplate redis;
-    private final AuctionFinalizeService finalizeService;
+    private final AuctionQueryService auctionQueryService;
+    private final AuctionFinalizeService auctionFinalizeService;
 
-    /**
-     * 1초마다 마감 도래 경매를 배치 처리한다.
-     */
-    @Scheduled(fixedDelayString = "${auction.deadline.worker.delay-ms:1000}")
+    @Value("${auction.finalize.batch-size:100}")
+    private int batchSize;
+
+    @Value("${auction.finalize.max-tick-ms:3000}")
+    private long maxTickMs;
+
+    @Value("${auction.finalize.parallelism:1}")
+    private int parallelism;
+
+    // 병렬 처리가 필요하면 간단한 풀 사용(1이면 순차 처리)
+    private ExecutorService pool;
+
+    private ExecutorService pool() {
+        if (parallelism <= 1)
+            return null;
+        if (pool == null) {
+            pool = new ThreadPoolExecutor(parallelism, parallelism, 60L, TimeUnit.SECONDS,
+                    new LinkedBlockingQueue<>(parallelism * 4), r -> {
+                        Thread t = new Thread(r, "auction-finalize");
+                        t.setDaemon(true);
+                        return t;
+                    }, new ThreadPoolExecutor.CallerRunsPolicy());
+        }
+        return pool;
+    }
+
+    @Scheduled(fixedDelayString = "${auction.finalize.tick-ms:1000}")
     public void tick() {
-        long now = Instant.now().toEpochMilli();
-        List<String> dueList = redis.opsForZSet().rangeByScore(AuctionRedisKeys.DEADLINES_ZSET, 0, now).stream()
-                .limit(200).toList();
+        final long startMs = System.currentTimeMillis();
+        int processed = 0;
+        int loops = 0;
 
-        if (dueList.isEmpty())
-            return;
+        while (true) {
+            // 1) 한 배치 조회
+            List<Long> dueIds = auctionQueryService.findDueAuctionIds(batchSize);
+            if (dueIds.isEmpty())
+                break;
 
-        for (String auctionIdStr : dueList) {
-            try {
-                long auctionId = Long.parseLong(auctionIdStr);
-                boolean closed = finalizeService.finalizeIfDue(auctionId);
-                if (closed) {
-                    redis.opsForZSet().remove(AuctionRedisKeys.DEADLINES_ZSET, auctionIdStr);
+            // 2) 처리 (순차 또는 병렬)
+            if (parallelism <= 1) {
+                for (Long id : dueIds) {
+                    try {
+                        auctionFinalizeService.finalizeIfDue(id);
+                        processed++;
+                    } catch (BaseException e) {
+                        log.warn("Finalize skipped by domain rule. auctionId={}, err={}", id, e.getStatus());
+                    } catch (Exception e) {
+                        log.error("Finalize failed by unexpected error. auctionId={}", id, e);
+                    }
                 }
-            } catch (Exception e) {
-                log.error("Auction finalize failed. auctionId={}", auctionIdStr, e);
+            } else {
+                ExecutorService exec = pool();
+                CountDownLatch latch = new CountDownLatch(dueIds.size());
+                for (Long id : dueIds) {
+                    exec.execute(() -> {
+                        try {
+                            auctionFinalizeService.finalizeIfDue(id);
+                        } catch (BaseException e) {
+                            log.warn("Finalize skipped by domain rule. auctionId={}, err={}", id, e.getStatus());
+                        } catch (Exception e) {
+                            log.error("Finalize failed by unexpected error. auctionId={}", id, e);
+                        } finally {
+                            latch.countDown();
+                        }
+                    });
+                }
+                try {
+                    latch.await(Math.max(1000, maxTickMs), TimeUnit.MILLISECONDS);
+                } catch (InterruptedException ignored) {
+                }
+                processed += dueIds.size();
             }
+
+            loops++;
+
+            // 3) 더 가져올 게 없으면 종료
+            if (dueIds.size() < batchSize)
+                break;
+
+            // 4) 시간 예산 소진 시 다음 tick으로 넘김(스케줄러 독점 방지)
+            long elapsed = System.currentTimeMillis() - startMs;
+            if (elapsed >= maxTickMs) {
+                log.info("Finalize tick time budget reached. processed={}, loops={}, elapsedMs={}", processed, loops,
+                        elapsed);
+                break;
+            }
+        }
+
+        long elapsed = System.currentTimeMillis() - startMs;
+        if (processed > 0) {
+            log.info("Finalize tick done. processed={}, loops={}, elapsedMs={}", processed, loops, elapsed);
+        } else {
+            log.debug("Finalize tick done. processed=0, elapsedMs={}", elapsed);
         }
     }
 }

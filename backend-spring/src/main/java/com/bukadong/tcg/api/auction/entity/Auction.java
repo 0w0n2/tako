@@ -7,32 +7,28 @@ import com.bukadong.tcg.api.card.entity.CardAiGrade;
 import com.bukadong.tcg.api.card.entity.PhysicalCard;
 import com.bukadong.tcg.api.category.entity.CategoryMajor;
 import com.bukadong.tcg.api.category.entity.CategoryMedium;
+import com.bukadong.tcg.api.delivery.entity.Delivery;
+import com.bukadong.tcg.api.member.entity.Member;
 import com.bukadong.tcg.global.common.base.BaseEntity;
 import com.bukadong.tcg.global.common.base.BaseResponseStatus;
 import com.bukadong.tcg.global.common.exception.BaseException;
-import com.bukadong.tcg.api.delivery.entity.Delivery;
-import com.bukadong.tcg.api.member.entity.Member;
+
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 /**
  * 경매 엔티티.
- * <p>
+ * <P>
  * 회원이 보유한 실물 카드를 경매로 등록하고, 시작가/현재가/입찰단위/기간/옵션 카드/카테고리 메타정보을 관리한다.
- * </p>
- * <p>
- * 스키마 메타데이터:
- * </p>
- * <ul>
- * <li>TABLE: 경매</li>
- * <li>UK: code</li>
- * <li>INDEX: member_id, delivery_id, physical_card_id, card_id,
- * category_major_id, category_medium_id, (start_datetime,end_datetime)</li>
- * </ul>
+ * </P>
+ * 
+ * @PARAM 없음
+ * @RETURN 없음
  */
 @Entity
 @Table(name = "auction", uniqueConstraints = {
@@ -62,8 +58,7 @@ public class Auction extends BaseEntity {
 
     /** 배송 (1:1 매핑) */
     @OneToOne(fetch = FetchType.LAZY, optional = true)
-    @JoinColumn(name = "delivery_id", unique = true, // 하나의 배송은 하나의 경매와만 연결
-            foreignKey = @ForeignKey(name = "FK_auction_delivery"))
+    @JoinColumn(name = "delivery_id", unique = true, foreignKey = @ForeignKey(name = "FK_auction_delivery"))
     private Delivery delivery;
 
     /** 경매 대상 실물 카드 (옵션) -> physical_card_id */
@@ -102,14 +97,14 @@ public class Auction extends BaseEntity {
     private String title;
 
     /** 경매 상세 설명 (MySQL LONGTEXT) */
-    @Lob // 중요: MySQL에서 LONGTEXT를 원하면 columnDefinition을 명시
+    @Lob
     @Column(name = "detail", nullable = false, columnDefinition = "LONGTEXT")
     private String detail;
 
     /** 시작 가격 (코인 단위, 소수점 8자리) */
     @NotNull(message = "시작 가격은 필수입니다.")
     @DecimalMin(value = "0.00000000")
-    @Digits(integer = 12, fraction = 8) // precision=20,scale=8 중 비즈니스상 안전범위 검증
+    @Digits(integer = 12, fraction = 8)
     @Column(name = "start_price", nullable = false, precision = 20, scale = 8)
     private BigDecimal startPrice;
 
@@ -164,43 +159,72 @@ public class Auction extends BaseEntity {
     @Column(name = "tax_flag", nullable = false)
     private boolean taxFlag;
 
+    /* =====================[ 종료 처리 관련 신규 필드 ]===================== */
+
+    /** 종료 사유 */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "close_reason", length = 20)
+    private AuctionCloseReason closeReason;
+
+    /** 종료 시각(KST) */
+    @Column(name = "closed_at")
+    private LocalDateTime closedAt;
+
+    /** 낙찰자 회원 ID */
+    @Column(name = "winner_member_id")
+    private Long winnerMemberId;
+
+    /** 낙찰 입찰 ID */
+    @Column(name = "winner_bid_id")
+    private Long winnerBidId;
+
+    /** 낙찰 금액 (코인 단위, 소수점 8자리) */
+    @Digits(integer = 12, fraction = 8)
+    @Column(name = "winning_amount", precision = 20, scale = 8)
+    private BigDecimal winningAmount;
+
+    /* ==============================[ Hooks ]============================== */
+
     /**
      * 저장 전 훅.
-     * <p>
-     * 중요 로직: currentPrice 미설정 시 startPrice로 초기화한다.
-     * </p>
+     * <P>
+     * currentPrice 미설정 시 startPrice로 초기화한다.
+     * </P>
+     * 
+     * @RETURN 없음
      */
     @PrePersist
     void prePersistAuction() {
-        // 중요: currentPrice가 null이면 startPrice로 초기화
         if (currentPrice == null && startPrice != null) {
             currentPrice = startPrice;
         }
-        // 기본값 미지정 필드 초기 보정
-        if (durationDays == null)
+        if (durationDays == null) {
             durationDays = 1;
-        if (!extensionFlag) {
-            /* no-op: 명시 플래그 유지 */ }
+        }
+        // extensionFlag/taxFlag/buyNowFlag 등은 요청 값 유지(no-op)
     }
 
     /**
      * 업데이트 전 훅.
-     * <p>
-     * 중요 로직: 종료일시가 시작일시보다 빠르면 안 된다.
-     * </p>
+     * <P>
+     * 종료일시가 시작일시보다 빠르면 예외.
+     * </P>
+     * 
+     * @RETURN 없음
      */
     @PreUpdate
     void preUpdateAuction() {
-        // 중요한 무결성 체크(서비스/검증단에서도 보통 같이 체크)
         if (startDatetime != null && endDatetime != null && endDatetime.isBefore(startDatetime)) {
             throw new BaseException(BaseResponseStatus.AUCTION_DATE_INVALID);
         }
     }
 
+    /* ===========================[ 도메인 로직 ]=========================== */
+
     /**
      * 경매가 주어진 시각에 진행 중인지 여부
      * <P>
-     * isEnd=false 이고, startDatetime <= when <= endDatetime 이면 true.
+     * isEnd=false 이고, startDatetime ≤ when ≤ endDatetime 이면 true.
      * </P>
      * 
      * @PARAM when 기준 시각(Null 허용하지 않음)
@@ -211,9 +235,9 @@ public class Auction extends BaseEntity {
             return false;
         if (this.isEnd)
             return false;
-        if (this.getStartDatetime() != null && when.isBefore(this.getStartDatetime()))
+        if (this.startDatetime != null && when.isBefore(this.startDatetime))
             return false;
-        if (this.getEndDatetime() != null && when.isAfter(this.getEndDatetime()))
+        if (this.endDatetime != null && when.isAfter(this.endDatetime))
             return false;
         return true;
     }
@@ -230,11 +254,17 @@ public class Auction extends BaseEntity {
     public boolean isEndedAt(LocalDateTime when) {
         if (this.isEnd)
             return true;
-        return (when != null && this.getEndDatetime() != null && when.isAfter(this.getEndDatetime()));
+        return (when != null && this.endDatetime != null && when.isAfter(this.endDatetime));
     }
 
     /**
      * 현재 가격 변경
+     * <P>
+     * 음수/하향 변경 금지.
+     * </P>
+     * 
+     * @PARAM newPrice 새 가격
+     * @RETURN 없음
      */
     public void changeCurrentPrice(BigDecimal newPrice) {
         if (newPrice == null || newPrice.compareTo(BigDecimal.ZERO) < 0 || this.currentPrice.compareTo(newPrice) > 0) {
@@ -243,7 +273,65 @@ public class Auction extends BaseEntity {
         this.currentPrice = newPrice;
     }
 
+    /**
+     * 종료 일시 설정
+     * <P>
+     * 외부에서 종료 시각 조정이 필요한 경우 사용.
+     * </P>
+     * 
+     * @PARAM localDateTime 종료 일시
+     * @RETURN 없음
+     */
     public void setEndDatetime(LocalDateTime localDateTime) {
         this.endDatetime = localDateTime;
+    }
+
+    /**
+     * 종료 가능 여부
+     * <P>
+     * 이미 종료가 아니고, endDatetime이 현재(KST) 이전이면 종료 가능.
+     * </P>
+     * 
+     * @RETURN 종료 가능 여부
+     */
+    public boolean isClosableNow() {
+        return !this.isEnd && this.endDatetime != null
+                && this.endDatetime.isBefore(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
+    }
+
+    /**
+     * 경매 종료 마킹
+     * <P>
+     * 중복 종료 요청은 무시(idempotent).
+     * </P>
+     * 
+     * @PARAM reason 종료 사유
+     * @PARAM closedAt 종료 시각
+     * @RETURN 없음
+     */
+    public void markClosed(AuctionCloseReason reason, LocalDateTime closedAt) {
+        if (this.isEnd) {
+            return;
+        }
+        this.isEnd = true;
+        this.closeReason = reason;
+        this.closedAt = closedAt;
+    }
+
+    /**
+     * 낙찰 정보 설정
+     * <P>
+     * 낙찰자/입찰/금액을 기록한다.
+     * </P>
+     * 
+     * @PARAM memberId 낙찰자 회원 ID
+     * @PARAM bidId 낙찰 입찰 ID
+     * @PARAM amount 낙찰 금액
+     * @RETURN 없음
+     */
+    public void setWinner(Long memberId, Long bidId, BigDecimal amount) {
+        this.winnerMemberId = memberId;
+        this.winnerBidId = bidId;
+        this.winningAmount = amount;
     }
 }

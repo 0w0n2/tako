@@ -98,7 +98,7 @@ public class AuctionDetailResponse {
     @NoArgsConstructor
     public static class BidHistoryItem {
         private LocalDateTime createdAt;
-        private BigDecimal bidPrice;
+        private BigDecimal amount;
         private String bidderNickname;
     }
 

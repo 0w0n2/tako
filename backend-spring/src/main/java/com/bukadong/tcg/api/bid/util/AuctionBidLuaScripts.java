@@ -12,7 +12,7 @@ import lombok.experimental.UtilityClass;
  * @PARAM KEYS[1] auctionHashKey (e.g., "auction:{id}")
  * @PARAM KEYS[2] bidQueueKey (e.g., "auction:{id}:bidq")
  * @PARAM KEYS[3] idemKey (e.g., "idem:{requestId}")
- * @PARAM ARGV[1] bidPrice (문자열 숫자)
+ * @PARAM ARGV[1] amount (문자열 숫자)
  * @PARAM ARGV[2] nowEpochSec (정수)
  * @PARAM ARGV[3] idemTtlSec (정수; 권장 1800=30분)
  * @PARAM ARGV[4] payloadOk (성공 이벤트 JSON)

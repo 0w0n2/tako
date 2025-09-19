@@ -38,8 +38,8 @@ public class AuctionBid {
     private Member member;
 
     /** 입찰가 (코인 소수 8자리) */
-    @Column(name = "bid_price", nullable = false, precision = 20, scale = 8)
-    private BigDecimal bidPrice;
+    @Column(name = "amount", nullable = false, precision = 20, scale = 8)
+    private BigDecimal amount;
 
     /** 입찰 상태 */
     @Enumerated(EnumType.STRING)
@@ -58,6 +58,7 @@ public class AuctionBid {
     /** 상태 사유 코드 (예: LOW_PRICE, NOT_RUNNING, ERROR_JSON, DB_ERROR 등) */
     @Column(name = "reason_code", length = 40)
     private String reasonCode;
+
     /** 생성 일시 */
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

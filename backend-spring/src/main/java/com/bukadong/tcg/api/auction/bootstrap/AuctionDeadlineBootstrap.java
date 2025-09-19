@@ -1,17 +1,16 @@
 package com.bukadong.tcg.api.auction.bootstrap;
 
 import com.bukadong.tcg.api.auction.repository.AuctionRepository;
-import com.bukadong.tcg.api.auction.util.AuctionRedisKeys;
+import com.bukadong.tcg.api.auction.util.AuctionDeadlineIndex;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
+import org.springframework.beans.factory.annotation.Value;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
 
 /**
  * 데드라인 ZSET 부트스트랩
@@ -28,20 +27,21 @@ import java.util.List;
 public class AuctionDeadlineBootstrap {
 
     private final AuctionRepository auctionRepository;
-    private final StringRedisTemplate redis;
+    private final AuctionDeadlineIndex deadlineIndex;
+
+    @Value("${auction.deadline.bootstrap.days:14}")
+    private int bootstrapDays;
 
     @EventListener(ApplicationReadyEvent.class)
     public void load() {
         Instant now = Instant.now();
-        Instant horizon = now.plus(Integer.getInteger("auction.deadline.bootstrap.days", 14), ChronoUnit.DAYS);
+        Instant horizon = now.plus(bootstrapDays, ChronoUnit.DAYS);
 
-        // MySQL 기준: unix_timestamp * 1000 로 epochMillis 생성
-        List<Object[]> rows = auctionRepository.findOpenEndAtBefore(horizon);
+        var rows = auctionRepository.findOpenEndAtBefore(horizon);
         for (Object[] row : rows) {
             Long auctionId = (Long) row[0];
             Long endAtMillis = (Long) row[1];
-            redis.opsForZSet().add(AuctionRedisKeys.DEADLINES_ZSET, String.valueOf(auctionId),
-                    endAtMillis.doubleValue());
+            deadlineIndex.upsert(auctionId, endAtMillis);
         }
     }
 }

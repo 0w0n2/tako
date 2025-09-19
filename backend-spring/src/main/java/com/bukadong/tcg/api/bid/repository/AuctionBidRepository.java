@@ -25,5 +25,5 @@ public interface AuctionBidRepository extends JpaRepository<AuctionBid, Long> {
     boolean existsByAuction_Id(Long auctionId);
 
     // 경매별 최고 입찰 1건 조회 (낙찰자 선정용)
-    Optional<AuctionBid> findTopByAuctionIdOrderByBidPriceDescCreatedAtDesc(Long auctionId);
+    Optional<AuctionBid> findTopByAuctionIdOrderByAmountDescCreatedAtDesc(Long auctionId);
 }

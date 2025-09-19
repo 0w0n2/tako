@@ -46,6 +46,9 @@ public class NotificationTypeSeeder implements ApplicationRunner {
                 case WISH_CARD_LISTED -> "관심 카드 경매 등록";
                 case AUCTION_NEW_INQUIRY -> "내 경매 새 문의";
                 case INQUIRY_ANSWERED -> "문의 답변 등록";
+                case AUCTION_WON -> "경매 낙찰";
+                case AUCTION_CLOSED_SELLER -> "경매 종료 (판매자)";
+                case AUCTION_CANCELED -> "경매 취소";
                 };
                 repo.save(NotificationType.of(code, name, ""));
                 log.info("Seeded notification type: {}", code);

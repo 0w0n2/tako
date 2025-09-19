@@ -85,14 +85,14 @@ public class AuctionDetailRepositoryImpl implements AuctionDetailRepository {
 
     @Override
     public List<BidHistoryItem> findBidHistory(Long auctionId, int limit) {
-        List<Tuple> tuples = queryFactory.select(auctionBid.createdAt, auctionBid.bidPrice, member.nickname)
+        List<Tuple> tuples = queryFactory.select(auctionBid.createdAt, auctionBid.amount, member.nickname)
                 .from(auctionBid).join(auctionBid.member, member)
                 .where(auctionBid.auction.id.eq(auctionId).and(auctionBid.status.eq(AuctionBidStatus.VALID)))
                 .orderBy(auctionBid.createdAt.desc()).limit(limit).fetch();
 
         return tuples.stream()
                 .map(t -> BidHistoryItem.builder().createdAt(t.get(auctionBid.createdAt))
-                        .bidPrice(t.get(auctionBid.bidPrice)).bidderNickname(t.get(member.nickname)).build())
+                        .amount(t.get(auctionBid.amount)).bidderNickname(t.get(member.nickname)).build())
                 .collect(Collectors.toList());
     }
 
