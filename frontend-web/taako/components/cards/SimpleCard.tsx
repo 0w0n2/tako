@@ -2,21 +2,17 @@
 
 import Image from "next/image"
 import { useMemo, useState } from "react";
+import { CARD_SIZE } from "@/types/card";
 
 type SimpleCardProps = {
     imageUrl : string,
     cardType : keyof typeof CARD_SIZE
 }
 
-export const CARD_SIZE = {
-  YuGiOh: { width: 59, height: 86 },
-  Pokemon: { width: 63, height: 88 },
-  MTG: { width: 63, height: 88 },
-} as const;
-
 export default function SimpleCard(props: SimpleCardProps) {
-  const height = CARD_SIZE[props.cardType].height
-  const width = CARD_SIZE[props.cardType].width
+  const cardSize = CARD_SIZE[props.cardType] || CARD_SIZE.Pokémon;
+  const height = cardSize.height;
+  const width = cardSize.width;
 
   const { basePng, hiresPng } = useMemo(() => {
     if (props.imageUrl.endsWith("_hires.png")) {

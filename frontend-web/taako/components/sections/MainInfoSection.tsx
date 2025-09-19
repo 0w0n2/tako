@@ -1,13 +1,33 @@
 'use client'
-// Import Swiper React components
+
 import { Navigation, Pagination } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import Image from 'next/image';
 import Link from 'next/link';
-// Import Swiper styles
+import { useState, useEffect } from 'react';
+import api from '@/lib/api';
+import { MajorCategories } from '@/types/category';
 import 'swiper/css';
 
 export default function MainInfoSection() {
+    const [categoryIdTable, setCategoryIdTable] = useState<MajorCategories[]>([])
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const response = await api.get("v1/categories/majors")
+                setCategoryIdTable(response.data.result)
+            } catch (error) {
+                console.error("카테고리 정보를 불러오는데 실패했습니다.", error)
+            }
+        }
+        fetchCategories()
+    }, [])
+
+    const getCategoryId = (categoryName: string): number => {
+        const found = categoryIdTable.find((item: MajorCategories) => item.name === categoryName)
+        return found ? found.id : 0
+    }
     return (
         <div className="relative overflow-hidden" style={{
             backgroundImage: "url(/background/main-bg.png)",
@@ -15,10 +35,7 @@ export default function MainInfoSection() {
             backgroundPosition: "center",
             backgroundRepeat: "no-repeat"
         }}>
-            {/* 배경 이미지 오브젝트 */}
-            {/* <div className='absolute top-[50%] left-[10%] opacity-20'>
-                <Image src="/background/bg-object1.png" alt="object1" width={500} height={300}/>
-            </div> */}
+
             <div className="default-container flex flex-col">
                 <div className='flex flex-col gap-5 mt-[160px] items-center text-center'>
                     <h1 className='main'>Next-Gen<br/>
@@ -36,18 +53,18 @@ export default function MainInfoSection() {
                         onSlideChange={() => console.log('slide change')}
                     >
                         <SwiperSlide className='bg-gradient-to-b from-yellow-300 to-black/30 backdrop-blur-xl'>
-                            <Link href="/categories?category=Pokemon">
+                            <Link href={`/category/${getCategoryId('Pokémon')}?categoryName=Pokémon`}>
                                 <div>
                                     <h2 className='main'>Pokemon</h2>
                                     <p>포켓몬</p>
                                 </div>
                                 <div className='img'>
                                     <Image className='object-fit w-full h-full' src="/main-card/pokemon.png" alt="pokomon" width={100} height={300} />
-                                ~</div>
+                                </div>
                             </Link>
                         </SwiperSlide>
                         <SwiperSlide className='bg-gradient-to-b from-pink-800 to-black/50 backdrop-blur-xl'>
-                            <Link href="/categories?category=YuGiOh">
+                            <Link href={`/category/${getCategoryId('Yu-Gi-Oh!')}?categoryName=Yu-Gi-Oh!`}>
                                 <div>
                                     <h2 className='main'>Yu-Gi-OH!</h2>
                                     <p>유희왕</p>
@@ -58,7 +75,7 @@ export default function MainInfoSection() {
                             </Link>
                         </SwiperSlide>
                         <SwiperSlide className='bg-gradient-to-b from-orange-800 to-black/30 backdrop-blur-xl'>
-                            <Link href="/categories?category=CookieRun">
+                            <Link href={`/category/${getCategoryId('Cookierun')}?categoryName=Cookierun`}>
                                 <div>
                                     <h2 className='main'>CookieRun</h2>
                                     <p>쿠키런</p>

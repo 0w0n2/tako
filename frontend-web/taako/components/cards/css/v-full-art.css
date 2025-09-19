@@ -77,7 +77,7 @@
 
 
 /* subtypes, supertype 의존성 제거 */
-
+.card[data-rarity="rare holo v"] .card__shine:before {
 content: "";
 -webkit-mask-image: none;
 mask-image: none;
