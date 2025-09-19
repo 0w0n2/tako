@@ -3,7 +3,7 @@
 import SearchInput from "@/components/atoms/Input/SearchInput"
 import Filter from "@/components/filters/Filter"
 import { filterOptions, itemsMap } from "@/components/filters/data"
-import TCGCard from '@/components/cards/EffectCard'
+import EffectCard from '@/components/cards/EffectCard'
 import SimpleCard from '@/components/cards/SimpleCard'
 import '@/components/cards/cards.css'
 import '@/components/cards/css/base.css'
@@ -95,14 +95,8 @@ export default function Pokemon({ params }: CategoryPageProps) {
                 }}
                 onClick={(e) => e.stopPropagation()}
               >
-                <TCGCard
-                  id={active.id}
-                  name={active.name}
-                  number={active.number}
-                  set={active.set}
+                <EffectCard
                   types={active.types || []}
-                  subtypes={active.subtypes}
-                  supertype={active.supertype}
                   rarity={active.rarity}
                   img={active.images.large}
                 />

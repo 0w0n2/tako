@@ -1,52 +1,30 @@
-"use client";
+"use client"
 
-import { useSpring, animated, to } from "@react-spring/web";
-import { useEffect, useState, useRef, useMemo } from "react";
-import { useCardStore } from "@/stores/useCardStore";
-import { clamp, round, adjust } from "./lib/math";
-import altArts from "./lib/alternate-arts.json";
-import promos from "./lib/promos.json";
+import { useSpring, animated, to } from "@react-spring/web"
+import { useEffect, useState, useRef, useMemo } from "react"
+import { clamp, round, adjust } from "./lib/math"
 
-type TCGCardProps = {
-  id: string;
-  name: string;
-  number: string;
-  set: string;
+type EffectCardProps = {
   types: string[] | string;
-  subtypes: string[] | string;
-  supertype: string;
   rarity: string;
   img: string;
-  back?: string;
-  showcase?: boolean;
-  isReverse?: boolean;
+  type?: string;
   foil?: string;
   mask?: string;
-};
+}
 
 export default function EffectCard({
-  id,
-  name,
-  number,
-  set,
   types: initialTypes,
-  subtypes: initialSubtypes,
-  supertype: initialSupertype,
   rarity: initialRarity,
   img,
-  back = "https://tcg.pokemon.com/assets/img/global/tcg-card-back-2x.jpg",
-  isReverse: initialIsReverse = false,
+  type,
   foil: initialFoil,
   mask: initialMask,
-}: TCGCardProps) {
-  const [loading, setLoading] = useState(true);
-  const [frontSrc, setFrontSrc] = useState<string>("");
-  const [interacting, setInteracting] = useState(false);
-  const [firstPop, setFirstPop] = useState(true);
+}: EffectCardProps) {
+  const [loading, setLoading] = useState(true)
+  const [frontSrc, setFrontSrc] = useState<string>("")
+  const [interacting, setInteracting] = useState(false)
   const thisCard = useRef<HTMLDivElement>(null);
-
-  const { activeCard, setActiveCard } = useCardStore();
-  const isActive = activeCard === id;
 
   const [styles, api] = useSpring(() => ({
     translateX: 0,
@@ -62,11 +40,6 @@ export default function EffectCard({
     config: { tension: 300, friction: 30 },
   }));
 
-  const supertype = useMemo(
-    () => initialSupertype.toLowerCase(),
-    [initialSupertype]
-  );
-  const numberL = useMemo(() => number.toLowerCase(), [number]);
   const types = useMemo(
     () =>
       Array.isArray(initialTypes)
@@ -74,127 +47,127 @@ export default function EffectCard({
         : initialTypes.toLowerCase(),
     [initialTypes]
   );
-  const subtypes = useMemo(
-    () =>
-      Array.isArray(initialSubtypes)
-        ? initialSubtypes.join(" ").toLowerCase()
-        : initialSubtypes.toLowerCase(),
-    [initialSubtypes]
-  );
 
-  const isShiny = useMemo(() => numberL.startsWith("sv"), [numberL]);
-  const isGallery = useMemo(() => !!numberL.match(/^[tg]g/i), [numberL]);
-  const isAlternate = useMemo(
-    () => altArts.includes(id) && !isShiny && !isGallery,
-    [id, isShiny, isGallery]
-  );
-  const isPromo = useMemo(() => set === "swshp", [set]);
 
   const finalRarity = useMemo(() => {
+    const validRarities = [
+      "radiant rare",
+      "trainer gallery rare holo", 
+      "rare holo cosmos",
+      "rare holo v",
+      "uncommon",
+      "rare holo vstar",
+      "rare holo vmax",
+      "common",
+      "rare secret",
+      "pikachu",
+      "rare shiny",
+      "rare shiny v",
+      "rare shiny vmax"
+    ];
+    
     let r = initialRarity.toLowerCase();
-    if (initialIsReverse) {
-      r = r + " reverse holo";
-    }
-    if (isGallery) {
-      if (r.startsWith("trainer gallery")) {
-        r = r.replace(/trainer gallery\s*/, "");
-      }
-      if (r.includes("rare holo v") && subtypes.includes("vmax")) {
-        r = "rare holo vmax";
-      }
-      if (r.includes("rare holo v") && subtypes.includes("vstar")) {
-        r = "rare holo vstar";
-      }
-    }
-    if (isPromo) {
-      if (id === "swshp-SWSH076" || id === "swshp-SWSH077") {
-        r = "rare secret";
-      } else if (subtypes.includes("v-union")) {
-        r = "rare holo vunion";
-      } else if (subtypes.includes("vmax")) {
-        r = "rare holo vmax";
-      } else if (subtypes.includes("vstar")) {
-        r = "rare holo vstar";
-      } else if (subtypes.includes("radiant")) {
-        r = "radiant rare";
-      } else if (subtypes.includes("v")) {
+    
+    if (!validRarities.includes(r)) {
+      if (r.includes("pikachu")) {
+        r = "pikachu";
+      } else if (r.includes("rare secret")) {
+        r = "rare secret"
+      } else if (r.includes("rare shiny vmax")) {
+        r = "rare shiny vmax"
+      } else if (r.includes("rare shiny v")) {
+        r = "rare shiny v"
+      } else if (r.includes("rare shiny")) {
+        r = "rare shiny"
+      } else if (r.includes("rare holo vmax")) {
+        r = "rare holo vmax"
+      } else if (r.includes("rare holo vstar")) {
+        r = "rare holo vstar"
+      } else if (r.includes("rare holo v")) {
         r = "rare holo v";
+      } else if (r.includes("rare holo cosmos")) {
+        r = "rare holo cosmos"
+      } else if (r.includes("trainer gallery")) {
+        r = "trainer gallery rare holo"
+      } else if (r.includes("radiant")) {
+        r = "radiant rare"
+      } else if (r.includes("uncommon")) {
+        r = "uncommon"
+      } else {
+        r = "common"
       }
     }
+    
     return r;
-  }, [initialRarity, initialIsReverse, isGallery, isPromo, id, subtypes]);
+  }, [initialRarity]);
 
   const isTrainerGallery = useMemo(
-    () =>
-      !!numberL.match(/^[tg]g/i) ||
-      !!(id === "swshp-SWSH076" || id === "swshp-SWSH077"),
-    [numberL, id]
+    () => finalRarity === "trainer gallery rare holo",
+    [finalRarity]
   );
 
   const foilUrl = useMemo(() => {
-    return foilMaskImage(initialFoil, "foils");
-  }, [initialFoil, finalRarity, subtypes, supertype, set, numberL, isShiny, isGallery, isAlternate, isPromo, id]);
+    return foilMaskImage(initialFoil, "foils")
+  }, [initialFoil, finalRarity]);
 
   const maskUrl = useMemo(() => {
-    return foilMaskImage(initialMask, "masks");
-  }, [initialMask, finalRarity, subtypes, supertype, set, numberL, isShiny, isGallery, isAlternate, isPromo, id]);
+    return foilMaskImage(initialMask, "masks")
+  }, [initialMask, finalRarity]);
 
   function foilMaskImage(prop: string | undefined, type: "foils" | "masks") {
-    if (type === 'masks') {
-      return ''; // 마스크는 사용하지 않음
-    }
-
     if (prop) {
       if (prop === "false") return "";
+      if (prop.startsWith('/effects/') || prop.startsWith('effects/')) {
+        return prop.startsWith('/') ? prop : `/${prop}`
+      }
       return prop;
     }
 
-    const fRarity = finalRarity;
-
-    const mapping: { [key: string]: string } = {
-      'rare secret': '/card-images/effects/geometric.png',
-      'rare holo cosmos': '/card-images/effects/cosmos.png',
-      'radiant rare': '/card-images/effects/angular.png',
-      'trainer gallery rare holo': '/card-images/effects/trainerbg.png',
-      'rare holo vmax': '/card-images/effects/vmaxbg.jpg',
-      'rare holo vstar': '/card-images/effects/ancient.png',
-      'rare holo v': '/card-images/effects/illusion.png',
-      'rare ultra': '/card-images/effects/illusion.png',
-      'rare rainbow': '/card-images/effects/rainbow.jpg',
-      'amazing rare': '/card-images/effects/galaxy.jpg',
-      'rare shiny': '/card-images/effects/illusion.png',
-      'rare holo': '/card-images/effects/wave.png',
+    const foilMapping: { [key: string]: string } = {
+      'radiant rare': '/effects/angular.png',
+      'trainer gallery rare holo': '/effects/trainerbg.png',
+      'rare holo cosmos': '/effects/cosmos.png',
+      'rare holo v': '/effects/illusion.png',
+      'uncommon': '/effects/wave.png',
+      'rare holo vstar': '/effects/ancient.png',
+      'rare holo vmax': '/effects/vmaxbg.jpg',
+      'common': '/effects/wave.png',
     };
 
-    for (const key in mapping) {
-      if (fRarity.includes(key)) {
-        return mapping[key];
-      }
-    }
+    const maskMapping: { [key: string]: string } = {
+      'rare holo cosmos': '/effects/cosmos-middle-trans.png',
+      'rare holo vmax': '/effects/vmaxbg.jpg',
+      'rare holo vstar': '/effects/ancient.png',
+      'rare holo v': '/effects/illusion-mask.png',
+      'trainer gallery rare holo': '/effects/trainerbg.png',
+      'radiant rare': '/effects/angular.png',
+      'uncommon': '/effects/wave.png',
+      'common': '/effects/wave.png',
+    };
 
-    if (fRarity.includes('reverse holo')) {
-      return '/card-images/effects/wave.png';
-    }
-
-    return '';
+    const mapping = type === 'masks' ? maskMapping : foilMapping;
+    
+    return mapping[finalRarity] || '';
   }
 
-  const baseLocalPath = useMemo(
-    () => `/card-images/${set}/${number}`,
-    [set, number]
-  );
+  const getCardBackImage = (cardType?: string) => {
+    const backMapping: { [key: string]: string } = {
+      'pokemon': '/card-back/pokemon-back.jpg',
+      'yugioh': '/card-back/yugioh-back.jpg',
+      'cookierun': '/card-back/cookierun-back.png',
+      'cookie run': '/card-back/cookierun-back.png',
+    };
+
+    return cardType && backMapping[cardType.toLowerCase()] 
+      ? backMapping[cardType.toLowerCase()] 
+      : '/card-back/pokemon-back.jpg';
+  };
+
+  const cardBackImage = useMemo(() => getCardBackImage(type), [type]);
 
   useEffect(() => {
-    if (img.startsWith("http")) {
-      setFrontSrc(img);
-      return;
-    }
-    if (img.startsWith("/card-images/")) {
-      setFrontSrc(img);
-      return;
-    }
-    setFrontSrc(`${baseLocalPath}_hires.png`);
-  }, [img, baseLocalPath]);
+    setFrontSrc(img);
+  }, [img]);
 
   const interact = (e: React.PointerEvent<HTMLButtonElement>) => {
     setInteracting(true);
@@ -239,59 +212,11 @@ export default function EffectCard({
     });
   };
 
-  const toggleActive = () => {
-    if (activeCard === id) {
-      setActiveCard(null);
-    } else {
-      setActiveCard(id);
-    }
-  };
-
-  useEffect(() => {
-    const cardRef = thisCard.current;
-    if (!cardRef) return;
-
-    if (isActive) {
-      setInteracting(true);
-      const rect = cardRef.getBoundingClientRect();
-      const view = document.documentElement;
-      const scaleW = (view.clientWidth / rect.width) * 0.6;
-      const scaleH = (view.clientHeight / rect.height) * 0.6;
-      const scale = Math.min(scaleW, scaleH, 1.75);
-
-      const delta = {
-        x: round(view.clientWidth / 2 - rect.x - rect.width / 2),
-        y: round(view.clientHeight / 2 - rect.y - rect.height / 2),
-      };
-
-      api.start({
-        translateX: delta.x,
-        translateY: delta.y,
-        scale: scale,
-        rotateX: 0,
-        rotateY: firstPop ? 360 : 0,
-        config: { tension: 120, friction: 30 },
-      });
-      setFirstPop(false);
-    } else {
-      api.start({
-        translateX: 0,
-        translateY: 0,
-        scale: 1,
-        rotateX: 0,
-        rotateY: 0,
-        config: { tension: 200, friction: 30 },
-      });
-      interactEnd();
-    }
-  }, [isActive, api, firstPop]);
-
   const animatedStyles = {
     transform: to(
       [styles.translateX, styles.translateY, styles.scale],
       (x, y, s) => `translate(${x}px, ${y}px) scale(${s})`
     ),
-    zIndex: isActive ? 9999 : "auto",
   };
 
   const rotatorStyles = {
@@ -319,6 +244,7 @@ export default function EffectCard({
     "--mask": maskUrl ? `url("${maskUrl}")` : "none",
   } as React.CSSProperties;
 
+  const isActive = false
   return (
     <animated.div
       ref={thisCard}
@@ -329,25 +255,20 @@ export default function EffectCard({
         className={`card ${types} ${loading ? "loading" : ""} ${
           isActive ? "active" : ""
         } ${interacting ? "interacting" : ""} ${maskUrl ? "masked" : ""}`}
-        data-number={numberL}
-        data-set={set}
-        data-subtypes={subtypes}
-        data-supertype={supertype}
-                data-rarity={finalRarity}
+        data-rarity={finalRarity}
         data-trainer-gallery={isTrainerGallery}
         style={dynamicStyles}
       >
         <animated.button
           className="card__rotator"
-          onClick={toggleActive}
           onPointerMove={interact}
           onPointerLeave={interactEnd}
           style={{ ...rotatorStyles, ...dynamicStyles }}
         >
           <img
             className="card__back"
-            src={back}
-            alt="Pokemon Card Back"
+            src={cardBackImage}
+            alt="Card Back"
             loading="lazy"
             width="660"
             height="921"
@@ -355,14 +276,8 @@ export default function EffectCard({
           <div className="card__front" style={foilStyles}>
             <img
               src={frontSrc}
-              alt={name}
+              alt=""
               onLoad={() => setLoading(false)}
-              onError={(e) => {
-                const current = (e.currentTarget as HTMLImageElement).src;
-                if (current.endsWith("_hires.png")) {
-                  setFrontSrc(`${baseLocalPath}.png`);
-                }
-              }}
               loading="lazy"
               width="660"
               height="921"

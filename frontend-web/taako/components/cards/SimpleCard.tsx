@@ -15,7 +15,6 @@ export const CARD_SIZE = {
 } as const;
 
 export default function SimpleCard(props: SimpleCardProps) {
-  const [isMouseOver, handleMouseOver] = useState<boolean>(false)
   const height = CARD_SIZE[props.cardType].height
   const width = CARD_SIZE[props.cardType].width
 
@@ -37,16 +36,10 @@ export default function SimpleCard(props: SimpleCardProps) {
 
   return (
     <div
-      onMouseOver={() => handleMouseOver(true)}
-      onMouseOut={() => handleMouseOver(false)}
       style={{
         position: 'relative',
         width: '100%',
         aspectRatio: `${width} / ${height}`,
-        transform: isMouseOver ? 'scale(1.5)' : 'scale(1)',
-        transformOrigin: 'center',
-        transition: 'transform 120ms ease-out',
-        zIndex: isMouseOver ? 2 : 1,
       }}
     >
       <Image

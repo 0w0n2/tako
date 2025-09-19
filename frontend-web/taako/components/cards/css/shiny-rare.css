@@ -1,6 +1,7 @@
 /*
 
   SHINY RARE (HOLO)
+  NOTE: This rarity is not in rarity.json - kept for backward compatibility
 
 */
 
@@ -19,9 +20,8 @@
 .card[data-rarity="rare shiny"] .card__shine {
   clip-path: var(--clip);
 }
-.card[data-rarity="rare shiny"][data-subtypes^="stage"] .card__shine {
-  clip-path: var(--clip-stage);
-}
+
+/* subtypes 의존성 제거 - 단일 rarity만 사용 */
 
 .card[data-rarity="rare shiny"] .card__shine,
 .card[data-rarity="rare shiny"] .card__shine:after {
@@ -32,36 +32,30 @@
 
   background-image:
     var(--foil),
-    repeating-linear-gradient( 0deg, 
-      var(--sunpillar-clr-1) calc(var(--space)*1), 
-      var(--sunpillar-clr-2) calc(var(--space)*2), 
-      var(--sunpillar-clr-3) calc(var(--space)*3), 
-      var(--sunpillar-clr-4) calc(var(--space)*4), 
-      var(--sunpillar-clr-5) calc(var(--space)*5), 
-      var(--sunpillar-clr-6) calc(var(--space)*6), 
-      var(--sunpillar-clr-1) calc(var(--space)*7)
-    ),
-    repeating-linear-gradient( 
-      var(--angle), 
-      #0e152e 0%, 
-      hsl(180, 10%, 60%) 3.8%, 
-      hsl(180, 29%, 66%) 4.5%, 
-      hsl(180, 10%, 60%) 5.2%, 
-      #0e152e 10% , 
-      #0e152e 12% 
-      ),
-    radial-gradient(
-      farthest-corner circle 
-      at var(--pointer-x) var(--pointer-y),
-      hsla(0, 0%, 0%, 0.1) 12%, 
-      hsla(0, 0%, 0%, 0.15) 20%, 
-      hsla(0, 0%, 0%, 0.25) 120%
-    );
+    repeating-linear-gradient(0deg,
+      var(--sunpillar-clr-1) calc(var(--space)*1),
+      var(--sunpillar-clr-2) calc(var(--space)*2),
+      var(--sunpillar-clr-3) calc(var(--space)*3),
+      var(--sunpillar-clr-4) calc(var(--space)*4),
+      var(--sunpillar-clr-5) calc(var(--space)*5),
+      var(--sunpillar-clr-6) calc(var(--space)*6),
+      var(--sunpillar-clr-1) calc(var(--space)*7)),
+    repeating-linear-gradient(var(--angle),
+      #0e152e 0%,
+      hsl(180, 10%, 60%) 3.8%,
+      hsl(180, 29%, 66%) 4.5%,
+      hsl(180, 10%, 60%) 5.2%,
+      #0e152e 10%,
+      #0e152e 12%),
+    radial-gradient(farthest-corner circle at var(--pointer-x) var(--pointer-y),
+      hsla(0, 0%, 0%, 0.1) 12%,
+      hsla(0, 0%, 0%, 0.15) 20%,
+      hsla(0, 0%, 0%, 0.25) 120%);
 
-  background-position: 
-    center center, 
-    0% var(--background-y), 
-    calc( var(--background-x) + (var(--background-y)*0.2) ) var(--background-y), 
+  background-position:
+    center center,
+    0% var(--background-y),
+    calc(var(--background-x) + (var(--background-y)*0.2)) var(--background-y),
     var(--background-x) var(--background-y);
 
   background-blend-mode: soft-light, hue, hard-light;
@@ -75,10 +69,10 @@
 
   content: "";
 
-  background-position: 
-    center center, 
-    0% var(--background-y), 
-    calc( (var(--background-x) + (var(--background-y)*0.2)) * -1) calc( var(--background-y) * -1), 
+  background-position:
+    center center,
+    0% var(--background-y),
+    calc((var(--background-x) + (var(--background-y)*0.2)) * -1) calc(var(--background-y) * -1),
     var(--background-x) var(--background-y);
 
   background-size: var(--imgsize), 200% 400%, 195% 100%, 200% 100%;
@@ -93,16 +87,15 @@
   content: "";
   -webkit-mask-image: none;
   mask-image: none;
-  
-  background-image: 
-    radial-gradient( farthest-corner circle at var(--pointer-x) var(--pointer-y), 
-      hsl(0, 0%, 100%) 0%, 
-      hsla(0, 0%, 0%, 0) 40% 
-    );
+
+  background-image:
+    radial-gradient(farthest-corner circle at var(--pointer-x) var(--pointer-y),
+      hsl(0, 0%, 100%) 0%,
+      hsla(0, 0%, 0%, 0) 40%);
   background-position: center;
   background-size: cover;
   mix-blend-mode: overlay;
-  
+
   opacity: 0.75;
   z-index: 1;
 
@@ -124,19 +117,18 @@
 
 .card[data-rarity="rare shiny"] .card__glare {
 
-  background-image: 
-    radial-gradient( farthest-corner circle at var(--pointer-x) var(--pointer-y), 
-    hsl(0, 0%, 100%) 0%, 
-    hsl(320, 5%, 15%) 150%
-    );
+  background-image:
+    radial-gradient(farthest-corner circle at var(--pointer-x) var(--pointer-y),
+      hsl(0, 0%, 100%) 0%,
+      hsl(320, 5%, 15%) 150%);
 
   background-size: cover;
   background-position: center center;
 
   mix-blend-mode: multiply;
   filter: brightness(1.2) contrast(1) saturate(.7);
-  
-  opacity: calc( var(--card-opacity) * var(--pointer-from-center) );
+
+  opacity: calc(var(--card-opacity) * var(--pointer-from-center));
 
 }
 
@@ -156,7 +148,7 @@
 .card:not(.masked).card[data-rarity="rare shiny"] .card__shine:after {
 
   --mask: none;
-  --foil: url("/img/illusion.png"); 
+  --foil: url("/img/illusion.png");
   --imgsize: 33%;
 
   -webkit-mask-image: var(--mask);
@@ -175,4 +167,3 @@
   mix-blend-mode: difference;
 
 }
-
