@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -76,4 +78,31 @@ public interface AuctionRepository extends JpaRepository<Auction, Long> {
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query(value = "UPDATE auction SET is_end = 1 WHERE id = :id AND is_end = 0", nativeQuery = true)
     int markEnded(@Param("id") Long id);
+
+    /**
+     * 마감 시간 경과한 OPEN 경매를 CLOSED로 전이(영향 행 1 = 유일 종료자)
+     */
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+                update Auction a
+                   set a.status = com.bukadong.tcg.api.auction.entity.AuctionStatus.CLOSED,
+                       a.closedAt = CURRENT_TIMESTAMP
+                 where a.id = :auctionId
+                   and a.status = com.bukadong.tcg.api.auction.entity.AuctionStatus.OPEN
+                   and a.endAt <= CURRENT_TIMESTAMP
+            """)
+    int closeIfDue(@Param("auctionId") long auctionId);
+
+    /**
+     * 부트스트랩: OPEN & endAt <= horizon 인 경매의 (id, endAtMillis) 목록 (MySQL:
+     * unix_timestamp*1000)
+     */
+    @Query(value = """
+                select a.id as auction_id,
+                       cast(unix_timestamp(a.end_at) * 1000 as signed) as endAtMillis
+                  from auction a
+                 where a.status = 'OPEN'
+                   and a.end_at <= :horizon
+            """, nativeQuery = true)
+    List<Object[]> findOpenEndAtBefore(@Param("horizon") Instant horizon);
 }

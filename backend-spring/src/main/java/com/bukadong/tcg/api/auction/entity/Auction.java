@@ -242,4 +242,8 @@ public class Auction extends BaseEntity {
         }
         this.currentPrice = newPrice;
     }
+
+    public void setEndDatetime(LocalDateTime localDateTime) {
+        this.endDatetime = localDateTime;
+    }
 }
