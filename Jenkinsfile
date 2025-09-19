@@ -265,8 +265,8 @@ pipeline {
               sh ''' 
                 set -eux
 
-                docker compose --env-file deploy/.env.dev -f "$COMPOSE_AI_FILE" pull || true
-                docker compose --env-file deploy/.env.dev -f "$COMPOSE_AI_FILE" up -d --build tako_ai
+                docker compose -f "$COMPOSE_AI_FILE" pull || true
+                docker compose -f "$COMPOSE_AI_FILE" up -d --build tako_ai
               '''
           } else {
               echo "No deploy target matched for source branch: ${dev_source}"
@@ -403,7 +403,7 @@ pipeline {
           docker compose --env-file deploy/.env.prod -f "$COMPOSE_AI_FILE" pull || true
           docker compose --env-file deploy/.env.prod -f "$COMPOSE_PROD_FILE" up -d --build tako_back
           docker compose --env-file deploy/.env.prod -f "$COMPOSE_PROD_FILE" up -d --build tako_front
-          docker compose --env-file deploy/.env.prod -f "$COMPOSE_AI_FILE" up -d --build tako_ai
+          docker compose -f "$COMPOSE_AI_FILE" up -d --build tako_ai
           '''
         }
       }

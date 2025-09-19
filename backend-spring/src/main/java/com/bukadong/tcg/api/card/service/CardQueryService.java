@@ -4,10 +4,10 @@ import com.bukadong.tcg.api.card.dto.request.CardSearchRequest;
 import com.bukadong.tcg.api.card.dto.response.CardDetailResponse;
 import com.bukadong.tcg.api.card.dto.response.CardListRow;
 import com.bukadong.tcg.api.card.repository.CardRepository;
-import com.bukadong.tcg.api.card.repository.custom.CardRepositoryCustom;
 import com.bukadong.tcg.api.card.repository.custom.CardSearchCond;
 import com.bukadong.tcg.api.media.entity.MediaType;
 import com.bukadong.tcg.api.media.service.MediaUrlService;
+import com.bukadong.tcg.api.wish.repository.card.WishCardRepository;
 import com.bukadong.tcg.global.common.base.BaseResponseStatus;
 import com.bukadong.tcg.global.common.exception.BaseException;
 
@@ -30,10 +30,12 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class CardQueryService {
 
     private final CardRepository cardRepository;
     private final MediaUrlService mediaUrlService;
+    private final WishCardRepository wishCardRepository;
 
     /**
      * 카드 검색
@@ -41,13 +43,19 @@ public class CardQueryService {
      * name 접두 검색 + description FULLTEXT 조합. 카테고리 필터 결합.
      * </P>
      */
-    @Transactional(readOnly = true)
-    public Page<CardListRow> search(CardSearchRequest request) {
+    public Page<CardListRow> search(CardSearchRequest request, Long memberId) {
         Pageable pageable = PageRequest.of(request.getPage(), request.getSize());
         CardSearchCond cond = CardSearchCond.builder().categoryMajorId(request.getCategoryMajorId())
                 .categoryMediumId(request.getCategoryMediumId()).nameKeyword(request.getName())
                 .descriptionKeyword(request.getDescription()).build();
-        return cardRepository.search(cond, pageable);
+
+        Page<CardListRow> page = cardRepository.search(cond, pageable, memberId);
+
+        // 페이지 결과에 이미지 URL(5분 TTL) 주입
+        for (CardListRow row : page.getContent()) {
+            row.setImageUrls(mediaUrlService.getPresignedImageUrls(MediaType.CARD, row.getId(), Duration.ofMinutes(5)));
+        }
+        return page;
     }
 
     /**
@@ -59,12 +67,16 @@ public class CardQueryService {
      * @PARAM id 카드 ID
      * @RETURN CardDetailResponse
      */
-    @Transactional(readOnly = true)
-    public CardDetailResponse getDetail(Long id) {
-        CardDetailResponse dto = cardRepository.findDetailById(id);
+    public CardDetailResponse getDetail(Long cardId, Long memberId) {
+        CardDetailResponse dto = cardRepository.findDetailById(cardId);
         if (dto == null)
             throw new BaseException(BaseResponseStatus.CARD_NOT_FOUND);
-        dto.setImageUrls(mediaUrlService.getPresignedImageUrls(MediaType.CARD, id, Duration.ofMinutes(5)));
+        dto.setImageUrls(mediaUrlService.getPresignedImageUrls(MediaType.CARD, cardId, Duration.ofMinutes(5)));
+        boolean wished = false;
+        if (memberId != null) {
+            wished = wishCardRepository.existsByMemberIdAndCardIdAndWishFlagTrue(memberId, cardId);
+        }
+        dto.setWished(wished);
         return dto;
     }
 }

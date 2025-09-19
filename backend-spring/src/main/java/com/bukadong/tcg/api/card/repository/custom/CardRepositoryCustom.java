@@ -17,7 +17,7 @@ import org.springframework.data.domain.Pageable;
  * @RETURN Page<CardListRow>
  */
 public interface CardRepositoryCustom {
-    Page<CardListRow> search(CardSearchCond cond, Pageable pageable);
+    Page<CardListRow> search(CardSearchCond cond, Pageable pageable, Long memberId);
 
     /**
      * 카드 상세 조회

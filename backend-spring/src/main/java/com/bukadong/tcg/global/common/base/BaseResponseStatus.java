@@ -83,6 +83,7 @@ public enum BaseResponseStatus {
     /**
      * 600: 멤버 에러
      */
+    WALLET_ADDRESS_DUPLICATED(HttpStatus.CONFLICT, false, 656, "이미 사용 중인 지갑 주소입니다."),
     NICKNAME_GENERATION_FAILED(HttpStatus.CONFLICT, false, 680, "랜덤 닉네임 생성을 실패했습니다."),
     PASSWORD_RESET_CODE_EXPIRED(HttpStatus.BAD_REQUEST, false, 690, "비밀번호 재설정 시간이 만료되었습니다."),
     PASSWORD_RESET_CODE_MISMATCH(HttpStatus.BAD_REQUEST, false, 691, "비밀번호 재설정 암호가 일치하지 않습니다."),
@@ -169,7 +170,14 @@ public enum BaseResponseStatus {
      * 1300: 메일(SMTP) Error
      */
     MAIL_UNSUPPORTED_TYPE(HttpStatus.BAD_REQUEST, false, 1300, "지원하지 않는 메일 타입입니다."),
-    MAIL_SEND_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, false, 1301, "메일 발송에 실패했습니다.");
+    MAIL_SEND_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, false, 1301, "메일 발송에 실패했습니다."),
+
+    /**
+     * 1400: 알람(Notification) Error
+     */
+    NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, false, 1400, "알림이 존재하지 않습니다."),
+    NOTIFICATION_FORBIDDEN(HttpStatus.FORBIDDEN, false, 1401, "알림에 대한 권한이 없습니다."),
+    NOTIFICATION_CONFLICT(HttpStatus.CONFLICT, false, 1402, "알림 처리 중 충돌이 발생했습니다.");
 
     private final HttpStatusCode httpStatusCode;
     private final boolean isSuccess;

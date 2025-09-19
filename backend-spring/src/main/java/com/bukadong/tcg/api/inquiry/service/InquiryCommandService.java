@@ -18,6 +18,8 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.bukadong.tcg.api.notification.service.NotificationCommandService;
+import java.util.Map;
 
 /**
  * 문의/답변 명령 서비스
@@ -36,6 +38,7 @@ public class InquiryCommandService {
     private final InquiryRepository inquiryRepository;
     private final InquiryAnswerRepository answerRepository;
     private final EntityManager em;
+    private final NotificationCommandService notificationCommandService;
 
     /**
      * 문의 등록
@@ -56,6 +59,11 @@ public class InquiryCommandService {
 
         Inquiry saved = inquiryRepository.save(inquiry);
 
+        // 알림 트리거: 내 경매에 새 문의
+        notificationCommandService.notifyAuctionNewInquiry(auction.getMember().getId(), // 판매자(수신자)
+                auction.getId(), // 경매 ID (causeId)
+                Map.of("inquiryId", saved.getId()) // 부가정보
+        );
         return saved.getId();
     }
 
@@ -112,7 +120,15 @@ public class InquiryCommandService {
         InquiryAnswer answer = InquiryAnswer.builder().inquiry(inquiry).seller(seller).content(req.getContent())
                 .build();
 
-        return answerRepository.save(answer).getId();
+        Long answerId = answerRepository.save(answer).getId();
+
+        // 🔔 알림 트리거: 내 문의에 답변 등록
+        notificationCommandService.notifyInquiryAnswered(inquiry.getAuthor().getId(), // 문의 작성자(수신자)
+                inquiry.getId(), // 문의 ID (causeId)
+                Map.of("answerId", answerId) // 부가정보
+        );
+
+        return answerId;
     }
 
     /**

@@ -4,12 +4,16 @@ import com.bukadong.tcg.api.category.dto.response.CategoryMajorResponse;
 import com.bukadong.tcg.api.category.dto.response.CategoryMediumResponse;
 import com.bukadong.tcg.api.category.repository.CategoryMajorRepository;
 import com.bukadong.tcg.api.category.repository.CategoryMediumRepository;
+import com.bukadong.tcg.api.media.entity.MediaType;
+import com.bukadong.tcg.api.media.service.MediaUrlService;
+
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.util.List;
 
 /**
@@ -25,6 +29,7 @@ public class CategoryQueryService {
 
     private final CategoryMajorRepository categoryMajorRepository;
     private final CategoryMediumRepository categoryMediumRepository;
+    private final MediaUrlService mediaUrlService;
 
     /**
      * 전체 대분류 목록을 조회한다.
@@ -33,7 +38,9 @@ public class CategoryQueryService {
      */
     public List<CategoryMajorResponse> listMajors() {
         return categoryMajorRepository.findAll(Sort.by(Sort.Direction.ASC, "name")).stream()
-                .map(m -> new CategoryMajorResponse(m.getId(), m.getName(), m.getDescription())).toList();
+                .map(m -> new CategoryMajorResponse(m.getId(), m.getName(), m.getDescription(), mediaUrlService
+                        .getPrimaryImageUrl(MediaType.CATEGORY_MAJOR, m.getId(), Duration.ofMinutes(5)).orElse(null)))
+                .toList();
     }
 
     /**
@@ -43,10 +50,10 @@ public class CategoryQueryService {
      * @return 중분류 응답 DTO 목록
      */
     public List<CategoryMediumResponse> listMediumsByMajorId(Long majorId) {
-        return categoryMediumRepository.findByCategoryMajor_Id(majorId).stream()
-                .map(m -> new CategoryMediumResponse(m.getId(), m.getName(), m.getDescription(),
-                        m.getCategoryMajor().getId(), // 트랜잭션 내 + EntityGraph로 안전
-                        m.getCategoryMajor().getName()))
+        return categoryMediumRepository.findByCategoryMajor_Id(majorId).stream().map(m -> new CategoryMediumResponse(
+                m.getId(), m.getName(), m.getDescription(), m.getCategoryMajor().getId(), // 트랜잭션 내 + EntityGraph로 안전
+                m.getCategoryMajor().getName(), mediaUrlService
+                        .getPrimaryImageUrl(MediaType.CATEGORY_MEDIUM, m.getId(), Duration.ofMinutes(5)).orElse(null)))
                 .toList();
     }
 }

@@ -41,6 +41,9 @@ public class AuctionDetailResponse {
     @Schema(description = "판매자 정보")
     private SellerInfo seller;
 
+    @Schema(description = "이 경매가 위시에 추가되었는지 여부", example = "true")
+    private boolean wished;
+
     @Getter
     @Builder
     @AllArgsConstructor
