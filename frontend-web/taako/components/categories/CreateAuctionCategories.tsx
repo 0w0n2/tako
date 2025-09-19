@@ -5,6 +5,7 @@ import { CreateAuctionCategoriesProps } from "@/types/category";
 import { useAuctionCategory } from "@/hooks/useAuctionCategory";
 import { Button } from "../ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { RotateCcw } from "lucide-react"
 
 export default function CreateAuctionCategories({ onChange, onReset }: CreateAuctionCategoriesProps) {
   const {
@@ -17,14 +18,14 @@ export default function CreateAuctionCategories({ onChange, onReset }: CreateAuc
     <div className="flex flex-col">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 mb-4">
-        {selectedCard &&
+        {selectedMajor &&
           <Button
-            className="px-3 text-sm text-[#eee] bg-gray-600 cursor-pointer hover:text-[#333]"
+            className="w-6 h-6 rounded-sm text-sm text-[#eee] bg-gray-600 cursor-pointer hover:text-[#333]"
             type="button"
             onClick={() => {
               resetSelection();
               onReset?.();
-            }}>ㅇ</Button>
+            }}><RotateCcw /></Button>
         }
         <div className="text-[#a5a5a5]">
           전체 {"> "}
