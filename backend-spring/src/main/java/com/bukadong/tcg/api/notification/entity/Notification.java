@@ -2,68 +2,91 @@ package com.bukadong.tcg.api.notification.entity;
 
 import java.time.LocalDateTime;
 
-import com.bukadong.tcg.api.member.entity.Member;
+import com.bukadong.tcg.global.common.base.BaseEntity;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Builder;
 
 /**
  * 알림 엔티티
- *
- * <p>
- * 회원이 수신한 알림 내역을 저장한다.
- * </p>
- *
- * <ul>
- * <li>id는 단일 PK로 사용</li>
- * <li>member_id, notification_type_id는 FK 매핑</li>
- * <li>member_id, is_read, created_at, notification_type_id에 인덱스 생성</li>
- * </ul>
+ * <P>
+ * 유저에게 전달되는 단일 알림. 원인 리소스(경매/카드/문의 등)의 식별자는 causeId에 저장한다. targetUrl은 빈 문자열을
+ * 기본값으로 유지한다(추후 주입).
+ * </P>
+ * 
+ * @PARAM 없음
+ * @RETURN 없음
  */
 @Entity
-@Table(name = "notification", indexes = {
-        @Index(name = "idx_noti_member", columnList = "member_id"),
-        @Index(name = "idx_noti_member_read", columnList = "member_id,is_read"),
-        @Index(name = "idx_noti_member_created", columnList = "member_id,created_at"),
-        @Index(name = "idx_noti_type", columnList = "notification_type_id")
-})
+@Table(name = "notification", indexes = { @Index(name = "idx_notification_member", columnList = "member_id"),
+        @Index(name = "idx_notification_created", columnList = "created_at") })
 @Getter
 @NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class Notification {
+public class Notification extends BaseEntity {
 
-    /** 알림 ID (PK) */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /** 수신자 (회원) */
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "member_id", nullable = false, foreignKey = @ForeignKey(name = "FK_notification_member"))
-    private Member member;
+    /** 수신자 */
+    @Column(name = "member_id", nullable = false)
+    private Long memberId;
 
-    /** 알림 종류 */
+    /** 알림 타입 */
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "notification_type_id", nullable = false, foreignKey = @ForeignKey(name = "FK_notification_type"))
-    private NotificationType notificationType;
+    @JoinColumn(name = "notification_type_id", nullable = false, foreignKey = @ForeignKey(name = "fk_notification_type"))
+    private NotificationType type;
 
-    /** 알림 내용 */
-    @Column(name = "content", nullable = false, length = 100)
-    private String content;
+    /** 원인 리소스 ID(대개 경매ID/카드ID/문의ID) */
+    @Column(name = "cause_id")
+    private Long causeId;
+
+    /** 제목 */
+    @Column(name = "title", length = 100, nullable = false)
+    private String title;
+
+    /** 본문 */
+    @Lob
+    @Column(name = "message", nullable = false)
+    private String message;
+
+    /** 클릭 타겟 URL(지금은 빈 문자열로 저장) */
+    @Column(name = "target_url", length = 255, nullable = false)
+    private String targetUrl;
 
     /** 읽음 여부 */
     @Column(name = "is_read", nullable = false)
-    private boolean isRead;
+    private boolean read;
 
-    /** 생성 일시 */
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    /** 읽은 시각(읽지 않은 경우 null) */
+    @Column(name = "read_at")
+    private LocalDateTime readAt;
 
-    /** 저장 전 생성일 자동 세팅 */
-    @PrePersist
-    void prePersist() {
-        if (createdAt == null) {
-            createdAt = LocalDateTime.now();
-        }
+    @Builder
+    private Notification(Long memberId, NotificationType type, Long causeId, String title, String message,
+            String targetUrl) {
+        this.memberId = memberId;
+        this.type = type;
+        this.causeId = causeId;
+        this.title = title;
+        this.message = message;
+        this.targetUrl = (targetUrl != null) ? targetUrl : ""; // 지금은 빈 문자열 유지
+        this.read = false;
+        this.readAt = null;
+    }
+
+    /**
+     * 읽음 처리
+     * <P>
+     * KST 기준 시간은 서버 표준 타임존 설정(Asia/Seoul)에 따르며, 여기서는 단순히 now()를 사용한다.
+     * </P>
+     * 
+     * @PARAM when 읽은 시각(없으면 now)
+     * @RETURN 없음
+     */
+    public void markRead(LocalDateTime when) {
+        this.read = true;
+        this.readAt = (when != null) ? when : LocalDateTime.now();
     }
 }
