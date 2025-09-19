@@ -50,6 +50,7 @@ export interface AuctionFormProps {
     cardId: number|null,
     title: string;
     detail: string;
+    startDatetime: string;
     endDatetime: string;
     buyNowFlag: boolean;
     buyNowPrice: number;
