@@ -19,6 +19,8 @@ import com.bukadong.tcg.api.wish.entity.QWishCard;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.*;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -49,6 +51,8 @@ public class CardRepositoryImpl implements CardRepositoryCustom {
     private JdbcTemplate jdbcTemplate;
 
     private int detectedNgramTokenSize = 2;
+
+    private static final Logger log = LoggerFactory.getLogger(CardRepositoryImpl.class);
 
     @PostConstruct
     void initNgram() {
@@ -211,8 +215,27 @@ public class CardRepositoryImpl implements CardRepositoryCustom {
                 Long id = ((Number) r[0]).longValue();
                 String name = (String) r[1];
                 String code = (String) r[2];
-                CardAttribute attribute = CardAttribute.valueOf((String) r[3]);
-                Rarity rarity = Rarity.valueOf((String) r[4]);
+                // NULL/이상값 방어: attribute
+                CardAttribute attribute = null;
+                String attrStr = (String) r[3];
+                if (attrStr != null && !attrStr.isBlank()) {
+                    try {
+                        attribute = CardAttribute.valueOf(attrStr);
+                    } catch (IllegalArgumentException ex) {
+                        log.warn("Unknown CardAttribute value from DB: '{}', cardId={}", attrStr, id);
+                        attribute = null; // 또는 CardAttribute.UNKNOWN 를 쓰려면 enum에 상수 추가
+                    }
+                } // NULL/이상값 방어: rarity
+                Rarity rarity = null;
+                String rarityStr = (String) r[4];
+                if (rarityStr != null && !rarityStr.isBlank()) {
+                    try {
+                        rarity = Rarity.valueOf(rarityStr);
+                    } catch (IllegalArgumentException ex) {
+                        log.warn("Unknown Rarity value from DB: '{}', cardId={}", rarityStr, id);
+                        rarity = null; // 또는 Rarity.UNKNOWN 상수 추가
+                    }
+                }
                 Double score = (r[5] == null) ? 0.0 : ((Number) r[5]).doubleValue();
                 boolean wished = ((Number) r[6]).intValue() == 1;
 
