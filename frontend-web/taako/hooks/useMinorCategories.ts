@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { getMinorCategories } from "@/lib/category";
+import { MinorCategories } from "@/types/category";
 
 export function useMinorCategories() {
-  const [minorCategories, setMinorCategories] = useState([]);
+  const [minorCategories, setMinorCategories] = useState<MinorCategories[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

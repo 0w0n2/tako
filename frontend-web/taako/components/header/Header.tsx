@@ -19,25 +19,10 @@ import {
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useMajorCategories } from '@/hooks/useMajorCategories';
 
-
-const components: { image: string; title:string }[] = [
-  {
-    image:"/logo/PokemonCardGame.webp",
-    title:"Pokemon",
-  },
-  {
-    image:"/logo/YuGiOh.webp",
-    title:"YuGiOh",
-  },
-  {
-    image:"/logo/cookierunBRAVERSE.webp",
-    title:"CookieRun",
-  },
-]
-
 export default function Header() {
   const { majorCategories, loading } = useMajorCategories();
-  // console.log(majorCategories)
+  console.log(majorCategories)
+
 
   const token = useAuthStore((state) => state.token);
   const isLoggedIn = !!token;
@@ -135,9 +120,7 @@ export default function Header() {
               <NavigationMenuContent>
                 <ul className="grid grid-cols-1 w-[200px] p-3">
                   {majorCategories.map((component) => (
-                    <li
-                      key={component.id}
-                    >
+                    <li key={component.id}>
                       <NavigationMenuLink asChild>
                         <Link className="rounded-md flex flex-col items-center flex-1 py-6 hover:bg-[#f2b90c]/10"
                         href={`/category/${component.name}`}>
