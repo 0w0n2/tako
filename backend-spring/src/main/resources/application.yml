@@ -214,3 +214,7 @@ app:
         max-count: 3
         allowed-mimes: [image/jpeg, image/png, image/webp]
         allowed-exts: [jpg, jpeg, png, webp]
+
+block-chain:
+    sepolia-rpc-url: "${SEPOLIA_RPC_URL}"
+    sepolia-private-key: "${SEPOLIA_PRIVATE_KEY}"
