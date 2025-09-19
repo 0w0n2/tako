@@ -22,6 +22,12 @@ contract TakoCardNFT is Initializable, ERC721Upgradeable, OwnableUpgradeable, UU
     // 백엔드 서버의 지갑주소
     address private backendAdmin;
 
+    // --- 클레임 기능 추가 1 : 새로운 데이터 저장 공간 ---
+    // 토큰 ID별 시크릿 코드의 해시값을 저장 (보안을 위해 원본이 아닌 해시값 저장)
+    mapping(uint256 => bytes32) private tokenSecrets;
+    // 한번 사용된 시크릿 코드를 기록하여 재사용 방지
+    mapping(bytes32 => bool) private usedSecrets;
+
     /// @custom:oz-upgrades-unsafe-allow constructor
        constructor() {
         _disableInitializers();
@@ -47,7 +53,41 @@ contract TakoCardNFT is Initializable, ERC721Upgradeable, OwnableUpgradeable, UU
 
     // 관리자만 호출 가능한 NFT 발행 함수
     function safeMint(address to, uint256 tokenId) external onlyBackendAdmin {
+        require(to == backendAdmin, "Can only mint to backend admin");
         _safeMint(to, tokenId);
+    }
+
+    // --- 클레임 기능 추가 2: 백엔드용 시크릿 등록 함수 ---
+    /**
+     * @dev 백엔드 서버가 NFT 발행 후, 해당 NFT를 클레임할 수 있는 시크릿 코드의 해시를 등록합니다.
+     * @param tokenId 시크릿을 등록할 NFT의 ID
+     * @param secretHash keccak256으로 해시된 시크릿 코드
+     */
+    function registerSecret(uint256 tokenId, bytes32 secretHash) external onlyBackendAdmin {
+        require(ownerOf(tokenId) == backendAdmin, "NFT is not owned by admin");
+        tokenSecrets[tokenId] = secretHash;
+    }
+
+    // --- 클레임 기능 추가 3: 사용자용 클레임 함수 ---
+    /**
+     * @dev 사용자가 시크릿 코드를 사용하여 NFT의 소유권을 직접 가져갑니다(claim).
+     * @param tokenId 클레임할 NFT의 ID
+     * @param secret 사용자가 실물 카드에서 확인한 원본 시크릿 코드 (문자열)
+     */
+    function claim(uint256 tokenId, string calldata secret) external {
+        // 1. NFT가 클레임 가능한 상태인지 확인 (소유주가 admin인지)
+        require(ownerOf(tokenId) == backendAdmin, "NFT already claimed or not owned by admin");
+
+        // 2. 사용자가 제출한 시크릿 코드가 유효한지 확인
+        bytes32 secretHash = keccak256(abi.encodePacked(secret));
+        require(tokenSecrets[tokenId] == secretHash, "Invalid secret code");
+        require(!usedSecrets[secretHash], "Secret code already used");
+
+        // 3. 시크릿 코드를 '사용 완료'로 기록 (재사용 방지)
+        usedSecrets[secretHash] = true;
+
+        // 4. NFT 소유권을 함수 호출자(사용자)에게 이전
+        _transfer(backendAdmin, msg.sender, tokenId);
     }
 
     // 관리자만 호출 가능한 경매 이력 추가 함수
@@ -68,6 +108,7 @@ contract TakoCardNFT is Initializable, ERC721Upgradeable, OwnableUpgradeable, UU
     }
 
     // cardId별 경매 이력 조회 함수 (읽기용, 누구나 호출 가능)
+    // TODO : cardId가 아닌 tokenId로 변경 필요
     function getAuctionHistories(uint256 cardId) external view returns (AuctionHistory[] memory) {
         return auctionHistories[cardId];
     }
