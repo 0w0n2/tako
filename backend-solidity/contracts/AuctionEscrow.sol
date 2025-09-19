@@ -7,6 +7,8 @@ import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol
 // TakoCardNFT의 함수를 호출하기 위한 인터페이스 정의
 interface ITakoCardNFT {
     function transferFrom(address from, address to, uint256 tokenId) external;
+    function getApproved(uint256 tokenId) external view returns (address operator);
+    function isApprovedForAll(address owner, address operator) external view returns (bool);
 }
 
 /**
@@ -125,6 +127,12 @@ contract AuctionEscrow is Initializable, ReentrancyGuardUpgradeable {
         @dev [판매자] 대금 인출
      */
     function releaseFunds() external onlySeller inState(State.Complete) nonReentrant {
+        require(
+            takoNFT.getApproved(tokenId) == address(this) ||
+            takoNFT.isApprovedForAll(seller, address(this)),
+            "Contract is not approved for NFT transfer"
+        );
+
         takoNFT.transferFrom(seller, buyer, tokenId);
 
         emit FundsReleased(seller, amount);
