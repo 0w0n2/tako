@@ -25,7 +25,7 @@ export default function NewAuctionPage() {
       requestDto: {
         gradeHash: "hash123",
         categoryMajorId: null,
-        categoryMinorId: null,
+        categoryMediumId: null,
         cardId: null,
         title: "",
         detail: "",
@@ -92,7 +92,7 @@ export default function NewAuctionPage() {
             <CreateAuctionCategories
               onChange={(majorId, majorName, minorId, minorName, cardId, cardName, cardImageUrl) => {
                 setValue("requestDto.categoryMajorId", majorId);
-                setValue("requestDto.categoryMinorId", minorId);
+                setValue("requestDto.categoryMediumId", minorId);
                 setValue("requestDto.cardId", cardId);
                 setSelectedCardName(cardName ?? "");
                 setSelectedCardImageUrl(cardImageUrl ?? "")
@@ -102,7 +102,7 @@ export default function NewAuctionPage() {
                 setSelectedCardImageUrl("");
               }}
             />
-            {(errors.requestDto?.categoryMajorId || errors.requestDto?.categoryMinorId) && (
+            {(errors.requestDto?.categoryMajorId || errors.requestDto?.categoryMediumId) && (
               <p className="text-red-500 text-sm mt-1">카테고리를 선택해주세요.</p>
             )}
             {selectedCardImageUrl ? (
