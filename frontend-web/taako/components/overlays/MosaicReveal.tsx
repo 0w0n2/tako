@@ -13,9 +13,18 @@ export default function MosaicReveal({ columns = 10, rows = 3, durationMs = 500 
   const pathname = usePathname()
   const [visible, setVisible] = useState(true)
   const [squares, setSquares] = useState<{ key: string; delayMs: number; color: string }[]>([])
+  const [isMounted, setIsMounted] = useState(false)
+
+  // 컴포넌트 마운트 상태 관리
+  useEffect(() => {
+    setIsMounted(true)
+    return () => setIsMounted(false)
+  }, [])
 
   // 클라이언트에서 delay 계산
   useEffect(() => {
+    if (!isMounted) return
+    
     const total = columns * rows
     const order = Array.from({ length: total }, (_, i) => i)
     for (let i = total - 1; i > 0; i -= 1) {
@@ -36,15 +45,20 @@ export default function MosaicReveal({ columns = 10, rows = 3, durationMs = 500 
     }
 
     setSquares(arr)
-  }, [columns, rows])
+  }, [columns, rows, isMounted])
 
   useEffect(() => {
     setVisible(true)
     const maxDelay = squares.reduce((m, s) => (s.delayMs > m ? s.delayMs : m), 0)
     const totalMs = maxDelay + durationMs + 50
 
-    const t = setTimeout(() => setVisible(false), totalMs)
-    return () => clearTimeout(t)
+    const t = setTimeout(() => {
+      setVisible(false)
+    }, totalMs)
+    
+    return () => {
+      clearTimeout(t)
+    }
   }, [pathname, squares, durationMs])
 
   if (!visible) return null

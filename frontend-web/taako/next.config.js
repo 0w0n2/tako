@@ -2,8 +2,8 @@
 const APP_STAGE = process.env.APP_STAGE || 'dev'; // dev | prod
 
 const DOMAINS = {
-  dev:  { SITE: 'https://dev.tako.today', API: 'https://dev-api.tako.today' },
-  prod: { SITE: 'https://tako.today',     API: 'https://api.tako.today' },
+  dev: { SITE: 'https://dev.tako.today', API: 'https://dev-api.tako.today' },
+  prod: { SITE: 'https://tako.today', API: 'https://api.tako.today' },
 };
 
 const { SITE, API } = DOMAINS[APP_STAGE] || DOMAINS.dev;
@@ -11,6 +11,18 @@ const { SITE, API } = DOMAINS[APP_STAGE] || DOMAINS.dev;
 module.exports = {
   reactStrictMode: true,
   swcMinify: true,
+
+  // 이미지 도메인 설정
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'bukadong-bucket.s3.ap-northeast-2.amazonaws.com',
+        port: '',
+        pathname: '/media/card/**',
+      },
+    ],
+  },
 
   // 클라이언트에 주입할 값
   env: {

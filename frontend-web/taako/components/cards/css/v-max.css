@@ -9,12 +9,11 @@
 
 
 
-.card:not(.masked)[data-rarity="rare holo vmax"][data-supertype="pokémon"] .card__shine,
-.card:not(.masked)[data-rarity="rare holo vmax"][data-supertype="pokémon"] .card__shine:after {
+/* supertype 의존성 제거 - 단일 rarity만 사용 */
 
-  --mask: none;
-  --foil: url("/img/vmaxbg.jpg");
-  --imgsize: 60% 30%;
+--mask: none;
+--foil: url("/img/vmaxbg.jpg");
+--imgsize: 60% 30%;
 
 }
 
