@@ -46,4 +46,8 @@ public class NotificationTargetUrlBuilder {
     public String buildForInquiry(Long causeId) {
         return "";
     }
+
+    public String auctionDetail(long auctionId) {
+        return "";
+    }
 }

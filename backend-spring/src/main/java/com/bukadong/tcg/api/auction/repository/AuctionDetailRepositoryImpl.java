@@ -66,8 +66,8 @@ public class AuctionDetailRepositoryImpl implements AuctionDetailRepository {
         ZonedDateTime nowKst = ZonedDateTime.now(ZoneId.of("Asia/Seoul"));
         ZonedDateTime from = nowKst.minusDays(6).toLocalDate().atStartOfDay(ZoneId.of("Asia/Seoul"));
 
-        String sql = "SELECT DATE(ar.created_at) AS d, " + "       MIN(ab.bid_price) AS min_price, "
-                + "       MAX(ab.bid_price) AS max_price, " + "       AVG(ab.bid_price) AS avg_price "
+        String sql = "SELECT DATE(ar.created_at) AS d, " + "       MIN(ab.amount) AS min_price, "
+                + "       MAX(ab.amount) AS max_price, " + "       AVG(ab.amount) AS avg_price "
                 + "  FROM auction_result ar " + "  JOIN auction_bid ab ON ab.id = ar.auction_bid_id "
                 + "  JOIN auction a ON a.id = ab.auction_id " + " WHERE a.card_id = :cardId "
                 + "   AND ar.created_at >= :fromDate " + " GROUP BY DATE(ar.created_at) "
@@ -85,14 +85,14 @@ public class AuctionDetailRepositoryImpl implements AuctionDetailRepository {
 
     @Override
     public List<BidHistoryItem> findBidHistory(Long auctionId, int limit) {
-        List<Tuple> tuples = queryFactory.select(auctionBid.createdAt, auctionBid.bidPrice, member.nickname)
+        List<Tuple> tuples = queryFactory.select(auctionBid.createdAt, auctionBid.amount, member.nickname)
                 .from(auctionBid).join(auctionBid.member, member)
                 .where(auctionBid.auction.id.eq(auctionId).and(auctionBid.status.eq(AuctionBidStatus.VALID)))
                 .orderBy(auctionBid.createdAt.desc()).limit(limit).fetch();
 
         return tuples.stream()
                 .map(t -> BidHistoryItem.builder().createdAt(t.get(auctionBid.createdAt))
-                        .bidPrice(t.get(auctionBid.bidPrice)).bidderNickname(t.get(member.nickname)).build())
+                        .amount(t.get(auctionBid.amount)).bidderNickname(t.get(member.nickname)).build())
                 .collect(Collectors.toList());
     }
 

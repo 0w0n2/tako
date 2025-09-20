@@ -4,6 +4,7 @@ import com.bukadong.tcg.api.auction.dto.request.AuctionCreateRequest;
 import com.bukadong.tcg.api.auction.dto.response.AuctionCreateResponse;
 import com.bukadong.tcg.api.auction.entity.Auction;
 import com.bukadong.tcg.api.auction.repository.AuctionRepository;
+import com.bukadong.tcg.api.auction.util.AuctionDeadlineIndex;
 import com.bukadong.tcg.api.bid.entity.AuctionBidUnit;
 import com.bukadong.tcg.api.card.entity.Card;
 import com.bukadong.tcg.api.card.entity.CardAiGrade;
@@ -25,6 +26,8 @@ import org.springframework.web.multipart.MultipartFile;
 import com.bukadong.tcg.api.notification.service.NotificationCommandService;
 import com.bukadong.tcg.api.wish.repository.WishQueryPort;
 
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -54,6 +57,7 @@ public class AuctionCommandService {
     private final MediaAttachmentService mediaAttachmentService;
     private final NotificationCommandService notificationCommandService;
     private final WishQueryPort wishQueryPort;
+    private final AuctionDeadlineIndex deadlineIndex;
 
     /**
      * 경매 생성 서비스
@@ -111,6 +115,9 @@ public class AuctionCommandService {
         wishQueryPort.findMemberIdsWhoWishedCard(card.getId()).stream().filter(mid -> !mid.equals(me.getId()))
                 .forEach(mid -> notificationCommandService.notifyWishCardListed(mid, saved.getId(),
                         Map.of("auctionId", saved.getId())));
+
+        Instant endAt = auction.getEndDatetime().atZone(ZoneId.systemDefault()).toInstant();
+        deadlineIndex.upsert(saved.getId(), endAt.toEpochMilli());
 
         // 응답은 id만
         return AuctionCreateResponse.builder().auctionId(saved.getId()).build();

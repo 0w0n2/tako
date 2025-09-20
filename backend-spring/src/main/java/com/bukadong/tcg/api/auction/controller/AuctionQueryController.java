@@ -103,7 +103,7 @@ public class AuctionQueryController {
             @Parameter(description = "히스토리 개수(기본 5)") @RequestParam(name = "historySize", required = false, defaultValue = "5") @Min(1) int historySize,
             @AuthenticationPrincipal CustomUserDetails user) {
 
-        Long memberId = memberQueryService.getByUuid(user.getUuid()).getId();
+        Long memberId = (user == null) ? null : memberQueryService.getByUuid(user.getUuid()).getId();
         return BaseResponse.onSuccess(auctionQueryService.getDetail(auctionId, historySize, memberId));
     }
 

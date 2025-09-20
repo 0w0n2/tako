@@ -44,7 +44,7 @@ public class CategoryMedium {
     private String name;
 
     /** 설명 */
-    @Column(name = "description", nullable = false, length = 255)
+    @Column(name = "description", nullable = false, columnDefinition = "TEXT")
     private String description;
 
     /** 생성 팩토리: 유효성 포함 */
