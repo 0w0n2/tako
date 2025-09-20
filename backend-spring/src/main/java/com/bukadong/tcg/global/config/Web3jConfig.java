@@ -1,6 +1,6 @@
 package com.bukadong.tcg.global.config;
 
-import com.bukadong.tcg.global.properties.Web3jProperties;
+import com.bukadong.tcg.global.properties.blockchain.BlockChainProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -13,14 +13,14 @@ import org.web3j.protocol.http.HttpService;
  */
 @Configuration
 @RequiredArgsConstructor
-@EnableConfigurationProperties({Web3jProperties.class})
+@EnableConfigurationProperties({BlockChainProperties.class})
 public class Web3jConfig {
 
     /* properties */
-    private final Web3jProperties web3jProperties;
+    private final BlockChainProperties blockChainProperties;
 
     @Bean
     public Web3j web3j() {
-        return Web3j.build(new HttpService(web3jProperties.sepoliaRpcUrl()));
+        return Web3j.build(new HttpService(blockChainProperties.sepolia().rpcUrl()));
     }
 }

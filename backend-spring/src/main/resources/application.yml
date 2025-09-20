@@ -216,5 +216,9 @@ app:
         allowed-exts: [jpg, jpeg, png, webp]
 
 block-chain:
-    sepolia-rpc-url: "${SEPOLIA_RPC_URL}"
-    sepolia-private-key: "${SEPOLIA_PRIVATE_KEY}"
+    sepolia:
+      rpc-url: "${SEPOLIA_RPC_URL}"
+      private-key: "${SEPOLIA_PRIVATE_KEY}"
+    contract-address:
+      auction:
+        factory: "${AUCTION_FACTORY_CONTRACT_ADDRESS}"
