@@ -33,11 +33,10 @@ import java.time.ZoneId;
 @RequiredArgsConstructor
 public class BidQueueController {
 
-    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
-
     private final MemberQueryService memberQueryService;
     private final BidQueueProducer bidQueueProducer;
     private final AuctionCacheService auctionCacheService;
+    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 
     /**
      * 입찰 생성(큐)
@@ -57,7 +56,7 @@ public class BidQueueController {
         auctionCacheService.ensureLoaded(auctionId);
 
         Long memberId = memberQueryService.getByUuid(user.getUuid()).getId();
-        var r = bidQueueProducer.enqueue(auctionId, memberId, request.getBidPrice(), request.getRequestId());
+        var r = bidQueueProducer.enqueue(auctionId, memberId, request.getAmount(), request.getRequestId());
         String code = r.get("code");
 
         if (AuctionBidReason.DUPLICATE.name().equals(code)) {

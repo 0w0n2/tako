@@ -2,15 +2,13 @@
 
 import Image from 'next/image';
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 
-export default function SearchInput() {
+export default function SearchInput(props: { onSearch: (keyword: string) => void }) {
     const [searchTerm, setSearchTerm] = useState('');
-    const router = useRouter();
 
     const handleSearch = () => {
         if (searchTerm.trim()) {
-            router.push(`/search?cardName=${encodeURIComponent(searchTerm.trim())}`);
+            props.onSearch(searchTerm.trim());
         }
     };
 

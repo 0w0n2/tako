@@ -3,9 +3,12 @@ package com.bukadong.tcg.api.auction.service;
 import com.bukadong.tcg.api.auction.dto.response.AuctionCancelCheckResponse;
 import com.bukadong.tcg.api.auction.dto.response.AuctionCancelResponse;
 import com.bukadong.tcg.api.auction.entity.Auction;
+import com.bukadong.tcg.api.auction.entity.AuctionCloseReason;
 import com.bukadong.tcg.api.auction.repository.AuctionRepository;
 import com.bukadong.tcg.api.bid.repository.AuctionBidRepository;
 import com.bukadong.tcg.api.bid.repository.AuctionLockRepository;
+import com.bukadong.tcg.api.bid.service.AuctionCacheService;
+import com.bukadong.tcg.api.notification.service.NotificationCommandService;
 import com.bukadong.tcg.global.common.base.BaseResponseStatus;
 import com.bukadong.tcg.global.common.exception.BaseException;
 import lombok.RequiredArgsConstructor;
@@ -29,13 +32,12 @@ import java.time.ZoneId;
 @Service
 @RequiredArgsConstructor
 public class AuctionCancelService {
-
-    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
-
     private final AuctionLockRepository auctionLockRepository;
     private final AuctionRepository auctionRepository;
     private final AuctionBidRepository auctionBidRepository;
-    private final com.bukadong.tcg.api.bid.service.AuctionCacheService auctionCacheService; // Redis is_end 갱신 재사용
+    private final AuctionCacheService auctionCacheService; // Redis is_end 갱신 재사용
+    private final NotificationCommandService notificationCommandService;
+    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 
     /**
      * 사용자 주도 취소
@@ -69,16 +71,18 @@ public class AuctionCancelService {
             throw new BaseException(BaseResponseStatus.AUCTION_EXISTING_BID); // 입찰 존재로 취소 불가
         }
 
-        // DB 종료 플래그 반영 (JPQL 업데이트로 안전 반영)
-        int updated = auctionRepository.markEnded(auctionId);
+        LocalDateTime now = LocalDateTime.now(KST);
+        int updated = auctionRepository.closeManually(auctionId, AuctionCloseReason.SELLER_CANCEL, now);
         if (updated <= 0) {
             // 동시성으로 상태가 바뀐 경우
             throw new BaseException(BaseResponseStatus.AUCTION_CONFLICT);
         }
 
-        LocalDateTime now = LocalDateTime.now(KST);
         // 트랜잭션 커밋 이후 Redis is_end=1로 동기화
         afterCommitMarkRedisEnded(auctionId);
+
+        // 판매자 취소 알림
+        notificationCommandService.notifySellerCanceled(memberId, auctionId);
 
         return AuctionCancelResponse.builder().auctionId(auctionId).cancelledBy("USER").cancelledAt(now).build();
     }
@@ -98,15 +102,20 @@ public class AuctionCancelService {
         auctionLockRepository.findByIdForUpdate(auctionId)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.NOT_FOUND));
 
-        int updated = auctionRepository.markEnded(auctionId);
+        LocalDateTime now = LocalDateTime.now(KST);
+        int updated = auctionRepository.closeManually(auctionId, AuctionCloseReason.ADMIN_CANCEL, now);
         if (updated <= 0) {
             // 이미 종료 등
             throw new BaseException(BaseResponseStatus.AUCTION_CONFLICT);
         }
-        LocalDateTime now = LocalDateTime.now(KST);
         // 트랜잭션 커밋 이후 Redis is_end=1로 동기화
         afterCommitMarkRedisEnded(auctionId);
 
+        // 관리자 강제 종료 알림 (판매자)
+        Long sellerId = auctionRepository.findById(auctionId)
+                .map(a -> a.getMember() != null ? a.getMember().getId() : null).orElse(null);
+
+        notificationCommandService.notifyAdminCanceled(sellerId, auctionId);
         return AuctionCancelResponse.builder().auctionId(auctionId).cancelledBy("ADMIN").cancelledAt(now).build();
     }
 
@@ -150,7 +159,6 @@ public class AuctionCancelService {
 
         if (a.isEnd()) {
             return AuctionCancelCheckResponse.of(auctionId, "ALREADY_ENDED");
-
         }
 
         boolean timeOver = !now.isBefore(a.getEndDatetime()); // now >= end

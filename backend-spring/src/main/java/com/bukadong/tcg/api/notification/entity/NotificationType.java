@@ -31,7 +31,7 @@ public class NotificationType {
     @Column(name = "code", length = 50, nullable = false, unique = true)
     private NotificationTypeCode code;
     /** 표시명(선택) */
-    @Column(name = "name", length = 50, nullable = false)
+    @Column(name = "name", length = 100, nullable = false)
     private String name;
 
     /** 설명(선택) */

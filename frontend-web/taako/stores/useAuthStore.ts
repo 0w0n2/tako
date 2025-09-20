@@ -23,7 +23,7 @@ export const useAuthStore = create<AuthState>()(
         try {
           const res = await api.post("/v1/auth/sign-in", {
             email, password
-          });
+          }, { withCredentials: true });
           if (res.data.code !== 200) {
             alert(res.data.message);
             set({ loading: false });
@@ -59,9 +59,9 @@ export const useAuthStore = create<AuthState>()(
         try {
           const oldToken = get().token;
           const res = await api.post("/v1/auth/token/refresh", {}, {
-              headers: { Authorization: oldToken },
-              withCredentials: true,
-            }
+            headers: { Authorization: oldToken },
+            withCredentials: true,
+          }
           );
           console.log(res);
           const token = res.headers["authorization"];

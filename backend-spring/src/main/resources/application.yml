@@ -77,6 +77,23 @@ spring:
           auth: true
           starttls:
             enable: true
+auction:
+  extension:
+    enabled: true
+    threshold-seconds: 300 # 마감 300초 이내면
+    extend-by-seconds: 60 # 60초 연장
+  finalize:
+    tick-ms: 1000 # 스케줄 주기
+    batch-size: 500 # 한 번에 가져올 최대 개수
+    max-tick-ms: 4000 # 한 번의 tick에서 써도 되는 최대 시간(밀리초)
+    parallelism: 1 # 동시 처리 스레드 수(1=순차)
+  deadline:
+    bootstrap:
+      enabled: true
+      days: 14
+    reconcile:
+      enabled: true
+      cron: "0 */5 * * * *"
 
 security:
   jwt:
@@ -125,6 +142,7 @@ logging:
     com.bukadong.tcg.api.inquiry.service.InquiryCommandService: DEBUG
     com.bukadong.tcg.api.inquiry.controller.InquiryController: DEBUG
     com.bukadong.tcg.api.inquiry.controller.MyInquiryController: DEBUG
+    com.bukadong.tcg.api.card.repository.custom.CardRepositoryImpl: DEBUG
     com.bukadong.tcg.global.util.RedisUtils: DEBUG
     com.bukadong.tcg.global.util.S3Uploader: DEBUG
     com.bukadong.tcg.api.media.guard.MediaUploadGuard: DEBUG

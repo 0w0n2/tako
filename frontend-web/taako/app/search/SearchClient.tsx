@@ -3,7 +3,7 @@
 import SearchAuctionFilter from '@/components/filters/SearchAuctionFilter';
 import AuctionCard from '@/components/cards/AuctionCard'
 import { useSearchParams } from 'next/navigation';
-import Pagenation from '@/components/atoms/Pagenation';
+import Pagination from '@/components/atoms/Pagination';
 
 export default function SearchClient() {    const searchParams = useSearchParams();
   const query = searchParams.get('cardName') || '';
@@ -34,7 +34,11 @@ export default function SearchClient() {    const searchParams = useSearchParams
 
                 {/* 페이지네이션 */}
                 <div className='mt-8'>
-                    <Pagenation />
+                    <Pagination 
+                        currentPage={1}
+                        totalPages={5}
+                        onPageChange={(page) => console.log('Page changed to:', page)}
+                    />
                 </div>
             </div>
         </div>
