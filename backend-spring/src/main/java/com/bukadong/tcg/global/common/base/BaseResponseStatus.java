@@ -177,7 +177,12 @@ public enum BaseResponseStatus {
      */
     NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, false, 1400, "알림이 존재하지 않습니다."),
     NOTIFICATION_FORBIDDEN(HttpStatus.FORBIDDEN, false, 1401, "알림에 대한 권한이 없습니다."),
-    NOTIFICATION_CONFLICT(HttpStatus.CONFLICT, false, 1402, "알림 처리 중 충돌이 발생했습니다.");
+    NOTIFICATION_CONFLICT(HttpStatus.CONFLICT, false, 1402, "알림 처리 중 충돌이 발생했습니다."),
+
+    /**
+     * 1500: 스마트 컨트랙트 Error
+     */
+    SMART_CONTRACT_EXECUTION_ERROR(HttpStatus.BAD_REQUEST, false, 1500, "스마트 컨트랙트 실행 중 오류가 발생했습니다.");
 
     private final HttpStatusCode httpStatusCode;
     private final boolean isSuccess;
