@@ -5,56 +5,57 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "./AuctionEscrow.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-/**
-    @title AuctionFactory
-    @dev AuctionEscrow 컨트랙트 인스턴스를 생성하고 추적하는 공장 컨트랙트
- */
-contract AuctionFactory is Initializable, OwnableUpgradeable {
-    address public implementation; // AuctionEscrow 로직 컨트랙트 주소 (업그레이드를 위해 변경 가능)
-    address[] public allEscrows; // 생성된 모든 에스크로 컨트랙트의 주소를 저장
+contract AuctionFactory is Initializable, OwnableUpgradeable, UUPSUpgradeable {
+    address public implementation;
+    address[] public allEscrows;
 
     event EscrowCreated(
         address indexed newEscrowAddress,
         address indexed seller,
-        address indexed buyer
+        address indexed buyer,
+        uint256 tokenId
     );
 
-    /** 아래 주석 제거하면 X */
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
     }
 
-    /**
-        @dev 팩토리 초기화 함수
-        최초 로직 컨트랙트 주소를 설정하고 배포자를 소유자로 지정
-     */
     function initialize(address _implementation) public initializer {
-        __Ownable_init(msg.sender);
+        __Ownable_init(msg.sender); // OwnableUpgradeable v5.0+ 에서는 인자가 없습니다.
+        __UUPSUpgradeable_init();
         implementation = _implementation;
     }
 
+    // --- 4. _authorizeUpgrade 함수 추가 ---
+    // 이 컨트랙트의 owner만이 업그레이드를 승인할 수 있도록 설정
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
+
     /**
-        @dev 새로운 AuctionEscrow 프록시 컨트랙트 생성
+     * @dev 새로운 AuctionEscrow 프록시 컨트랙트 생성 (수정된 버전)
      */
     function createEscrow(
         address _seller,
         address _buyer,
-        uint256 _amount
+        uint256 _amount,
+        address _takoNFTAddress, // NFT 컨트랙트 주소 추가
+        uint256 _tokenId        // NFT 토큰 ID 추가
     ) external returns (address) {
+        // OwnableUpgradeable v5.0+ 에서는 onlyOwner만 호출하도록 제어하는 것이 좋습니다.
+        // require(msg.sender == owner(), "Not authorized");
+
         address newEscrow = Clones.clone(implementation);
-        AuctionEscrow(newEscrow).initialize(_seller, _buyer, _amount);
+        // 5개의 인자를 모두 전달하여 initialize 함수 호출
+        AuctionEscrow(newEscrow).initialize(_seller, _buyer, _amount, _takoNFTAddress, _tokenId);
 
         allEscrows.push(newEscrow);
-        emit EscrowCreated(newEscrow, _seller, _buyer);
+        emit EscrowCreated(newEscrow, _seller, _buyer, _tokenId);
 
         return newEscrow;
     }
 
-    /**
-        @dev [관리자 전용] AuctionEscrow 로직 업그레이드할 경우 새로운 주소 설정
-     */
     function setImplementation(address _newImplementation) external onlyOwner {
         implementation = _newImplementation;
     }

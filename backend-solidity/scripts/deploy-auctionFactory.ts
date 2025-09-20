@@ -18,6 +18,7 @@ async function main() {
     [escrowLogicAddress],
     {
       initializer: "initialize",
+      kind: "uups",
     }
   );
   await factoryProxy.waitForDeployment();
