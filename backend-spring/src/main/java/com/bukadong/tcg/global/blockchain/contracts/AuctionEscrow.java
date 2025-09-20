@@ -9,7 +9,7 @@ import java.util.List;
 import org.web3j.abi.EventEncoder;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Address;
-import org.web3j.abi.datatypes.CustomError;
+//import org.web3j.abi.datatypes.CustomError;
 import org.web3j.abi.datatypes.Event;
 import org.web3j.abi.datatypes.Function;
 import org.web3j.abi.datatypes.Type;
@@ -205,37 +205,37 @@ public class AuctionEscrow extends Contract {
 
     public static final String FUNC_TOKENID = "tokenId";
 
-    public static final CustomError INCORRECTAMOUNT_ERROR = new CustomError("IncorrectAmount", 
-            Arrays.<TypeReference<?>>asList());
-    ;
-
-    public static final CustomError INVALIDINITIALIZATION_ERROR = new CustomError("InvalidInitialization", 
-            Arrays.<TypeReference<?>>asList());
-    ;
-
-    public static final CustomError INVALIDSTATE_ERROR = new CustomError("InvalidState", 
-            Arrays.<TypeReference<?>>asList());
-    ;
-
-    public static final CustomError NOTBUYER_ERROR = new CustomError("NotBuyer", 
-            Arrays.<TypeReference<?>>asList());
-    ;
-
-    public static final CustomError NOTINITIALIZING_ERROR = new CustomError("NotInitializing", 
-            Arrays.<TypeReference<?>>asList());
-    ;
-
-    public static final CustomError NOTSELLER_ERROR = new CustomError("NotSeller", 
-            Arrays.<TypeReference<?>>asList());
-    ;
-
-    public static final CustomError REENTRANCYGUARDREENTRANTCALL_ERROR = new CustomError("ReentrancyGuardReentrantCall", 
-            Arrays.<TypeReference<?>>asList());
-    ;
-
-    public static final CustomError TRANSFERFAILED_ERROR = new CustomError("TransferFailed", 
-            Arrays.<TypeReference<?>>asList());
-    ;
+//    public static final CustomError INCORRECTAMOUNT_ERROR = new CustomError("IncorrectAmount",
+//            Arrays.<TypeReference<?>>asList());
+//    ;
+//
+//    public static final CustomError INVALIDINITIALIZATION_ERROR = new CustomError("InvalidInitialization",
+//            Arrays.<TypeReference<?>>asList());
+//    ;
+//
+//    public static final CustomError INVALIDSTATE_ERROR = new CustomError("InvalidState",
+//            Arrays.<TypeReference<?>>asList());
+//    ;
+//
+//    public static final CustomError NOTBUYER_ERROR = new CustomError("NotBuyer",
+//            Arrays.<TypeReference<?>>asList());
+//    ;
+//
+//    public static final CustomError NOTINITIALIZING_ERROR = new CustomError("NotInitializing",
+//            Arrays.<TypeReference<?>>asList());
+//    ;
+//
+//    public static final CustomError NOTSELLER_ERROR = new CustomError("NotSeller",
+//            Arrays.<TypeReference<?>>asList());
+//    ;
+//
+//    public static final CustomError REENTRANCYGUARDREENTRANTCALL_ERROR = new CustomError("ReentrancyGuardReentrantCall",
+//            Arrays.<TypeReference<?>>asList());
+//    ;
+//
+//    public static final CustomError TRANSFERFAILED_ERROR = new CustomError("TransferFailed",
+//            Arrays.<TypeReference<?>>asList());
+//    ;
 
     public static final Event CANCELED_EVENT = new Event("Canceled", 
             Arrays.<TypeReference<?>>asList(new TypeReference<Address>(true) {}));

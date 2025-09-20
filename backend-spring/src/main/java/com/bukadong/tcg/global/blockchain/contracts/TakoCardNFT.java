@@ -11,7 +11,7 @@ import org.web3j.abi.EventEncoder;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Bool;
-import org.web3j.abi.datatypes.CustomError;
+//import org.web3j.abi.datatypes.CustomError;
 import org.web3j.abi.datatypes.DynamicArray;
 import org.web3j.abi.datatypes.Event;
 import org.web3j.abi.datatypes.Function;
@@ -218,77 +218,77 @@ public class TakoCardNFT extends Contract {
 
     public static final String FUNC_UPGRADETOANDCALL = "upgradeToAndCall";
 
-    public static final CustomError ADDRESSEMPTYCODE_ERROR = new CustomError("AddressEmptyCode", 
-            Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
-    ;
-
-    public static final CustomError ERC1967INVALIDIMPLEMENTATION_ERROR = new CustomError("ERC1967InvalidImplementation", 
-            Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
-    ;
-
-    public static final CustomError ERC1967NONPAYABLE_ERROR = new CustomError("ERC1967NonPayable", 
-            Arrays.<TypeReference<?>>asList());
-    ;
-
-    public static final CustomError ERC721INCORRECTOWNER_ERROR = new CustomError("ERC721IncorrectOwner", 
-            Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}, new TypeReference<Uint256>() {}, new TypeReference<Address>() {}));
-    ;
-
-    public static final CustomError ERC721INSUFFICIENTAPPROVAL_ERROR = new CustomError("ERC721InsufficientApproval", 
-            Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}, new TypeReference<Uint256>() {}));
-    ;
-
-    public static final CustomError ERC721INVALIDAPPROVER_ERROR = new CustomError("ERC721InvalidApprover", 
-            Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
-    ;
-
-    public static final CustomError ERC721INVALIDOPERATOR_ERROR = new CustomError("ERC721InvalidOperator", 
-            Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
-    ;
-
-    public static final CustomError ERC721INVALIDOWNER_ERROR = new CustomError("ERC721InvalidOwner", 
-            Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
-    ;
-
-    public static final CustomError ERC721INVALIDRECEIVER_ERROR = new CustomError("ERC721InvalidReceiver", 
-            Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
-    ;
-
-    public static final CustomError ERC721INVALIDSENDER_ERROR = new CustomError("ERC721InvalidSender", 
-            Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
-    ;
-
-    public static final CustomError ERC721NONEXISTENTTOKEN_ERROR = new CustomError("ERC721NonexistentToken", 
-            Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {}));
-    ;
-
-    public static final CustomError FAILEDCALL_ERROR = new CustomError("FailedCall", 
-            Arrays.<TypeReference<?>>asList());
-    ;
-
-    public static final CustomError INVALIDINITIALIZATION_ERROR = new CustomError("InvalidInitialization", 
-            Arrays.<TypeReference<?>>asList());
-    ;
-
-    public static final CustomError NOTINITIALIZING_ERROR = new CustomError("NotInitializing", 
-            Arrays.<TypeReference<?>>asList());
-    ;
-
-    public static final CustomError OWNABLEINVALIDOWNER_ERROR = new CustomError("OwnableInvalidOwner", 
-            Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
-    ;
-
-    public static final CustomError OWNABLEUNAUTHORIZEDACCOUNT_ERROR = new CustomError("OwnableUnauthorizedAccount", 
-            Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
-    ;
-
-    public static final CustomError UUPSUNAUTHORIZEDCALLCONTEXT_ERROR = new CustomError("UUPSUnauthorizedCallContext", 
-            Arrays.<TypeReference<?>>asList());
-    ;
-
-    public static final CustomError UUPSUNSUPPORTEDPROXIABLEUUID_ERROR = new CustomError("UUPSUnsupportedProxiableUUID", 
-            Arrays.<TypeReference<?>>asList(new TypeReference<Bytes32>() {}));
-    ;
+//    public static final CustomError ADDRESSEMPTYCODE_ERROR = new CustomError("AddressEmptyCode",
+//            Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
+//    ;
+//
+//    public static final CustomError ERC1967INVALIDIMPLEMENTATION_ERROR = new CustomError("ERC1967InvalidImplementation",
+//            Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
+//    ;
+//
+//    public static final CustomError ERC1967NONPAYABLE_ERROR = new CustomError("ERC1967NonPayable",
+//            Arrays.<TypeReference<?>>asList());
+//    ;
+//
+//    public static final CustomError ERC721INCORRECTOWNER_ERROR = new CustomError("ERC721IncorrectOwner",
+//            Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}, new TypeReference<Uint256>() {}, new TypeReference<Address>() {}));
+//    ;
+//
+//    public static final CustomError ERC721INSUFFICIENTAPPROVAL_ERROR = new CustomError("ERC721InsufficientApproval",
+//            Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}, new TypeReference<Uint256>() {}));
+//    ;
+//
+//    public static final CustomError ERC721INVALIDAPPROVER_ERROR = new CustomError("ERC721InvalidApprover",
+//            Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
+//    ;
+//
+//    public static final CustomError ERC721INVALIDOPERATOR_ERROR = new CustomError("ERC721InvalidOperator",
+//            Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
+//    ;
+//
+//    public static final CustomError ERC721INVALIDOWNER_ERROR = new CustomError("ERC721InvalidOwner",
+//            Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
+//    ;
+//
+//    public static final CustomError ERC721INVALIDRECEIVER_ERROR = new CustomError("ERC721InvalidReceiver",
+//            Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
+//    ;
+//
+//    public static final CustomError ERC721INVALIDSENDER_ERROR = new CustomError("ERC721InvalidSender",
+//            Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
+//    ;
+//
+//    public static final CustomError ERC721NONEXISTENTTOKEN_ERROR = new CustomError("ERC721NonexistentToken",
+//            Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {}));
+//    ;
+//
+//    public static final CustomError FAILEDCALL_ERROR = new CustomError("FailedCall",
+//            Arrays.<TypeReference<?>>asList());
+//    ;
+//
+//    public static final CustomError INVALIDINITIALIZATION_ERROR = new CustomError("InvalidInitialization",
+//            Arrays.<TypeReference<?>>asList());
+//    ;
+//
+//    public static final CustomError NOTINITIALIZING_ERROR = new CustomError("NotInitializing",
+//            Arrays.<TypeReference<?>>asList());
+//    ;
+//
+//    public static final CustomError OWNABLEINVALIDOWNER_ERROR = new CustomError("OwnableInvalidOwner",
+//            Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
+//    ;
+//
+//    public static final CustomError OWNABLEUNAUTHORIZEDACCOUNT_ERROR = new CustomError("OwnableUnauthorizedAccount",
+//            Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
+//    ;
+//
+//    public static final CustomError UUPSUNAUTHORIZEDCALLCONTEXT_ERROR = new CustomError("UUPSUnauthorizedCallContext",
+//            Arrays.<TypeReference<?>>asList());
+//    ;
+//
+//    public static final CustomError UUPSUNSUPPORTEDPROXIABLEUUID_ERROR = new CustomError("UUPSUnsupportedProxiableUUID",
+//            Arrays.<TypeReference<?>>asList(new TypeReference<Bytes32>() {}));
+//    ;
 
     public static final Event APPROVAL_EVENT = new Event("Approval", 
             Arrays.<TypeReference<?>>asList(new TypeReference<Address>(true) {}, new TypeReference<Address>(true) {}, new TypeReference<Uint256>(true) {}));

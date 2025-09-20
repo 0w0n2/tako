@@ -9,7 +9,7 @@ import java.util.List;
 import org.web3j.abi.EventEncoder;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Address;
-import org.web3j.abi.datatypes.CustomError;
+//import org.web3j.abi.datatypes.CustomError;
 import org.web3j.abi.datatypes.Event;
 import org.web3j.abi.datatypes.Function;
 import org.web3j.abi.datatypes.Type;
@@ -128,53 +128,53 @@ public class AuctionFactory extends Contract {
 
     public static final String FUNC_UPGRADETOANDCALL = "upgradeToAndCall";
 
-    public static final CustomError ADDRESSEMPTYCODE_ERROR = new CustomError("AddressEmptyCode", 
-            Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
-    ;
-
-    public static final CustomError ERC1967INVALIDIMPLEMENTATION_ERROR = new CustomError("ERC1967InvalidImplementation", 
-            Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
-    ;
-
-    public static final CustomError ERC1967NONPAYABLE_ERROR = new CustomError("ERC1967NonPayable", 
-            Arrays.<TypeReference<?>>asList());
-    ;
-
-    public static final CustomError FAILEDCALL_ERROR = new CustomError("FailedCall", 
-            Arrays.<TypeReference<?>>asList());
-    ;
-
-    public static final CustomError FAILEDDEPLOYMENT_ERROR = new CustomError("FailedDeployment", 
-            Arrays.<TypeReference<?>>asList());
-    ;
-
-    public static final CustomError INSUFFICIENTBALANCE_ERROR = new CustomError("InsufficientBalance", 
-            Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {}, new TypeReference<Uint256>() {}));
-    ;
-
-    public static final CustomError INVALIDINITIALIZATION_ERROR = new CustomError("InvalidInitialization", 
-            Arrays.<TypeReference<?>>asList());
-    ;
-
-    public static final CustomError NOTINITIALIZING_ERROR = new CustomError("NotInitializing", 
-            Arrays.<TypeReference<?>>asList());
-    ;
-
-    public static final CustomError OWNABLEINVALIDOWNER_ERROR = new CustomError("OwnableInvalidOwner", 
-            Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
-    ;
-
-    public static final CustomError OWNABLEUNAUTHORIZEDACCOUNT_ERROR = new CustomError("OwnableUnauthorizedAccount", 
-            Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
-    ;
-
-    public static final CustomError UUPSUNAUTHORIZEDCALLCONTEXT_ERROR = new CustomError("UUPSUnauthorizedCallContext", 
-            Arrays.<TypeReference<?>>asList());
-    ;
-
-    public static final CustomError UUPSUNSUPPORTEDPROXIABLEUUID_ERROR = new CustomError("UUPSUnsupportedProxiableUUID", 
-            Arrays.<TypeReference<?>>asList(new TypeReference<Bytes32>() {}));
-    ;
+//    public static final CustomError ADDRESSEMPTYCODE_ERROR = new CustomError("AddressEmptyCode",
+//            Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
+//    ;
+//
+//    public static final CustomError ERC1967INVALIDIMPLEMENTATION_ERROR = new CustomError("ERC1967InvalidImplementation",
+//            Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
+//    ;
+//
+//    public static final CustomError ERC1967NONPAYABLE_ERROR = new CustomError("ERC1967NonPayable",
+//            Arrays.<TypeReference<?>>asList());
+//    ;
+//
+//    public static final CustomError FAILEDCALL_ERROR = new CustomError("FailedCall",
+//            Arrays.<TypeReference<?>>asList());
+//    ;
+//
+//    public static final CustomError FAILEDDEPLOYMENT_ERROR = new CustomError("FailedDeployment",
+//            Arrays.<TypeReference<?>>asList());
+//    ;
+//
+//    public static final CustomError INSUFFICIENTBALANCE_ERROR = new CustomError("InsufficientBalance",
+//            Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {}, new TypeReference<Uint256>() {}));
+//    ;
+//
+//    public static final CustomError INVALIDINITIALIZATION_ERROR = new CustomError("InvalidInitialization",
+//            Arrays.<TypeReference<?>>asList());
+//    ;
+//
+//    public static final CustomError NOTINITIALIZING_ERROR = new CustomError("NotInitializing",
+//            Arrays.<TypeReference<?>>asList());
+//    ;
+//
+//    public static final CustomError OWNABLEINVALIDOWNER_ERROR = new CustomError("OwnableInvalidOwner",
+//            Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
+//    ;
+//
+//    public static final CustomError OWNABLEUNAUTHORIZEDACCOUNT_ERROR = new CustomError("OwnableUnauthorizedAccount",
+//            Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
+//    ;
+//
+//    public static final CustomError UUPSUNAUTHORIZEDCALLCONTEXT_ERROR = new CustomError("UUPSUnauthorizedCallContext",
+//            Arrays.<TypeReference<?>>asList());
+//    ;
+//
+//    public static final CustomError UUPSUNSUPPORTEDPROXIABLEUUID_ERROR = new CustomError("UUPSUnsupportedProxiableUUID",
+//            Arrays.<TypeReference<?>>asList(new TypeReference<Bytes32>() {}));
+//    ;
 
     public static final Event ESCROWCREATED_EVENT = new Event("EscrowCreated", 
             Arrays.<TypeReference<?>>asList(new TypeReference<Address>(true) {}, new TypeReference<Address>(true) {}, new TypeReference<Address>(true) {}, new TypeReference<Uint256>() {}));
