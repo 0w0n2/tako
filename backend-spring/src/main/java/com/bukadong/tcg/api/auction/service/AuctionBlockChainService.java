@@ -32,7 +32,9 @@ public class AuctionBlockChainService {
 
             String factoryAddress = blockChainProperties.contractAddress().auction().factory();
 
-            AuctionF
+        } catch (Exception e) {
+
         }
+        return null;
     }
 }
