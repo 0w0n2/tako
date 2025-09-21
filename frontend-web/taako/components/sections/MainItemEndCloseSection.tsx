@@ -9,14 +9,14 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import { Navigation } from 'swiper/modules';
 
-export default function MainItemListSection({id}:{id:number}) {
+export default function MainItemEndCloseSection() {
     const { handlerGetAuctions, loading, error } = useAuction();
     const [auctions, setAuctions] = useState([]);
 
     useEffect(() => {
         const fetch = async () => {
             try {
-                const res = await handlerGetAuctions({ categoryMajorId:id }); // 포켓몬
+                const res = await handlerGetAuctions({ sort: "ENDTIME_ASC" }); // 경매 조회 함수를 마감 임박순으로 불러옴
                 setAuctions(res.result.content);
             } catch (err) {
                 console.error("경매 데이터 로딩 실패:", err);
@@ -27,6 +27,7 @@ export default function MainItemListSection({id}:{id:number}) {
 
     return (
         <div className="default-container">
+            <h2>마감 임박 경매 {`>`}</h2>
             {loading ? (
                 <div className="flex justify-center items-center h-50 text-sm text-[#a5a5a5]">
                     경매를 불러오는 중입니다

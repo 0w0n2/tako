@@ -33,6 +33,31 @@ export interface AuctionDetailProps {
   seller: Seller;
 }
 
+// 경매 목록 조회(request)
+export interface GetHotCards {
+  page:number|null;
+  categoryMajorId: number| null;
+  categoryMediumId: number| null;
+  title:string|null;
+  cardId: number| null;
+  currentPriceMin: number| null;
+  currentPriceMax: number| null;
+  grades:string|null;
+  sort:string|null;
+}
+// 경매 목록 조회(response)
+export interface GetAuction {
+  id: number;
+  grade: string;
+  title: string;
+  currentPrice: number;
+  bidCount: number;
+  remainingSeconds: number;
+  primaryImageUrl: string;
+  wished: boolean
+}
+
+
 export interface WeeklyAuctions {
   date: string;
   minPrice: number;
