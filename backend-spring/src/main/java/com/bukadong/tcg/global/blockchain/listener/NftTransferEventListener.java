@@ -1,4 +1,4 @@
-package com.bukadong.tcg.api.card.listener;
+package com.bukadong.tcg.global.blockchain.listener;
 
 import com.bukadong.tcg.api.card.repository.PhysicalCardRepository;
 import com.bukadong.tcg.api.card.service.PhysicalCardService;

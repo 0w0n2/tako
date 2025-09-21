@@ -1,4 +1,4 @@
-package com.bukadong.tcg.api.admin.card.event;
+package com.bukadong.tcg.global.blockchain.event;
 
 import java.math.BigInteger;
 

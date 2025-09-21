@@ -2,7 +2,7 @@ package com.bukadong.tcg.api.card.service;
 
 import com.bukadong.tcg.api.admin.card.dto.response.NftCreateResponseDto;
 import com.bukadong.tcg.api.admin.card.dto.response.PhysicalCardStatusResponseDto;
-import com.bukadong.tcg.api.admin.card.event.NftMintEvent;
+import com.bukadong.tcg.global.blockchain.event.NftMintEvent;
 import com.bukadong.tcg.api.card.dto.request.NftClaimStatusResponseDto;
 import com.bukadong.tcg.api.card.entity.Card;
 import com.bukadong.tcg.api.card.entity.PhysicalCard;
