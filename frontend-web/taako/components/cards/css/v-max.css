@@ -11,10 +11,10 @@
 
 /* supertype 의존성 제거 - 단일 rarity만 사용 */
 
---mask: none;
---foil: url("/img/vmaxbg.jpg");
---imgsize: 60% 30%;
-
+:root {
+  --mask: none;
+  --foil: url("/img/vmaxbg.jpg");
+  --imgsize: 60% 30%;
 }
 
 /*
@@ -24,7 +24,6 @@
 */
 
 .card[data-rarity="rare holo vmax"] .card__shine {
-
   --space: 6%;
   --angle: 133deg;
   --imgsize: cover;
@@ -32,25 +31,24 @@
   background-image:
     var(--foil),
     repeating-linear-gradient(-33deg,
-      hsl(2, 70%, 47%) calc(var(--space)*1),
-      hsl(228, 60%, 64%) calc(var(--space)*2),
-      hsl(176, 55%, 39%) calc(var(--space)*3),
-      hsl(123, 68%, 35%) calc(var(--space)*4),
-      hsl(283, 75%, 57%) calc(var(--space)*5),
-      hsl(2, 70%, 47%) calc(var(--space)*6)),
+      hsl(2deg 70% 47%) calc(var(--space)*1),
+      hsl(228deg 60% 64%) calc(var(--space)*2),
+      hsl(176deg 55% 39%) calc(var(--space)*3),
+      hsl(123deg 68% 35%) calc(var(--space)*4),
+      hsl(283deg 75% 57%) calc(var(--space)*5),
+      hsl(2deg 70% 47%) calc(var(--space)*6)),
     repeating-linear-gradient(var(--angle),
-      hsla(227, 53%, 12%, 0.5) 0%,
-      hsl(180, 10%, 50%) 2.5%,
-      hsl(83, 50%, 35%) 5%,
-      hsl(180, 10%, 50%) 7.5%,
-      hsla(227, 53%, 12%, 0.5) 10%,
-      hsla(227, 53%, 12%, 0.5) 15%),
+      hsl(227deg 53% 12% / 50%) 0%,
+      hsl(180deg 10% 50%) 2.5%,
+      hsl(83deg 50% 35%) 5%,
+      hsl(180deg 10% 50%) 7.5%,
+      hsl(227deg 53% 12% / 50%) 10%,
+      hsl(227deg 53% 12% / 50%) 15%),
     radial-gradient(farthest-corner circle at var(--pointer-x) var(--pointer-y),
-      hsla(189, 76%, 77%, 0.6) 0%,
-      hsla(147, 59%, 77%, 0.6) 25%,
-      hsla(271, 55%, 69%, 0.6) 50%,
-      hsla(355, 56%, 72%, 0.6) 75%);
-
+      hsl(189deg 76% 77% / 60%) 0%,
+      hsl(147deg 59% 77% / 60%) 25%,
+      hsl(271deg 55% 69% / 60%) 50%,
+      hsl(355deg 56% 72% / 60%) 75%);
   background-blend-mode: difference, luminosity, soft-light;
   background-size: var(--imgsize), 1100% 1100%, 600% 600%, 200% 200%;
   background-position:
@@ -58,16 +56,13 @@
     var(--background-x) var(--background-y),
     var(--background-x) var(--background-y),
     var(--background-x) var(--background-y);
-
   filter: brightness(calc((var(--pointer-from-center) * .4) + .4)) contrast(2) saturate(1);
 
 }
 
 
-.card[data-rarity="rare holo vmax"] .card__shine:after {
-
+.card[data-rarity="rare holo vmax"] .card__shine::after {
   content: "";
-
   background-image: repeating-linear-gradient(0deg,
       var(--sunpillar-clr-1) calc(var(--space)*1),
       var(--sunpillar-clr-2) calc(var(--space)*2),
@@ -78,16 +73,14 @@
       var(--sunpillar-clr-1) calc(var(--space)*7)),
     repeating-linear-gradient(var(--angle),
       #0e152e 0%,
-      hsl(180, 10%, 60%) 3.8%,
-      hsl(180, 29%, 66%) 4.5%,
-      hsl(180, 10%, 60%) 5.2%,
+      hsl(180deg 10% 60%) 3.8%,
+      hsl(180deg 29% 66%) 4.5%,
+      hsl(180deg 10% 60%) 5.2%,
       #0e152e 10%,
       #0e152e 12%);
-
   background-blend-mode: hue, hard-light;
   background-size: 200% 700%, 300% 100%, 200% 100%;
   background-position: 0% var(--background-y), var(--background-x) var(--background-y), var(--background-x) var(--background-y);
-
   mix-blend-mode: lighten;
   opacity: calc((0.3 * var(--card-opacity)) + var(--card-opacity) * var(--pointer-from-center) * 0.5);
   filter: saturate(1.5);
@@ -110,15 +103,12 @@
 */
 
 .card[data-rarity="rare holo vmax"] .card__glare {
-
   mix-blend-mode: hard-light;
   filter: brightness(1) contrast(1);
-
   background-image:
     radial-gradient(farthest-corner circle at var(--pointer-x) var(--pointer-y),
-      hsla(0, 0%, 100%, 0.75) 0%,
-      hsl(0, 0%, 0%) 120%);
-
+      hsl(0deg 0% 100% / 75%) 0%,
+      hsl(0deg 0% 0%) 120%);
   opacity: calc((0.2 * var(--card-opacity)) + var(--card-opacity) * var(--pointer-from-center) * 0.8);
 
 }
@@ -141,7 +131,6 @@
 
 
 .card:not(.masked) [data-rarity="rare holo vmax"] .card__shine {
-
   filter: brightness(calc((var(--pointer-from-center) * .4) + .4)) contrast(2) saturate(1);
 
 }

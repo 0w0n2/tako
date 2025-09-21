@@ -11,6 +11,7 @@ import { AxiosResponse } from "axios"
 import { useEffect, useState } from 'react'
 import { CARD_SIZE, singleCard } from '@/types/card'
 import { FilterOption, FilterItem } from '@/types/filter'
+import Link from "next/link"
 
 export default function CategoryPage({ params }: CategoryPageProps) {
   const { categoryId, categoryName } = params
@@ -21,119 +22,6 @@ export default function CategoryPage({ params }: CategoryPageProps) {
     gap: '2rem',
     padding: '1rem'
   }
-
-  // {
-  //   "httpStatus": "OK",
-  //   "isSuccess": true,
-  //   "message": "요청에 성공하였습니다.",
-  //   "code": 200,
-  //   "result": [
-  //     {
-  //       "id": 33,
-  //       "name": "다크윙 블래스트",
-  //       "description": "유희왕 확장팩",
-  //       "majorId": 1,
-  //       "majorName": "Yu-Gi-Oh!",
-  //       "imageUrl": null
-  //     },
-  //     {
-  //       "id": 36,
-  //       "name": "듀얼리스트 넥서스",
-  //       "description": "유희왕 확장팩",
-  //       "majorId": 1,
-  //       "majorName": "Yu-Gi-Oh!",
-  //       "imageUrl": null
-  //     },
-  //     {
-  //       "id": 44,
-  //       "name": "듀얼리스트 어드밴스",
-  //       "description": "유희왕 확장팩",
-  //       "majorId": 1,
-  //       "majorName": "Yu-Gi-Oh!",
-  //       "imageUrl": null
-  //     },
-  //     {
-  //       "id": 39,
-  //       "name": "레거시 오브 디스트럭션",
-  //       "description": "유희왕 확장팩",
-  //       "majorId": 1,
-  //       "majorName": "Yu-Gi-Oh!",
-  //       "imageUrl": null
-  //     },
-  //     {
-  //       "id": 41,
-  //       "name": "레이지 오브 디 어비스",
-  //       "description": "유희왕 확장팩",
-  //       "majorId": 1,
-  //       "majorName": "Yu-Gi-Oh!",
-  //       "imageUrl": null
-  //     },
-  //     {
-  //       "id": 35,
-  //       "name": "사이버스톰 액세스",
-  //       "description": "유희왕 확장팩",
-  //       "majorId": 1,
-  //       "majorName": "Yu-Gi-Oh!",
-  //       "imageUrl": null
-  //     },
-  //     {
-  //       "id": 42,
-  //       "name": "슈프림 다크니스",
-  //       "description": "유희왕 확장팩",
-  //       "majorId": 1,
-  //       "majorName": "Yu-Gi-Oh!",
-  //       "imageUrl": null
-  //     },
-  //     {
-  //       "id": 43,
-  //       "name": "얼라이언스 인사이트",
-  //       "description": "유희왕 확장팩",
-  //       "majorId": 1,
-  //       "majorName": "Yu-Gi-Oh!",
-  //       "imageUrl": null
-  //     },
-  //     {
-  //       "id": 37,
-  //       "name": "에이지 오브 오버로드",
-  //       "description": "유희왕 확장팩",
-  //       "majorId": 1,
-  //       "majorName": "Yu-Gi-Oh!",
-  //       "imageUrl": null
-  //     },
-  //     {
-  //       "id": 40,
-  //       "name": "인피니트 포비든",
-  //       "description": "유희왕 확장팩",
-  //       "majorId": 1,
-  //       "majorName": "Yu-Gi-Oh!",
-  //       "imageUrl": null
-  //     },
-  //     {
-  //       "id": 32,
-  //       "name": "파워 오브 디 엘리멘츠",
-  //       "description": "유희왕 확장팩",
-  //       "majorId": 1,
-  //       "majorName": "Yu-Gi-Oh!",
-  //       "imageUrl": null
-  //     },
-  //     {
-  //       "id": 38,
-  //       "name": "팬텀 나이트메어",
-  //       "description": "유희왕 확장팩",
-  //       "majorId": 1,
-  //       "majorName": "Yu-Gi-Oh!",
-  //       "imageUrl": null
-  //     },
-  //     {
-  //       "id": 34,
-  //       "name": "포톤 하이퍼노바",
-  //       "description": "유희왕 확장팩",
-  //       "majorId": 1,
-  //       "majorName": "Yu-Gi-Oh!",
-  //       "imageUrl": null
-  //     }
-  //   ]
-  // }
 
   type APIResponse = {
     httpStatus: string
@@ -359,11 +247,13 @@ export default function CategoryPage({ params }: CategoryPageProps) {
                                   categoryName as keyof typeof CARD_SIZE;
                   
                   return (
+                    <Link href={`/category/${categoryId}/${card.id}`}>
                     <SimpleCard 
                       key={card.id} 
                       imageUrl={card.imageUrls[0] || '/no-image.jpg'} 
                       cardType={cardType}
                     />
+                    </Link>
                   );
                 })}
               </div>

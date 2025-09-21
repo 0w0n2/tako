@@ -17,20 +17,17 @@
 
 
 :root {
-
   --card-aspect: 0.718;
   --card-radius: 4.55% / 3.5%;
-  --card-edge: hsl(47, 100%, 78%);
-  --card-back: hsl(205, 100%, 25%);
-  --card-glow: hsl(175, 100%, 90%);
-
-  --sunpillar-1: hsl(2, 100%, 73%);
-  --sunpillar-2: hsl(53, 100%, 69%);
-  --sunpillar-3: hsl(93, 100%, 69%);
-  --sunpillar-4: hsl(176, 100%, 76%);
-  --sunpillar-5: hsl(228, 100%, 74%);
-  --sunpillar-6: hsl(283, 100%, 73%);
-
+  --card-edge: hsl(47deg 100% 78%);
+  --card-back: hsl(205deg 100% 25%);
+  --card-glow: hsl(175deg 100% 90%);
+  --sunpillar-1: hsl(2deg 100% 73%);
+  --sunpillar-2: hsl(53deg 100% 69%);
+  --sunpillar-3: hsl(93deg 100% 69%);
+  --sunpillar-4: hsl(176deg 100% 76%);
+  --sunpillar-5: hsl(228deg 100% 74%);
+  --sunpillar-6: hsl(283deg 100% 73%);
   --sunpillar-clr-1: var(--sunpillar-1);
   --sunpillar-clr-2: var(--sunpillar-2);
   --sunpillar-clr-3: var(--sunpillar-3);
@@ -41,11 +38,10 @@
 }
 
 .card {
-
   /* place the card on a new transform layer and
   make sure it has hardward acceleration... we gun'need that! */
-  -webkit-transform: translate3d(0px, 0px, 0.01px);
-  transform: translate3d(0px, 0px, 0.01px);
+  transform: translate3d(0, 0, 0.01px);
+  transform: translate3d(0, 0, 0.01px);
   pointer-events: none;
 
   /* make sure the card is above others if it's scaled up */
@@ -56,7 +52,7 @@
 
   /* this prevents major problems in firefox, but also causes a bit of
   clipping as the card animates to/from active state. worth it. */
-  -webkit-transform-style: preserve-3d;
+  transform-style: preserve-3d;
   transform-style: preserve-3d;
 }
 
@@ -70,7 +66,6 @@
 .card:not(.interactive) .card__rotator,
 .card:not(.interactive) .card__shine,
 .card:not(.interactive) .card__glare {
-
   /* if this card is not in a framework, we can add simply
     hover effects when it's not "interactive" */
   transition: all 0.3s ease;
@@ -78,7 +73,6 @@
 }
 
 .card:not(.interactive):hover {
-
   --pointer-x: 25% !important;
   --pointer-y: 10% !important;
   --card-scale: 1.1 !important;
@@ -96,43 +90,43 @@
 }
 
 .card.water {
-  --card-glow: hsl(192, 97%, 60%);
+  --card-glow: hsl(192deg 97% 60%);
 }
 
 .card.fire {
-  --card-glow: hsl(9, 81%, 59%);
+  --card-glow: hsl(9deg 81% 59%);
 }
 
 .card.grass {
-  --card-glow: hsl(96, 81%, 65%);
+  --card-glow: hsl(96deg 81% 65%);
 }
 
 .card.lightning {
-  --card-glow: hsl(54, 87%, 63%);
+  --card-glow: hsl(54deg 87% 63%);
 }
 
 .card.psychic {
-  --card-glow: hsl(281, 62%, 58%);
+  --card-glow: hsl(281deg 62% 58%);
 }
 
 .card.fighting {
-  --card-glow: rgb(145, 90, 39);
+  --card-glow: rgb(145 90 39);
 }
 
 .card.darkness {
-  --card-glow: hsl(189, 77%, 27%);
+  --card-glow: hsl(189deg 77% 27%);
 }
 
 .card.metal {
-  --card-glow: hsl(184, 20%, 70%);
+  --card-glow: hsl(184deg 20% 70%);
 }
 
 .card.dragon {
-  --card-glow: hsl(51, 60%, 35%);
+  --card-glow: hsl(51deg 60% 35%);
 }
 
 .card.fairy {
-  --card-glow: hsl(323, 100%, 89%);
+  --card-glow: hsl(323deg 100% 89%);
 }
 
 .card,
@@ -157,25 +151,27 @@
   perspective: 600px;
   will-change: transform, box-shadow;
   transform-origin: center;
-  -webkit-transform-origin: center;
+  transform-origin: center;
   transform-style: preserve-3d;
 }
 
 .card__translater {
   width: auto;
   position: relative;
-  -webkit-transform: translate3d(var(--translate-x), var(--translate-y), 0.1px) scale(var(--card-scale));
+  transform: translate3d(var(--translate-x), var(--translate-y), 0.1px) scale(var(--card-scale));
   transform: translate3d(var(--translate-x), var(--translate-y), 0.1px) scale(var(--card-scale));
 }
 
 .card__rotator {
-  -webkit-transform: rotateY(var(--rotate-x)) rotateX(var(--rotate-y));
-  -webkit-transform-style: preserve-3d;
+  transform: rotateY(var(--rotate-x)) rotateX(var(--rotate-y));
+  transform-style: preserve-3d;
   transform: rotateY(var(--rotate-x)) rotateX(var(--rotate-y));
 
   /* performance */
   pointer-events: auto;
+
   /* overflow: hidden; <-- this improves perf on mobile, but breaks backface visibility. */
+
   /* isolation: isolate; <-- this improves perf, but breaks backface visibility on Chrome. */
 }
 
@@ -185,7 +181,7 @@ button.card__rotator {
   border: none;
   background: transparent;
   padding: 0;
-  -webkit-appearance: none;
+  appearance: none;
   appearance: none;
 }
 
@@ -195,10 +191,10 @@ button.card__rotator {
   box-shadow:
     0 0 3px -1px transparent,
     0 0 2px 1px transparent,
-    0 0 5px 0px transparent,
-    0px 10px 20px -5px black,
+    0 0 5px 0 transparent,
+    0 10px 20px -5px black,
     0 2px 15px -5px black,
-    0 0 20px 0px transparent;
+    0 0 20px 0 transparent;
 }
 
 .card.active .card__rotator,
@@ -207,7 +203,7 @@ button.card__rotator {
     0 0 3px -1px white,
     0 0 3px 1px var(--card-edge),
     0 0 12px 2px var(--card-glow),
-    0px 10px 20px -5px black,
+    0 10px 20px -5px black,
     0 0 40px -30px var(--card-glow),
     0 0 50px -20px var(--card-glow)
 }
@@ -218,8 +214,8 @@ button.card__rotator {
   grid-area: 1/1;
   aspect-ratio: var(--card-aspect);
   border-radius: var(--card-radius);
-  image-rendering: optimizeQuality;
-  -webkit-transform-style: preserve-3d;
+  image-rendering: optimizequality;
+  transform-style: preserve-3d;
   transform-style: preserve-3d;
   pointer-events: none;
   overflow: hidden;
@@ -230,13 +226,13 @@ button.card__rotator {
 }
 
 .card__rotator img:not(.card__back) {
-  -webkit-transform: translate3d(0px, 0px, 0.01px);
-  transform: translate3d(0px, 0px, 0.01px);
+  transform: translate3d(0, 0, 0.01px);
+  transform: translate3d(0, 0, 0.01px);
 }
 
 .card__back {
   background-color: var(--card-back);
-  -webkit-transform: rotateY(180deg) translateZ(1px);
+  transform: rotateY(180deg) translateZ(1px);
   transform: rotateY(180deg) translateZ(1px);
   backface-visibility: visible;
 }
@@ -249,8 +245,8 @@ button.card__rotator {
 .card__front {
   opacity: 1;
   transition: opacity 0.33s ease-out;
-  -webkit-transform: translate3d(0px, 0px, 0.01px);
-  transform: translate3d(0px, 0px, 0.01px);
+  transform: translate3d(0, 0, 0.01px);
+  transform: translate3d(0, 0, 0.01px);
 }
 
 .loading .card__front {
@@ -258,7 +254,7 @@ button.card__rotator {
 }
 
 .loading .card__back {
-  -webkit-transform: rotateY(0deg);
+  transform: rotateY(0deg);
   transform: rotateY(0deg);
 }
 
@@ -270,26 +266,21 @@ Shine & Glare Effects
 **/
 
 .card__shine {
-
   display: grid;
   transform: translateZ(1px);
   overflow: hidden;
   z-index: 3;
-
   background: transparent;
   background-size: cover;
   background-position: center;
-
   filter: brightness(.85) contrast(2.75) saturate(.65);
   mix-blend-mode: color-dodge;
-
   opacity: var(--card-opacity);
 
 }
 
-.card__shine:before,
-.card__shine:after {
-
+.card__shine::before,
+.card__shine::after {
   --sunpillar-clr-1: var(--sunpillar-5);
   --sunpillar-clr-2: var(--sunpillar-6);
   --sunpillar-clr-3: var(--sunpillar-1);
@@ -303,8 +294,7 @@ Shine & Glare Effects
 
 }
 
-.card__shine:after {
-
+.card__shine::after {
   --sunpillar-clr-1: var(--sunpillar-6);
   --sunpillar-clr-2: var(--sunpillar-1);
   --sunpillar-clr-3: var(--sunpillar-2);
@@ -317,16 +307,13 @@ Shine & Glare Effects
 }
 
 .card__glare {
-
   /* make sure the glare doesn't clip */
   transform: translateZ(1.41px);
   overflow: hidden;
-
   background-image: radial-gradient(farthest-corner circle at var(--pointer-x) var(--pointer-y),
-      hsla(0, 0%, 100%, 0.8) 10%,
-      hsla(0, 0%, 100%, 0.65) 20%,
-      hsla(0, 0%, 0%, 0.5) 90%);
-
+      hsl(0deg 0% 100% / 80%) 10%,
+      hsl(0deg 0% 100% / 65%) 20%,
+      hsl(0deg 0% 0% / 50%) 90%);
   opacity: var(--card-opacity);
   mix-blend-mode: overlay;
 
@@ -344,22 +331,21 @@ Shine & Glare Effects
 **/
 
 .card.masked .card__shine,
-.card.masked .card__shine:before,
-.card.masked .card__shine:after {
-
+.card.masked .card__shine::before,
+.card.masked .card__shine::after {
   /** masking image for cards which are masked **/
-  -webkit-mask-image: var(--mask);
   mask-image: var(--mask);
-  -webkit-mask-size: cover;
+  mask-image: var(--mask);
   mask-size: cover;
-  -webkit-mask-position: center center;
+  mask-size: cover;
+  mask-position: center center;
   mask-position: center center;
 
 }
 
-.card[data-rarity="rare holo"] .card__glare:after,
-.card[data-rarity="rare holo cosmos"] .card__glare:after,
-.card[data-rarity$="reverse holo"] .card__glare:after {
+.card[data-rarity="rare holo"] .card__glare::after,
+.card[data-rarity="rare holo cosmos"] .card__glare::after,
+.card[data-rarity$="reverse holo"] .card__glare::after {
   clip-path: var(--clip);
 }
 
