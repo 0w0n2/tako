@@ -396,7 +396,7 @@ export default function NewAuctionPage() {
         )}
 
         <Button
-          className="h-12"
+          className="h-12 bg-[#7DB7CD] text-[#2B3235] cursor-pointer"
           type="submit">등록하기</Button>
       </form>
     </div>
