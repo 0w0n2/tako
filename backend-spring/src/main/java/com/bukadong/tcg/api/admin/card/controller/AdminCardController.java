@@ -34,7 +34,7 @@ public class AdminCardController {
     }
 
     @Operation(summary = "특정 카드의 NFT 발행 요청", description = "cardId에 해당하는 카드의 실물 NFT를 발행하고 클레임용 시크릿을 등록합니다. 실제 블록체인 컨트랙트는 비동기로 처리됩니다.")
-    @PostMapping("/{cardId}/nft")
+    @PostMapping("/{cardId}/nfts")
     public BaseResponse<NftCreateResponseDto> requestNftMint(
             @PathVariable("cardId") Long cardId) {
         return BaseResponse.onSuccess(physicalCardService.requestNftCreation(cardId));
