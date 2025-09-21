@@ -1,4 +1,4 @@
-package com.bukadong.tcg.api.card.event;
+package com.bukadong.tcg.api.admin.card.event;
 
 /**
  * NFT 발행을 비동기로 처리하기 위한 이벤트 객체

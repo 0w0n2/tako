@@ -1,7 +1,7 @@
-package com.bukadong.tcg.api.card.listener;
+package com.bukadong.tcg.api.admin.card.listener;
 
 import com.bukadong.tcg.api.admin.card.service.PhysicalCardStatusService;
-import com.bukadong.tcg.api.card.event.NftMintEvent;
+import com.bukadong.tcg.api.admin.card.event.NftMintEvent;
 import com.bukadong.tcg.global.blockchain.contracts.TakoCardNFT;
 import com.bukadong.tcg.global.blockchain.util.ContractExceptionHelper;
 import com.bukadong.tcg.global.properties.blockchain.BlockChainProperties;

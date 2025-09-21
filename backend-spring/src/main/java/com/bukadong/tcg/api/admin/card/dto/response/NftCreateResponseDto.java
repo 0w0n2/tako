@@ -9,7 +9,7 @@ import lombok.Builder;
  */
 @Builder
 @Schema(description = "관리자 NFT 생성 요청 접수 응답 DTO")
-public record AdminNftCreateResponseDto(
+public record NftCreateResponseDto(
         @Schema(description = "DB에 생성된 실물 카드 ID")
         Long physicalCardId,
 

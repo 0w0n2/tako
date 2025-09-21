@@ -1,11 +1,10 @@
 package com.bukadong.tcg.api.admin.card.service;
 
-import com.bukadong.tcg.api.admin.card.dto.request.AdminNftCreateRequestDto;
-import com.bukadong.tcg.api.admin.card.dto.response.AdminNftCreateResponseDto;
+import com.bukadong.tcg.api.admin.card.dto.response.NftCreateResponseDto;
 import com.bukadong.tcg.api.card.entity.Card;
 import com.bukadong.tcg.api.card.entity.PhysicalCard;
 import com.bukadong.tcg.api.card.entity.PhysicalCardStatus;
-import com.bukadong.tcg.api.card.event.NftMintEvent;
+import com.bukadong.tcg.api.admin.card.event.NftMintEvent;
 import com.bukadong.tcg.api.card.repository.CardRepository;
 import com.bukadong.tcg.api.card.repository.PhysicalCardRepository;
 import com.bukadong.tcg.global.common.base.BaseResponseStatus;
@@ -38,9 +37,9 @@ public class AdminNftContractServiceImpl implements AdminNftContractService {
      */
     @Override
     @Transactional
-    public AdminNftCreateResponseDto requestNftCreation(AdminNftCreateRequestDto requestDto) {
+    public NftCreateResponseDto requestNftCreation(Long cardId) {
         /* 1. 요청된 cardId 조회 */
-        Card card = cardRepository.findById(requestDto.cardId())
+        Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.CARD_NOT_FOUND));
 
         /* 2. tokenId, 시크릿 코드 생성 */
@@ -59,7 +58,7 @@ public class AdminNftContractServiceImpl implements AdminNftContractService {
         /* 4. 비동기 처리를 위한 이벤트 발행 */
         eventPublisher.publishEvent(new NftMintEvent(physicalCard.getId(), tokenId, secretCode));
 
-        return AdminNftCreateResponseDto.builder()
+        return NftCreateResponseDto.builder()
                 .physicalCardId(physicalCard.getId())
                 .tokenId(tokenId)
                 .secret(secretCode)

@@ -1,8 +1,7 @@
 package com.bukadong.tcg.api.admin.card.service;
 
-import com.bukadong.tcg.api.admin.card.dto.request.AdminNftCreateRequestDto;
-import com.bukadong.tcg.api.admin.card.dto.response.AdminNftCreateResponseDto;
+import com.bukadong.tcg.api.admin.card.dto.response.NftCreateResponseDto;
 
 public interface AdminNftContractService {
-    AdminNftCreateResponseDto requestNftCreation(AdminNftCreateRequestDto requestDto);
+    NftCreateResponseDto requestNftCreation(Long cardId);
 }

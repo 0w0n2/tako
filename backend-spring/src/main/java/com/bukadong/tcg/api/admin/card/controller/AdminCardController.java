@@ -1,8 +1,7 @@
 package com.bukadong.tcg.api.admin.card.controller;
 
-import com.bukadong.tcg.api.admin.card.dto.request.AdminNftCreateRequestDto;
 import com.bukadong.tcg.api.admin.card.dto.response.CreateCardRequestDto;
-import com.bukadong.tcg.api.admin.card.dto.response.AdminNftCreateResponseDto;
+import com.bukadong.tcg.api.admin.card.dto.response.NftCreateResponseDto;
 import com.bukadong.tcg.api.admin.card.service.AdminCardService;
 import com.bukadong.tcg.api.admin.card.service.AdminNftContractService;
 import com.bukadong.tcg.global.common.base.BaseResponse;
@@ -34,9 +33,10 @@ public class AdminCardController {
         return BaseResponse.onSuccess();
     }
 
-    @Operation(summary = "관리자 NFT 생성 요청 접수")
-    @PostMapping("/nft")
-    public BaseResponse<AdminNftCreateResponseDto> createNft(@Valid @RequestBody AdminNftCreateRequestDto requestDto) {
-        return BaseResponse.onSuccess(adminNftContractService.requestNftCreation(requestDto));
+    @Operation(summary = "특정 카드의 NFT 발행 요청", description = "cardId에 해당하는 카드의 실물 NFT를 발행하고 클레임용 시크릿을 등록합니다. 실제 블록체인 컨트랙트는 비동기로 처리됩니다.")
+    @PostMapping("/{cardId}/nft")
+    public BaseResponse<NftCreateResponseDto> requestNftMint(
+            @PathVariable("cardId") Long cardId) {
+        return BaseResponse.onSuccess(adminNftContractService.requestNftCreation(cardId));
     }
 }
