@@ -1,6 +1,5 @@
 'use client'
 
-import Link from "next/link";
 import AuctionCard from "@/components/auction/AuctionCard"
 import { useEffect, useState } from "react";
 import { useAuction } from "@/hooks/useAuction";
@@ -9,7 +8,6 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import { Navigation } from 'swiper/modules';
-import { ChevronRight } from 'lucide-react';
 
 export default function MainItemEndCloseSection() {
     const { handlerGetAuctions, loading, error } = useAuction();
@@ -17,17 +15,19 @@ export default function MainItemEndCloseSection() {
 
     useEffect(() => {
         const fetch = async () => {
-            const res = await handlerGetAuctions({ sort: "ENDTIME_ASC" }); // 경매 조회 함수를 마감 임박순으로 불러옴
-            setAuctions(res.result.content);
+            try {
+                const res = await handlerGetAuctions({ sort: "ENDTIME_ASC" }); // 경매 조회 함수를 마감 임박순으로 불러옴
+                setAuctions(res.result.content);
+            } catch (err) {
+                console.error("경매 데이터 로딩 실패:", err);
+            }
         };
         fetch();
     }, [handlerGetAuctions]);
 
     return (
         <div className="default-container">
-            <Link href={`/search?sort=ENDTIME_ASC`}>
-                <h2 className="mb-6 flex gap-1 items-center">마감 임박 경매 <ChevronRight /></h2>
-            </Link>
+            <h2>마감 임박 경매 {`>`}</h2>
             {loading ? (
                 <div className="flex justify-center items-center h-50 text-sm text-[#a5a5a5]">
                     경매를 불러오는 중입니다
