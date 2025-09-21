@@ -1,7 +1,10 @@
 package com.bukadong.tcg.api.admin.card.dto.response;
 
+import com.bukadong.tcg.api.card.entity.PhysicalCard;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
+
+import java.math.BigInteger;
 
 /**
  * 관리자 NFT 카드 생성 API의 성공 응답 DTO
@@ -19,4 +22,11 @@ public record NftCreateResponseDto(
         @Schema(description = "실물 카드에 인쇄하거나 사용자에게 전달해야 할 원본 시크릿 코드")
         String secret
 ) {
+        public static NftCreateResponseDto toDto(PhysicalCard physicalCard, BigInteger tokenId, String secretCode) {
+                return NftCreateResponseDto.builder()
+                        .physicalCardId(physicalCard.getId())
+                        .tokenId(tokenId.longValue())
+                        .secret(secretCode)
+                        .build();
+        }
 }

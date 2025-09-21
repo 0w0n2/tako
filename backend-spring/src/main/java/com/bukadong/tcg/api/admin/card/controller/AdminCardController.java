@@ -3,7 +3,7 @@ package com.bukadong.tcg.api.admin.card.controller;
 import com.bukadong.tcg.api.admin.card.dto.response.CreateCardRequestDto;
 import com.bukadong.tcg.api.admin.card.dto.response.NftCreateResponseDto;
 import com.bukadong.tcg.api.admin.card.service.AdminCardService;
-import com.bukadong.tcg.api.admin.card.service.AdminNftContractService;
+import com.bukadong.tcg.api.card.service.PhysicalCardService;
 import com.bukadong.tcg.global.common.base.BaseResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,7 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class AdminCardController {
 
     private final AdminCardService adminCardService;
-    private final AdminNftContractService adminNftContractService;
+    private final PhysicalCardService physicalCardService;
 
     @Operation(summary = "카드 생성(이미지 포함)", description = "requestDto(JSON) + cardImage를 동시에 업로드합니다.")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -37,6 +37,6 @@ public class AdminCardController {
     @PostMapping("/{cardId}/nft")
     public BaseResponse<NftCreateResponseDto> requestNftMint(
             @PathVariable("cardId") Long cardId) {
-        return BaseResponse.onSuccess(adminNftContractService.requestNftCreation(cardId));
+        return BaseResponse.onSuccess(physicalCardService.requestNftCreation(cardId));
     }
 }

@@ -67,11 +67,8 @@ public class PhysicalCard extends BaseEntity {
     @Column(nullable = false)
     private PhysicalCardStatus status = PhysicalCardStatus.PENDING;
 
-    public void markAsMinted(String secret) {
+    public void markAsMinted() {
         this.status = PhysicalCardStatus.MINTED;
-        if (StringUtils.hasText(secret)) {
-            this.secretHash = Hash.sha3String(secret);
-        }
     }
 
     public void markAsFailed() {

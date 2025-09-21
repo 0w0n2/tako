@@ -1,8 +1,9 @@
 package com.bukadong.tcg.api.admin.card.listener;
 
-import com.bukadong.tcg.api.admin.card.service.PhysicalCardStatusService;
 import com.bukadong.tcg.api.admin.card.event.NftMintEvent;
+import com.bukadong.tcg.api.card.service.PhysicalCardService;
 import com.bukadong.tcg.global.blockchain.contracts.TakoCardNFT;
+import com.bukadong.tcg.global.blockchain.service.TakoNftContractService;
 import com.bukadong.tcg.global.blockchain.util.ContractExceptionHelper;
 import com.bukadong.tcg.global.properties.blockchain.BlockChainProperties;
 import lombok.RequiredArgsConstructor;
@@ -26,63 +27,24 @@ import java.math.BigInteger;
 @RequiredArgsConstructor
 public class NftMintEventListener {
 
-    private final Web3j web3j;
-    private final BlockChainProperties blockChainProperties;
-    private final PhysicalCardStatusService physicalCardStatusService;
-    private final ContractExceptionHelper contractExceptionHelper;
+    private final PhysicalCardService physicalCardService;
+    private final TakoNftContractService takoNftContractService;
 
     @Async
     @EventListener
     public void handleNftMintEvent(NftMintEvent event) {
-        log.info("Async event received. Starting blockchain process for PhysicalCard ID: {}", event.physicalCardId());
+        Long physicalCardId = event.physicalCardId();
+        log.info("Async event received. Starting blockchain process for PhysicalCard ID: {}", physicalCardId);
 
         try {
             // safeMint, registerSecret 컨트랙트 실행
-            TakoCardNFT contract = loadContract();
-            mintNft(contract, event.tokenId());
-            registerSecret(contract, event.tokenId(), event.secret());
-
+            takoNftContractService.mintAndRegisterSecret(event.tokenId(), event.secret());
             // DB 상태 업데이트
-            physicalCardStatusService.updateStatusToMinted(event.physicalCardId(), event.secret());
-            log.info("Blockchain process SUCCESS for PhysicalCard ID: {}", event.physicalCardId());
-
-        } catch (TransactionException e) {
-            String failureMessage = contractExceptionHelper.handleTransactionException(e).getMessage();
-            log.error(
-                    "Blockchain process FAILED for PhysicalCard ID: {}. Decoded Reason: {}",
-                    event.physicalCardId(),
-                    failureMessage
-            );
-            physicalCardStatusService.updateStatusToFailed(event.physicalCardId());
+            physicalCardService.processMintingSuccess(physicalCardId);
+            log.info("Blockchain process SUCCESS for PhysicalCard ID: {}", physicalCardId);
+        } catch (Exception e) {
+            log.error("Blockchain process FAILED for PhysicalCard ID: {}. Error: {}", physicalCardId, e.getMessage());
+            physicalCardService.processMintingFailed(physicalCardId);
         }
-        catch (Exception e) {
-            log.error("Blockchain process FAILED for PhysicalCard ID: {}. Error: {}", event.physicalCardId(), e.getMessage());
-            physicalCardStatusService.updateStatusToFailed(event.physicalCardId());
-        }
-    }
-
-
-    private void mintNft(TakoCardNFT contract, BigInteger tokenId) throws Exception {
-        String serverWalletAddress = blockChainProperties.sepolia().walletAddress();
-        contract.safeMint(serverWalletAddress, tokenId).send();
-    }
-
-    private void registerSecret(TakoCardNFT contract, BigInteger tokenId, String secretCode) throws Exception {
-        byte[] secretHash = Hash.sha3(secretCode.getBytes());
-        contract.registerSecret(tokenId, secretHash).send();
-    }
-
-    private TakoCardNFT loadContract() {
-        String privateKey = blockChainProperties.sepolia().privateKey();
-        Credentials credentials = Credentials.create(privateKey);   // 관리자 계정
-
-        String contractAddress = blockChainProperties.contractAddress().takoCardNft();
-
-        return TakoCardNFT.load(
-                contractAddress,
-                web3j,
-                credentials,
-                new DefaultGasProvider()
-        );
     }
 }

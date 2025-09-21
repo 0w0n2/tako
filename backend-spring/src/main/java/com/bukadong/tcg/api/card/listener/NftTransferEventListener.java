@@ -1,14 +1,11 @@
 package com.bukadong.tcg.api.card.listener;
 
-import com.bukadong.tcg.api.admin.card.service.PhysicalCardStatusService;
 import com.bukadong.tcg.api.card.repository.PhysicalCardRepository;
+import com.bukadong.tcg.api.card.service.PhysicalCardService;
 import com.bukadong.tcg.api.member.entity.Member;
 import com.bukadong.tcg.api.member.repository.MemberRepository;
 import com.bukadong.tcg.global.blockchain.contracts.TakoCardNFT;
 import com.bukadong.tcg.global.properties.blockchain.BlockChainProperties;
-import io.reactivex.disposables.CompositeDisposable;
-import io.reactivex.disposables.Disposable;
-import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -36,9 +33,9 @@ public class NftTransferEventListener {
 
     private final Web3j web3j;
     private final BlockChainProperties blockChainProperties;
-    private final PhysicalCardStatusService physicalCardStatusService;
     private final PhysicalCardRepository physicalCardRepository;
     private final MemberRepository memberRepository;
+    private final PhysicalCardService physicalCardService;
 
     private BigInteger lastCheckedBlock = null;
 
@@ -88,7 +85,7 @@ public class NftTransferEventListener {
 
             physicalCardRepository.findByTokenId(tokenId).ifPresent(physicalCard -> {
                 Optional<Member> ownerOpt = memberRepository.findByWalletAddress(to);
-                physicalCardStatusService.updateStatusToClaimed(physicalCard.getId(), to, ownerOpt.orElse(null));
+                physicalCardService.processClaim(physicalCard.getId(), to, ownerOpt.orElse(null));
 
                 if (ownerOpt.isPresent()) {
                     log.debug("PhysicalCard (ID: {}) status updated to CLAIMED for Member (ID: {})",

@@ -27,7 +27,7 @@ public class PhysicalCardController {
     @Operation(summary = "NFT 클레임 가능 상태 조회", description = "사용자가 특정 tokenId를 클레임할 수 있는지 미리 확인합니다.")
     @GetMapping("/{tokenId}/claim-status")
     public BaseResponse<NftClaimStatusResponseDto> getClaimStatus(@PathVariable("tokenId") Long tokenId) {
-        return BaseResponse.onSuccess(physicalCardService.checkClaimStatus(tokenId));
+        return BaseResponse.onSuccess(physicalCardService.getCardStatusForUser(tokenId));
     }
 
     @Operation(summary = "NFT 경매 이력 조회", description = "특정 tokenId를 가진 NFT의 모든 온체인 경매 이력을 조회합니다.")
