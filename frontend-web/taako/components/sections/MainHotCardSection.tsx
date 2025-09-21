@@ -16,7 +16,7 @@ export default function MainHotCardSection(){
         try{
             setSelectedCategoryId(categoryId);
             const res = await getHotCard(categoryId);
-            console.log(res);
+            // console.log(res);
         }catch(err:any){
             console.log(err.message);
         }
