@@ -25,3 +25,9 @@ export const searchCard = async(categoryMajorId:number, categoryMediumId:number,
     })
     return res.data
 }
+
+// 최근 1시간 인기 카드 목록
+export const getHotCard = async(categoryId: number) => {
+  const res = await api.get(`/v1/popularity/categories/${categoryId}/cards`)
+  return res.data
+}
