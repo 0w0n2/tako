@@ -13,4 +13,6 @@ import java.math.BigDecimal;
  */
 public interface AuctionSettlementService {
     void enqueue(Long auctionId, Long winnerMemberId, BigDecimal amount);
+
+    void createEscrowForAuction(Long auctionId, Long winnerMemberId, BigDecimal amount);
 }

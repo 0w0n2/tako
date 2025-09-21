@@ -1,5 +1,6 @@
 package com.bukadong.tcg.api.auction.service;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -22,10 +23,10 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * 경매 종료 서비스
- * <P>
+ * <p>
  * 마감 도달 시 낙찰/유찰을 결정하고 후속 처리를 트리거한다.
  * </P>
- * 
+ *
  * @PARAM auctionId 경매 ID
  * @RETURN 없음
  */
@@ -43,10 +44,10 @@ public class AuctionFinalizeService {
 
     /**
      * 경매 종료 처리 (마감 도달 시에만)
-     * <P>
+     * <p>
      * 입찰 0건이면 UNSOLD(유찰)로 정상 종료한다.
      * </P>
-     * 
+     *
      * @PARAM auctionId 경매 ID
      * @RETURN 없음
      */
@@ -64,7 +65,6 @@ public class AuctionFinalizeService {
         // 유찰(입찰 0건) → 정상 종료
         if (winnerOpt.isEmpty()) {
             auction.markClosed(AuctionCloseReason.NO_BIDS, LocalDateTime.now(KST));
-            auctionRepository.save(auction);
             eventPublisher.publishAuctionUnsold(auctionId);
             afterCommitRemoveIndex(auctionId); // 트랜잭션 커밋 후에 제거
             log.info("Auction closed as UNSOLD (no bids). auctionId={}", auctionId);
@@ -75,17 +75,28 @@ public class AuctionFinalizeService {
         WinnerSnapshot winner = winnerOpt.get();
         auction.setWinner(winner.memberId(), winner.bidId(), winner.amount());
         auction.markClosed(AuctionCloseReason.SOLD, LocalDateTime.now(KST));
-        auctionRepository.save(auction);
 
         Instant closedAt = auction.getClosedAt().atZone(KST).toInstant();
         eventPublisher.publishAuctionSold(auctionId, winner.memberId(), winner.bidId(), winner.amount(), closedAt);
 
-        settlementService.enqueue(auctionId, winner.memberId(), winner.amount());
+        afterCommitCreateEscrow(auctionId, winner.memberId(), winner.amount());
         afterCommitRemoveIndex(auctionId); // 커밋 성공 후에 제거
         log.info("Auction closed as SOLD. auctionId={}, winner={}, amount={}", auctionId, winner.memberId(),
                 winner.amount());
     }
 
+    /* DB 트랜잭션이 성공적으로 커밋된 후에 블록체인 에스크로 생성을 시작 */
+    private void afterCommitCreateEscrow(Long auctionId, Long winnerMemberId, BigDecimal amount) {
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                log.info("DB transaction for Auction ID {} commited. Starting blockchain escrow creation...", auctionId);
+                settlementService.createEscrowForAuction(auctionId, winnerMemberId, amount);
+            }
+        });
+    }
+
+    /* DB 트랜잭션이 성공적으로 커밋된 후에 Redis 인덱스를 제거 */
     private void afterCommitRemoveIndex(Long auctionId) {
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override

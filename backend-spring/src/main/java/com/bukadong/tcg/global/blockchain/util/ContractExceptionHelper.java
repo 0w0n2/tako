@@ -36,4 +36,21 @@ public class ContractExceptionHelper {
             throw new BaseException(BaseResponseStatus.CONTRACT_UNKNOWN);
         }
     }
+
+    /**
+     * TransactionException을 분석하여 에러 로그를 출력
+     */
+    public void logTransactionException(TransactionException e, String context) {
+        String revertReason = e.getTransactionReceipt()
+                .map(TransactionReceipt::getRevertReason)
+                .orElse("No revert reason found");
+
+        Optional<ContractError> errorOpt = ContractErrorDecoder.decode(revertReason);
+        if (errorOpt.isPresent()) {
+            ContractError error = errorOpt.get();
+            log.error("스마트 컨트랙트 트랜잭션 실패. Context: [{}], Decoded Error: [{}]", context, error.name());
+        } else {
+            log.error("알 수 없는 컨트랙트 에러 발생. Context: [{}], Raw Revert Reason: [{}]", context, revertReason);
+        }
+    }
 }

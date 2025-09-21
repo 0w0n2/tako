@@ -159,6 +159,7 @@ public enum BaseResponseStatus {
     AUCTION_ALREADY_ENDED(HttpStatus.BAD_REQUEST, false, 1122, "이미 종료된 경매입니다."),
     AUCTION_EXISTING_BID(HttpStatus.BAD_REQUEST, false, 1123, "입찰이 존재하는 경매는 취소할 수 없습니다."),
 
+    AUCTION_ESCROW_CONTRACT_NOT_FOUND(HttpStatus.BAD_REQUEST, false, 1150, "생성된 에스크로 컨트랙트를 찾을 수 없습니다."),
     /**
      * 1200: 카드 Error
      */
