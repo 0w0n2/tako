@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotBlank;
  */
 public record SepoliaProperties(
         @NotBlank String rpcUrl,
-        @NotBlank String privateKey
+        @NotBlank String privateKey,
+        @NotBlank String walletAddress
 ) {
 }

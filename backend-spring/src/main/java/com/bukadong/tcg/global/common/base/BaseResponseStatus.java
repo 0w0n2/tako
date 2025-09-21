@@ -166,6 +166,9 @@ public enum BaseResponseStatus {
     CARD_ATTRIBUTE_UNSUPPORTED(HttpStatus.BAD_REQUEST, false, 1201, "지원하지 않는 유형의 카드 속성입니다."),
     CARD_NAME_DUPLICATED(HttpStatus.CONFLICT, false, 1202, "중복된 카드 이름은 등록할 수 없습니다."),
     CARD_NOT_FOUND(HttpStatus.NOT_FOUND, false, 1203, "카드 정보를 찾을 수 없습니다."),
+
+    PHYSICAL_CARD_NOT_FOUND(HttpStatus.NOT_FOUND, false, 1250, "실물 카드 정보를 찾을 수 없습니다."),
+
     /**
      * 1300: 메일(SMTP) Error
      */
@@ -180,9 +183,15 @@ public enum BaseResponseStatus {
     NOTIFICATION_CONFLICT(HttpStatus.CONFLICT, false, 1402, "알림 처리 중 충돌이 발생했습니다."),
 
     /**
-     * 1500: 스마트 컨트랙트 Error
+     * 4000: 스마트 컨트랙트 관련 Error
      */
-    SMART_CONTRACT_EXECUTION_ERROR(HttpStatus.BAD_REQUEST, false, 1500, "스마트 컨트랙트 실행 중 오류가 발생했습니다.");
+    CONTRACT_EXECUTION_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, false, 4000, "트랜잭션 처리 중 오류가 발생했습니다."),
+    CONTRACT_UNKNOWN(HttpStatus.INTERNAL_SERVER_ERROR, false, 4001, "알 수 없는 컨트랙트 오류가 발생했습니다."),
+
+    CONTRACT_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, false, 4100, "이 작업을 수행할 권한이 없는 계정입니다."),
+    CONTRACT_INVALID_STATE(HttpStatus.CONFLICT, false, 4101, "현재 컨트랙트 상태에서는 이 작업을 수행할 수 없습니다."),
+    CONTRACT_INCORRECT_AMOUNT(HttpStatus.BAD_REQUEST, false, 4012, "전송된 금액이 정확하지 않습니다.");
+
 
     private final HttpStatusCode httpStatusCode;
     private final boolean isSuccess;

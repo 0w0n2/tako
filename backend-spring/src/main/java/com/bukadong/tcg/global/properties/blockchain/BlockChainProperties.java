@@ -6,8 +6,8 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 @ConfigurationProperties(prefix = "block-chain")
 public record BlockChainProperties(
-    SepoliaProperties sepolia,
-    ContractAddressProperties contractAddress
+        SepoliaProperties sepolia,
+        ContractAddressProperties contractAddress
 ) {
 
 }

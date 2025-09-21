@@ -237,6 +237,8 @@ block-chain:
     sepolia:
       rpc-url: "${SEPOLIA_RPC_URL}"
       private-key: "${SEPOLIA_PRIVATE_KEY}"
+      wallet-address: "${SEPOLIA_WALLET_ADDRESS}"
     contract-address:
       auction:
         factory: "${AUCTION_FACTORY_CONTRACT_ADDRESS}"
+      tako-card-nft: "${TAKO_CARD_NFT_CONTRACT_ADDRESS}"
