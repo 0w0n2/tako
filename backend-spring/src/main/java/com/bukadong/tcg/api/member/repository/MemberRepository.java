@@ -38,4 +38,6 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     boolean existsByNicknameAndIsDeletedIsFalse(String nickname);
 
     boolean existsByWalletAddressAndIsDeletedIsFalse(String walletAddress);
+
+    Optional<Member> findByWalletAddress(String to);
 }

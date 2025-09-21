@@ -34,7 +34,6 @@ public class BaseEntity {
 
     @PreUpdate // 업데이트 전에 동작
     public void preUpdate() {
-        if (updatedAt == null)
-            updatedAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
     }
 }
