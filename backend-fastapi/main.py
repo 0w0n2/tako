@@ -1,5 +1,15 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException, WebSocket, APIRouter, Security, status, Request
-from fastapi.responses import JSONResponse 
+from fastapi import (
+    FastAPI,
+    UploadFile,
+    File,
+    HTTPException,
+    WebSocket,
+    APIRouter,
+    Security,
+    status,
+    Request,
+)
+from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer
 from typing import Dict, Tuple, List
 from PIL import Image, ImageStat
@@ -19,26 +29,32 @@ app = FastAPI(title="Card Condition Checker", root_path="/ai")
 
 api_router = APIRouter(prefix="/ai")
 
+
 @api_router.get("/docs")
 async def docs():
     return {"message": "docs"}
+
 
 app.include_router(api_router)
 
 
 security = HTTPBearer(auto_error=False)
 
+
 async def optional_auth(request: Request, token=Security(security)):
     if request.url.path in ["/docs", "/redoc", "/openapi.json"]:
         return None  # 인증 건너뜀
     if token is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated"
+        )
     return token.credentials
 
 
 # ===== 모델 로딩 (서버 기동 시 1회) =====
 VERIFY_MODEL_PATH = os.getenv("VERIFY_MODEL_PATH", "models/card_verification.pt")
 SEG_MODEL_PATH = os.getenv("SEG_MODEL_PATH", "models/card_segmentation.pt")
+DEFECT_MODEL_PATH = os.getenv("DEFECT_MODEL_PATH", "models/card_defect_detection.pt")
 
 try:
     verify_model = YOLO(VERIFY_MODEL_PATH)
@@ -52,6 +68,12 @@ except Exception as e:
     seg_model = None
     print(f"[WARN] seg_model load failed: {e}")
 
+try:
+    defect_model = YOLO(DEFECT_MODEL_PATH)
+except Exception as e:
+    defect_model = None
+    print(f"[WARN] defect_model load failed: {e}")
+
 # ===== 파라미터/임계값 =====
 ALLOWED_EXT = {".png", ".jpg", ".jpeg", ".webp"}
 MIN_SIZE = (800, 800)  # (w, h)
@@ -60,6 +82,8 @@ BRIGHT_MIN, BRIGHT_MAX = 30, 225
 # YOLO 검증 기준
 CONF_THRESH = 0.50  # 너무 낮으면 400
 AREA_FRAC_MIN = 0.20  # 바운딩박스 영역이 전체의 50% 미만이면 400
+# 결함 검출 기준
+DEFECT_CONF_THRESH = 0.40
 
 
 # 세그멘테이션 곡률 점수
@@ -256,6 +280,47 @@ def segmentation_curvature_percent(img: Image.Image) -> Tuple[float, Dict]:
     }
 
 
+# ===== Step 4: 결함 검출 (YOLO detect) =====
+# 클래스명: tear, cease (가정)
+# 패널티: tear=15, cease=5
+def yolo_detect_defects(img: Image.Image) -> Tuple[int, Dict]:
+    """
+    카드 앞/뒷면의 결함(찢어짐, 구김) 검출.
+    - tear: 개당 15점 감점
+    - cease: 개당 5점 감점
+    """
+    if defect_model is None:
+        raise HTTPException(
+            status_code=500, detail="결함 검출 모델이 로드되지 않았습니다."
+        )
+
+    np_img = pil_to_numpy(img)
+    res = defect_model.predict(
+        source=np_img, verbose=False, conf=DEFECT_CONF_THRESH, imgsz=640
+    )[0]
+
+    penalty = 0
+    detections = []
+
+    if res.boxes is not None and len(res.boxes) > 0:
+        names = res.names
+        for b in res.boxes:
+            cls_idx = int(b.cls.item())
+            name = names.get(cls_idx, f"cls_{cls_idx}")
+            conf = float(b.conf.item())
+            x1, y1, x2, y2 = map(float, b.xyxy[0].tolist())
+
+            # 클래스명은 모델에 따라 확인 필요. tear, cease로 가정
+            if name == "tear":
+                penalty += 15
+            elif name == "cease":
+                penalty += 5
+
+            detections.append({"type": name, "conf": conf, "box": [x1, y1, x2, y2]})
+
+    return penalty, {"detections": detections}
+
+
 # ===== 라우트 =====
 @app.websocket("/condition-check/ws")
 async def condition_check_ws(websocket: WebSocket, job_id: str):
@@ -363,9 +428,11 @@ async def condition_check(
     top2_penalty = sum(sorted(per_image_penalties, reverse=True)[:2])
     bend_penalty_total = min(12, top2_penalty)
 
-    # ---- (미구현 항목 자리) ----
-    # TODO: 변색/찢어짐/오염(중대한 결함), 가장자리/스크래치(사소한 결함) 등 세부 페널티 합산
-    other_penalties = 0
+    # ---- Step 4: 기타 결함 검증 (찢어짐, 구김 등) ----
+    defect_penalty_front, defect_info_front = yolo_detect_defects(imgs["image_front"])
+    defect_penalty_back, defect_info_back = yolo_detect_defects(imgs["image_back"])
+    other_penalties = defect_penalty_front + defect_penalty_back
+    # await notify(job_id, "other_defects", extra={"total_penalty": other_penalties})
 
     # ---- 최종 점수/등급 ----
     base_score = 100
@@ -401,7 +468,11 @@ async def condition_check(
                 },
                 "bend_penalty_total": bend_penalty_total,
             },
-            "other_defects": "TODO",
+            "other_defects": {
+                "front": defect_info_front,
+                "back": defect_info_back,
+                "other_penalties_total": other_penalties,
+            },
         },
         "score": final_score,
         "grade": grade(final_score),
