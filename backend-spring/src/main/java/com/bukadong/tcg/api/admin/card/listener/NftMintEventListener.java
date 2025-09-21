@@ -38,8 +38,9 @@ public class NftMintEventListener {
 
         try {
             // safeMint, registerSecret 컨트랙트 실행
-            mintNft(event.tokenId());
-            registerSecret(event.tokenId(), event.secret());
+            TakoCardNFT contract = loadContract();
+            mintNft(contract, event.tokenId());
+            registerSecret(contract, event.tokenId(), event.secret());
 
             // DB 상태 업데이트
             physicalCardStatusService.updateStatusToMinted(event.physicalCardId(), event.secret());
@@ -61,16 +62,14 @@ public class NftMintEventListener {
     }
 
 
-    private void mintNft(long tokenId) throws Exception {
-        TakoCardNFT contract = loadContract();
+    private void mintNft(TakoCardNFT contract, BigInteger tokenId) throws Exception {
         String serverWalletAddress = blockChainProperties.sepolia().walletAddress();
-        contract.safeMint(serverWalletAddress, BigInteger.valueOf(tokenId)).send();
+        contract.safeMint(serverWalletAddress, tokenId).send();
     }
 
-    private void registerSecret(long tokenId, String secretCode) throws Exception {
-        TakoCardNFT contract = loadContract();
+    private void registerSecret(TakoCardNFT contract, BigInteger tokenId, String secretCode) throws Exception {
         byte[] secretHash = Hash.sha3(secretCode.getBytes());
-        contract.registerSecret(BigInteger.valueOf(tokenId), secretHash).send();
+        contract.registerSecret(tokenId, secretHash).send();
     }
 
     private TakoCardNFT loadContract() {

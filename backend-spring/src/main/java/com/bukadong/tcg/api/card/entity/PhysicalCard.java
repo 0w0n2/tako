@@ -4,11 +4,13 @@ import com.bukadong.tcg.api.member.entity.Member;
 import com.bukadong.tcg.global.common.base.BaseEntity;
 import com.bukadong.tcg.global.util.BigIntegerToStringConverter;
 import jakarta.persistence.*;
+import jnr.a64asm.Mem;
 import lombok.*;
 import org.springframework.util.StringUtils;
 import org.web3j.crypto.Hash;
 
 import java.math.BigInteger;
+import java.util.Optional;
 
 /**
  * 실물 카드 엔티티
@@ -24,14 +26,7 @@ import java.math.BigInteger;
  * </ul>
  */
 @Entity
-@Table(name = "physical_card", uniqueConstraints = {
-        @UniqueConstraint(name = "uk_pcard_token_id", columnNames = "token_id"),
-        @UniqueConstraint(name = "uk_pcard_secret_hash", columnNames = "secret_hash")
-}, indexes = {
-        @Index(name = "idx_pcard_card", columnList = "card_id"),
-        @Index(name = "idx_pcard_owner", columnList = "owner_member_id"),
-        @Index(name = "idx_pcard_token_id", columnList = "token_id")
-})
+@Table(name = "physical_card", uniqueConstraints = {@UniqueConstraint(name = "uk_pcard_token_id", columnNames = "token_id"), @UniqueConstraint(name = "uk_pcard_secret_hash", columnNames = "secret_hash")}, indexes = {@Index(name = "idx_pcard_card", columnList = "card_id"), @Index(name = "idx_pcard_owner", columnList = "owner_member_id"), @Index(name = "idx_pcard_token_id", columnList = "token_id")})
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -52,6 +47,10 @@ public class PhysicalCard extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_member_id", foreignKey = @ForeignKey(name = "FK_physical_card_owner"))
     private Member owner;
+
+    /* 비회원 소유자의 지갑 주소 */
+    @Column(name = "owner_wallet_address", length = 50)
+    private String ownerWalletAddress;
 
     /* 블록체인 상의 고유 NFT ID (uint256) */
     @Convert(converter = BigIntegerToStringConverter.class)
@@ -77,5 +76,15 @@ public class PhysicalCard extends BaseEntity {
 
     public void markAsFailed() {
         this.status = PhysicalCardStatus.FAILED;
+    }
+
+    public void markAsClaimed(String walletAddress, Member owner) {
+        this.status = PhysicalCardStatus.CLAIMED;
+        if (StringUtils.hasText(walletAddress)) {
+            this.ownerWalletAddress = walletAddress;
+        }
+        if (owner != null) {
+            this.owner = owner;
+        }
     }
 }

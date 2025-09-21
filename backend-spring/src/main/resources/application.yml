@@ -148,6 +148,7 @@ logging:
     com.bukadong.tcg.api.media.guard.MediaUploadGuard: DEBUG
     org.springframework.data.redis: INFO
     io.lettuce.core: INFO
+#    com.bukadong.tcg.api.card.listener.NftTransferEventListener: DEBUG
 
 app:
   web-url:

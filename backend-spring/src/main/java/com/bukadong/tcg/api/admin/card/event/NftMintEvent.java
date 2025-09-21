@@ -1,5 +1,7 @@
 package com.bukadong.tcg.api.admin.card.event;
 
+import java.math.BigInteger;
+
 /**
  * NFT 발행을 비동기로 처리하기 위한 이벤트 객체
  *
@@ -9,7 +11,7 @@ package com.bukadong.tcg.api.admin.card.event;
  */
 public record NftMintEvent(
         Long physicalCardId,
-        long tokenId,
+        BigInteger tokenId,
         String secret
 ) {
 }
