@@ -148,7 +148,8 @@ logging:
     com.bukadong.tcg.api.media.guard.MediaUploadGuard: DEBUG
     org.springframework.data.redis: INFO
     io.lettuce.core: INFO
-    # com.bukadong.tcg.global.blockchain.listener: DEBUG
+    com.bukadong.tcg.global.blockchain: DEBUG
+    com.bukadong.tcg.api.auction.service: DEBUG
 
 app:
   web-url:

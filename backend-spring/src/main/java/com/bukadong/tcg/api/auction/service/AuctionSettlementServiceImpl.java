@@ -4,9 +4,7 @@ import java.math.BigDecimal;
 import java.util.Optional;
 
 import com.bukadong.tcg.api.auction.dto.request.CreateAuctionEscrowRequest;
-import com.bukadong.tcg.api.auction.dto.response.CreateAuctionEscrowResponse;
 import com.bukadong.tcg.api.auction.entity.Auction;
-import com.bukadong.tcg.api.auction.entity.AuctionResult;
 import com.bukadong.tcg.api.auction.repository.AuctionRepository;
 import com.bukadong.tcg.api.auction.repository.AuctionResultRepository;
 import com.bukadong.tcg.api.member.entity.Member;
