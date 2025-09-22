@@ -24,6 +24,7 @@ public class DeliveryServiceImpl implements DeliveryService {
     private final AuctionRepository auctionRepository;
     private final DeliveryRepository deliveryRepository;
     private final AddressRepository addressRepository;
+    private final com.bukadong.tcg.api.notification.service.NotificationCommandService notificationService;
 
     private Auction getEndedAuction(long auctionId) {
         Auction a = auctionRepository.findById(auctionId)
@@ -108,7 +109,16 @@ public class DeliveryServiceImpl implements DeliveryService {
         Delivery updated = Delivery.builder().id(d.getId()).senderAddress(d.getSenderAddress())
                 .recipientAddress(d.getRecipientAddress()).trackingNumber(trackingNumber)
                 .status(DeliveryStatus.IN_PROGRESS).build();
-        return deliveryRepository.save(updated);
+        Delivery saved = deliveryRepository.save(updated);
+
+        // 알림: 배송 시작 + 상태 변경 (구매자)
+        Long buyerId = a.getWinnerMemberId();
+        if (buyerId != null) {
+            String auctionTitle = a.getTitle();
+            notificationService.notifyDeliveryStarted(buyerId, a.getId(), auctionTitle);
+            notificationService.notifyDeliveryStatusChanged(buyerId, a.getId(), auctionTitle, "배송중");
+        }
+        return saved;
     }
 
     @Override
@@ -121,7 +131,17 @@ public class DeliveryServiceImpl implements DeliveryService {
             Delivery updated = Delivery.builder().id(d.getId()).senderAddress(d.getSenderAddress())
                     .recipientAddress(d.getRecipientAddress()).trackingNumber(d.getTrackingNumber())
                     .status(DeliveryStatus.COMPLETED).build();
-            deliveryRepository.save(updated);
+            Delivery saved = deliveryRepository.save(updated);
+
+            // 알림: 상태 변경(COMPLETED) + 구매 확정 요청 (구매자)
+            auctionRepository.findByDeliveryId(saved.getId()).ifPresent(a -> {
+                Long buyerId = a.getWinnerMemberId();
+                if (buyerId != null) {
+                    String title = a.getTitle();
+                    notificationService.notifyDeliveryStatusChanged(buyerId, a.getId(), title, "배송완료");
+                    notificationService.notifyDeliveryConfirmRequest(buyerId, a.getId(), title);
+                }
+            });
         }
     }
 
@@ -144,6 +164,10 @@ public class DeliveryServiceImpl implements DeliveryService {
                 .recipientAddress(d.getRecipientAddress()).trackingNumber(d.getTrackingNumber())
                 .status(DeliveryStatus.CONFIRMED).build();
         deliveryRepository.save(updated);
+
+        // 알림: 판매자에게 판매 확정
+        Long sellerId = a.getMember().getId();
+        notificationService.notifySaleConfirmedToSeller(sellerId, a.getId(), a.getTitle());
     }
 
     private void triggerEscrowPayout() {
