@@ -31,6 +31,30 @@ export function friendlyChainName(chainId: bigint | number, fallback?: string) {
   return fallback || `chain(${id})`;
 }
 
+/** 사용자의 브라우저에 맞는 MetaMask 설치 URL 반환 */
+export function getMetaMaskInstallUrl(): string {
+  if (typeof navigator === 'undefined') return 'https://metamask.io/download/';
+  const ua = navigator.userAgent.toLowerCase();
+
+  // iOS/Android는 앱 스토어로
+  if (/iphone|ipad|ipod/.test(ua)) return 'https://apps.apple.com/app/metamask/id1438144202';
+  if (/android/.test(ua)) return 'https://play.google.com/store/apps/details?id=io.metamask';
+
+  // 데스크톱 브라우저별
+  if (/edg\//.test(ua)) {
+    return 'https://microsoftedge.microsoft.com/addons/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn';
+  }
+  // Brave/Opera/Vivaldi 등 크로뮴 계열은 크롬 웹스토어로
+  if (/chrome\//.test(ua) || /crios/.test(ua) || /brave\//.test(ua) || /opr\//.test(ua) || /vivaldi/.test(ua)) {
+    return 'https://chromewebstore.google.com/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn';
+  }
+  if (/firefox/.test(ua)) {
+    return 'https://addons.mozilla.org/firefox/addon/ether-metamask/';
+  }
+  // 그 외(사파리 등)
+  return 'https://metamask.io/download/';
+}
+
 /** 네트워크 전환 지원 */
 const NETWORKS = {
   mainnet: {
