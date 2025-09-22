@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -53,8 +54,6 @@ public class PopularityService {
     /** 분 버킷 TTL (분) */
     @Value("${popularity.bucket.ttl-minutes:70}")
     private long bucketTtlMinutes;
-
-    private static final ZoneId TZ = ZoneId.of("Asia/Seoul");
 
     /**
      * 조회 이벤트 기록
@@ -97,7 +96,7 @@ public class PopularityService {
      */
     @Transactional(readOnly = true)
     public PageResponse<PopularCardDto> getTopCardsLastHour(long categoryId, int page, int size) {
-        LocalDateTime now = LocalDateTime.now(TZ);
+        LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
 
         // 1) 최근 60분 키 생성
         List<String> minuteKeys = new ArrayList<>(60);
@@ -191,7 +190,7 @@ public class PopularityService {
         }
         Long cardId = cardIdOpt.get();
 
-        LocalDateTime now = LocalDateTime.now(TZ);
+        LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
         String key = PopularityKeyUtil.minuteKey(categoryId, now);
 
         // 멤버는 "cardId" 문자열 그대로 사용 → 파싱 단순화

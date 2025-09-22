@@ -27,7 +27,10 @@ spring:
     username: ${DB_USERNAME}
     password: "${DB_PASSWORD}"
     driver-class-name: ${DB_DRIVER}
-
+    hikari:
+      connection-init-sql: "SET time_zone = '+00:00'"
+  jackson:
+    time-zone: UTC
   jpa:
     hibernate:
       ddl-auto: ${JPA_HIBERNATE_DDL}
@@ -35,7 +38,8 @@ spring:
     properties:
       hibernate:
         format_sql: ${JPA_FORMAT_SQL}
-
+        jdbc:
+          time_zone: UTC
   batch:
     job:
       enabled: ${BATCH_JOB_ENABLED}
@@ -235,11 +239,11 @@ app:
         allowed-exts: [jpg, jpeg, png, webp]
 
 block-chain:
-    sepolia:
-      rpc-url: "${SEPOLIA_RPC_URL}"
-      private-key: "${SEPOLIA_PRIVATE_KEY}"
-      wallet-address: "${SEPOLIA_WALLET_ADDRESS}"
-    contract-address:
-      auction:
-        factory: "${AUCTION_FACTORY_CONTRACT_ADDRESS}"
-      tako-card-nft: "${TAKO_CARD_NFT_CONTRACT_ADDRESS}"
+  sepolia:
+    rpc-url: "${SEPOLIA_RPC_URL}"
+    private-key: "${SEPOLIA_PRIVATE_KEY}"
+    wallet-address: "${SEPOLIA_WALLET_ADDRESS}"
+  contract-address:
+    auction:
+      factory: "${AUCTION_FACTORY_CONTRACT_ADDRESS}"
+    tako-card-nft: "${TAKO_CARD_NFT_CONTRACT_ADDRESS}"

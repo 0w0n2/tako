@@ -2,8 +2,10 @@ package com.bukadong.tcg.api.auction.service;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Optional;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,7 +40,7 @@ public class AuctionFinalizeService {
     private final AuctionWinnerQuery auctionWinnerQuery;
     private final AuctionSettlementService settlementService;
     private final AuctionEventPublisher eventPublisher;
-    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
+    private static final ZoneOffset UTC = ZoneOffset.UTC;
     private final AuctionDeadlineIndex deadlineIndex;
 
     /**
@@ -63,7 +65,7 @@ public class AuctionFinalizeService {
 
         // 유찰(입찰 0건) → 정상 종료
         if (winnerOpt.isEmpty()) {
-            auction.markClosed(AuctionCloseReason.NO_BIDS, LocalDateTime.now(KST));
+            auction.markClosed(AuctionCloseReason.NO_BIDS, LocalDateTime.now(UTC));
             auctionRepository.save(auction);
             eventPublisher.publishAuctionUnsold(auctionId);
             afterCommitRemoveIndex(auctionId); // 트랜잭션 커밋 후에 제거
@@ -74,10 +76,10 @@ public class AuctionFinalizeService {
         // 낙찰 처리
         WinnerSnapshot winner = winnerOpt.get();
         auction.setWinner(winner.memberId(), winner.bidId(), winner.amount());
-        auction.markClosed(AuctionCloseReason.SOLD, LocalDateTime.now(KST));
+        auction.markClosed(AuctionCloseReason.SOLD, LocalDateTime.now(UTC));
         auctionRepository.save(auction);
 
-        Instant closedAt = auction.getClosedAt().atZone(KST).toInstant();
+        Instant closedAt = auction.getClosedAt().atZone(UTC).toInstant();
         eventPublisher.publishAuctionSold(auctionId, winner.memberId(), winner.bidId(), winner.amount(), closedAt);
 
         settlementService.enqueue(auctionId, winner.memberId(), winner.amount());

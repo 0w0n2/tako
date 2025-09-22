@@ -83,12 +83,13 @@ public interface AuctionRepository extends JpaRepository<Auction, Long> {
     // 추가
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("""
-                update Auction a
-                   set a.isEnd = true,
-                       a.closeReason = :reason,
-                       a.closedAt = :closedAt
-                 where a.id = :id
-                   and a.isEnd = false
+              update Auction a
+                 set a.isEnd = true,
+                     a.closeReason = :reason,
+                     a.closedAt = :closedAt,
+                     a.updatedAt = :closedAt
+               where a.id = :id
+                 and a.isEnd = false
             """)
     int closeManually(@Param("id") Long id, @Param("reason") AuctionCloseReason reason,
             @Param("closedAt") LocalDateTime closedAt);
@@ -96,7 +97,7 @@ public interface AuctionRepository extends JpaRepository<Auction, Long> {
     /**
      * 마감 도래했고 아직 종료되지 않은 경매를 종료 상태로 전환
      * <P>
-     * isEnd=false && endDatetime<=NOW(KST)인 경우에만 종료 마킹.
+     * isEnd=false && endDatetime<=NOW인 경우에만 종료 마킹.
      * </P>
      * 
      * @PARAM auctionId 경매 ID
@@ -105,15 +106,17 @@ public interface AuctionRepository extends JpaRepository<Auction, Long> {
      */
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("""
-                update Auction a
-                   set a.isEnd = true,
-                       a.closeReason = :reason,
-                       a.closedAt = CURRENT_TIMESTAMP
-                 where a.id = :auctionId
-                   and a.isEnd = false
-                   and a.endDatetime <= CURRENT_TIMESTAMP
+              update Auction a
+                 set a.isEnd = true,
+                     a.closeReason = :reason,
+                     a.closedAt = :nowUtc,
+                     a.updatedAt = :nowUtc
+               where a.id = :auctionId
+                 and a.isEnd = false
+                 and a.endDatetime <= :nowUtc
             """)
-    int closeIfDue(@Param("auctionId") long auctionId, @Param("reason") AuctionCloseReason reason);
+    int closeIfDue(@Param("auctionId") long auctionId, @Param("reason") AuctionCloseReason reason,
+            @Param("nowUtc") LocalDateTime nowUtc);
 
     /**
      * 다건 종료(배치)
@@ -127,15 +130,16 @@ public interface AuctionRepository extends JpaRepository<Auction, Long> {
      */
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("""
-                update Auction a
-                   set a.isEnd = true,
-                       a.closeReason = :reason,
-                       a.closedAt = CURRENT_TIMESTAMP
-                 where a.id in :auctionIds
-                   and a.isEnd = false
-                   and a.endDatetime <= CURRENT_TIMESTAMP
+              update Auction a
+                 set a.isEnd = true,
+                     a.closeReason = :reason,
+                     a.closedAt = :nowUtc
+               where a.id in :auctionIds
+                 and a.isEnd = false
+                 and a.endDatetime <= :nowUtc
             """)
-    int closeIfDueIn(@Param("auctionIds") List<Long> auctionIds, @Param("reason") AuctionCloseReason reason);
+    int closeIfDueIn(@Param("auctionIds") List<Long> auctionIds, @Param("reason") AuctionCloseReason reason,
+            @Param("nowUtc") LocalDateTime nowUtc);
 
     /**
      * 부트스트랩: 미종료 & end_datetime <= horizon 인 경매의 (id, endAtMillis) 목록 (MySQL:

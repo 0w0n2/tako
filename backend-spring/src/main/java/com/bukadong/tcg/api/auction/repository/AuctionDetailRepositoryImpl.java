@@ -10,11 +10,13 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
-
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.math.BigDecimal;
+import java.sql.Timestamp;
+import java.sql.Date;
 import java.time.Duration;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -63,8 +65,10 @@ public class AuctionDetailRepositoryImpl implements AuctionDetailRepository {
 
     @Override
     public List<DailyPriceLine> findWeeklyPriceLinesByCardId(Long cardId) {
-        ZonedDateTime nowKst = ZonedDateTime.now(ZoneId.of("Asia/Seoul"));
-        ZonedDateTime from = nowKst.minusDays(6).toLocalDate().atStartOfDay(ZoneId.of("Asia/Seoul"));
+        // UTC 기준 오늘 00:00에서 6일 전 00:00까지 범위
+        LocalDate todayUtc = LocalDate.now(ZoneOffset.UTC);
+        LocalDate fromDateUtc = todayUtc.minusDays(6);
+        Instant fromStartUtc = fromDateUtc.atStartOfDay().toInstant(ZoneOffset.UTC);
 
         String sql = "SELECT DATE(ar.created_at) AS d, " + "       MIN(ab.amount) AS min_price, "
                 + "       MAX(ab.amount) AS max_price, " + "       AVG(ab.amount) AS avg_price "
@@ -75,10 +79,11 @@ public class AuctionDetailRepositoryImpl implements AuctionDetailRepository {
 
         @SuppressWarnings("unchecked")
         List<Object[]> rows = em.createNativeQuery(sql).setParameter("cardId", cardId)
-                .setParameter("fromDate", java.sql.Timestamp.valueOf(from.toLocalDateTime())).getResultList();
+                // UTC Instant -> Timestamp
+                .setParameter("fromDate", Timestamp.from(fromStartUtc)).getResultList();
 
-        return rows.stream()
-                .map(r -> DailyPriceLine.builder().date(((java.sql.Date) r[0]).toLocalDate())
+        return rows
+                .stream().map(r -> DailyPriceLine.builder().date(((Date) r[0]).toLocalDate())
                         .minPrice((BigDecimal) r[1]).maxPrice((BigDecimal) r[2]).avgPrice((BigDecimal) r[3]).build())
                 .collect(Collectors.toList());
     }
