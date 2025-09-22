@@ -19,6 +19,7 @@ module.exports = {
         Unoptimized: true,
       },
     ],
+    unoptimized: true,
   },
 
   reactStrictMode: true,
