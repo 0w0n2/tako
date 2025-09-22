@@ -170,12 +170,12 @@ app:
         max-count: 1
         allowed-mimes: [image/jpeg, image/png, image/webp]
         allowed-exts: [jpg, jpeg, png, webp]
-      MEMBER_BACKGROUND:
-        per-file: 5MB
-        per-request: 10MB
-        max-count: 1
-        allowed-mimes: [image/jpeg, image/png, image/webp]
-        allowed-exts: [jpg, jpeg, png, webp]
+        image:
+          square: true
+          min-width: 256
+          min-height: 256
+          max-width: 2048
+          max-height: 2048
 
       AUCTION_ITEM:
         per-file: 8MB

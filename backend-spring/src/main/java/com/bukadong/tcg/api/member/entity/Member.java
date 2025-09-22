@@ -137,16 +137,4 @@ public class Member {
             this.walletAddress = walletAddress;
         }
     }
-
-    public void changeNickname(String nickname) {
-        if (StringUtils.hasText(nickname)) {
-            this.nickname = nickname;
-        }
-    }
-
-    public void changeIntroduction(String introduction) {
-        if (introduction != null) {
-            this.introduction = introduction;
-        }
-    }
 }

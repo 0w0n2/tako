@@ -23,7 +23,6 @@ public class MediaDirResolver {
             return BASE_PREFIX;
         String suffix = switch (type) {
         case MEMBER_PROFILE -> "member/profile";
-        case MEMBER_BACKGROUND -> "member/background";
         case AUCTION_ITEM -> "auction/item";
         case AUCTION_AI -> "auction/ai";
         case AUCTION_REVIEW -> "auction/review";
@@ -33,8 +32,7 @@ public class MediaDirResolver {
         case NOTICE -> "notice";
         case NOTICE_ATTACHMENT -> "notice/attachment";
         case INQUIRY -> "inquiry";
-        default -> ""; // future-safe: unknown types map to base prefix
         };
-        return suffix.isEmpty() ? BASE_PREFIX : BASE_PREFIX + "/" + suffix;
+        return BASE_PREFIX + "/" + suffix;
     }
 }
