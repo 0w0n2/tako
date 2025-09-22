@@ -46,7 +46,7 @@ export default function MainItemListSection({id}:{id:number}) {
                         spaceBetween={30}
                         navigation={true}
                         modules={[Navigation]}
-                        className="end-close-auction">
+                        className={`category-${id}`}>
                         {auctions.map((item, index) => (
                             <SwiperSlide key={index}>
                                 <AuctionCard item={item} />
