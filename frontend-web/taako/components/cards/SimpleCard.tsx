@@ -15,7 +15,7 @@ export default function SimpleCard(props: SimpleCardProps) {
   const width = cardSize.width;
 
   const { basePng, hiresPng } = useMemo(() => {
-    const baseUrl = props.imageUrl.split('?')[0];
+    const baseUrl = props.imageUrl
 
     if (baseUrl.endsWith("_hires.png")) {
       return { basePng: baseUrl.replace("_hires.png", ".png"), hiresPng: baseUrl }
