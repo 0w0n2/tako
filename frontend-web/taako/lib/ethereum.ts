@@ -8,40 +8,30 @@ export function getMetaMaskProvider():
   if (typeof window === 'undefined') return undefined;
   const eth: any = (window as any).ethereum;
   if (!eth) return undefined;
-  if (Array.isArray(eth?.providers)) {
-    // 여러 확장(OKX, Coinbase 등) 중 메타마스크 골라잡기
-    return eth.providers.find((p: any) => p?.isMetaMask);
-  }
+  if (Array.isArray(eth?.providers)) return eth.providers.find((p: any) => p?.isMetaMask);
   return eth;
 }
 
-/** 메타마스크가 설치되어 있으면 BrowserProvider, 아니면 null */
+/** BrowserProvider 생성 */
 export function getBrowserProvider(): BrowserProvider | null {
   const mm = getMetaMaskProvider();
   if (!mm) return null;
   return new BrowserProvider(mm as any);
 }
 
-/** 계정 요청(팝업) */
-export async function requestAccounts(): Promise<string[]> {
-  const provider = getBrowserProvider();
-  if (!provider) throw new Error('MetaMask가 설치되어 있지 않습니다.');
-  return provider.send('eth_requestAccounts', []);
+/** 주소 유효성 */
+export const isValidAddress = (addr: string) => isAddress(addr);
+
+/** 친숙한 체인명 */
+// 사람이 읽기 쉬운 체인 이름 (bigint 리터럴 없이)
+export function friendlyChainName(chainId: bigint | number, fallback?: string) {
+  const id = typeof chainId === 'bigint' ? Number(chainId) : chainId;
+  if (id === 1) return 'mainnet';
+  if (id === 11155111) return 'sepolia';
+  return fallback || `chain(${id})`;
 }
 
-/** 주소 유효성 검사 */
-export function isValidAddress(addr: string): boolean {
-  return isAddress(addr);
-}
-
-/** 사람이 읽기 쉬운 체인 이름 */
-export function friendlyChainName(chainId: bigint, fallback?: string) {
-  if (chainId === 1n) return 'mainnet';
-  if (chainId === 11155111n) return 'sepolia';
-  return fallback || `chain(${chainId})`;
-}
-
-/** (옵션) 네트워크 전환 지원 — 필요 없으면 export 제거해도 OK */
+/** 네트워크 전환 지원 */
 const NETWORKS = {
   mainnet: {
     chainIdHex: '0x1',
@@ -58,6 +48,7 @@ const NETWORKS = {
     nativeCurrency: { name: 'Sepolia ETH', symbol: 'SEP', decimals: 18 },
   },
 } as const;
+
 export type NetworkKey = keyof typeof NETWORKS;
 
 export async function switchNetwork(key: NetworkKey) {
@@ -71,7 +62,6 @@ export async function switchNetwork(key: NetworkKey) {
       params: [{ chainId: target.chainIdHex }],
     });
   } catch (e: any) {
-    // 4902: 지갑에 네트워크가 없으면 추가 후 재시도
     if (e?.code === 4902) {
       await (mm as any).request({
         method: 'wallet_addEthereumChain',

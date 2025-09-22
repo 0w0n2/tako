@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useEffect } from "react";
 import { getMajorCategories } from "@/lib/category";
 import { MajorCategories } from "@/types/category";
