@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import AuctionCard from "@/components/auction/AuctionCard"
-import { useEffect, useState } from "react";
-import { useAuction } from "@/hooks/useAuction";
+import { useMemo } from "react";
+import { useAuctionsQuery } from "@/hooks/useAuctionsQuery";
+import { GetAuction } from "@/types/auction";
 
 import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
@@ -12,31 +13,19 @@ import { Navigation } from 'swiper/modules';
 import { ChevronRight } from 'lucide-react';
 
 export default function MainItemEndCloseSection() {
-    const { handlerGetAuctions, loading, error } = useAuction();
-    const [auctions, setAuctions] = useState([]);
-
-    useEffect(() => {
-        const fetch = async () => {
-            try{
-                const res = await handlerGetAuctions({ sort: "ENDTIME_ASC" }); // 경매 조회 함수를 마감 임박순으로 불러옴
-                setAuctions(res.result.content);
-            }catch(err){
-                console.log(err);
-            }
-        };
-        fetch();
-    }, []);
+    const { data, isLoading, isError } = useAuctionsQuery({ sort: 'ENDTIME_ASC' });
+    const auctions: GetAuction[] = (data?.result?.content ?? []) as GetAuction[];
 
     return (
         <div className="default-container">
             <Link href={`/search?sort=ENDTIME_ASC`}>
                 <h2 className="mb-6 flex gap-1 items-center">마감 임박 경매 <ChevronRight /></h2>
             </Link>
-            {loading ? (
+            {isLoading ? (
                 <div className="flex justify-center items-center h-50 text-sm text-[#a5a5a5]">
                     경매를 불러오는 중입니다
                 </div>
-            ) : error ? (
+            ) : isError ? (
                 <div className="flex justify-center items-center h-50 text-sm text-red-500">
                     경매 데이터를 불러오는데 실패했습니다
                 </div>
@@ -52,7 +41,7 @@ export default function MainItemEndCloseSection() {
                         navigation={true}
                         modules={[Navigation]}
                         className="end-close-auction">
-                        {auctions.map((item, index) => (
+                        {auctions.map((item: GetAuction, index: number) => (
                             <SwiperSlide key={index}>
                                 <AuctionCard item={item} />
                             </SwiperSlide>

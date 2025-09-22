@@ -18,8 +18,6 @@ module.exports = {
       {
         protocol: 'https',
         hostname: 'bukadong-bucket.s3.ap-northeast-2.amazonaws.com',
-        port: '',
-        pathname: '/media/**',
       },
     ],
   },

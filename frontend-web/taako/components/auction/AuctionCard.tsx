@@ -59,9 +59,7 @@ export default function AuctionCard({ item }: { item: GetAuction }){
                             width={300} 
                             height={300}
                             className="w-full h-full object-cover rounded"
-                            onError={(e) => {
-                                e.currentTarget.src = '/no-image.jpg';
-                            }}
+                            unoptimized
                         />
                     </div>
                     <div className="w-full p-4 relative flex flex-col gap-2 bg-white/30 backdrop-blur-lg text-black rounded-lg">
