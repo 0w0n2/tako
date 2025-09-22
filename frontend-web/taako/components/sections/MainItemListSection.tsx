@@ -15,15 +15,11 @@ export default function MainItemListSection({id}:{id:number}) {
 
     useEffect(() => {
         const fetch = async () => {
-            try {
-                const res = await handlerGetAuctions({ categoryMajorId:id }); // 포켓몬
-                setAuctions(res.result.content);
-            } catch (err) {
-                console.error("경매 데이터 로딩 실패:", err);
-            }
+            const res = await handlerGetAuctions({ categoryMajorId:id }); // 포켓몬
+            setAuctions(res.result.content);
         };
         fetch();
-    }, [handlerGetAuctions]);
+    }, []);
 
     return (
         <div className="default-container">
