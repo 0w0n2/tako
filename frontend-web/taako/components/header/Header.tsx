@@ -123,7 +123,7 @@ export default function Header() {
                     <li key={component.id}>
                       <NavigationMenuLink asChild>
                         <Link className="rounded-md flex flex-col items-center flex-1 py-6 hover:bg-[#f2b90c]/10"
-                        href={`/category/${component.name}?categoryName=${component.name}`}>
+                        href={`/category/${component.id}?categoryName=${component.name}`}>
                           
                           {/* <Image src={component.image} alt={component.title} width={100} height={100} /> */}
                           {component.name}
