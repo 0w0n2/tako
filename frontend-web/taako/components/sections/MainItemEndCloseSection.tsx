@@ -17,8 +17,12 @@ export default function MainItemEndCloseSection() {
 
     useEffect(() => {
         const fetch = async () => {
-            const res = await handlerGetAuctions({ sort: "ENDTIME_ASC" }); // 경매 조회 함수를 마감 임박순으로 불러옴
-            setAuctions(res.result.content);
+            try{
+                const res = await handlerGetAuctions({ sort: "ENDTIME_ASC" }); // 경매 조회 함수를 마감 임박순으로 불러옴
+                setAuctions(res.result.content);
+            }catch(err){
+                console.log(err);
+            }
         };
         fetch();
     }, []);
