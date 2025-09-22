@@ -9,19 +9,20 @@ const DOMAINS = {
 const { SITE, API } = DOMAINS[APP_STAGE] || DOMAINS.dev;
 
 module.exports = {
+  reactStrictMode: true,
+  swcMinify: true,
+
+  // 이미지 도메인 설정
   images: {
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'bukadong-bucket.s3.ap-northeast-2.amazonaws.com',
+        port: '',
         pathname: '/media/**',
       },
     ],
-    unoptimized: false, // Next.js 이미지 최적화 기능 사용
   },
-
-  reactStrictMode: true,
-  swcMinify: true,
 
   // 클라이언트에 주입할 값
   env: {

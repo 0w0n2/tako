@@ -28,11 +28,9 @@ export default function RootLayout({
       <body className={`${montserrat.className}`}>
         <MosaicReveal />
         <Header />
-        <TopPadding>
-          <div>
-            {children}
-          </div>
-        </TopPadding>
+        <div className="py-30">
+          {children}
+        </div>
         <Footer />
       </body>
     </html>
