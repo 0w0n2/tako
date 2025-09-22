@@ -6,6 +6,9 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Optional;
 
+import com.bukadong.tcg.api.auction.entity.AuctionResult;
+import com.bukadong.tcg.api.auction.repository.AuctionResultRepository;
+import com.bukadong.tcg.api.bid.repository.AuctionBidRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -39,8 +42,8 @@ public class AuctionFinalizeService {
     private final AuctionWinnerQuery auctionWinnerQuery;
     private final AuctionSettlementService settlementService;
     private final AuctionEventPublisher eventPublisher;
-    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
     private final AuctionDeadlineIndex deadlineIndex;
+    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 
     /**
      * 경매 종료 처리 (마감 도달 시에만)
@@ -53,8 +56,9 @@ public class AuctionFinalizeService {
      */
     @Transactional
     public void finalizeIfDue(Long auctionId) {
+        log.info(">>>> finalizeIfDue 진입: auctionId={}", auctionId);
         Auction auction = auctionRepository.findByIdForUpdate(auctionId)
-                .orElseThrow(() -> new BaseException(BaseResponseStatus.NOT_FOUND));
+                .orElseThrow(() -> new IllegalStateException("Auction is not found"));
 
         if (!auction.isClosableNow()) {
             return; // 아직 마감 시간이 아님

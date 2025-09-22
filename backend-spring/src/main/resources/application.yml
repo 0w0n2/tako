@@ -149,7 +149,7 @@ logging:
     org.springframework.data.redis: INFO
     io.lettuce.core: INFO
     com.bukadong.tcg.global.blockchain: DEBUG
-    com.bukadong.tcg.api.auction.service: DEBUG
+    # com.bukadong.tcg.api.auction: DEBUG
 
 app:
   web-url:
