@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # 의존성 설치 (캐시 최대화)
 COPY package.json package-lock.json ./
-RUN npm ci --no-audit --no-fund --include=dev
+RUN npm ci --no-audit --no-fund --include=dev --build-from-source=lightningcss
 
 # 소스 복사 & 빌드
 COPY . .
