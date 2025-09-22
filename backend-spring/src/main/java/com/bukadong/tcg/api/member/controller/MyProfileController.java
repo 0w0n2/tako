@@ -15,9 +15,11 @@ import com.bukadong.tcg.global.security.dto.CustomUserDetails;
 import jakarta.validation.Valid;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
 @RestController
+@Tag(name = "Member")
 @RequestMapping("/v1/members")
 @RequiredArgsConstructor
 @Validated
