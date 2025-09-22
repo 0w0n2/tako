@@ -3,6 +3,7 @@ package com.bukadong.tcg.api.media.entity;
 /** 미디어 소유 리소스 타입 */
 public enum MediaType {
     MEMBER_PROFILE, // 회원 프로필
+    MEMBER_BACKGROUND,  // 회원 배경화면
     NOTICE_ATTACHMENT, // 공지사항 첨부파일
     CARD, // 카드
     CATEGORY_MAJOR, // 대분류
