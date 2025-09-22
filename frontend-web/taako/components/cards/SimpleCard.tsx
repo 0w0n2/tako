@@ -15,17 +15,19 @@ export default function SimpleCard(props: SimpleCardProps) {
   const width = cardSize.width;
 
   const { basePng, hiresPng } = useMemo(() => {
-    if (props.imageUrl.endsWith("_hires.png")) {
-      return { basePng: props.imageUrl.replace("_hires.png", ".png"), hiresPng: props.imageUrl }
+    const baseUrl = props.imageUrl.split('?')[0];
+
+    if (baseUrl.endsWith("_hires.png")) {
+      return { basePng: baseUrl.replace("_hires.png", ".png"), hiresPng: baseUrl }
     }
-    if (props.imageUrl.endsWith(".png")) {
+    if (baseUrl.endsWith(".png")) {
       return {
-        basePng: props.imageUrl,
-        hiresPng: props.imageUrl.replace(/\.png$/, "_hires.png"),
+        basePng: baseUrl,
+        hiresPng: baseUrl.replace(/\.png$/, "_hires.png"),
       }
     }
     // 확장자 없는 예외 케이스는 원본만 사용
-    return { basePng: props.imageUrl, hiresPng: props.imageUrl }
+    return { basePng: baseUrl, hiresPng: baseUrl }
   }, [props.imageUrl])
 
   const [src, setSrc] = useState<string>(hiresPng)
@@ -43,6 +45,7 @@ export default function SimpleCard(props: SimpleCardProps) {
         alt="card-image"
         fill
         sizes="100vw"
+        unoptimized
         style={{ objectFit: 'contain' }}
         onError={() => {
           if (src !== basePng) setSrc(basePng)

@@ -15,25 +15,15 @@ module.exports = {
         protocol: 'https',
         hostname: 'bukadong-bucket.s3.ap-northeast-2.amazonaws.com',
         port: '',
-        pathname: '/media/card/**',
+        pathname: '/media/**',
+        Unoptimized: true,
       },
     ],
+    unoptimized: true,
   },
 
   reactStrictMode: true,
   swcMinify: true,
-
-  // 이미지 도메인 설정
-  images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'bukadong-bucket.s3.ap-northeast-2.amazonaws.com',
-        port: '',
-        pathname: '/media/card/**',
-      },
-    ],
-  },
 
   // 클라이언트에 주입할 값
   env: {

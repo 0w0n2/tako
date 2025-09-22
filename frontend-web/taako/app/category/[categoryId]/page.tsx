@@ -250,7 +250,7 @@ export default function CategoryPage({ params }: CategoryPageProps) {
                     <Link href={`/category/${categoryId}/${card.id}`}>
                     <SimpleCard 
                       key={card.id} 
-                      imageUrl={card.imageUrls[0] || '/no-image.jpg'} 
+                      imageUrl={(card.imageUrls && card.imageUrls.length > 0) ? card.imageUrls[0] : '/no-image.jpg'} 
                       cardType={cardType}
                     />
                     </Link>
