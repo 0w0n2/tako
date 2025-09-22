@@ -1,6 +1,7 @@
 package com.bukadong.tcg.api.member.entity;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -8,22 +9,17 @@ import org.springframework.util.StringUtils;
 
 /**
  * 회원 엔티티
- *
  * <p>
- * - uuid, email, nickname은 UNIQUE 제약
- * - role, is_deleted에 인덱스 생성
+ * - uuid, email, nickname은 UNIQUE 제약 - role, is_deleted에 인덱스 생성
  * </p>
  */
 @Entity
-@Table(name = "member", uniqueConstraints = {
-        @UniqueConstraint(name = "uk_member_uuid", columnNames = "uuid"),
+@Table(name = "member", uniqueConstraints = { @UniqueConstraint(name = "uk_member_uuid", columnNames = "uuid"),
         @UniqueConstraint(name = "uk_member_email", columnNames = "email"),
         @UniqueConstraint(name = "uk_member_nickname", columnNames = "nickname"),
-        @UniqueConstraint(name = "uk_wallet_address", columnNames = "wallet_address")
-}, indexes = {
-        @Index(name = "idx_member_role", columnList = "role"),
-        @Index(name = "idx_member_deleted", columnList = "is_deleted")
-})
+        @UniqueConstraint(name = "uk_wallet_address", columnNames = "wallet_address") }, indexes = {
+                @Index(name = "idx_member_role", columnList = "role"),
+                @Index(name = "idx_member_deleted", columnList = "is_deleted") })
 @Getter
 @Builder
 @NoArgsConstructor
@@ -109,7 +105,7 @@ public class Member {
      */
     @PrePersist
     public void onCreate() {
-        final LocalDateTime now = LocalDateTime.now();
+        final LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
         this.createdAt = now;
         this.updatedAt = now;
         if (this.isDeleted == null)
@@ -121,7 +117,7 @@ public class Member {
      */
     @PreUpdate
     public void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now(ZoneOffset.UTC);
     }
 
     /**
@@ -129,7 +125,7 @@ public class Member {
      */
     public void softDelete() {
         this.isDeleted = true;
-        this.deletedAt = LocalDateTime.now();
+        this.deletedAt = LocalDateTime.now(ZoneOffset.UTC);
     }
 
     public void updatePassword(String encodedPassword) {

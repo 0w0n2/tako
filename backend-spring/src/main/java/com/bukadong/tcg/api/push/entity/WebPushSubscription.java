@@ -5,14 +5,13 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 /**
  * 웹푸쉬(FCM/Web Push) 구독 엔티티
- *
  * <p>
  * 회원이 등록한 WebPush/FCM 구독 정보를 저장한다.
  * </p>
- *
  * <ul>
  * <li>id는 BIGINT AUTO_INCREMENT</li>
  * <li>endpoint는 고유(UNIQUE)</li>
@@ -21,10 +20,8 @@ import java.time.LocalDateTime;
  */
 @Entity
 @Table(name = "webpush_subscription", uniqueConstraints = {
-        @UniqueConstraint(name = "uk_push_endpoint", columnNames = "endpoint")
-}, indexes = {
-        @Index(name = "idx_push_member", columnList = "member_id")
-})
+        @UniqueConstraint(name = "uk_push_endpoint", columnNames = "endpoint") }, indexes = {
+                @Index(name = "idx_push_member", columnList = "member_id") })
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -61,7 +58,7 @@ public class WebPushSubscription {
     @PrePersist
     void prePersist() {
         if (createdAt == null) {
-            createdAt = LocalDateTime.now();
+            createdAt = LocalDateTime.now(ZoneOffset.UTC);
         }
     }
 }

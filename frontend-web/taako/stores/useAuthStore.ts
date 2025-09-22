@@ -1,15 +1,7 @@
 import api from "@/lib/api";
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-
-interface AuthState {
-  token: string | null;
-  loading: boolean;
-  error: string | null;
-  login: (email: string, password: string) => Promise<void>;
-  refreshAccessToken: () => Promise<string | null>;
-  logout: () => void;
-}
+import { AuthState } from "@/types/auth";
 
 export const useAuthStore = create<AuthState>()(
   persist(
@@ -58,10 +50,10 @@ export const useAuthStore = create<AuthState>()(
       refreshAccessToken: async () => {
         try {
           const oldToken = get().token;
-          const res = await api.post("/v1/auth/token/refresh", {}, {
-            headers: { Authorization: oldToken },
-            withCredentials: true,
-          }
+          const res = await api.post("/v1/auth/token/refresh", undefined, { // payload 없음으로 판단하고 헤더 사용
+              headers: { Authorization: oldToken },
+              withCredentials: true,
+            }
           );
           console.log(res);
           const token = res.headers["authorization"];
@@ -69,7 +61,7 @@ export const useAuthStore = create<AuthState>()(
           return token;
         } catch (err: any) {
           console.error("재요청 실패: ", err);
-          set({ token: null });
+          // set({ token: null });
           return null;
         }
       },

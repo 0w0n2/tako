@@ -1,26 +1,8 @@
-/*
-
-  REVERSE HOLO
-
-*/
-
-
-
-
-
-
-
-/*
-
-  SHINE LAYERS
-
-*/
 .card {
   --foil-brightness: 0.55;
 }
 
 .card[data-rarity$="reverse holo"] .card__shine {
-
   background-image:
     radial-gradient(circle at var(--pointer-x) var(--pointer-y),
       #fff 5%,
@@ -31,14 +13,11 @@
       #fff,
       #000 85%),
     var(--foil);
-
   background-blend-mode: soft-light, difference;
   background-size: 120% 120%, 200% 200%, cover;
   background-position: center center, calc((100% * var(--pointer-from-left))) calc((100% * var(--pointer-from-top))), center center;
-
   filter: brightness(var(--foil-brightness)) contrast(1.5) saturate(1);
   mix-blend-mode: color-dodge;
-
   opacity: calc((1.5 * var(--card-opacity)) - var(--pointer-from-center));
 
 }
@@ -56,72 +35,36 @@
 }
 
 
-
-
-
-
-
-
-
-/*
-
-  GLARE LAYERS
-
-*/
-
 .card[data-rarity$="reverse holo"] .card__glare {
-
   opacity: var(--card-opacity);
-
   background-image:
     radial-gradient(farthest-corner circle at var(--pointer-x) var(--pointer-y),
-      hsla(0, 0%, 100%, 0.8) 10%,
-      hsla(0, 0%, 100%, 0.5) 20%,
-      hsla(0, 0%, 0%, 0.75) 90%);
-
+      hsl(0deg 0% 100% / 80%) 10%,
+      hsl(0deg 0% 100% / 50%) 20%,
+      hsl(0deg 0% 0% / 75%) 90%);
   filter: brightness(.7) contrast(1.5);
 
 }
 
-.card[data-rarity$="reverse holo"] .card__glare:after {
-
+.card[data-rarity$="reverse holo"] .card__glare::after {
   content: "";
   opacity: var(--card-opacity);
-
   background-image:
     radial-gradient(farthest-corner circle at var(--pointer-x) var(--pointer-y),
-      hsl(0, 0%, 100%) 10%,
-      hsla(0, 0%, 100%, 0.5) 20%,
-      hsla(0, 0%, 0%, 0.5) 120%);
-
+      hsl(0deg 0% 100%) 10%,
+      hsl(0deg 0% 100% / 50%) 20%,
+      hsl(0deg 0% 0% / 50%) 120%);
   filter: brightness(1) contrast(1.5);
 
 }
 
 
-
-
-
-
-
-
-
-
-/*
-
-  NO MASK
-
-*/
-
 .card:not(.masked)[data-rarity$="reverse holo"] .card__shine {
   --foil: none;
+
   clip-path: var(--clip-invert);
 }
 
-/* subtypes 의존성 제거 */
-clip-path: var(--clip-stage-invert);
-}
-
-/* supertype 의존성 제거 */
-clip-path: var(--clip-trainer-invert);
+.card--trainer {
+  clip-path: var(--clip-trainer-invert);
 }

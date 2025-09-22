@@ -42,16 +42,19 @@ export interface WeeklyAuctions {
 
 // 경매 등록 폼
 export interface AuctionFormProps {
-  images: File[];
-  category: {
-    majorCategoryName: string;
-    minorCategoryName: string;
-  };
-  title: string;
-  description: string;
-  calendar: any;
-  bidUnit: number;
-  startPrice: number;
-  buyItNow: boolean;
-  buyItNowPrice: number;
+  files: File[];
+  requestDto: {
+    gradeHash:string|null,
+    categoryMajorId: number|null,
+    categoryMediumId: number|null,
+    cardId: number|null,
+    title: string;
+    detail: string;
+    startDatetime: string;
+    endDatetime: string;
+    buyNowFlag: boolean;
+    buyNowPrice: number;
+    bidUnit: number;
+    startPrice: number;
+  }
 }

@@ -3,14 +3,14 @@
 import { useSpring, animated, to } from "@react-spring/web"
 import { useEffect, useState, useRef, useMemo } from "react"
 import { clamp, round, adjust } from "./lib/math"
+import rarityData from "./rarity.json"
+
 
 type EffectCardProps = {
   types: string[] | string;
   rarity: string;
   img: string;
   type?: string;
-  foil?: string;
-  mask?: string;
 }
 
 export default function EffectCard({
@@ -18,8 +18,6 @@ export default function EffectCard({
   rarity: initialRarity,
   img,
   type,
-  foil: initialFoil,
-  mask: initialMask,
 }: EffectCardProps) {
   const [loading, setLoading] = useState(true)
   const [frontSrc, setFrontSrc] = useState<string>("")
@@ -50,116 +48,49 @@ export default function EffectCard({
 
 
   const finalRarity = useMemo(() => {
-    const validRarities = [
-      "radiant rare",
-      "trainer gallery rare holo", 
-      "rare holo cosmos",
-      "rare holo v",
-      "uncommon",
-      "rare holo vstar",
-      "rare holo vmax",
-      "common",
-      "rare secret",
-      "pikachu",
-      "rare shiny",
-      "rare shiny v",
-      "rare shiny vmax"
-    ];
+    // rarity.json의 rarityMapping에서 직접 매핑된 값이 있는지 확인
+    const mappedRarity = (rarityData.rarityMapping as any)[initialRarity];
+    if (mappedRarity) {
+      return mappedRarity;
+    }
     
+    // 매핑되지 않은 경우 패턴 매칭으로 fallback
+    const validRarities = Object.values(rarityData.rarityMapping);
     let r = initialRarity.toLowerCase();
     
     if (!validRarities.includes(r)) {
-      if (r.includes("pikachu")) {
-        r = "pikachu";
-      } else if (r.includes("rare secret")) {
-        r = "rare secret"
-      } else if (r.includes("rare shiny vmax")) {
-        r = "rare shiny vmax"
-      } else if (r.includes("rare shiny v")) {
-        r = "rare shiny v"
-      } else if (r.includes("rare shiny")) {
-        r = "rare shiny"
-      } else if (r.includes("rare holo vmax")) {
-        r = "rare holo vmax"
-      } else if (r.includes("rare holo vstar")) {
-        r = "rare holo vstar"
-      } else if (r.includes("rare holo v")) {
-        r = "rare holo v";
-      } else if (r.includes("rare holo cosmos")) {
-        r = "rare holo cosmos"
-      } else if (r.includes("trainer gallery")) {
-        r = "trainer gallery rare holo"
-      } else if (r.includes("radiant")) {
-        r = "radiant rare"
-      } else if (r.includes("uncommon")) {
-        r = "uncommon"
+      // rarity.json의 patternMapping을 사용하여 패턴 매칭
+      const matchedPattern = (rarityData.patternMapping as any[]).find(
+        item => r.includes(item.pattern)
+      );
+      
+      if (matchedPattern) {
+        r = matchedPattern.rarity;
       } else {
-        r = "common"
+        r = rarityData.defaultRarity;
       }
     }
     
     return r;
   }, [initialRarity]);
 
-  const isTrainerGallery = useMemo(
-    () => finalRarity === "trainer gallery rare holo",
-    [finalRarity]
-  );
 
-  const foilUrl = useMemo(() => {
-    return foilMaskImage(initialFoil, "foils")
-  }, [initialFoil, finalRarity]);
 
-  const maskUrl = useMemo(() => {
-    return foilMaskImage(initialMask, "masks")
-  }, [initialMask, finalRarity]);
 
-  function foilMaskImage(prop: string | undefined, type: "foils" | "masks") {
-    if (prop) {
-      if (prop === "false") return "";
-      if (prop.startsWith('/effects/') || prop.startsWith('effects/')) {
-        return prop.startsWith('/') ? prop : `/${prop}`
-      }
-      return prop;
-    }
-
-    const foilMapping: { [key: string]: string } = {
-      'radiant rare': '/effects/angular.png',
-      'trainer gallery rare holo': '/effects/trainerbg.png',
-      'rare holo cosmos': '/effects/cosmos.png',
-      'rare holo v': '/effects/illusion.png',
-      'uncommon': '/effects/wave.png',
-      'rare holo vstar': '/effects/ancient.png',
-      'rare holo vmax': '/effects/vmaxbg.jpg',
-      'common': '/effects/wave.png',
-    };
-
-    const maskMapping: { [key: string]: string } = {
-      'rare holo cosmos': '/effects/cosmos-middle-trans.png',
-      'rare holo vmax': '/effects/vmaxbg.jpg',
-      'rare holo vstar': '/effects/ancient.png',
-      'rare holo v': '/effects/illusion-mask.png',
-      'trainer gallery rare holo': '/effects/trainerbg.png',
-      'radiant rare': '/effects/angular.png',
-      'uncommon': '/effects/wave.png',
-      'common': '/effects/wave.png',
-    };
-
-    const mapping = type === 'masks' ? maskMapping : foilMapping;
-    
-    return mapping[finalRarity] || '';
+  function getRarityEffect(rarity: string, type: "foil" | "mask") {
+    const mapping = type === 'mask' ? rarityData.maskMapping : rarityData.foilMapping;
+    return (mapping as any)[rarity] || '';
   }
 
-  const getCardBackImage = (cardType?: string) => {
+  const getCardBackImage = (type?: string) => {
     const backMapping: { [key: string]: string } = {
       'pokemon': '/card-back/pokemon-back.jpg',
       'yugioh': '/card-back/yugioh-back.jpg',
-      'cookierun': '/card-back/cookierun-back.png',
-      'cookie run': '/card-back/cookierun-back.png',
+      'cookierun': '/card-back/cookierun-back.png'
     };
 
-    return cardType && backMapping[cardType.toLowerCase()] 
-      ? backMapping[cardType.toLowerCase()] 
+    return type && backMapping[type.toLowerCase()] 
+      ? backMapping[type.toLowerCase()] 
       : '/card-back/pokemon-back.jpg';
   };
 
@@ -239,10 +170,15 @@ export default function EffectCard({
     "--pointer-from-left": styles.pointerX.to((x) => x / 100),
   } as React.CSSProperties;
 
-  const foilStyles = {
-    "--foil": foilUrl ? `url("${foilUrl}")` : "none",
-    "--mask": maskUrl ? `url("${maskUrl}")` : "none",
-  } as React.CSSProperties;
+  const foilStyles = useMemo(() => {
+    const foilUrl = getRarityEffect(finalRarity, "foil");
+    const maskUrl = getRarityEffect(finalRarity, "mask");
+    
+    return {
+      "--foil": foilUrl ? `url("${foilUrl}")` : "none",
+      "--mask": maskUrl ? `url("${maskUrl}")` : "none",
+    } as React.CSSProperties;
+  }, [finalRarity]);
 
   const isActive = false
   return (
@@ -254,9 +190,9 @@ export default function EffectCard({
       <animated.div
         className={`card ${types} ${loading ? "loading" : ""} ${
           isActive ? "active" : ""
-        } ${interacting ? "interacting" : ""} ${maskUrl ? "masked" : ""}`}
+        } ${interacting ? "interacting" : ""} ${getRarityEffect(finalRarity, "mask") ? "masked" : ""}`}
         data-rarity={finalRarity}
-        data-trainer-gallery={isTrainerGallery}
+        data-trainer-gallery={finalRarity === "trainer gallery rare holo"}
         style={dynamicStyles}
       >
         <animated.button

@@ -7,6 +7,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 /**
  * 경매 입찰 엔티티 매핑 정보: - Table: 입찰 - @Index: auction_id, member_id에 각각 인덱스 생성 - FK:
@@ -67,7 +68,7 @@ public class AuctionBid {
     @PrePersist
     void onCreate() {
         if (createdAt == null) {
-            createdAt = LocalDateTime.now();
+            createdAt = LocalDateTime.now(ZoneOffset.UTC);
         }
     }
 }

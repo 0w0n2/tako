@@ -22,10 +22,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
 import java.util.Set;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import static com.bukadong.tcg.api.auction.entity.QAuction.auction;
 
 /**
@@ -39,7 +39,7 @@ import static com.bukadong.tcg.api.auction.entity.QAuction.auction;
 @Transactional(readOnly = true)
 public class AuctionQueryService {
 
-    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
+    private static final ZoneOffset UTC = ZoneOffset.UTC;
 
     private final AuctionRepositoryCustom auctionRepositoryCustom;
     private final AuctionDetailRepository auctionDetailRepository;
@@ -131,7 +131,7 @@ public class AuctionQueryService {
      * @RETURN 경매 ID 리스트
      */
     public List<Long> findDueAuctionIds(int limit) {
-        LocalDateTime now = LocalDateTime.now(KST);
+        LocalDateTime now = LocalDateTime.now(UTC);
         return queryFactory.select(auction.id).from(auction)
                 .where(auction.isEnd.isFalse(), auction.endDatetime.loe(now))
                 .orderBy(auction.endDatetime.asc(), auction.id.asc()).limit(limit).fetch();

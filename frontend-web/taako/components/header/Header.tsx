@@ -21,12 +21,8 @@ import { useMajorCategories } from '@/hooks/useMajorCategories';
 import { MajorCategories } from '@/types/category';
 
 export default function Header() {
-  const { majorCategories } = useMajorCategories();
-
-  const getCategoryId = (categoryName: string): number => {
-    const found = majorCategories.find((item: MajorCategories) => item.name === categoryName);
-    return found ? found.id : 0;
-  };
+  const { majorCategories, majorLoading } = useMajorCategories();
+  // console.log(majorCategories)
 
   const token = useAuthStore((state) => state.token);
   const isLoggedIn = !!token;
@@ -127,7 +123,7 @@ export default function Header() {
                     <li key={component.id}>
                       <NavigationMenuLink asChild>
                         <Link className="rounded-md flex flex-col items-center flex-1 py-6 hover:bg-[#f2b90c]/10"
-                        href={`/category/${getCategoryId(component.name)}?categoryName=${component.name}`}>
+                        href={`/category/${component.id}?categoryName=${component.name}`}>
                           
                           {/* <Image src={component.image} alt={component.title} width={100} height={100} /> */}
                           {component.name}

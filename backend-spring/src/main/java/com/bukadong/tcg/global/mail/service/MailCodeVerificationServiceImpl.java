@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import static com.bukadong.tcg.global.mail.constants.MailConstants.*;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 import java.util.UUID;
@@ -38,9 +39,9 @@ public class MailCodeVerificationServiceImpl implements MailCodeVerificationServ
         String code = UUID.randomUUID().toString().substring(0, 6);
 
         String redisKey = MAIL_VERIFICATION_CODE_PREFIX + mailType + ":" + email;
-        redisUtils.setValue(redisKey, code, mailCodeExpMin);  // value: signup-code:email, key: code(UUID)
+        redisUtils.setValue(redisKey, code, mailCodeExpMin); // value: signup-code:email, key: code(UUID)
 
-        String expiredAt = LocalDateTime.now().plus(mailCodeExpMin)
+        String expiredAt = LocalDateTime.now(ZoneOffset.UTC).plus(mailCodeExpMin)
                 .format(DateTimeFormatter.ISO_DATE_TIME);
 
         return VerificationCode.toDto(code, expiredAt);
@@ -60,7 +61,7 @@ public class MailCodeVerificationServiceImpl implements MailCodeVerificationServ
         }
 
         boolean isMatch = redisCode.toString().equals(requestDto.code());
-        redisUtils.deleteValue(redisKey);   // 1회 검증 후엔 만료 처리 (필요 시 주석 해제)
+        redisUtils.deleteValue(redisKey); // 1회 검증 후엔 만료 처리 (필요 시 주석 해제)
 
         /* 코드 불일치 (검증 실패) */
         if (!isMatch) {

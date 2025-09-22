@@ -1,12 +1,14 @@
-export interface AuctionCategoryData {
-  majorCategoryId: number | null
-  majorCategoryName: string
-  minorCategoryId: number | null
-  minorCategoryName: string
-}
-
 export interface CreateAuctionCategoriesProps {
-  onChange?: (data: AuctionCategoryData) => void
+  onChange: (
+    majorId: number|null,
+    majorName: string|null,
+    minorId: number|null,
+    minorName: string|null,
+    cardId:number|null,
+    cardName:string|null,
+    cardImageUrl:string|null,
+  ) => void;
+  onReset?: () => void;
 }
 
 export interface CategoryPageProps {

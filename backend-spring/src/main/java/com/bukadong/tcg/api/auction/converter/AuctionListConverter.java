@@ -6,6 +6,7 @@ import com.bukadong.tcg.api.media.service.MediaUrlService;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 /**
  * 경매 목록 행 → 외부 응답 DTO 컨버터
@@ -47,7 +48,7 @@ public final class AuctionListConverter {
         if (row.primaryImageKey() != null && !row.primaryImageKey().isBlank()) {
             primaryUrl = mediaUrlService.getPresignedUrl(row.primaryImageKey(), ttl);
         }
-        long remainingSeconds = Duration.between(LocalDateTime.now(), row.endDatetime()).getSeconds();
+        long remainingSeconds = Duration.between(LocalDateTime.now(ZoneOffset.UTC), row.endDatetime()).getSeconds();
         if (remainingSeconds < 0)
             remainingSeconds = 0;
 

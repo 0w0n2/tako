@@ -1,23 +1,29 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { getMinorCategories } from "@/lib/category";
 import { MinorCategories } from "@/types/category";
 
 export function useMinorCategories() {
   const [minorCategories, setMinorCategories] = useState<MinorCategories[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [minorCategoryId, setMinorCategoryId] = useState<number|null>(null);
+  const [minorCategoryName, setMinorCategoryName] = useState<string|null>(null);
+  const [minorLoading, setMinorLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const res = await getMinorCategories();
-        // console.log(res);
-        setMinorCategories(res.result);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    fetchCategories();
-  }, []);
+  const handleGetMinorCategories = async (majorId:number) => {
+    setMinorLoading(true)
+    try{
+      const res = await getMinorCategories(majorId);
+      // console.log(res)
+      setMinorCategories(res.result);
+    }catch(err){
+      console.error(err);
+    } finally{
+      setMinorLoading(false);
+    }
+  }
 
-  return { minorCategories, loading };
+  return {
+    handleGetMinorCategories, setMinorCategoryId, setMinorCategoryName,
+    minorCategories, minorCategoryId, minorCategoryName,
+    minorLoading,
+  };
 }
