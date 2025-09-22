@@ -30,10 +30,7 @@ export default function Header() {
             <Link href="/" style={{ fontFamily: 'Pinkfong-B' }}>
               <h1> <Image src="/logo.png" alt="tako-logo" width={100} height={60} /> </h1>
             </Link>
-            <SearchInput onSearch={(keyword) => {
-              // 검색 기능 구현 예정
-              console.log('Search keyword:', keyword);
-            }} />
+            <SearchInput />
           </div>
           <HeaderNavigationMenu />
         </div>
