@@ -4,8 +4,11 @@ import * as React from "react"
 import Link from "next/link";
 import {
     NavigationMenu,
+    NavigationMenuContent,
     NavigationMenuItem,
     NavigationMenuLink,
+    NavigationMenuTrigger,
+    navigationMenuTriggerStyle,
   } from "@/components/ui/navigation-menu"
 import { Badge } from "@/components/ui/badge"
 
@@ -13,8 +16,12 @@ import { useLogin } from "@/hooks/useLogin";
 import { useAuthStore } from "@/stores/useAuthStore";
 import NotUserSideMenu from "../sidemenu/NotUserSideMenu";
 import UserSideMenu from "../sidemenu/UserSideMenu";
+import { useMajorCategories } from "@/hooks/useMajorCategories";
 
 export default function HeaderNavigationMenu(){
+  const { majorCategories } = useMajorCategories();
+  // console.log(majorCategories)
+
   const {
     handleLogout,
   } = useLogin();
@@ -24,6 +31,23 @@ export default function HeaderNavigationMenu(){
 
   return(
       <NavigationMenu className="gap-7">
+          <NavigationMenuItem className="list-none">
+            <NavigationMenuTrigger className="hover:text-[#f2b90c] cursor-pointer">TCG카드</NavigationMenuTrigger>
+            <NavigationMenuContent>
+              <ul className="grid grid-cols-1 w-[200px] p-2 gap-2">
+                {majorCategories.map((component) => (
+                  <Link
+                    key={component.id}
+                    title={component.name}
+                    href={`/category/${component.id}`}
+                    className="flex justify-center items-center py-4 rounded-sm hover:bg-[#f2b90c]/20"
+                  >
+                    {component.name}
+                  </Link>
+                ))}
+              </ul>
+            </NavigationMenuContent>
+            </NavigationMenuItem>
           <NavigationMenuItem className="list-none">
               <NavigationMenuLink asChild>
                   <Link href="/search" className="hover:text-[#f2b90c]">전체경매</Link>
