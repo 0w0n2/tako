@@ -8,6 +8,7 @@ pipeline {
     booleanParam(name: 'MANUAL_BACK', defaultValue: false, description: 'Backend only')
     booleanParam(name: 'MANUAL_FRONT', defaultValue: false, description: 'Frontend only')
     booleanParam(name: 'MANUAL_AI', defaultValue: false, description: 'AI Backend only')
+    booleanParam(name: 'MANUAL_MYSQL', defaultValue: false, description: 'MySQL only')
   }
 
   triggers {
@@ -226,6 +227,38 @@ pipeline {
 
           docker compose -f "$COMPOSE_AI_FILE" pull || true
           docker compose -f "$COMPOSE_AI_FILE" up -d --build tako_ai
+        '''
+      }
+    }
+
+    stage('MySQL dev (compose up)') {
+      when {
+        expression {
+          params.MANUAL_DEV_DEPLOY && params.MANUAL_MYSQL
+        }
+      }
+      steps {
+        sh '''
+          set -eux
+
+          docker compose --env-file deploy/.env.prod -f "$COMPOSE_DEV_FILE" pull || true
+          docker compose --env-file deploy/.env.prod -f "$COMPOSE_DEV_FILE" up -d --build mysql_dev
+        '''
+      }
+    }
+
+    stage('MySQL dev (compose up)') {
+      when {
+        expression {
+          params.MANUAL_PROD_DEPLOY && params.MANUAL_MYSQL
+        }
+      }
+      steps {
+        sh '''
+          set -eux
+
+          docker compose --env-file deploy/.env.prod -f "$COMPOSE_PROD_FILE" pull || true
+          docker compose --env-file deploy/.env.prod -f "$COMPOSE_PROD_FILE" up -d --build mysql_prod
         '''
       }
     }
