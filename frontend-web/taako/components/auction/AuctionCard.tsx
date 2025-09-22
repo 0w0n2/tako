@@ -6,6 +6,7 @@ import Image from "next/image"
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import RankElement from "../atoms/RankElement";
+import { Heart } from 'lucide-react';
 
 export default function AuctionCard({ item }: { item: GetAuction }){
     const [remainingTime, setRemainingTime] = useState(item.remainingSeconds);
@@ -51,7 +52,7 @@ export default function AuctionCard({ item }: { item: GetAuction }){
                     <div className="absolute top-2 right-2 z-1">
                         <RankElement rank={item.grade} />
                     </div>
-                    <div className="absolute top-0 left-0 w-full">
+                    <div className="absolute top-0 left-0 w-full h-full">
                         <Image 
                             src={item.primaryImageUrl || '/no-image.jpg'} 
                             alt={item.title}
@@ -63,8 +64,8 @@ export default function AuctionCard({ item }: { item: GetAuction }){
                             }}
                         />
                     </div>
-                    <div className="p-4 relative flex flex-col gap-2 bg-white/30 backdrop-blur-lg text-black rounded-lg">
-                        <h3 className="">{item.title}</h3>
+                    <div className="w-full p-4 relative flex flex-col gap-2 bg-white/30 backdrop-blur-lg text-black rounded-lg">
+                        <h3 className="h-13">{item.title.length > 18 ? item.title.slice(0, 18) + "..." : item.title}</h3>
                         <div className="text-[20px] font-semibold">{item.currentPrice} TKC</div>
                         <div className="text-sm text-[#242424]">
                             <span>입찰 {item.bidCount}회 | </span>
@@ -73,11 +74,14 @@ export default function AuctionCard({ item }: { item: GetAuction }){
                             </span>
                         </div>
                         <div className="absolute bottom-4 right-4">
-                            하트
+                            {item.wished ? (
+                                <Heart fill="red" stroke="red" className="w-5 h-5" />
+                            ) : (
+                                <Heart className="w-5 h-5" stroke="#242424" />
+                            )}
                         </div>
                     </div>
-            
-        </div>
+                </div>
             </Link>
         </>
     )
