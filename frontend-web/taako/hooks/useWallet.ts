@@ -3,7 +3,13 @@
 import { useState, useCallback, useEffect } from 'react';
 import { formatEther } from 'ethers';
 import { sendWalletAddress } from '@/lib/bc/wallet';
-import { getBrowserProvider, getMetaMaskProvider, friendlyChainName } from '@/lib/ethereum';
+import {
+  getBrowserProvider,
+  getMetaMaskProvider,
+  friendlyChainName,
+  switchNetwork as ethSwitchNetwork, // ← 유틸 가져오기
+  type NetworkKey,                    // ← 타입도 가져오기
+} from '@/lib/ethereum';
 import type { MetaMaskInpageProvider } from '@metamask/providers';
 
 interface UseWalletReturn {
@@ -14,6 +20,7 @@ interface UseWalletReturn {
   loading: boolean;
   connectWallet: () => Promise<void>;
   disconnect: () => void;
+  switchNetwork: (key: NetworkKey) => Promise<void>; // ✅ 추가
 }
 
 const useWallet = (): UseWalletReturn => {
@@ -23,13 +30,12 @@ const useWallet = (): UseWalletReturn => {
   const [error, setError] = useState<string>('');
   const [loading, setLoading] = useState(false);
 
-  /** 잔액 포맷 (소수 4자리) */
   const prettyEth = (wei: bigint) => {
     const eth = parseFloat(formatEther(wei));
     return Number.isFinite(eth) ? eth.toFixed(4) : '0.0000';
+    // 필요하면 Intl.NumberFormat으로 포맷 업그레이드 가능
   };
 
-  /** 네트워크/잔액 조회 */
   const fetchChainAndBalance = useCallback(async (address: string) => {
     const provider = getBrowserProvider();
     if (!provider) return;
@@ -45,7 +51,6 @@ const useWallet = (): UseWalletReturn => {
     }
   }, []);
 
-  /** 서버로 주소 업서트 (POST=UPSERT) */
   const upsertAddress = useCallback(async (addr: string) => {
     try {
       await sendWalletAddress(addr);
@@ -57,7 +62,6 @@ const useWallet = (): UseWalletReturn => {
     }
   }, []);
 
-  /** 지갑 연결 */
   const connectWallet = useCallback(async () => {
     setError('');
     setLoading(true);
@@ -68,8 +72,8 @@ const useWallet = (): UseWalletReturn => {
       const signer = await provider.getSigner();
       const addr = await signer.getAddress();
 
-      // 같은 지갑이면 에러 대신 최신 정보만 새로고침
       if (walletAddress && addr.toLowerCase() === walletAddress.toLowerCase()) {
+        // 같은 지갑이면 리프레시만
         await fetchChainAndBalance(addr);
         return;
       }
@@ -89,7 +93,6 @@ const useWallet = (): UseWalletReturn => {
     }
   }, [walletAddress, upsertAddress, fetchChainAndBalance]);
 
-  /** 로컬 상태 초기화 */
   const disconnect = useCallback(() => {
     setWalletAddress('');
     setChainName('');
@@ -97,7 +100,26 @@ const useWallet = (): UseWalletReturn => {
     setError('');
   }, []);
 
-  /** 계정/체인 이벤트 바인딩 */
+  // ✅ 네트워크 전환: 훅에서 노출
+  const switchNetwork = useCallback(async (key: NetworkKey) => {
+    setError('');
+    setLoading(true);
+    try {
+      await ethSwitchNetwork(key);        // 네트워크 전환(추가 포함)
+      if (walletAddress) {
+        await fetchChainAndBalance(walletAddress); // 전환 후 최신화
+      }
+    } catch (e: any) {
+      if (e?.code === 4001) setError('사용자가 네트워크 전환을 거절했습니다.');
+      else setError(e?.message || '네트워크 전환 실패');
+      console.error('[wallet] switchNetwork error', e);
+      throw e;
+    } finally {
+      setLoading(false);
+    }
+  }, [walletAddress, fetchChainAndBalance]);
+
+  // 이벤트 바인딩
   useEffect(() => {
     const mm = getMetaMaskProvider() as MetaMaskInpageProvider | undefined;
     if (!mm) return;
@@ -110,13 +132,10 @@ const useWallet = (): UseWalletReturn => {
         disconnect();
         return;
       }
-
-      // 같은 주소면 네트워크/잔액만 리프레시
       if (walletAddress && next.toLowerCase() === walletAddress.toLowerCase()) {
         try { await fetchChainAndBalance(next); } catch {}
         return;
       }
-
       setWalletAddress(next);
       try {
         await upsertAddress(next);
@@ -139,7 +158,6 @@ const useWallet = (): UseWalletReturn => {
     mm.on?.('chainChanged', onChainChanged as (...args: unknown[]) => void);
     mm.on?.('disconnect', onDisconnect as (...args: unknown[]) => void);
 
-    // 초기 로드: 이미 연결된 계정이 있으면 상태 + 체인/잔액 반영 (업서트는 안 함)
     (async () => {
       try {
         const provider = getBrowserProvider();
@@ -159,7 +177,7 @@ const useWallet = (): UseWalletReturn => {
     };
   }, [walletAddress, fetchChainAndBalance, upsertAddress, disconnect]);
 
-  return { walletAddress, chainName, balance, error, loading, connectWallet, disconnect };
+  return { walletAddress, chainName, balance, error, loading, connectWallet, disconnect, switchNetwork };
 };
 
 export default useWallet;
