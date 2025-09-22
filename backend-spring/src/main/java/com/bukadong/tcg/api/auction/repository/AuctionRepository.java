@@ -27,6 +27,11 @@ import java.util.Optional;
  * @RETURN 표준 CRUD + 커스텀 조회
  */
 public interface AuctionRepository extends JpaRepository<Auction, Long> {
+    /**
+     * 내 경매 목록
+     */
+    org.springframework.data.domain.Page<Auction> findByMember_IdOrderByIdDesc(Long memberId,
+            org.springframework.data.domain.Pageable pageable);
 
     /**
      * 경매 ID로 연결된 카드 ID를 조회한다.
@@ -170,4 +175,15 @@ public interface AuctionRepository extends JpaRepository<Auction, Long> {
     @Query("select a from Auction a where a.id = :id")
     Optional<Auction> findByIdForUpdate(@Param("id") Long id);
 
+    /**
+     * 회원이 입찰한 진행중 경매 목록 조회 (페이지네이션)
+     */
+    @Query("""
+            select a from Auction a
+             where a.isEnd = false
+               and exists (select 1 from AuctionBid b where b.auction = a and b.member.id = :memberId)
+             order by a.endDatetime desc, a.id desc
+            """)
+    org.springframework.data.domain.Page<Auction> findOngoingByMemberBids(@Param("memberId") Long memberId,
+            org.springframework.data.domain.Pageable pageable);
 }

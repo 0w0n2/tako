@@ -3,6 +3,7 @@ package com.bukadong.tcg.api.auction.controller;
 import com.bukadong.tcg.api.auction.dto.response.AuctionDetailResponse;
 import com.bukadong.tcg.api.auction.dto.response.AuctionListItemResponse;
 import com.bukadong.tcg.api.auction.repository.AuctionSort;
+import com.bukadong.tcg.api.auction.dto.response.MyAuctionListItemResponse;
 import com.bukadong.tcg.api.auction.service.AuctionQueryService;
 import com.bukadong.tcg.api.member.service.MemberQueryService;
 import com.bukadong.tcg.api.popularity.aop.AutoPopularityView;
@@ -105,6 +106,30 @@ public class AuctionQueryController {
 
         Long memberId = (user == null) ? null : memberQueryService.getByUuid(user.getUuid()).getId();
         return BaseResponse.onSuccess(auctionQueryService.getDetail(auctionId, historySize, memberId));
+    }
+
+    // 내 경매 목록 조회: /v1/auctions/me
+    @Operation(summary = "내 경매 목록 조회", description = "로그인한 사용자의 경매 목록을 반환하며, 각 항목에 최근 입찰 기록을 포함합니다.")
+    @GetMapping("/me")
+    public BaseResponse<PageResponse<MyAuctionListItemResponse>> getMyAuctions(
+            @Parameter(description = "페이지(0-base)") @RequestParam(name = "page", defaultValue = "0") @Min(0) int page,
+            @Parameter(description = "페이지 크기") @RequestParam(name = "size", defaultValue = "10") @Min(1) int size,
+            @Parameter(description = "각 경매에 포함할 최근 입찰 개수") @RequestParam(name = "recentBidCount", defaultValue = "5") @Min(0) int recentBidCount,
+            @AuthenticationPrincipal CustomUserDetails user) {
+        Long memberId = memberQueryService.getByUuid(user.getUuid()).getId();
+        return BaseResponse.onSuccess(auctionQueryService.getMyAuctions(memberId, page, size, recentBidCount));
+    }
+
+    // 내가 입찰중인 경매 목록 조회: /v1/auctions/mybid
+    @io.swagger.v3.oas.annotations.Operation(summary = "내가 입찰중인 경매 목록", description = "로그인 사용자가 입찰한 진행중 경매 목록을 반환하며, 각 항목에 최근 입찰 기록과 내 최고 입찰가를 포함합니다.")
+    @GetMapping("/mybid")
+    public BaseResponse<com.bukadong.tcg.global.common.dto.PageResponse<com.bukadong.tcg.api.auction.dto.response.MyBidAuctionListItemResponse>> getMyBidAuctions(
+            @io.swagger.v3.oas.annotations.Parameter(description = "페이지(0-base)") @RequestParam(name = "page", defaultValue = "0") @Min(0) int page,
+            @io.swagger.v3.oas.annotations.Parameter(description = "페이지 크기") @RequestParam(name = "size", defaultValue = "10") @Min(1) int size,
+            @io.swagger.v3.oas.annotations.Parameter(description = "각 경매에 포함할 최근 입찰 개수") @RequestParam(name = "recentBidCount", defaultValue = "5") @Min(0) int recentBidCount,
+            @AuthenticationPrincipal com.bukadong.tcg.global.security.dto.CustomUserDetails user) {
+        Long memberId = memberQueryService.getByUuid(user.getUuid()).getId();
+        return BaseResponse.onSuccess(auctionQueryService.getMyBidAuctions(memberId, page, size, recentBidCount));
     }
 
 }
