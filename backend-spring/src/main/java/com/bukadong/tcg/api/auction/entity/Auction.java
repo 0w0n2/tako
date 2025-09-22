@@ -21,6 +21,8 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 
+import org.slf4j.Logger;
+
 /**
  * 경매 엔티티.
  * <P>
@@ -295,6 +297,8 @@ public class Auction extends BaseEntity {
      * @RETURN 종료 가능 여부
      */
     public boolean isClosableNow() {
+        Logger log = org.slf4j.LoggerFactory.getLogger(Auction.class);
+        log.info("isEnd: {}, endDatetime: {}. now {}", this.isEnd, this.endDatetime, LocalDateTime.now(ZoneOffset.UTC));
         return !this.isEnd && this.endDatetime != null && this.endDatetime.isBefore(LocalDateTime.now(ZoneOffset.UTC));
     }
 
