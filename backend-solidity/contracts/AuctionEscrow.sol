@@ -7,8 +7,13 @@ import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol
 // TakoCardNFT의 함수를 호출하기 위한 인터페이스 정의
 interface ITakoCardNFT {
     function transferFrom(address from, address to, uint256 tokenId) external;
-    function getApproved(uint256 tokenId) external view returns (address operator);
-    function isApprovedForAll(address owner, address operator) external view returns (bool);
+    function getApproved(
+        uint256 tokenId
+    ) external view returns (address operator);
+    function isApprovedForAll(
+        address owner,
+        address operator
+    ) external view returns (bool);
 }
 
 /**
@@ -75,6 +80,7 @@ contract AuctionEscrow is Initializable, ReentrancyGuardUpgradeable {
 
     /**
         @dev 컨트랙트 생성자. 백엔드 서버가 배포하며 거래 당사자와 금액을 설정.
+        일반 경매의 경우, _takoNFTAddress에 address(0), _tokenId에 0을 전달
         @param _seller 판매자의 주소(address)
         @param _buyer 경매 낙찰자(구매자)의 주소(address)
         @param _amount 낙찰 금액
@@ -126,14 +132,21 @@ contract AuctionEscrow is Initializable, ReentrancyGuardUpgradeable {
     /**
         @dev [판매자] 대금 인출
      */
-    function releaseFunds() external onlySeller inState(State.Complete) nonReentrant {
-        require(
-            takoNFT.getApproved(tokenId) == address(this) ||
-            takoNFT.isApprovedForAll(seller, address(this)),
-            "Contract is not approved for NFT transfer"
-        );
+    function releaseFunds()
+        external
+        onlySeller
+        inState(State.Complete)
+        nonReentrant
+    {
+        if (address(takoNFT) != address(0)) {
+            require(
+                takoNFT.getApproved(tokenId) == address(this) ||
+                    takoNFT.isApprovedForAll(seller, address(this)),
+                "Contract is not approved for NFT transfer"
+            );
 
-        takoNFT.transferFrom(seller, buyer, tokenId);
+            takoNFT.transferFrom(seller, buyer, tokenId);
+        }
 
         emit FundsReleased(seller, amount);
         (bool success, ) = seller.call{value: amount}("");
