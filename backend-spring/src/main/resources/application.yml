@@ -140,6 +140,9 @@ popularity:
     ttl-minutes: ${POPULARITY_BUCKET_TTL_MINUTES:70} # 분 버킷 TTL. 기본 70분(60분 + 버퍼)
 
 logging:
+  charset:
+    console: EUC-KR
+    file: EUC-KR
   level:
     com.bukadong.tcg.api.media.service.MediaPresignQueryService: DEBUG
     com.bukadong.tcg.api.inquiry.service.InquiryQueryService: DEBUG
