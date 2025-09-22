@@ -1,125 +1,115 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { CreateAuctionCategoriesProps } from '@/types/category'
+import * as React from "react";
+import { CreateAuctionCategoriesProps } from "@/types/category";
+import { useAuctionCategory } from "@/hooks/useAuctionCategory";
+import { Button } from "../ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { RotateCcw } from "lucide-react"
 
-// 더미 카테고리 데이터
-const categories = [
-  {
-    id: 1,
-    name: 'Pokemon',
-    minors: [
-      { id: 1, name: '피카츄' },
-      { id: 2, name: '알로라 피카츄' },
-      { id: 3, name: '라이츄' },
-      { id: 4, name: '파이리' },
-      { id: 5, name: '꼬부기' },
-      { id: 6, name: '버터풀' },
-    ],
-  },
-  {
-    id: 2,
-    name: 'Yu-Gi-OH!',
-    minors: [
-      { id: 1, name: '청눈의 백룡' },
-      { id: 2, name: '흑마도사' },
-      { id: 3, name: '카오스 솔저' },
-    ],
-  },
-  {
-    id: 3,
-    name: 'SSAFY',
-    minors: [
-      { id: 1, name: '싸피 굿즈1' },
-      { id: 2, name: '싸피 굿즈2' },
-    ],
-  },
-  {
-    id: 4,
-    name: '쿠키런',
-    minors: [
-      { id: 1, name: '용감한 쿠키' },
-      { id: 2, name: '달빛술사 쿠키' },
-      { id: 3, name: '천사 쿠키' },
-    ],
-  },
-  {
-    id: 5,
-    name: '소닉',
-    minors: [
-      { id: 1, name: '소닉' },
-      { id: 2, name: '테일즈' },
-      { id: 3, name: '너클즈' },
-    ],
-  },
-]
-
-export default function CreateAuctionCategories({ onChange }: CreateAuctionCategoriesProps) {
-  const [majorCategoryId, setMajorCategory] = useState<number | null>(null)
-  const [minorCategoryId, setMinorCategory] = useState<number | null>(null)
-
-  // 현재 선택된 majorCategory의 minors 가져오기
-  const selectedMajor = categories.find((c) => c.id === majorCategoryId)
-
-  // 부모에 카테고리 정보 넘겨주기기
-  useEffect(() => {
-    const major = categories.find((c) => c.id === majorCategoryId)
-    const minor = major?.minors.find((m) => m.id === minorCategoryId)
-  
-    onChange?.({
-      majorCategoryId,
-      majorCategoryName: major?.name || '',
-      minorCategoryId,
-      minorCategoryName: minor?.name || '',
-    })
-  }, [majorCategoryId, minorCategoryId, onChange])
+export default function CreateAuctionCategories({ onChange, onReset }: CreateAuctionCategoriesProps) {
+  const {
+    majorCategories, majorLoading, minorCategories, minorLoading, cards, loadingCards,
+    selectedMajor, selectedMinor, selectedCard,
+    handleMajorClick, handleMinorClick, handleCardClick, resetSelection,
+  } = useAuctionCategory();
 
   return (
-    <div className="flex gap-2 w-[500px] h-[270px]">
-      {/* 대분류 */}
-      <div className="flex-1 h-full overflow-y-auto scrollbar-hide border border-[#353535] rounded-md">
-        <ul className="bg-[#191924]">
-          {categories.map((cat) => (
-            <li
-              key={cat.id}
-              onClick={() => {
-                setMajorCategory(cat.id)
-                setMinorCategory(null) // 대분류 변경 시 소분류 초기화
-              }}
-              className={`px-4 py-4 cursor-pointer ${
-                majorCategoryId === cat.id
-                  ? 'bg-[#f2b90c] text-black'
-                  : 'hover:bg-[#f2b90c] hover:text-black'
-              }`}
-            >
-              {cat.name}
-            </li>
-          ))}
-        </ul>
+    <div className="flex flex-col">
+      {/* Breadcrumb */}
+      <div className="flex items-center gap-2 mb-4">
+        {selectedMajor &&
+          <Button
+            className="w-6 h-6 rounded-sm text-sm text-[#eee] bg-gray-600 cursor-pointer hover:text-[#333]"
+            type="button"
+            onClick={() => {
+              resetSelection();
+              onReset?.();
+            }}><RotateCcw /></Button>
+        }
+        <div className="text-[#a5a5a5]">
+          전체 {"> "}
+          {selectedMajor && <span>{majorCategories.find(m => m.id === selectedMajor)?.name} </span>}
+          {selectedMinor && <span>{">"} {minorCategories.find(m => m.id === selectedMinor)?.name} </span>}
+          {selectedCard && <span>{">"} {cards.find(c => c.id === selectedCard)?.name}</span>}
+        </div>
       </div>
 
+      {/* 대분류 */}
+      {!selectedMajor && (
+        <div className="flex flex-col items-start">
+          <div className="py-2 px-5 text-sm rounded-full bg-[#353535]">카테고리</div>
+          <ScrollArea className="h-[200px] w-full mt-2 overflow-auto border-1 border-[#353535] rounded-lg">
+            <ul className="w-full">
+              {majorLoading ? (
+                <li className="p-4 text-gray-500">카테고리를 불러오는 중입니다...</li>
+              ) : (
+                majorCategories.map((major) => (
+                  <li
+                    key={major.id}
+                    onClick={() => handleMajorClick(major, onChange)}
+                    className="py-4 px-7 cursor-pointer hover:text-[#f2b90c] hover:bg-[#191924]"
+                  >
+                    {major.name}
+                  </li>
+                ))
+              )}
+            </ul>
+          </ScrollArea>
+        </div>
+      )}
+
       {/* 소분류 */}
-      <div className="flex-1 h-full overflow-y-auto scrollbar-hide border border-[#353535] -translate-x-[1px] rounded-md">
-        <ul className="">
-          {selectedMajor ? (
-            selectedMajor.minors.map((minor) => (
-              <li
-                key={minor.id}
-                onClick={() => setMinorCategory(minor.id)}
-                className={`px-4 py-4 cursor-pointer bg-[#191924] ${
-                  minorCategoryId === minor.id
-                    ? 'bg-[#f2b90c] text-black'
-                    : 'hover:bg-[#f2b90c] hover:text-black'
-                }`}
-              >
-                {minor.name}
-              </li>
-            ))
-          ) : (
-            <li className="px-4 py-4 text-gray-500">대분류를 선택하세요</li>
-          )}
-        </ul>
-      </div>
+      {selectedMajor && !selectedMinor && (
+        <div className="flex items-start flex-col">
+          <div className="py-2 px-5 text-sm rounded-full bg-[#353535]">카드팩</div>
+          <ScrollArea className="h-[200px] w-full mt-2 overflow-auto border-1 border-[#353535] rounded-lg">
+            <ul className="w-full">
+              {minorLoading ? (
+                <li className="p-4 text-gray-500">카드팩 불러오는 중입니다...</li>
+              ) : minorCategories.length > 0 ? (
+                minorCategories.map((minor) => (
+                  <li
+                    key={minor.id}
+                    onClick={() => handleMinorClick(minor, onChange)}
+                    className="py-4 px-7 cursor-pointer hover:text-[#f2b90c] hover:bg-[#191924]"
+                  >
+                    {minor.name}
+                  </li>
+                ))
+              ) : (
+                <li className="p-4 text-gray-500">추가된 카드팩이 없습니다</li>
+              )}
+            </ul>
+          </ScrollArea>
+        </div>
+      )}
+
+      {/* 카드 */}
+      {selectedMinor && !selectedCard && (
+        <div className="flex flex-col items-start">
+          <div className="py-2 px-5 text-sm rounded-full bg-[#353535]">카드</div>
+          <ScrollArea className="h-[200px] w-full mt-2 overflow-auto border-1 border-[#353535] rounded-lg">
+            <ul className="w-full">
+              {loadingCards ? (
+                <li className="p-4 text-gray-500">카드를 불러오는 중입니다...</li>
+              ) : cards.length > 0 ? (
+                cards.map((card) => (
+                  <li
+                    key={card.id}
+                    onClick={() => handleCardClick(card, onChange)}
+                    className="py-4 px-7 cursor-pointer hover:text-[#f2b90c] hover:bg-[#191924]"
+                  >
+                    {card.name}
+                  </li>
+                ))
+              ) : (
+                <li className="p-4 text-gray-500">카드가 없습니다</li>
+              )}
+            </ul>
+          </ScrollArea>
+        </div>
+      )}
     </div>
-  )
+  );
 }
