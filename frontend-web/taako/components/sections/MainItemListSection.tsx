@@ -15,8 +15,12 @@ export default function MainItemListSection({id}:{id:number}) {
 
     useEffect(() => {
         const fetch = async () => {
-            const res = await handlerGetAuctions({ categoryMajorId:id }); // 포켓몬
-            setAuctions(res.result.content);
+            try{
+                const res = await handlerGetAuctions({ categoryMajorId:id }); // 포켓몬
+                setAuctions(res.result.content);
+            }catch(err){
+                console.error(err);
+            }
         };
         fetch();
     }, []);
