@@ -241,8 +241,8 @@ pipeline {
         sh '''
           set -eux
 
-          docker compose --env-file deploy/.env.prod -f "$COMPOSE_DEV_FILE" pull || true
-          docker compose --env-file deploy/.env.prod -f "$COMPOSE_DEV_FILE" up -d --build mysql_dev
+          docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" pull || true
+          docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" up -d --build mysql_dev
         '''
       }
     }
