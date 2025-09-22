@@ -22,8 +22,8 @@ export default function MainBanner() {
                   disableOnInteraction: false,
                 }}
                 className="main-banner"
-                onSwiper={(swiper) => console.log(swiper)}
-                onSlideChange={() => console.log('slide change')}
+                // onSwiper={(swiper) => console.log(swiper)}
+                // onSlideChange={() => console.log('slide change')}
             >
                 <SwiperSlide className=''>
                     <div><Image src="/background/banner-1.png" alt="banner-1" width={1280} height={480} /></div>
