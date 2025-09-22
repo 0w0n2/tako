@@ -12,18 +12,24 @@ export default function RegisterImage({ onChange }: RegisterImageProps) {
   const [files, setFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleImageChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const fileList = event.target.files;
+  const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const fileList = e.target.files;
+    
     if (fileList) {
       const newFiles = Array.from(fileList);
-      if (images.length + newFiles.length > 5) {
+      console.log("Registe: ", newFiles);
+      if (files.length + newFiles.length > 5) {
         alert("최대 5개의 이미지만 등록할 수 있습니다.");
         return;
       }
+
       const newImageUrls = newFiles.map(file => URL.createObjectURL(file));
       setImages(prev => [...prev, ...newImageUrls]);
+
       const updatedFiles = [...files, ...newFiles];
       setFiles(updatedFiles);
+
+      // 부모에 File[] 전달
       onChange(updatedFiles);
     }
   };
@@ -42,7 +48,7 @@ export default function RegisterImage({ onChange }: RegisterImageProps) {
         onChange={handleImageChange}
         className="hidden"
       />
-      {/* 이미지 등록 */}
+      {/* 이미지 등록 버튼 */}
       <div
         className="w-25 h-25 flex flex-col justify-center items-center border border-[#a5a5a5] rounded-lg shrink-0 cursor-pointer"
         onClick={triggerFileInput}
@@ -53,7 +59,7 @@ export default function RegisterImage({ onChange }: RegisterImageProps) {
         </div>
       </div>
 
-      {/* 이미지 목록 (가로 스크롤) */}
+      {/* 이미지 미리보기 */}
       <div className="flex-1 overflow-x-auto custom-scroll">
         <ul className="flex gap-3">
           {images.map((src, idx) => (

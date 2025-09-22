@@ -1,15 +1,16 @@
 'use client';
 
-import Image from 'next/image';
 import { useState } from 'react';
+import { Search } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
-export default function SearchInput(props: { onSearch: (keyword: string) => void }) {
+export default function SearchInput() {
     const [searchTerm, setSearchTerm] = useState('');
+    const router = useRouter();
 
     const handleSearch = () => {
-        if (searchTerm.trim()) {
-            props.onSearch(searchTerm.trim());
-        }
+        if (!searchTerm.trim()) return;
+        router.push(`/search?title=${encodeURIComponent(searchTerm.trim())}`);
     };
 
     const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -21,7 +22,7 @@ export default function SearchInput(props: { onSearch: (keyword: string) => void
     return (
         <div className="relative">
             <input
-                className="w-[350px] rounded-full border-1 border-[#353535] bg-[#191924] px-6 py-3 focus:outline-none"
+                className="w-[350px] placeholder:text-sm rounded-full border border-[#353535] bg-[#191924] px-6 py-3 focus:outline-none"
                 type="text"
                 placeholder="검색어를 입력해주세요."
                 value={searchTerm}
@@ -30,9 +31,9 @@ export default function SearchInput(props: { onSearch: (keyword: string) => void
             />
             <button 
                 onClick={handleSearch}
-                className="absolute right-6 top-4 cursor-pointer"
+                className="absolute right-6 top-3.5 cursor-pointer"
             >
-                <Image src="/icon/search.svg" width={16} height={16} alt="검색" />
+                <Search className="w-5 h-5" />
             </button>
         </div>
     );

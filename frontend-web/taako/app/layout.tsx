@@ -5,7 +5,7 @@ import "@/components/cards/all-cards.css";
 import Header from "@/components/header/Header";
 import Footer from "@/components/Footer";
 import dynamic from 'next/dynamic'
-import TopPadding from "@/components/TopPadding";
+import ReactQueryProvider from "@/components/providers/ReactQueryProvider";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -26,14 +26,14 @@ export default function RootLayout({
   return (
     <html lang="ko" className="dark">
       <body className={`${montserrat.className}`}>
-        <MosaicReveal />
-        <Header />
-        <TopPadding>
-          <div>
+        <ReactQueryProvider>
+          <MosaicReveal />
+          <Header />
+          <div className="py-30">
             {children}
           </div>
-        </TopPadding>
-        <Footer />
+          <Footer />
+        </ReactQueryProvider>
       </body>
     </html>
   );

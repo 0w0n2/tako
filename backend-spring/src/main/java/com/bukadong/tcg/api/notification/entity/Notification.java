@@ -1,6 +1,7 @@
 package com.bukadong.tcg.api.notification.entity;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 import com.bukadong.tcg.global.common.base.BaseEntity;
 import jakarta.persistence.*;
@@ -79,7 +80,7 @@ public class Notification extends BaseEntity {
     /**
      * 읽음 처리
      * <P>
-     * KST 기준 시간은 서버 표준 타임존 설정(Asia/Seoul)에 따르며, 여기서는 단순히 now()를 사용한다.
+     * when이 null이면 현재 시각으로 설정
      * </P>
      * 
      * @PARAM when 읽은 시각(없으면 now)
@@ -87,6 +88,6 @@ public class Notification extends BaseEntity {
      */
     public void markRead(LocalDateTime when) {
         this.read = true;
-        this.readAt = (when != null) ? when : LocalDateTime.now();
+        this.readAt = (when != null) ? when : LocalDateTime.now(ZoneOffset.UTC);
     }
 }

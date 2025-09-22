@@ -1,14 +1,18 @@
 # ---- Build stage --------------------------------------------------------
-FROM node:20-alpine AS builder
+FROM node:20-bookworm-slim AS builder
 WORKDIR /app
 
 # 빌드 인자: dev | prod
 ARG APP_STAGE=dev
 ENV APP_STAGE=${APP_STAGE}
 
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates git build-essential python3 rustc cargo \
+    && rm -rf /var/lib/apt/lists/*
+
 # 의존성 설치 (캐시 최대화)
 COPY package.json package-lock.json ./
-RUN npm ci --no-audit --no-fund --include=dev
+RUN npm ci --no-audit --no-fund --include=dev --build-from-source=lightningcss
 
 # 소스 복사 & 빌드
 COPY . .

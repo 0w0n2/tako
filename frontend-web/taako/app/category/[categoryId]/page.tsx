@@ -47,12 +47,7 @@ export default function CategoryPage({ params }: CategoryPageProps) {
   const [filterOptions, setFilterOptions] = useState<FilterOption[]>([])
   const [itemsMap, setItemsMap] = useState<Record<string, FilterItem[]>>({})
   const [selectedFilters, setSelectedFilters] = useState<Record<string, FilterItem | null>>({})
-  
-  const handleSearch = (searchKeyword: string) => {
-    setKeyword(searchKeyword)
-    setCurrentPage(1) // 검색 시 첫 페이지로 리셋
-  }
-
+ 
   // 카드팩 데이터 로드
   const loadCardPacks = async () => {
     try {
@@ -231,7 +226,7 @@ export default function CategoryPage({ params }: CategoryPageProps) {
             itemsMap={itemsMap} 
             onSelectionsChange={handleFilterChange}
           />
-          <SearchInput onSearch={handleSearch} />
+          <SearchInput />
         </div>
         <div>
           {loading ? (
@@ -250,7 +245,7 @@ export default function CategoryPage({ params }: CategoryPageProps) {
                     <Link href={`/category/${categoryId}/${card.id}`}>
                     <SimpleCard 
                       key={card.id} 
-                      imageUrl={card.imageUrls[0] || '/no-image.jpg'} 
+                      imageUrl={(card.imageUrls && card.imageUrls.length > 0) ? card.imageUrls[0] : '/no-image.jpg'} 
                       cardType={cardType}
                     />
                     </Link>

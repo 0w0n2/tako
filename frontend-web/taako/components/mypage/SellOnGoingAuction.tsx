@@ -3,7 +3,7 @@
 import Image from "next/image"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 
-export default function AuctionCard() {
+export default function SellOnGoingAuction() {
   const details = [
     { date: '25/03/22 08:23', bidder: 'pokemonhunter', price: '0.999 BTC' },
     { date: '25/03/22 05:10', bidder: 'cardlover', price: '0.801 BTC' },

@@ -2,114 +2,186 @@
 
 import * as React from "react"
 import { useForm, SubmitHandler, Controller } from "react-hook-form"
-import {Button} from "@heroui/button";
 
+import Image from "next/image"
 import RegisterImage from "@/components/atoms/RegisterImage"
 import CreateAuctionCategories from "@/components/categories/CreateAuctionCategories"
 import AuctionNewCalendar from "@/components/auction/new/AuctionNewCalendar"
-import { AuctionFormProps } from "@/types/auction";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AuctionFormProps } from "@/types/auction"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Button } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { createAuction } from "@/lib/auction"
 
 export default function NewAuctionPage() {
-  const { register, handleSubmit, control, watch, formState: { errors } } = useForm<AuctionFormProps>({
+  const [selectedCardName, setSelectedCardName] = React.useState<string>("");
+  const [selectedCardImageUrl, setSelectedCardImageUrl] = React.useState<string>("");
+
+  const { register, handleSubmit, control, watch, setValue, formState: { errors } } = useForm<AuctionFormProps>({
     defaultValues: {
-      images: [],
-      category: { majorCategoryName: "", minorCategoryName: "" },
-      title: "",
-      description: "",
-      calendar: null,
-      startPrice: 0,
-      buyItNow: false,
-      buyItNowPrice: 0,
+      files: [],
+      requestDto: {
+        gradeHash: "hash123",
+        categoryMajorId: null,
+        categoryMediumId: null,
+        cardId: null,
+        title: "",
+        detail: "",
+        startDatetime:'',
+        endDatetime: '',
+        buyNowFlag: false,
+        buyNowPrice: 0,
+        bidUnit: 0,
+        startPrice: 0,
+      }
     }
   });
 
+  const isBuyItNow = watch("requestDto.buyNowFlag");
+
   const onSubmit: SubmitHandler<AuctionFormProps> = data => {
-    console.log(data);
+    const { requestDto, files } = data;
+
+    // 시작,종료 시간 비교
+      if (requestDto.startDatetime && requestDto.endDatetime) {
+        const start = new Date(requestDto.startDatetime);
+        const end = new Date(requestDto.endDatetime);
+        if (end <= start) {
+          alert("종료시간이 시작시간보다 빠를 수 없습니다.");
+          return;
+        }
+      }
+      
+    const requiredFields = [
+      "categoryMajorId",
+      "categoryMediumId",
+      "cardId",
+      "title",
+      "detail",
+      "startDatetime",
+      "endDatetime",
+      "bidUnit",
+      "startPrice"
+    ] as const;
+
+    let emptyFields: string[] = requiredFields.filter((key) => {
+      const value = requestDto[key as keyof typeof requestDto];
+      return value === null || value === "" || (typeof value === "number" && value <= 0);
+    });
+
+    // buyNowFlag true일 때 buyNowPrice 필수 체크
+    if (requestDto.buyNowFlag && (!requestDto.buyNowPrice || requestDto.buyNowPrice <= 0)) {
+      emptyFields.push("buyNowPrice");
+    }
+
+    if (!files || files.length === 0 || emptyFields.length > 0) {
+      alert("입력하지 않은 필수값이 있습니다.");
+      return;
+    }
+
+    try {
+      const res = createAuction(requestDto, files);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  const isBuyItNow = watch("buyItNow");
-
   return (
-    <div className="default-container pb-[40px]">
+    <div className="small-container pb-10">
       <h2 className="mb-10">경매 등록하기</h2>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-10">
-        {/* 사진 등록 */}
-        <div className="flex items-start gap-5">
-          <div className="flex-1 flex items-start gap-2 mt-2">
-            <h3>사진 등록</h3>
-            <span className="text-[#FF0000]">*</span>
-          </div>
-          <div className="flex-5 flex flex-col gap-2 overflow-hidden">
-            <Controller
-              name="images"
-              control={control}
-              rules={{ required: "이미지를 1개 이상 등록해주세요." }}
-              render={({ field, fieldState }) => (
-                <div>
-                  <RegisterImage onChange={field.onChange} />
-                  <p className="text-[#a5a5a5] mt-1 text-sm">상품 이미지를 등록해주세요.<br/>
-                  첫 번째 사진이 대표 이미지로 사용됩니다.</p>
-                  {fieldState.error && <p className="text-red-500 text-sm mt-1">{fieldState.error.message}</p>}
-                </div>
-              )}
-            />
-          </div>
-        </div>
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-15" encType="multipart/form-data">
 
-        {/* 카테고리 */}
+        {/* 사진 등록 */}
         <Controller
-          name="category"
+          name="files"
           control={control}
-          rules={{ validate: (value) => (value.majorCategoryName !== "" && value.minorCategoryName !== "") || "카테고리를 선택해주세요." }}
-          render={({ field, fieldState }) => (
-            <div className="flex items-start gap-5">
-              <div className="flex-1 flex flex-col gap-2">
-                <div className="flex items-start gap-2 mt-2">
-                  <Label>카테고리</Label>
-                  <span className="text-[#FF0000]">*</span>
-                </div>
-                <div className="flex gap-2 text-sm text-[#a5a5a5]">
-                  <p>전체</p>
-                  {field.value.majorCategoryName && (
-                    <p>{`>`} {field.value.majorCategoryName}</p>
-                  )}
-                  {field.value.minorCategoryName && (
-                    <p>{`>`} {field.value.minorCategoryName}</p>
-                  )}
-                </div>
+          rules={{
+            validate: value =>
+              (value && value.length > 0) || "이미지를 1개 이상 등록해주세요."
+          }}
+          render={({ field: { value, onChange }, fieldState }) => (
+            <div className="flex flex-col gap-5">
+              <div className="flex-1 flex items-center gap-2">
+                <Label>사진 등록</Label>
+                <span className="text-red-500">*</span>
               </div>
-              <div className="flex-5">
-                <CreateAuctionCategories onChange={field.onChange} />
+              <div className="flex-5 flex flex-col gap-2">
+                <RegisterImage
+                  onChange={(files) => {
+                    // Controller가 파일 배열을 받을 수 있게 래핑
+                    onChange(files);
+                  }}
+                />
                 {fieldState.error && <p className="text-red-500 text-sm mt-1">{fieldState.error.message}</p>}
               </div>
             </div>
           )}
         />
 
-        {/* 제목 */}
-        <div className="flex items-start gap-5">
-          <div className="flex-1 flex items-start gap-2 mt-2">
-            <Label htmlFor="title">제목</Label>
-            <span className="text-[#FF0000]">*</span>
+        {/* 카테고리 */}
+        <div className="flex flex-col gap-5 relative">
+          <div className="flex-1">
+            <div className="flex gap-2">
+              <Label>카테고리</Label>
+              <span className="text-red-500">*</span>
+            </div>
           </div>
           <div className="flex-5">
+            <CreateAuctionCategories
+              onChange={(majorId, majorName, minorId, minorName, cardId, cardName, cardImageUrl) => {
+                setValue("requestDto.categoryMajorId", majorId);
+                setValue("requestDto.categoryMediumId", minorId);
+                setValue("requestDto.cardId", cardId);
+                setSelectedCardName(cardName ?? "");
+                setSelectedCardImageUrl(cardImageUrl ?? "")
+              }}
+              onReset={() => {
+                setSelectedCardName("");
+                setSelectedCardImageUrl("");
+              }}
+            />
+            {(errors.requestDto?.categoryMajorId || errors.requestDto?.categoryMediumId) && (
+              <p className="text-red-500 text-sm mt-1">카테고리를 선택해주세요.</p>
+            )}
+            {selectedCardImageUrl ? (
+              <div className="w-[250px] flex flex-col gap-2 items-center">
+                <div className="w-full">
+                  <Image
+                    className="w-full h-full object-fit"
+                    src={selectedCardImageUrl[0]}
+                    alt="선택된 카드 이미지"
+                    width={100}
+                    height={100}
+                  />
+                </div>
+                <p className="text-[#a5a5a5] text-center">{selectedCardName}</p>
+              </div>
+            ) : null}
+          </div>
+        </div>
+
+        {/* 제목 */}
+        <div className="flex flex-col items-start gap-5">
+          <div className="flex items-center gap-2 mt-2">
+            <Label htmlFor="title">제목</Label>
+            <span className="text-red-500">*</span>
+          </div>
+          <div className="w-full">
             <Input
               id="title"
-              {...register("title", { required: "제목을 입력해주세요." })}
+              className="h-14 placeholder:text-md"
+              {...register("requestDto.title", { required: "제목을 입력해주세요." })}
               placeholder="제목"
-              className="h-[50px] bg-[#191924] border-[#353535]"
             />
-            {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title.message}</p>}
+            {errors.requestDto?.title && <p className="text-red-500 text-sm mt-1">{errors.requestDto?.title.message}</p>}
           </div>
         </div>
 
         {/* 카드 감정하기(AI) */}
-        <div className="flex items-start gap-5">
+        <div className="flex flex-col items-start gap-5">
           <div className="flex-1 flex flex-col gap-1">
             <div className="flex items-center gap-2 mt-2">
               <h3>카드 감정하기(AI)</h3>
@@ -121,11 +193,13 @@ export default function NewAuctionPage() {
             </div>
           </div>
 
-          <div className="flex-5 flex flex-col gap-4">
+          <div className="w-full flex flex-col gap-4">
             <div className="flex justify-between gap-2 mt-3">
               <p className="text-sm text-[#a5a5a5]">카드 이미지를 등록해 주세요<br/>
               (촬영 가이드 참고)</p>
-              <Button className="rounded-lg px-6 h-[50px] bg-[#7DB7CD] border-1 border-[#7DB7CD] text-[#111] shadow-lg">
+              <Button
+                type="button"
+                className="rounded-lg px-6 h-[50px] bg-[#7DB7CD] border-1 border-[#7DB7CD] text-[#111] shadow-lg">
                 AI 감정하기
                 <svg
                 fill="black"
@@ -170,125 +244,160 @@ export default function NewAuctionPage() {
         </div>
 
         {/* 상세설명 */}
-        <div className="flex gap-5">
-          <div className="flex-1 flex items-start gap-2 mt-2">
-            <Label htmlFor="description">상세설명</Label>
-            <span className="text-[#ff0000]">*</span>
+        <div className="flex flex-col items-start gap-5">
+          <div className="flex items-start gap-2 mt-2">
+            <Label htmlFor="detail">상세설명</Label>
+            <span className="text-red-500">*</span>
           </div>
-          <div className="flex-5">
+          <div className="w-full">
             <Textarea
-              id="description"
-              {...register("description", { required: "상세설명을 입력해주세요." })}
+              id="detail"
+              className="h-[200px] p-4 placeholder:text-md"
+              {...register("requestDto.detail", { required: "상세설명을 입력해주세요." })}
               placeholder="상세설명을 입력해주세요."
-              className="bg-[#191924] border-[#353535] h-40"
             />
-            {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description.message}</p>}
+            {errors.requestDto?.detail && <p className="text-red-500 text-sm mt-1">{errors.requestDto?.detail.message}</p>}
           </div>
         </div>
 
-        {/* 경매기간 */}
-        <Controller
-          name="calendar"
-          control={control}
-          rules={{ required: "경매 기간을 설정해주세요." }}
-          render={({ field, fieldState }) => (
-            <div className="flex items-start gap-5">
+        {/* 경매 기간 */}
+        <div className="">
+          <Controller
+            name="requestDto.startDatetime"
+            control={control}
+            rules={{ required: "경매 시작일을 설정해주세요." }}
+            render={({ field, fieldState }) => (
+              <div className="flex items-start gap-5">
                 <div className="flex-1 flex items-center gap-2 mt-2">
-                    <Label>경매기간</Label>
-                    <span className="text-[#ff0000]">*</span>
+                  <Label>경매기간</Label>
+                  <span className="text-red-500">*</span>
                 </div>
-                <div className="flex-5 flex flex-col md:flex-row md:items-center gap-4">
-                    <AuctionNewCalendar onChange={field.onChange} />
-                </div>
-                {fieldState.error && <p className="text-red-500 text-sm mt-1">{fieldState.error.message}</p>}
-            </div>
-          )}
-        />
+                <div className="flex-5">
+                  <AuctionNewCalendar
+                    onChange={({ startDate, startTime, endDate, endTime }) => {
+                      // 시작일시 저장
+                      if (startDate) {
+                        const startDateStr = startDate.toISOString().split("T")[0];
+                        const startIso = `${startDateStr}T${startTime}`;
+                        setValue("requestDto.startDatetime", startIso, { shouldValidate: true });
+                      }
 
-        {/* 입찰가 */}
+                      // 종료일시 저장
+                      if (endDate) {
+                        const endDateStr = endDate.toISOString().split("T")[0];
+                        const endIso = `${endDateStr}T${endTime}`;
+                        setValue("requestDto.endDatetime", endIso, { shouldValidate: true });
+                      }
+                    }}
+                  />
+                  {fieldState.error && (
+                    <p className="text-red-500 text-sm mt-1">{fieldState.error.message}</p>
+                  )}
+                  {errors.requestDto?.endDatetime && (
+                    <p className="text-red-500 text-sm mt-1">{errors.requestDto?.endDatetime.message}</p>
+                  )}
+                </div>
+              </div>
+            )}
+          />
+        </div>
+
+
+        {/* 시작 입찰가 */}
         <div className="flex items-start gap-5">
           <div className="flex-1 flex items-center gap-2 mt-2">
-            <h3>입찰가</h3>
-            <span className="text-[#ff0000]">*</span>
+            <Label>시작 입찰가</Label>
+            <span className="text-red-500">*</span>
           </div>
-          <div className="flex-5 flex flex-col gap-2">
-            <div className="flex items-center gap-4">
-                <div className="flex flex-col gap-2">
-                    <p className="text-sm">시작 입찰가</p>
-                    <div className="relative">
-                        <Input
-                        type="number"
-                        {...register("startPrice", { required: "시작가를 입력해주세요.", valueAsNumber: true, min: { value: 0, message: "0 이상의 값을 입력해주세요." } })}
-                        placeholder="0"
-                        min={0}
-                        className="h-[50px] bg-[#191924] border-[#353535] pr-12"
-                        />
-                        <span className="absolute right-4 top-1/2 pb-0.5 -translate-y-1/2 text-sm">TKC</span>
-                    </div>
-                    {errors.startPrice && <p className="text-red-500 text-sm mt-1">{errors.startPrice.message}</p>}
-                </div>
-                <div className="flex flex-col gap-2">
-                    <p className="text-sm">입찰 단위</p>
-                    <Controller
-                        name="bidUnit"
-                        control={control}
-                        rules={{ required: "입찰 단위를 선택해주세요." }}
-                        render={({ field }) => (
-                            <Select onValueChange={(value) => field.onChange(parseInt(value))} defaultValue={field.value ? String(field.value) : ""}>
-                                <SelectTrigger className="h-[50px] bg-[#191924] border-[#353535]">
-                                    <SelectValue placeholder="선택" />
-                                </SelectTrigger>
-                                <SelectContent className="bg-[#191924] border-[#353535] text-white">
-                                    <SelectItem value="100">100</SelectItem>
-                                    <SelectItem value="500">500</SelectItem>
-                                    <SelectItem value="1000">1000</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        )}
-                    />
-                    {errors.bidUnit && <p className="text-red-500 text-sm mt-1">{errors.bidUnit.message}</p>}
-                </div>
-            </div>
-          </div>
-        </div>
+          <div className="flex-5">
+            <div className="flex gap-2">
+              <Input
+                type="number"
+                className="w-[200px]"
+                {...register("requestDto.startPrice", {
+                  required: "시작 입찰가를 입력해주세요.",
+                  valueAsNumber: true,
+                  min: { value: 0.01, message: "0 이상의 값을 입력해주세요." },
+                })}
+                placeholder="0"
+              />
 
-        {/* 속성 */}
-        <div className="flex items-start gap-5">
-            <h3 className="flex-1 mt-2">속성</h3>
-            <div className="flex-5 flex items-center space-x-2">
-                <input
-                    type="checkbox"
-                    id="buyItNow"
-                    {...register("buyItNow")}
-                    className="h-4 w-4"
+              {/* 입찰단위 */}
+              <div className="w-[150px]">
+                <Controller
+                  name="requestDto.bidUnit"
+                  control={control}
+                  rules={{ required: "입찰 단위를 선택해주세요." }}
+                  render={({ field, fieldState }) => (
+                    <>
+                      <Select
+                        onValueChange={(value) => field.onChange(parseFloat(value))}
+                        value={field.value ? String(field.value) : ""}
+                      >
+                        <SelectTrigger className="h-[50px] bg-[#191924] border-[#353535]">
+                          <SelectValue placeholder="입찰 단위 선택" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-[#191924] border-[#353535] text-white">
+                          {["0.01","0.05","0.1","0.5","1","5","10","50","100","500","1000","5000"].map(v => (
+                            <SelectItem key={v} value={v}>{v}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {fieldState.error && (
+                        <p className="text-red-500 text-sm mt-1">{fieldState.error.message}</p>
+                      )}
+                    </>
+                  )}
                 />
-                <Label htmlFor="buyItNow" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">즉시구매</Label>
+              </div>
+            </div>
+            {errors.requestDto?.startPrice && (
+              <p className="text-red-500 text-sm mt-1">{errors.requestDto.startPrice.message}</p>
+            )}
+            {errors.requestDto?.startPrice && errors.requestDto?.bidUnit && (
+              <p className="text-red-500 text-sm mt-1">{errors.requestDto.startPrice.message}</p>
+            )}
             </div>
         </div>
 
+
+        {/* 즉시구매 */}
+        <div className="flex items-center gap-5">
+          <div className="flex-1">
+            <Label>즉시구매</Label>
+          </div>
+          <div className="flex-5 flex items-center gap-2">
+            <input type="checkbox" {...register("requestDto.buyNowFlag")} id="buyNowFlag" />
+            <Label htmlFor="buyNowFlag" className="text-sm text-[#a5a5a5]">즉시구매가능</Label>
+          </div>
+        </div>
 
         {/* 즉시구매가 */}
         {isBuyItNow && (
-          <div className="flex gap-5">
-            <h3 className="flex-1 mt-2">즉시구매가</h3>
-            <div className="flex-5 relative">
-                <Input
-                  type="number"
-                  {...register("buyItNowPrice", { valueAsNumber: true, validate: value => !isBuyItNow || (value && value > 0) || "즉시구매가를 입력해주세요." })}
-                  placeholder="0"
-                  min={0}
-                  disabled={!isBuyItNow}
-                  className="h-[50px] bg-[#191924] border-[#353535] pr-20 w-full disabled:bg-gray-800 disabled:cursor-not-allowed"
-                />
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm">TKC</span>
-                {errors.buyItNowPrice && <p className="text-red-500 text-sm mt-1">{errors.buyItNowPrice.message}</p>}
+          <div className="flex items-start gap-5">
+            <div className="flex-1 flex items-center gap-2 mt-2">
+              <Label htmlFor="buyNowPrice">즉시구매가</Label>
+              <span className="text-red-500">*</span>
+            </div>
+            <div className="flex-5">
+              <Input
+                id="buyNowPrice"
+                type="number"
+                className="h-12 w-[200px]"
+                {...register("requestDto.buyNowPrice", {
+                  valueAsNumber: true,
+                  validate: value => value > 0 || "즉시구매가를 입력해주세요."
+                })}
+                placeholder="0"
+              />
+              {errors.requestDto?.buyNowPrice && <p className="text-red-500 text-sm mt-1">{errors.requestDto?.buyNowPrice.message}</p>}
             </div>
           </div>
         )}
 
-        {/* 제출 */}
-        <Button type="submit" size="lg" className="m-auto px-8 h-[50px] bg-[#364153] text-[#7DB7CD] border-1 border-[#7DB7CD] cursor-pointer rounded-lg
-                    hover:bg-[#3E4C63] transition-all duration-300">등록하기</Button>
+        <Button
+          className="h-12 bg-[#7DB7CD] text-[#2B3235] cursor-pointer"
+          type="submit">등록하기</Button>
       </form>
     </div>
   )
