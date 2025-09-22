@@ -7,10 +7,11 @@ package com.bukadong.tcg.api.popularity.dto.response;
  * </P>
  * 
  * @PARAM cardId 카드 ID
+ * @PARAM name 카드명
  * @PARAM rarity 희귀도(추후 컬럼/조인으로 채울 예정)
  * @PARAM score 최근 1시간 합산 점수
- * @PARAM imageUrl 대표 이미지 URL(추후 미디어 조인으로 채움)
+ * @PARAM url 대표 이미지 Presigned URL
  * @RETURN 없음
  */
-public record PopularCardDto(Long cardId, String rarity, double score, String imageUrl) {
+public record PopularCardDto(Long cardId, String name, String rarity, double score, String url) {
 }
