@@ -26,7 +26,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 
 /**
@@ -148,7 +147,7 @@ public class BidEventApplyService {
                 if (extensionEnabled && auction.isExtensionFlag() && !auction.isEnd()
                         && auction.getEndDatetime() != null) {
                     Instant now = Instant.now();
-                    Instant endAt = auction.getEndDatetime().atZone(ZoneId.systemDefault()).toInstant();
+                    Instant endAt = auction.getEndDatetime().atOffset(java.time.ZoneOffset.UTC).toInstant();
                     long remainingSec = ChronoUnit.SECONDS.between(now, endAt);
 
                     if (remainingSec <= extensionThresholdSeconds) {
@@ -156,7 +155,7 @@ public class BidEventApplyService {
                         Instant newEndAt = endAt.plusSeconds(extendBySeconds);
 
                         // (a) DB 엔티티 반영(도메인 메서드 사용)
-                        auction.setEndDatetime(newEndAt.atZone(ZoneId.systemDefault()).toLocalDateTime());
+                        auction.setEndDatetime(newEndAt.atOffset(java.time.ZoneOffset.UTC).toLocalDateTime());
 
                         // (b) Redis ZSET 스코어 갱신(epochMillis)
                         deadlineIndex.upsert(auctionId, newEndAt.toEpochMilli());
@@ -168,7 +167,7 @@ public class BidEventApplyService {
                     }
                 } else if (auction.getEndDatetime() != null) {
                     // 연장 기능 OFF이거나 확장 비대상이어도, 최소 1회 ZSET 등록은 보장
-                    Instant endAt = auction.getEndDatetime().atZone(ZoneId.systemDefault()).toInstant();
+                    Instant endAt = auction.getEndDatetime().atOffset(java.time.ZoneOffset.UTC).toInstant();
                     deadlineIndex.upsert(auctionId, endAt.toEpochMilli());
                 }
             } catch (Exception schedEx) {

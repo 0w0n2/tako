@@ -25,6 +25,6 @@ public class AuctionCancelResponse {
     @Schema(description = "취소 주체(USER/ADMIN)", example = "USER")
     private String cancelledBy;
 
-    @Schema(description = "취소 시각(Asia/Seoul)", example = "2025-09-16T15:01:00")
+    @Schema(description = "취소 시각", example = "2025-09-16T15:01:00")
     private LocalDateTime cancelledAt;
 }

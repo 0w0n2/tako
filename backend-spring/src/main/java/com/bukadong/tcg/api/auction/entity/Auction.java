@@ -19,7 +19,9 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.ZoneOffset;
+
+import org.slf4j.Logger;
 
 /**
  * 경매 엔티티.
@@ -166,7 +168,7 @@ public class Auction extends BaseEntity {
     @Column(name = "close_reason", length = 20)
     private AuctionCloseReason closeReason;
 
-    /** 종료 시각(KST) */
+    /** 종료 시각 */
     @Column(name = "closed_at")
     private LocalDateTime closedAt;
 
@@ -289,14 +291,15 @@ public class Auction extends BaseEntity {
     /**
      * 종료 가능 여부
      * <P>
-     * 이미 종료가 아니고, endDatetime이 현재(KST) 이전이면 종료 가능.
+     * 이미 종료가 아니고, endDatetime이 현재 이전이면 종료 가능.
      * </P>
      * 
      * @RETURN 종료 가능 여부
      */
     public boolean isClosableNow() {
-        return !this.isEnd && this.endDatetime != null
-                && this.endDatetime.isBefore(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
+        Logger log = org.slf4j.LoggerFactory.getLogger(Auction.class);
+        log.info("isEnd: {}, endDatetime: {}. now {}", this.isEnd, this.endDatetime, LocalDateTime.now(ZoneOffset.UTC));
+        return !this.isEnd && this.endDatetime != null && this.endDatetime.isBefore(LocalDateTime.now(ZoneOffset.UTC));
     }
 
     /**

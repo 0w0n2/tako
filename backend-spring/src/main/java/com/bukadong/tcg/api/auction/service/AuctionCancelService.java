@@ -18,7 +18,9 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 /**
  * 경매 취소 서비스
@@ -37,7 +39,7 @@ public class AuctionCancelService {
     private final AuctionBidRepository auctionBidRepository;
     private final AuctionCacheService auctionCacheService; // Redis is_end 갱신 재사용
     private final NotificationCommandService notificationCommandService;
-    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
+    private static final ZoneOffset UTC = ZoneOffset.UTC;
 
     /**
      * 사용자 주도 취소
@@ -63,7 +65,7 @@ public class AuctionCancelService {
             throw new BaseException(BaseResponseStatus.AUCTION_ALREADY_ENDED); // 이미 종료/취소
         }
         // 종료시간 이전인지
-        if (!LocalDateTime.now(KST).isBefore(auction.getEndDatetime())) {
+        if (!LocalDateTime.now(UTC).isBefore(auction.getEndDatetime())) {
             throw new BaseException(BaseResponseStatus.AUCTION_NOT_RUNNING); // 기간 외
         }
         // 입찰 없음 확인
@@ -71,7 +73,7 @@ public class AuctionCancelService {
             throw new BaseException(BaseResponseStatus.AUCTION_EXISTING_BID); // 입찰 존재로 취소 불가
         }
 
-        LocalDateTime now = LocalDateTime.now(KST);
+        LocalDateTime now = LocalDateTime.now(UTC);
         int updated = auctionRepository.closeManually(auctionId, AuctionCloseReason.SELLER_CANCEL, now);
         if (updated <= 0) {
             // 동시성으로 상태가 바뀐 경우
@@ -102,7 +104,7 @@ public class AuctionCancelService {
         auctionLockRepository.findByIdForUpdate(auctionId)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.NOT_FOUND));
 
-        LocalDateTime now = LocalDateTime.now(KST);
+        LocalDateTime now = LocalDateTime.now(UTC);
         int updated = auctionRepository.closeManually(auctionId, AuctionCloseReason.ADMIN_CANCEL, now);
         if (updated <= 0) {
             // 이미 종료 등
@@ -150,7 +152,7 @@ public class AuctionCancelService {
             throw new BaseException(BaseResponseStatus.NOT_FOUND);
         }
         var a = optional.get();
-        var now = LocalDateTime.now(KST);
+        var now = LocalDateTime.now(UTC);
 
         boolean owner = a.getMember() != null && a.getMember().getId().equals(memberId);
         if (!owner) {
