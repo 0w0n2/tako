@@ -21,7 +21,7 @@ export default function MainItemEndCloseSection() {
             setAuctions(res.result.content);
         };
         fetch();
-    }, [handlerGetAuctions]);
+    }, []);
 
     return (
         <div className="default-container">
