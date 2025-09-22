@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 
 import { useState } from 'react'
+import WalletProfile from "@/components/wallet/WalletProfile" 
 
 export default function Mypage() {
   const tabs = [
@@ -78,28 +79,8 @@ export default function Mypage() {
       {status === 'myProfile' && (
         <div>
           <h2>기본정보</h2>
-          <div className="flex-1 p-8 border-1 border-[#353535] bg-[#191924] rounded-xl flex justify-between">
-            <div className="flex flex-col justify-between">
-              <h3>내 지갑</h3>
-              <div className="flex flex-col gap-1">
-                <p className="text-[#D2D2D2] mb-1">보유자산</p>
-                <div className="flex justify-between gap-6">
-                  <p className="text-2xl text-[#A4B2FF] font-semibold">
-                    46,500,888
-                  </p>
-                  <p className="text-[#D2D2D2]">KRW</p>
-                </div>
-                <div className="flex justify-between gap-6">
-                  <p className="text-2xl text-[#A4B2FF] font-semibold">3.0000</p>
-                  <p className="text-[#D2D2D2]">TKC</p>
-                </div>
-              </div>
-            </div>
-            <ul className="flex flex-col gap-3">
-              <li className="py-3 px-12 border-1 border-[#353535]">코인교환</li>
-              <li className="py-3 px-12 border-1 border-[#353535]">충전하기</li>
-              <li className="py-3 px-12 border-1 border-[#353535]">송금하기</li>
-            </ul>
+          <div>
+            <WalletProfile />
           </div>
         </div>
       )}
