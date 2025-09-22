@@ -247,7 +247,7 @@ pipeline {
       }
     }
 
-    stage('MySQL dev (compose up)') {
+    stage('MySQL prod (compose up)') {
       when {
         expression {
           params.MANUAL_PROD_DEPLOY && params.MANUAL_MYSQL
