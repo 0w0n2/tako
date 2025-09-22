@@ -21,6 +21,18 @@ module.exports = {
         port: '',
         pathname: '/media/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'dev-api.tako.today',
+        port: '',
+        pathname: '/media/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'api.tako.today',
+        port: '',
+        pathname: '/media/**',
+      },
     ],
   },
 
