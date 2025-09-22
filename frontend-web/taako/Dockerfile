@@ -7,7 +7,7 @@ ARG APP_STAGE=dev
 ENV APP_STAGE=${APP_STAGE}
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates git build-essential python3 \
+    ca-certificates git build-essential python3 rustc cargo \
     && rm -rf /var/lib/apt/lists/*
 
 # 의존성 설치 (캐시 최대화)
