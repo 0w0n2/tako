@@ -10,10 +10,8 @@ import { Heart, ThumbsUp, ThumbsDown } from 'lucide-react';
 
 export default function AuctionCard({ item }: { item: GetAuction }){
     const [remainingTime, setRemainingTime] = useState(item.remainingSeconds);
-    const [currentEmotion, setCurrentEmotion] = useState<'like' | 'dislike' | null>(null);
     const [likeCount, setLikeCount] = useState(0);
     const [dislikeCount, setDislikeCount] = useState(0);
-    const [isEmotionLoading, setIsEmotionLoading] = useState(false);
 
     useEffect(() => {
         if (remainingTime <= 0) return;
