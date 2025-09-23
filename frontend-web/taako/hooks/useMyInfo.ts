@@ -1,4 +1,3 @@
-// hooks/useMyInfo.ts
 import { useQuery } from "@tanstack/react-query";
 import { getInfo, getMyBidAuction } from "@/lib/mypage";
 import { MyInfo, MyBidAuctions } from "@/types/auth";

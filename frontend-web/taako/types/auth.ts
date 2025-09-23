@@ -2,7 +2,7 @@ export interface AuthState {
     token: string | null;
     loading: boolean;
     error: string | null;
-    login: (email: string, password: string) => Promise<void>;
+    login: (email: string, password: string) => Promise<boolean>;
     refreshAccessToken: () => Promise<string | null>;
     logout: () => void;
   }

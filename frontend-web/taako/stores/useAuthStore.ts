@@ -16,22 +16,25 @@ export const useAuthStore = create<AuthState>()(
           const res = await api.post("/v1/auth/sign-in", {
             email, password
           }, { withCredentials: true });
+      
           if (res.data.code !== 200) {
             alert(res.data.message);
             set({ loading: false });
-            return;
+            return false;
           }
-
+      
           const token = res.headers["authorization"];
           set({ loading: false, token });
-          alert("로그인에 성공했습니다.");
+          return true;
         } catch (err: any) {
           set({
             error: err.response?.data?.message || "로그인 실패",
             loading: false, token: null,
           });
+          return false;
         }
       },
+      
 
       logout: async () => {
         try {
