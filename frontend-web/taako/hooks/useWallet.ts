@@ -30,6 +30,11 @@ interface UseWalletReturn {
   reloadAndAutoConnect: () => void;
 }
 
+const isUserRejected = (e: any) => {
+  const code = e?.code ?? e?.error?.code;
+  return code === 4001 || code === 'ACTION_REJECTED';
+};
+
 const useWallet = (): UseWalletReturn => {
   const [walletAddress, setWalletAddress] = useState<string>('');
   const [chainName, setChainName] = useState<string>('');
@@ -128,9 +133,14 @@ const useWallet = (): UseWalletReturn => {
       await fetchChainAndBalance(addr);
     } catch (err: any) {
       // -32002: 요청 진행 중 (MetaMask Pending)
-      if (err?.code === -32002) setError('MetaMask에서 이전 요청이 진행 중입니다. 확장창을 확인해주세요.');
-      else if (err?.code === 4001) setError('사용자가 연결을 거절했습니다.');
-      else setError(err?.message ?? '지갑 연결 중 오류가 발생했습니다.');
+      if (isUserRejected(err)) {
+        setError('연결이 취소됐어요. 다시 연결해주세요.');
+      } else if (err?.code === -32002) {
+        setError('MetaMask에서 이전 요청이 진행 중입니다. 확장창을 확인해주세요.');
+      } else {
+        // 그 외: 짧은 일반 문구
+        setError('지갑 연결 중 오류가 발생했어요. 잠시 후 다시 시도해주세요.');
+      }
 
       if (!needsMetaMask) {
         setWalletAddress('');
