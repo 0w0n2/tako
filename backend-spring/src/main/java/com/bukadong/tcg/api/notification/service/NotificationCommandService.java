@@ -51,7 +51,6 @@ public class NotificationCommandService {
      * @PARAM message 본문
      * @RETURN 생성된 Notification ID
      */
-    @Transactional
     public Long create(Long memberId, NotificationTypeCode typeCode, Long causeId, String title, String message) {
 
         // FK 보호: 수신자 없으면 기록 스킵 (경고만)
@@ -147,7 +146,7 @@ public class NotificationCommandService {
     @Transactional
     public Long notifyAuctionWon(Long memberId, Long auctionId, BigDecimal amount, Instant closedAt) {
         String title = "경매에 낙찰되었습니다";
-        String message = "축하합니다! 해당 경매의 낙찰자로 선정되었어요. 낙찰가: " + safeAmount(amount);
+        String message = "축하합니다! 해당 경매의 낙찰자로 선정되었어요. 낙찰가: " + safeAmount(amount) + "\n받는 배송지를 등록/선택해 주세요.";
         return create(memberId, NotificationTypeCode.AUCTION_WON, auctionId, title, message);
     }
 
@@ -187,7 +186,7 @@ public class NotificationCommandService {
 
     private String buildTargetUrl(NotificationTypeCode typeCode, Long causeId) {
         return switch (typeCode) {
-        case WISH_AUCTION_STARTED, WISH_AUCTION_DUE_SOON, WISH_AUCTION_ENDED, AUCTION_NEW_INQUIRY, AUCTION_WON, AUCTION_CLOSED_SELLER, AUCTION_CANCELED -> targetUrlBuilder
+        case WISH_AUCTION_STARTED, WISH_AUCTION_DUE_SOON, WISH_AUCTION_ENDED, AUCTION_NEW_INQUIRY, AUCTION_WON, AUCTION_CLOSED_SELLER, AUCTION_CANCELED, DELIVERY_STARTED, DELIVERY_STATUS_CHANGED, DELIVERY_CONFIRM_REQUEST, DELIVERY_CONFIRMED_SELLER -> targetUrlBuilder
                 .buildForAuction(causeId);
         case WISH_CARD_LISTED -> targetUrlBuilder.buildForCard(causeId);
         case INQUIRY_ANSWERED -> targetUrlBuilder.buildForInquiry(causeId);
@@ -196,5 +195,50 @@ public class NotificationCommandService {
 
     private String safeAmount(BigDecimal amount) {
         return (amount == null) ? "-" : amount.toPlainString();
+    }
+
+    // ================= 배송 관련 편의 메서드 =================
+
+    /** 운송장 등록 등으로 배송이 시작되었을 때(구매자) */
+    @Transactional
+    public Long notifyDeliveryStarted(Long buyerId, Long auctionId, String auctionTitle) {
+        String shortTitle = safeShortTitle(auctionTitle);
+        String title = shortTitle + " 배송이 시작되었어요";
+        String message = "판매자가 운송장 번호를 등록했어요. 배송이 시작되었습니다.";
+        return create(buyerId, NotificationTypeCode.DELIVERY_STARTED, auctionId, title, message);
+    }
+
+    /** 배송 상태 변경(구매자) */
+    @Transactional
+    public Long notifyDeliveryStatusChanged(Long buyerId, Long auctionId, String auctionTitle, String newStatusLabel) {
+        String shortTitle = safeShortTitle(auctionTitle);
+        String title = shortTitle + " 배송 상태 변경";
+        String message = shortTitle + " 경매의 배송상태가 " + newStatusLabel + "(으)로 변경되었습니다.";
+        return create(buyerId, NotificationTypeCode.DELIVERY_STATUS_CHANGED, auctionId, title, message);
+    }
+
+    /** 배송 완료 시 구매 확정 요청(구매자) */
+    @Transactional
+    public Long notifyDeliveryConfirmRequest(Long buyerId, Long auctionId, String auctionTitle) {
+        String shortTitle = safeShortTitle(auctionTitle);
+        String title = shortTitle + " 구매 확정 요청";
+        String message = "상품을 받으셨다면 구매 확정을 진행해 주세요.";
+        return create(buyerId, NotificationTypeCode.DELIVERY_CONFIRM_REQUEST, auctionId, title, message);
+    }
+
+    /** 구매자가 구매확정 시 판매자에게 알림 */
+    @Transactional
+    public Long notifySaleConfirmedToSeller(Long sellerId, Long auctionId, String auctionTitle) {
+        String shortTitle = safeShortTitle(auctionTitle);
+        String title = shortTitle + " 판매 확정 완료";
+        String message = "구매자가 구매 확정을 완료했어요. 정산이 진행됩니다.";
+        return create(sellerId, NotificationTypeCode.DELIVERY_CONFIRMED_SELLER, auctionId, title, message);
+    }
+
+    private String safeShortTitle(String title) {
+        if (title == null)
+            return "";
+        int len = Math.min(title.length(), 10);
+        return title.substring(0, len);
     }
 }
