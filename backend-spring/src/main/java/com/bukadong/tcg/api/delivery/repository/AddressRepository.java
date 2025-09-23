@@ -15,4 +15,6 @@ public interface AddressRepository extends JpaRepository<Address, Long> {
 
     @Query("select a from Address a where a.id = :id and a.member = :member")
     Optional<Address> findByIdAndMember(@Param("id") Long id, @Param("member") Member member);
+
+    boolean existsByMemberAndPlaceName(Member member, String placeName);
 }

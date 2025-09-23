@@ -99,6 +99,10 @@ auction:
       enabled: true
       cron: "0 */5 * * * *"
 
+delivery:
+  auto-complete:
+    min-minutes: ${DELIVERY_AUTO_COMPLETE_MIN_MINUTES:2}
+
 security:
   jwt:
     secret-key: ${SECURITY_JWT_SECRET_KEY}

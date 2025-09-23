@@ -52,7 +52,7 @@ public class DeliveryController {
     @PostMapping("/{auctionId}/tracking")
     public BaseResponse<Delivery> setTracking(@AuthenticationPrincipal CustomUserDetails user,
             @Parameter(description = "경매 ID", required = true) @PathVariable("auctionId") long auctionId,
-            @Parameter(description = "운송장 번호", required = true) @RequestParam @NotBlank String trackingNumber) {
+            @Parameter(description = "운송장 번호", required = true) @RequestParam("trackingNumber") @NotBlank String trackingNumber) {
         var me = memberQueryService.getByUuid(user.getUuid());
         return BaseResponse.onSuccess(deliveryService.setTrackingNumber(me, auctionId, trackingNumber));
     }

@@ -89,6 +89,25 @@ public class AuctionCacheService {
     }
 
     /**
+     * 강제 동기화: DB의 현재가로 Redis current_price를 덮어쓴다(상향/하향 모두).
+     * <p>
+     * 컨슈머에서 DB 반영 실패(Dead-letter) 시 보상 동기화에 사용.
+     * </p>
+     */
+    @Transactional(readOnly = true)
+    public void syncExactCurrentPrice(Long auctionId) {
+        Auction a = auctionRepository.findById(auctionId).orElse(null);
+        if (a == null || a.getCurrentPrice() == null)
+            return;
+        String key = AUCTION_KEY_PREFIX + auctionId;
+        try {
+            redisTemplate.opsForHash().put(key, "current_price", a.getCurrentPrice().toPlainString());
+        } catch (Exception ignore) {
+            // 보수적으로 무시
+        }
+    }
+
+    /**
      * 조기 종료/취소 시 Redis is_end=1.
      * <P>
      * 키가 없으면 생성해도 안전. DB 트랜잭션 커밋 직후 호출 권장.

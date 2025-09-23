@@ -12,6 +12,7 @@ import com.bukadong.tcg.api.member.entity.Member;
 import com.bukadong.tcg.global.common.base.BaseResponseStatus;
 import com.bukadong.tcg.global.common.exception.BaseException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -25,6 +26,9 @@ public class DeliveryServiceImpl implements DeliveryService {
     private final DeliveryRepository deliveryRepository;
     private final AddressRepository addressRepository;
     private final com.bukadong.tcg.api.notification.service.NotificationCommandService notificationService;
+
+    @Value("${delivery.auto-complete.min-minutes:60}")
+    private int autoCompleteMinMinutes;
 
     private Auction getEndedAuction(long auctionId) {
         Auction a = auctionRepository.findById(auctionId)
@@ -41,7 +45,7 @@ public class DeliveryServiceImpl implements DeliveryService {
         Auction a = getEndedAuction(auctionId);
         if (!a.getMember().getId().equals(requester.getId())
                 && (a.getWinnerMemberId() == null || !a.getWinnerMemberId().equals(requester.getId()))) {
-            throw new BaseException(BaseResponseStatus.ACCESS_DENIED);
+            throw new BaseException(BaseResponseStatus.DELIVERY_FORBIDDEN_NOT_PARTICIPANT);
         }
         return a.getDelivery();
     }
@@ -51,10 +55,10 @@ public class DeliveryServiceImpl implements DeliveryService {
     public Delivery setSenderAddress(Member seller, long auctionId, long addressId) {
         Auction a = getEndedAuction(auctionId);
         if (!a.getMember().getId().equals(seller.getId())) {
-            throw new BaseException(BaseResponseStatus.ACCESS_DENIED);
+            throw new BaseException(BaseResponseStatus.DELIVERY_FORBIDDEN_NOT_SELLER);
         }
         Address address = addressRepository.findByIdAndMember(addressId, seller)
-                .orElseThrow(() -> new BaseException(BaseResponseStatus.NOT_FOUND));
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.ADDRESS_NOT_FOUND));
         Delivery d = a.getDelivery();
         if (d == null) {
             d = Delivery.builder().senderAddress(address).recipientAddress(null).status(DeliveryStatus.WAITING).build();
@@ -74,10 +78,10 @@ public class DeliveryServiceImpl implements DeliveryService {
     public Delivery setRecipientAddress(Member buyer, long auctionId, long addressId) {
         Auction a = getEndedAuction(auctionId);
         if (a.getWinnerMemberId() == null || !a.getWinnerMemberId().equals(buyer.getId())) {
-            throw new BaseException(BaseResponseStatus.ACCESS_DENIED);
+            throw new BaseException(BaseResponseStatus.DELIVERY_FORBIDDEN_NOT_WINNER);
         }
         Address address = addressRepository.findByIdAndMember(addressId, buyer)
-                .orElseThrow(() -> new BaseException(BaseResponseStatus.NOT_FOUND));
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.ADDRESS_NOT_FOUND));
         Delivery d = a.getDelivery();
         if (d == null) {
             d = Delivery.builder().senderAddress(null).recipientAddress(address).status(DeliveryStatus.WAITING).build();
@@ -100,7 +104,7 @@ public class DeliveryServiceImpl implements DeliveryService {
         }
         Auction a = getEndedAuction(auctionId);
         if (!a.getMember().getId().equals(seller.getId())) {
-            throw new BaseException(BaseResponseStatus.ACCESS_DENIED);
+            throw new BaseException(BaseResponseStatus.DELIVERY_FORBIDDEN_NOT_SELLER);
         }
         Delivery d = a.getDelivery();
         if (d == null || d.getSenderAddress() == null || d.getRecipientAddress() == null) {
@@ -124,10 +128,10 @@ public class DeliveryServiceImpl implements DeliveryService {
     @Override
     @Transactional
     public void transitionStatuses() {
-        // 간단한 상태 전이: IN_PROGRESS가 일정 시간 경과했다고 가정하고 COMPLETED로
-        // 세부 규칙은 실제 택배사 연동 시 보강
-        var inProgress = deliveryRepository.findByStatus(DeliveryStatus.IN_PROGRESS);
-        for (Delivery d : inProgress) {
+        // IN_PROGRESS 상태가 설정된 후 특정 시간이 지난 건만 COMPLETED로 전환
+        var threshold = java.time.LocalDateTime.now(java.time.ZoneOffset.UTC).minusMinutes(autoCompleteMinMinutes);
+        var candidates = deliveryRepository.findByStatusAndUpdatedAtBefore(DeliveryStatus.IN_PROGRESS, threshold);
+        for (Delivery d : candidates) {
             Delivery updated = Delivery.builder().id(d.getId()).senderAddress(d.getSenderAddress())
                     .recipientAddress(d.getRecipientAddress()).trackingNumber(d.getTrackingNumber())
                     .status(DeliveryStatus.COMPLETED).build();
@@ -150,11 +154,11 @@ public class DeliveryServiceImpl implements DeliveryService {
     public void confirmByBuyer(Member buyer, long auctionId) {
         Auction a = getEndedAuction(auctionId);
         if (a.getWinnerMemberId() == null || !a.getWinnerMemberId().equals(buyer.getId())) {
-            throw new BaseException(BaseResponseStatus.ACCESS_DENIED);
+            throw new BaseException(BaseResponseStatus.DELIVERY_FORBIDDEN_NOT_WINNER);
         }
         Delivery d = a.getDelivery();
         if (d == null || d.getStatus() != DeliveryStatus.COMPLETED) {
-            throw new BaseException(BaseResponseStatus.BAD_REQUEST);
+            throw new BaseException(BaseResponseStatus.DELIVERY_NOT_ARRIVED);
         }
 
         // 에스크로 트리거 (stub)

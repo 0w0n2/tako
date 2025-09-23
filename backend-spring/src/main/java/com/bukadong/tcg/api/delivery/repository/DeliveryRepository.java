@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface DeliveryRepository extends JpaRepository<Delivery, Long> {
@@ -16,4 +17,6 @@ public interface DeliveryRepository extends JpaRepository<Delivery, Long> {
     int bulkUpdateStatus(@Param("from") DeliveryStatus from, @Param("to") DeliveryStatus to);
 
     List<Delivery> findByStatus(DeliveryStatus status);
+
+    List<Delivery> findByStatusAndUpdatedAtBefore(DeliveryStatus status, LocalDateTime before);
 }
