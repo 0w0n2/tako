@@ -158,6 +158,7 @@ public enum BaseResponseStatus {
     AUCTION_DUPLICATE_REQUEST(HttpStatus.BAD_REQUEST, false, 1121, "이미 처리된 요청입니다. 중복 요청은 허용되지 않습니다."),
     AUCTION_ALREADY_ENDED(HttpStatus.BAD_REQUEST, false, 1122, "이미 종료된 경매입니다."),
     AUCTION_EXISTING_BID(HttpStatus.BAD_REQUEST, false, 1123, "입찰이 존재하는 경매는 취소할 수 없습니다."),
+    WALLET_ADDRESS_NOT_FOUND(HttpStatus.FORBIDDEN, false, 1124, "지갑 주소가 연동되어 있지 않아 등록할 수 없습니다."),
 
     AUCTION_ESCROW_CONTRACT_NOT_FOUND(HttpStatus.BAD_REQUEST, false, 1150, "생성된 에스크로 컨트랙트를 찾을 수 없습니다."),
     /**

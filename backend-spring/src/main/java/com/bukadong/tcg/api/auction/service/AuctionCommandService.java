@@ -17,6 +17,7 @@ import com.bukadong.tcg.api.category.repository.CategoryMediumRepository;
 import com.bukadong.tcg.api.media.entity.MediaType;
 import com.bukadong.tcg.api.media.service.MediaAttachmentService;
 import com.bukadong.tcg.api.member.entity.Member;
+import com.bukadong.tcg.api.member.repository.MemberRepository;
 import com.bukadong.tcg.global.common.base.BaseResponseStatus;
 import com.bukadong.tcg.global.common.exception.BaseException;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import com.bukadong.tcg.api.notification.service.NotificationCommandService;
 import com.bukadong.tcg.api.wish.repository.WishQueryPort;
@@ -65,7 +67,18 @@ public class AuctionCommandService {
     private final WishQueryPort wishQueryPort;
     private final AuctionDeadlineIndex deadlineIndex;
     private final Logger logger = LoggerFactory.getLogger(AuctionCommandService.class);
+    private final MemberRepository memberRepository;
 
+    /**
+     * 경매 생성 가능 여부 조회, 사용자 계정에 지갑 주소가 등록되어 있어야 한다.
+     */
+    @Transactional(readOnly = true)
+    public void isWalletLinked(Member me) {
+        if (!StringUtils.hasText(me.getWalletAddress())) {
+            throw new BaseException(BaseResponseStatus.WALLET_ADDRESS_NOT_FOUND);
+        }
+    }
+    
     /**
      * 경매 생성 서비스
      * <P>
