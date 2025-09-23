@@ -19,13 +19,11 @@ import com.bukadong.tcg.api.category.repository.CategoryMediumRepository;
 import com.bukadong.tcg.api.media.entity.MediaType;
 import com.bukadong.tcg.api.media.service.MediaAttachmentService;
 import com.bukadong.tcg.api.member.entity.Member;
-import com.bukadong.tcg.api.member.repository.MemberRepository;
 import com.bukadong.tcg.global.blockchain.service.TakoNftContractService;
 import com.bukadong.tcg.global.common.base.BaseResponseStatus;
 import com.bukadong.tcg.global.common.exception.BaseException;
 import lombok.RequiredArgsConstructor;
 
-import org.identityconnectors.common.logging.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -71,7 +69,6 @@ public class AuctionCommandService {
     private final WishQueryPort wishQueryPort;
     private final AuctionDeadlineIndex deadlineIndex;
     private final Logger logger = LoggerFactory.getLogger(AuctionCommandService.class);
-    private final MemberRepository memberRepository;
     private final PhysicalCardRepository physicalCardRepository;
     private final TakoNftContractService takoNftContractService;
 
@@ -106,7 +103,7 @@ public class AuctionCommandService {
         if (requestDto.getTokenId() != null) {
             nftPhysicalCard = physicalCardRepository.findByTokenId(BigInteger.valueOf(requestDto.getTokenId()))
                     .orElseThrow(() -> new BaseException(BaseResponseStatus.PHYSICAL_CARD_NOT_FOUND));
-            if (!me.getWalletAddress().equals(takoNftContractService.getOwnerAddress(requestDto.getTokenId()))) {
+            if (!me.getWalletAddress().equalsIgnoreCase(takoNftContractService.getOwnerAddress(requestDto.getTokenId()))) {
                 throw new BaseException(BaseResponseStatus.PHYSICAL_CARD_OWNER_INVALID);
             }
         }
