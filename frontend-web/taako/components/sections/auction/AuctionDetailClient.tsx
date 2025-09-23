@@ -20,6 +20,10 @@ type Props = {
 
 export default function AuctionDetailClient({ auctionId, historySize = 5 }: Props) {
   const { data, loading, error, wished, pendingWish, wishError, toggleWish } = useAuctionDetail(auctionId, historySize);
+  const [inqTotal, setInqTotal] = useState<number>(0);
+  const handleTotalChange = (n: number) => {
+    setInqTotal((prev) => (prev === n ? prev : n));  // ✅ 같은 값이면 렌더 스킵
+  };
 
   if (loading) {
     return (
@@ -55,8 +59,6 @@ export default function AuctionDetailClient({ auctionId, historySize = 5 }: Prop
         </div>
     );
     }
-
-  const [inqTotal, setInqTotal] = useState<number>(0);
 
   return (
     <div className="default-container pb-[80px] relative">
@@ -206,7 +208,7 @@ export default function AuctionDetailClient({ auctionId, historySize = 5 }: Prop
         <div className="pt-15">
           <h2 className="text-[20px]">경매문의 ({inqTotal})</h2>
           <div className="mt-3">
-            <AuctionInquiry props={auc} onTotalChange={setInqTotal} />
+            <AuctionInquiry props={auc} onTotalChange={handleTotalChange} />
           </div>
         </div>
       </div>
