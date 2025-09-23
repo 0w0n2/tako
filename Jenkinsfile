@@ -159,7 +159,7 @@ pipeline {
     stage('Report status: success to GitLab') {
       when {
         expression {
-            ((env.GL_MR_ACTION ?: "") != "merge") && ((env.GL_MR_STATE ?: "") != "merged")
+            (env.GL_MR_ACTION ?: "") != "merge"
         }
       }
       steps {
