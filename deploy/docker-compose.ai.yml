@@ -12,6 +12,8 @@ services:
     restart: unless-stopped
     networks:
       - e104_net
+    env_file:
+      - .env.ai
 
 networks:
   e104_net:

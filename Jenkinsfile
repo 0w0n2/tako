@@ -219,6 +219,17 @@ pipeline {
       }
     }
 
+    stage('Prepare .env.ai') {
+      steps {
+        withCredentials([file(credentialsId: 'ENV_AI_FILE', variable: 'ENV_AI_FILE')]) {
+          sh '''
+            set -eu
+            install -m 600 "$ENV_AI_FILE" deploy/.env.ai
+          '''
+        }
+      }
+    }
+
     stage('Prepare .env.dev') {
       when {
         expression {
@@ -265,8 +276,8 @@ pipeline {
               sh ''' 
                 set -eux
 
-                docker compose -f "$COMPOSE_AI_FILE" pull || true
-                docker compose -f "$COMPOSE_AI_FILE" up -d --build tako_ai
+                docker compose --env-file deploy/.env.ai -f "$COMPOSE_AI_FILE" pull || true
+                docker compose --env-file deploy/.env.ai -f "$COMPOSE_AI_FILE" up -d --build tako_ai
               '''
           } else {
               echo "No deploy target matched for source branch: ${dev_source}"
@@ -400,10 +411,10 @@ pipeline {
           set -eux
 
           docker compose --env-file deploy/.env.prod -f "$COMPOSE_PROD_FILE" pull || true
-          docker compose --env-file deploy/.env.prod -f "$COMPOSE_AI_FILE" pull || true
+          docker compose --env-file deploy/.env.ai -f "$COMPOSE_AI_FILE" pull || true
           docker compose --env-file deploy/.env.prod -f "$COMPOSE_PROD_FILE" up -d --build tako_back
           docker compose --env-file deploy/.env.prod -f "$COMPOSE_PROD_FILE" up -d --build tako_front
-          docker compose -f "$COMPOSE_AI_FILE" up -d --build tako_ai
+          docker compose --env-file deploy/.env.ai -f "$COMPOSE_AI_FILE" up -d --build tako_ai
           '''
         }
       }
