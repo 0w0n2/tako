@@ -2,7 +2,11 @@ package com.bukadong.tcg.api.delivery.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.Value;
 
 public class AddressDtos {
@@ -10,50 +14,56 @@ public class AddressDtos {
     private AddressDtos() {
     }
 
-    @Value
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
     @Builder
     public static class CreateRequest {
         @Size(max = 30)
-        String placeName; // nullable 허용
+        private String placeName; // nullable 허용
         @NotBlank
         @Size(max = 50)
-        String name;
+        private String name;
         @NotBlank
         @Size(max = 20)
-        String phone;
+        private String phone;
         @NotBlank
         @Size(max = 200)
-        String baseAddress;
+        private String baseAddress;
         @NotBlank
         @Size(max = 150)
-        String addressDetail;
+        private String addressDetail;
         @NotBlank
         @Size(max = 10)
-        String zipcode;
-        boolean setAsDefault;
+        private String zipcode;
+        private boolean setAsDefault;
     }
 
-    @Value
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
     @Builder
     public static class UpdateRequest {
         @Size(max = 30)
-        String placeName; // nullable 허용
+        private String placeName; // nullable 허용
         @NotBlank
         @Size(max = 50)
-        String name;
+        private String name;
         @NotBlank
         @Size(max = 20)
-        String phone;
+        private String phone;
         @NotBlank
         @Size(max = 200)
-        String baseAddress;
+        private String baseAddress;
         @NotBlank
         @Size(max = 150)
-        String addressDetail;
+        private String addressDetail;
         @NotBlank
         @Size(max = 10)
-        String zipcode;
-        boolean setAsDefault;
+        private String zipcode;
+        private boolean setAsDefault;
     }
 
     @Value

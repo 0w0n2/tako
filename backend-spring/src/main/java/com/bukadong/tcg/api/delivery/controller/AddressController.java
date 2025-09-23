@@ -1,12 +1,17 @@
 package com.bukadong.tcg.api.delivery.controller;
 
-import com.bukadong.tcg.api.delivery.dto.AddressDtos;
+import com.bukadong.tcg.api.delivery.dto.request.AddressCreateRequest;
+import com.bukadong.tcg.api.delivery.dto.request.AddressUpdateRequest;
+import com.bukadong.tcg.api.delivery.dto.response.AddressDetailResponse;
+import com.bukadong.tcg.api.delivery.dto.response.AddressSummaryResponse;
+import com.bukadong.tcg.api.delivery.dto.response.DefaultAddressResponse;
 import com.bukadong.tcg.api.delivery.entity.Address;
 import com.bukadong.tcg.api.delivery.service.AddressService;
 import com.bukadong.tcg.api.member.service.MemberQueryService;
 import com.bukadong.tcg.global.common.base.BaseResponse;
 import com.bukadong.tcg.global.security.dto.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,36 +31,38 @@ public class AddressController {
 
     @Operation(summary = "배송지 생성")
     @PostMapping
-    public BaseResponse<AddressDtos.DetailResponse> create(@AuthenticationPrincipal CustomUserDetails user,
-            @RequestBody @Valid AddressDtos.CreateRequest req) {
+    public BaseResponse<AddressDetailResponse> create(@AuthenticationPrincipal CustomUserDetails user,
+            @RequestBody @Valid AddressCreateRequest req) {
         var me = memberQueryService.getByUuid(user.getUuid());
         Address saved = addressService.create(me, req);
         return BaseResponse.onSuccess(toDetail(saved));
     }
 
     @Operation(summary = "배송지 수정")
-    @PutMapping("/{id}")
-    public BaseResponse<AddressDtos.DetailResponse> update(@AuthenticationPrincipal CustomUserDetails user,
-            @PathVariable Long id, @RequestBody @Valid AddressDtos.UpdateRequest req) {
+    @PutMapping("/{addressId}")
+    public BaseResponse<AddressDetailResponse> update(@AuthenticationPrincipal CustomUserDetails user,
+            @Parameter(description = "배송지 ID", required = true) @PathVariable("addressId") Long addressId,
+            @RequestBody @Valid AddressUpdateRequest req) {
         var me = memberQueryService.getByUuid(user.getUuid());
-        Address saved = addressService.update(me, id, req);
+        Address saved = addressService.update(me, addressId, req);
         return BaseResponse.onSuccess(toDetail(saved));
     }
 
     @Operation(summary = "배송지 삭제")
-    @DeleteMapping("/{id}")
-    public BaseResponse<Void> delete(@AuthenticationPrincipal CustomUserDetails user, @PathVariable Long id) {
+    @DeleteMapping("/{addressId}")
+    public BaseResponse<Void> delete(@AuthenticationPrincipal CustomUserDetails user,
+            @Parameter(description = "배송지 ID", required = true) @PathVariable("addressId") Long addressId) {
         var me = memberQueryService.getByUuid(user.getUuid());
-        addressService.delete(me, id);
+        addressService.delete(me, addressId);
         return BaseResponse.onSuccess();
     }
 
     @Operation(summary = "배송지 상세 조회")
-    @GetMapping("/{id}")
-    public BaseResponse<AddressDtos.DetailResponse> get(@AuthenticationPrincipal CustomUserDetails user,
-            @PathVariable Long id) {
+    @GetMapping("/{addressId}")
+    public BaseResponse<AddressDetailResponse> get(@AuthenticationPrincipal CustomUserDetails user,
+            @Parameter(description = "배송지 ID", required = true) @PathVariable("addressId") Long addressId) {
         var me = memberQueryService.getByUuid(user.getUuid());
-        Address a = addressService.get(me, id);
+        Address a = addressService.get(me, addressId);
         boolean isDefault = false;
         try {
             Address def = addressService.getDefault(me);
@@ -63,14 +70,14 @@ public class AddressController {
         } catch (Exception ignored) {
             // 기본 배송지 미설정 시 false 유지
         }
-        return BaseResponse.onSuccess(AddressDtos.DetailResponse.builder().id(a.getId()).placeName(a.getPlaceName())
+        return BaseResponse.onSuccess(AddressDetailResponse.builder().id(a.getId()).placeName(a.getPlaceName())
                 .name(a.getName()).phone(a.getPhone()).baseAddress(a.getBaseAddress())
                 .addressDetail(a.getAddressDetail()).zipcode(a.getZipcode()).isDefault(isDefault).build());
     }
 
     @Operation(summary = "배송지 목록(요약)")
     @GetMapping
-    public BaseResponse<List<AddressDtos.SummaryResponse>> list(@AuthenticationPrincipal CustomUserDetails user) {
+    public BaseResponse<List<AddressSummaryResponse>> list(@AuthenticationPrincipal CustomUserDetails user) {
         var me = memberQueryService.getByUuid(user.getUuid());
         List<Address> list = addressService.list(me);
         Address defaultAddress = null;
@@ -81,7 +88,7 @@ public class AddressController {
         }
         Address finalDefaultAddress = defaultAddress;
         var result = list.stream()
-                .map(a -> AddressDtos.SummaryResponse.builder().id(a.getId()).placeName(a.getPlaceName())
+                .map(a -> AddressSummaryResponse.builder().id(a.getId()).placeName(a.getPlaceName())
                         .baseAddress(a.getBaseAddress()).zipcode(a.getZipcode())
                         .isDefault(finalDefaultAddress != null && finalDefaultAddress.getId().equals(a.getId()))
                         .build())
@@ -90,27 +97,27 @@ public class AddressController {
     }
 
     @Operation(summary = "기본 배송지 설정")
-    @PostMapping("/{id}/default")
-    public BaseResponse<Void> setDefault(@AuthenticationPrincipal CustomUserDetails user, @PathVariable Long id) {
+    @PostMapping("/{addressId}/default")
+    public BaseResponse<Void> setDefault(@AuthenticationPrincipal CustomUserDetails user,
+            @Parameter(description = "배송지 ID", required = true) @PathVariable("addressId") Long addressId) {
         var me = memberQueryService.getByUuid(user.getUuid());
-        addressService.setDefault(me, id);
+        addressService.setDefault(me, addressId);
         return BaseResponse.onSuccess();
     }
 
     @Operation(summary = "기본 배송지 조회(요약)")
     @GetMapping("/default")
-    public BaseResponse<AddressDtos.DefaultAddressResponse> getDefault(
-            @AuthenticationPrincipal CustomUserDetails user) {
+    public BaseResponse<DefaultAddressResponse> getDefault(@AuthenticationPrincipal CustomUserDetails user) {
         var me = memberQueryService.getByUuid(user.getUuid());
         Address a = addressService.getDefault(me);
-        return BaseResponse.onSuccess(AddressDtos.DefaultAddressResponse.builder().id(a.getId())
-                .placeName(a.getPlaceName()).baseAddress(a.getBaseAddress()).zipcode(a.getZipcode()).build());
+        return BaseResponse.onSuccess(DefaultAddressResponse.builder().id(a.getId()).placeName(a.getPlaceName())
+                .baseAddress(a.getBaseAddress()).zipcode(a.getZipcode()).build());
     }
 
-    private AddressDtos.DetailResponse toDetail(Address a) {
-        return AddressDtos.DetailResponse.builder().id(a.getId()).placeName(a.getPlaceName()).name(a.getName())
+    private AddressDetailResponse toDetail(Address a) {
+        return AddressDetailResponse.builder().id(a.getId()).placeName(a.getPlaceName()).name(a.getName())
                 .phone(a.getPhone()).baseAddress(a.getBaseAddress()).addressDetail(a.getAddressDetail())
-                .zipcode(a.getZipcode()).isDefault(false) // 목록/조회에서 별도 계산
+                .zipcode(a.getZipcode()).isDefault(false) // 목록/조회에서 별도 계산 생성시 초기화시 false
                 .build();
     }
 }

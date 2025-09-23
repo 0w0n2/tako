@@ -1,6 +1,7 @@
 package com.bukadong.tcg.api.delivery.service;
 
-import com.bukadong.tcg.api.delivery.dto.AddressDtos;
+import com.bukadong.tcg.api.delivery.dto.request.AddressCreateRequest;
+import com.bukadong.tcg.api.delivery.dto.request.AddressUpdateRequest;
 import com.bukadong.tcg.api.delivery.entity.Address;
 import com.bukadong.tcg.api.delivery.entity.DefaultAddress;
 import com.bukadong.tcg.api.delivery.repository.AddressRepository;
@@ -24,7 +25,7 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     @Transactional
-    public Address create(Member member, AddressDtos.CreateRequest req) {
+    public Address create(Member member, AddressCreateRequest req) {
         Address address = Address.builder().member(member).placeName(req.getPlaceName()).name(req.getName())
                 .phone(req.getPhone()).baseAddress(req.getBaseAddress()).addressDetail(req.getAddressDetail())
                 .zipcode(req.getZipcode()).build();
@@ -38,7 +39,7 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     @Transactional
-    public Address update(Member member, Long id, AddressDtos.UpdateRequest req) {
+    public Address update(Member member, Long id, AddressUpdateRequest req) {
         Address address = addressRepository.findByIdAndMember(id, member)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.NOT_FOUND));
 
