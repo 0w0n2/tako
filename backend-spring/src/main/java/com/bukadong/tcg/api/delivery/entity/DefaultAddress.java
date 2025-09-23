@@ -29,4 +29,9 @@ public class DefaultAddress {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "address_id", nullable = false)
     private Address address;
+
+    /** 기본 배송지의 대상 주소를 변경 */
+    public void changeAddress(Address address) {
+        this.address = address;
+    }
 }

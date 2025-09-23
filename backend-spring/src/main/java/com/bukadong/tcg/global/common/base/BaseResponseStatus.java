@@ -191,8 +191,12 @@ public enum BaseResponseStatus {
 
     CONTRACT_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, false, 4100, "이 작업을 수행할 권한이 없는 계정입니다."),
     CONTRACT_INVALID_STATE(HttpStatus.CONFLICT, false, 4101, "현재 컨트랙트 상태에서는 이 작업을 수행할 수 없습니다."),
-    CONTRACT_INCORRECT_AMOUNT(HttpStatus.BAD_REQUEST, false, 4012, "전송된 금액이 정확하지 않습니다.");
+    CONTRACT_INCORRECT_AMOUNT(HttpStatus.BAD_REQUEST, false, 4012, "전송된 금액이 정확하지 않습니다."),
 
+    /**
+     * 1500: 배송/주소 Error
+     */
+    ADDRESS_PLACENAME_DUPLICATION(HttpStatus.CONFLICT, false, 1500, "이미 존재하는 배송지 별칭입니다.");
 
     private final HttpStatusCode httpStatusCode;
     private final boolean isSuccess;

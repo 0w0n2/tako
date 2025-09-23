@@ -12,6 +12,7 @@ import com.bukadong.tcg.api.member.entity.Member;
 import com.bukadong.tcg.global.common.base.BaseResponseStatus;
 import com.bukadong.tcg.global.common.exception.BaseException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -25,6 +26,9 @@ public class DeliveryServiceImpl implements DeliveryService {
     private final DeliveryRepository deliveryRepository;
     private final AddressRepository addressRepository;
     private final com.bukadong.tcg.api.notification.service.NotificationCommandService notificationService;
+
+    @Value("${delivery.auto-complete.min-minutes:60}")
+    private int autoCompleteMinMinutes;
 
     private Auction getEndedAuction(long auctionId) {
         Auction a = auctionRepository.findById(auctionId)
@@ -124,10 +128,10 @@ public class DeliveryServiceImpl implements DeliveryService {
     @Override
     @Transactional
     public void transitionStatuses() {
-        // 간단한 상태 전이: IN_PROGRESS가 일정 시간 경과했다고 가정하고 COMPLETED로
-        // 세부 규칙은 실제 택배사 연동 시 보강
-        var inProgress = deliveryRepository.findByStatus(DeliveryStatus.IN_PROGRESS);
-        for (Delivery d : inProgress) {
+        // IN_PROGRESS 상태가 설정된 후 특정 시간이 지난 건만 COMPLETED로 전환
+        var threshold = java.time.LocalDateTime.now(java.time.ZoneOffset.UTC).minusMinutes(autoCompleteMinMinutes);
+        var candidates = deliveryRepository.findByStatusAndUpdatedAtBefore(DeliveryStatus.IN_PROGRESS, threshold);
+        for (Delivery d : candidates) {
             Delivery updated = Delivery.builder().id(d.getId()).senderAddress(d.getSenderAddress())
                     .recipientAddress(d.getRecipientAddress()).trackingNumber(d.getTrackingNumber())
                     .status(DeliveryStatus.COMPLETED).build();
