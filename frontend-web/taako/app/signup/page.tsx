@@ -18,7 +18,7 @@ export default function Signup(){
 
     return (
         <div className="small-container pb-20">
-            <h2>일반 회원가입</h2>
+            <h2 className="mb-10">일반 회원가입</h2>
             <div>
                 <form
                 className="flex flex-col gap-10"
