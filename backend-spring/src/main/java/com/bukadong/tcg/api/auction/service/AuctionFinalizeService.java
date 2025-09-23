@@ -16,6 +16,7 @@ import com.bukadong.tcg.api.auction.entity.AuctionCloseReason;
 import com.bukadong.tcg.api.auction.repository.AuctionRepository;
 import com.bukadong.tcg.api.auction.service.dto.WinnerSnapshot;
 import com.bukadong.tcg.api.auction.util.AuctionDeadlineIndex;
+import com.bukadong.tcg.api.bid.service.AuctionCacheService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,10 +39,16 @@ public class AuctionFinalizeService {
     private final AuctionWinnerQuery auctionWinnerQuery;
     private final AuctionEventPublisher eventPublisher;
     private static final ZoneOffset UTC = ZoneOffset.UTC;
-    private final AuctionDeadlineIndex deadlineIndex;    private final MemberRepository memberRepository;
+    private final MemberRepository memberRepository;
+    private final AuctionDeadlineIndex deadlineIndex;
 
-    /**     * 경매 종료 처리 (마감 도달 시에만)
-     * <p>     * 찰 0건이면 UNSOLD(유찰)로 정상 종료한다.
+    private final com.bukadong.tcg.api.bid.service.AuctionCacheService auctionCacheService;
+    private final com.bukadong.tcg.api.auction.sse.AuctionLiveSseService auctionLiveSseService;
+
+    /**
+     * * 경매 종료 처리 (마감 도달 시에만)
+     * <p>
+     * * 찰 0건이면 UNSOLD(유찰)로 정상 종료한다.
      * </P>
      *
      * @PARAM auctionId 경매 ID
@@ -81,16 +88,9 @@ public class AuctionFinalizeService {
                 .orElseThrow(() -> new IllegalStateException("Winner member is not found"));
 
         Instant closedAt = auction.getClosedAt().atZone(UTC).toInstant();
-        eventPublisher.publishAuctionSold(
-                auctionId,
-                winner.bidId(),
-                winner.amount(),
-                closedAt,
-                seller,
-                buyer,
-                auction.getPhysicalCard()
-        );
-
+        eventPublisher.publishAuctionSold(auctionId, winner.bidId(), winner.amount(), closedAt, seller, buyer,
+                auction.getPhysicalCard());
+        afterCommitMarkEndedAndNotify(auctionId);
         afterCommitRemoveIndex(auctionId); // 커밋 성공 후에 제거
         log.info("Auction closed as SOLD. auctionId={}, winner={}, amount={}", auctionId, winner.memberId(),
                 winner.amount());
