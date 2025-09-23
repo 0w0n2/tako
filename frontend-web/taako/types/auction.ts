@@ -35,15 +35,15 @@ export interface AuctionDetailProps {
 
 // 경매 목록 조회(request)
 export interface GetHotCards {
-  page:number|null;
-  categoryMajorId: number| null;
-  categoryMediumId: number| null;
-  title:string|null;
-  cardId: number| null;
-  currentPriceMin: number| null;
-  currentPriceMax: number| null;
-  grades:string|null;
-  sort:string|null;
+  page: number | null;
+  categoryMajorId: number | null;
+  categoryMediumId: number | null;
+  title: string | null;
+  cardId: number | null;
+  currentPriceMin: number | null;
+  currentPriceMax: number | null;
+  grades: string | null;
+  sort: string | null;
 }
 // 경매 목록 조회(response)
 export interface GetAuction {
@@ -69,10 +69,10 @@ export interface WeeklyAuctions {
 export interface AuctionFormProps {
   files: File[];
   requestDto: {
-    gradeHash:string|null,
-    categoryMajorId: number|null,
-    categoryMediumId: number|null,
-    cardId: number|null,
+    gradeHash: string | null,
+    categoryMajorId: number | null,
+    categoryMediumId: number | null,
+    cardId: number | null,
     title: string;
     detail: string;
     startDatetime: string;
@@ -82,4 +82,20 @@ export interface AuctionFormProps {
     bidUnit: number;
     startPrice: number;
   }
+}
+
+// 내 경매 목록 응답
+export interface MyAuctionResponse {
+  auctionId: number;
+  title: string;
+  imageUrl: string | null;
+  isEnd: boolean;
+  closeReason: string | null;
+  currentPrice: number;
+  bids: {
+    nickname: string;
+    price: number;
+  }[];
+  startDatetime: string;
+  endDatetime: string;
 }
