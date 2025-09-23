@@ -27,6 +27,10 @@ import java.util.Optional;
  * @RETURN 표준 CRUD + 커스텀 조회
  */
 public interface AuctionRepository extends JpaRepository<Auction, Long> {
+    /** Delivery ID로 역참조하여 경매 조회 */
+    @Query("select a from Auction a where a.delivery.id = :deliveryId")
+    Optional<Auction> findByDeliveryId(@Param("deliveryId") Long deliveryId);
+
     /**
      * 내 경매 목록
      */
