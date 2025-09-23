@@ -58,4 +58,8 @@ public class AuctionResult extends BaseEntity {
             this.settleTxHash = settleTxHash;
         }
     }
+
+    public void updateSettleFlag(boolean settleFlag) {
+        this.settledFlag = settleFlag;
+    }
 }

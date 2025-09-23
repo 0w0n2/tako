@@ -4,15 +4,9 @@ import java.math.BigDecimal;
 import java.util.Optional;
 
 import com.bukadong.tcg.api.auction.dto.request.CreateAuctionEscrowRequest;
-import com.bukadong.tcg.api.auction.entity.Auction;
-import com.bukadong.tcg.api.auction.repository.AuctionRepository;
-import com.bukadong.tcg.api.auction.repository.AuctionResultRepository;
 import com.bukadong.tcg.api.card.entity.PhysicalCard;
 import com.bukadong.tcg.api.member.entity.Member;
-import com.bukadong.tcg.api.member.repository.MemberRepository;
 import com.bukadong.tcg.global.blockchain.service.AuctionContractService;
-import com.bukadong.tcg.global.common.base.BaseResponseStatus;
-import com.bukadong.tcg.global.common.exception.BaseException;
 import com.bukadong.tcg.global.properties.blockchain.BlockChainProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

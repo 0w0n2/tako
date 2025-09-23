@@ -18,4 +18,6 @@ public interface AuctionResultRepository extends JpaRepository<AuctionResult, Lo
     Optional<AuctionResult> findByAuctionId(Long auctionId);
 
     boolean existsByAuction_Id(Long auctionId);
+
+    Optional<AuctionResult> findBySettleTxHash(String escrowContractAddress);
 }

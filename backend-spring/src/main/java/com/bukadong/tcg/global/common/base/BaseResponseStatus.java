@@ -158,6 +158,7 @@ public enum BaseResponseStatus {
     AUCTION_DUPLICATE_REQUEST(HttpStatus.BAD_REQUEST, false, 1121, "이미 처리된 요청입니다. 중복 요청은 허용되지 않습니다."),
     AUCTION_ALREADY_ENDED(HttpStatus.BAD_REQUEST, false, 1122, "이미 종료된 경매입니다."),
     AUCTION_EXISTING_BID(HttpStatus.BAD_REQUEST, false, 1123, "입찰이 존재하는 경매는 취소할 수 없습니다."),
+    WALLET_ADDRESS_NOT_FOUND(HttpStatus.FORBIDDEN, false, 1124, "지갑 주소가 연동되어 있지 않아 등록할 수 없습니다."),
 
     AUCTION_ESCROW_CONTRACT_NOT_FOUND(HttpStatus.BAD_REQUEST, false, 1150, "생성된 에스크로 컨트랙트를 찾을 수 없습니다."),
     /**
@@ -170,6 +171,7 @@ public enum BaseResponseStatus {
 
     PHYSICAL_CARD_NOT_FOUND(HttpStatus.NOT_FOUND, false, 1250, "실물 카드 정보를 찾을 수 없습니다."),
     NFT_ID_GENERATE_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, false, 1251, "NFT ID 생성에 실패했습니다."),
+    PHYSICAL_CARD_OWNER_INVALID(HttpStatus.NOT_FOUND, false, 1252, "NFT 카드의 소유주가 아닙니다."),
 
     /**
      * 1300: 메일(SMTP) Error

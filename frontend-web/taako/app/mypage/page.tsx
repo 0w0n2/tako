@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 
 import { useState } from 'react'
 import WalletProfile from "@/components/wallet/WalletProfile" 
+import HomeBidAuctions from "@/components/mypage/HomeBidAuctions"
 
 export default function Mypage() {
   const tabs = [
@@ -27,7 +28,7 @@ export default function Mypage() {
     <div className="flex flex-col gap-10">
       {/* 기본정보 */}
       <div className="flex gap-10 p-8 rounded-xl relative bg-gradient-to-b from-[#073A4B] to-[#3B80FF]">
-        <div className="flex-1 h-50 rounded-xl overflow-hidden relative z-1">
+        <div className="flex-2 aspect-square rounded-xl overflow-hidden relative z-1">
           <Image
             src="/basic-profile.png"
             alt="profile"
@@ -35,7 +36,7 @@ export default function Mypage() {
             style={{ objectFit: 'cover' }}
           />
         </div>
-        <div className="flex-5 pt-8">
+        <div className="flex-7 pt-8">
           <p className="mb-1 text-lg">nickname</p>
           <p className="text-sm text-[#D2D2D2]">
             TCG 10년차 전문가입니다. 많은 문의주세요
@@ -45,8 +46,8 @@ export default function Mypage() {
           <Link href="/mypage/edit">Edit Profile</Link>
         </Button>
         <div className="pl-8 flex gap-10 w-full bg-[#3D3D4D] absolute bottom-0 left-0 rounded-bl-xl rounded-br-xl overflow-hidden">
-          <div className="flex-1"></div>
-          <div className="flex-5 relative">
+          <div className="flex-2"></div>
+          <div className="flex-7 relative">
             <ul className={`grid grid-cols-${tabs.length}`}>
               {tabs.map(tab => (
                 <li
@@ -78,15 +79,12 @@ export default function Mypage() {
 
       {status === 'myProfile' && (
         <div>
-          <h2>기본정보</h2>
-          <div>
-            <WalletProfile />
-          </div>
+          <WalletProfile />
         </div>
       )}
       {status === 'myBidAuction' && (
         <div>
-          <h2>입찰중경매</h2>
+          <HomeBidAuctions />
         </div>
       )}
       {status === 'mySellAuction' && (

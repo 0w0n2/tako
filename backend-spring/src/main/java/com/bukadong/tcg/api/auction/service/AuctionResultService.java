@@ -1,13 +1,21 @@
 package com.bukadong.tcg.api.auction.service;
 
+import com.bukadong.tcg.api.auction.entity.Auction;
+import com.bukadong.tcg.api.auction.entity.AuctionResult;
 import com.bukadong.tcg.api.auction.repository.AuctionResultRepository;
 import com.bukadong.tcg.global.common.base.BaseResponseStatus;
 import com.bukadong.tcg.global.common.exception.BaseException;
+import com.bukadong.tcg.api.card.entity.PhysicalCard;
+import com.bukadong.tcg.api.member.entity.Member;
+import com.bukadong.tcg.global.blockchain.service.TakoNftContractService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
+
+import java.math.BigInteger;
 
 @Slf4j
 @Service
@@ -15,6 +23,7 @@ import org.springframework.util.StringUtils;
 public class AuctionResultService {
 
     private final AuctionResultRepository auctionResultRepository;
+    private final TakoNftContractService takoNftContractService;
 
     /* 에스크로 생성 성공 결과를 DB에 저장 */
     @Transactional
@@ -32,5 +41,41 @@ public class AuctionResultService {
             throw new BaseException(BaseResponseStatus.AUCTION_ESCROW_CONTRACT_NOT_FOUND);
         }
         return contractAddress;
+    }
+
+    /**
+     * 블록체인 이벤트로부터 경매 완료 기록을 처리하고, NFT 컨트랙트에 기록
+     */
+    @Transactional
+    public void recordAuctionHistory(String escrowContractAddress) {
+        AuctionResult auctionResult = auctionResultRepository.findBySettleTxHash(escrowContractAddress)
+                .orElse(null);
+
+        if (auctionResult == null) {
+            log.warn("An event was detected from an unknown Escrow contract: {}", escrowContractAddress);
+            return;
+        }
+
+        if (auctionResult.isSettledFlag()) {
+            log.warn("AuctionResult #{} has already been updated about settled Flag.",  auctionResult.getId());
+            return;
+        }
+
+        Auction auction = auctionResult.getAuction();
+        PhysicalCard physicalCard = auction.getPhysicalCard();
+        Member seller = auction.getMember();
+        Member buyer = auctionResult.getAuctionBid().getMember();
+
+        if (physicalCard != null && physicalCard.getTokenId() != null) {
+            TransactionReceipt receipt = takoNftContractService.addAuctionHistory(
+                    physicalCard.getTokenId(),
+                    seller.getWalletAddress(),
+                    buyer.getWalletAddress(),
+                    auctionResult.getAuctionBid().getAmount(),
+                    BigInteger.valueOf(auction.getGrade().getId())
+            );
+        }
+
+        auctionResult.updateSettleFlag(true);
     }
 }
