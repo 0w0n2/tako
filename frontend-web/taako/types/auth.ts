@@ -38,3 +38,21 @@ export interface MyBidAuctions {
     }
   ]
 }
+
+// 판매 경매 조회
+export interface MySellAuctions {
+  auctionId: number;
+  code: string|null;
+  title: string|null;
+  startDatetime: string|null;
+  endDatetime: string|null;
+  isEnd: boolean|null;
+  currentPrice: number|null;
+  imageUrl: string|null;
+  bids: Bids[];
+}
+interface Bids {
+  data: string|null;
+  nickname: string|null;
+  price: number|null;
+}
