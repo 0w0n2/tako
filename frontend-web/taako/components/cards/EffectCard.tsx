@@ -185,7 +185,7 @@ export default function EffectCard({
     <animated.div
       ref={thisCard}
       className={`card-container`}
-      style={animatedStyles}
+      style={{...animatedStyles, width: '300px'}}
     >
       <animated.div
         className={`card ${types} ${loading ? "loading" : ""} ${
