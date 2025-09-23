@@ -21,13 +21,13 @@ export default function BuyEndedAuction(){
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
-                  <div className="text-right">
-                    <p className="">현재 입찰가 <span className="text-green-500 ml-1">354.88 PKC</span></p>
-                    <p className="">내 입찰가 <span className="text-green-500 ml-1">354.88 PKC</span></p>
+                  <div className="flex flex-col gap-1 items-end">
+                    <p className="text-sm">현재 입찰가 <span className="text-green-500 ml-1">354.88 PKC</span></p>
+                    <p className="text-sm">내 입찰가 <span className="text-green-500 ml-1">354.88 PKC</span></p>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <Button className="bg-[#7DB7CD] h-12 w-[120px] text-md" variant="default">결제하기</Button>
-                    <Button className="bg-[#7DB7CD] h-12 w-[120px] text-md" variant="default" disabled>구매확정</Button>
+                  <div className="grid grid-cols-1 gap-3">
+                    <Button className="text-sm text-[#dedede] h-10 w-[120px] !rounded-md bg-[#191924] border-1 border-[#353535] hover:bg-[#242433] cursor-pointer" variant="default">결제하기</Button>
+                    <Button disabled className="text-sm text-[#dedede] h-10 w-[120px] !rounded-md bg-[#191924] border-1 border-[#353535] hover:bg-[#242433] cursor-pointer" variant="default">구매확정</Button>
                   </div>
                 </div>
               </div>
