@@ -13,7 +13,7 @@ export default function SearchInput() {
         router.push(`/search?title=${encodeURIComponent(searchTerm.trim())}`);
     };
 
-    const handleKeyPress = (e: React.KeyboardEvent) => {
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') {
             handleSearch();
         }
@@ -27,7 +27,7 @@ export default function SearchInput() {
                 placeholder="검색어를 입력해주세요."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                onKeyPress={handleKeyPress}
+                onKeyDown={handleKeyDown} // <- 여기 변경
             />
             <button 
                 onClick={handleSearch}
