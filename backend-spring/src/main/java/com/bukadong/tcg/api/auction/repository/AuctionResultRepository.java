@@ -14,8 +14,10 @@ import java.util.Optional;
  * @PARAM 없음
  * @RETURN 없음
  */
-public interface AuctionResultRepository extends JpaRepository<AuctionResult, Long> {
+public interface AuctionResultRepository extends JpaRepository<AuctionResult, Long>, AuctionResultRepositoryCustom {
     Optional<AuctionResult> findByAuctionId(Long auctionId);
 
     boolean existsByAuction_Id(Long auctionId);
+
+    Optional<AuctionResult> findBySettleTxHash(String escrowContractAddress);
 }

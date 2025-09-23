@@ -44,8 +44,8 @@ public class AuctionCreateRequest {
     @NotBlank(message = "외부 AI 등급 해시는 필수입니다.")
     private String gradeHash;
 
-    @Schema(description = "(옵션) 실물카드 해시 - 있으면 물리카드 매핑", example = "pc_b1a2c3...")
-    private String physicalCardHash;
+    @Schema(description = "실물 NFT 카드의 tokenId", example = "100020000")
+    private Long tokenId;
 
     @Schema(description = "상세 설명(LONGTEXT)", example = "상세 설명입니다.")
     @NotBlank(message = "상세 설명은 필수입니다.")

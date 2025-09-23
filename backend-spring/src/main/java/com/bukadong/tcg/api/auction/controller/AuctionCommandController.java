@@ -51,6 +51,7 @@ public class AuctionCommandController {
             @Parameter(description = "경매 이미지 파일들(1장 이상 필수)", required = true, content = @Content(mediaType = MULTIPART_FORM_DATA_VALUE, array = @ArraySchema(schema = @Schema(type = "string", format = "binary")))) @RequestPart(name = "files", required = true) List<MultipartFile> files,
             @AuthenticationPrincipal CustomUserDetails user) {
         Member me = memberQueryService.getByUuid(user.getUuid());
+        auctionCommandService.isWalletLinked(me);
         String dir = mediaDirResolver.resolve(MediaType.AUCTION_ITEM);
         AuctionCreateResponse result = auctionCommandService.create(requestDto, me, files, dir);
         return BaseResponse.onSuccess(result);
