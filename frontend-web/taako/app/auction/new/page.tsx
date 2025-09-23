@@ -185,6 +185,51 @@ export default function NewAuctionPage() {
           <div className="flex-1 flex flex-col gap-1">
             <div className="flex items-center gap-2 mt-2">
               <h3>카드 감정하기(AI)</h3>
+              
+{/*        
+    "steps": {
+        "file_ext_check": "ok",
+        "size_brightness_check": "ok",
+        "card_verify": {
+            "front": {
+                "target": "Cardfront",
+                "best_conf": 0.9718924760818481,
+                "best_area_frac": 0.4663199150952666
+            },
+            "back": {
+                "target": "Cardback",
+                "best_conf": 0.9738189578056335,
+                "best_area_frac": 0.3625902746759206
+            }
+        },
+        "bending": {
+            "curvatures_percent": {
+                "image_side_1": 62.85375127232772,
+                "image_side_2": 50.88030352114601,
+                "image_side_3": 60.304751528057345,
+                "image_side_4": 58.32758458033241
+            },
+            "per_image_penalties": {
+                "image_side_1": 6,
+                "image_side_2": 6,
+                "image_side_3": 6,
+                "image_side_4": 6
+            },
+            "bend_penalty_total": 12
+        },
+        "other_defects": {
+            "front": {
+                "detections": []
+            },
+            "back": {
+                "detections": []
+            },
+            "other_penalties_total": 0
+        }
+    },
+    "score": 88,
+    "grade": "B"
+     } */}
               <span className="text-[#FF0000]">*</span>
             </div>
             <div className="flex gap-2 items-center">
