@@ -1,6 +1,7 @@
 // components/sections/auction/AuctionDetailClient.tsx
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import Loading from '@/components/Loading';
@@ -54,6 +55,8 @@ export default function AuctionDetailClient({ auctionId, historySize = 5 }: Prop
         </div>
     );
     }
+
+  const [inqTotal, setInqTotal] = useState<number>(0);
 
   return (
     <div className="default-container pb-[80px] relative">
@@ -201,9 +204,9 @@ export default function AuctionDetailClient({ auctionId, historySize = 5 }: Prop
 
         {/* 문의 */}
         <div className="pt-15">
-          <h2 className="text-[20px]">경매문의 (0)</h2>
+          <h2 className="text-[20px]">경매문의 ({inqTotal})</h2>
           <div className="mt-3">
-            <AuctionInquiry props={auc} />
+            <AuctionInquiry props={auc} onTotalChange={setInqTotal} />
           </div>
         </div>
       </div>
