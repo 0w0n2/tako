@@ -1,6 +1,7 @@
 package com.bukadong.tcg.api.auction.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -15,4 +16,6 @@ public interface AuctionReviewRepository extends JpaRepository<AuctionReview, Lo
      * @RETURN 후기 목록
      */
     List<AuctionReview> findByAuctionMemberId(Long memberId);
+
+    Optional<AuctionReview> findByMember_IdAndAuction_Id(Long memberId, Long auctionId);
 }

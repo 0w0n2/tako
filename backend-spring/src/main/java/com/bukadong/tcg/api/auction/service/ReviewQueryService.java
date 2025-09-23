@@ -28,14 +28,12 @@ public class ReviewQueryService {
      */
     @Transactional(readOnly = true)
     public List<AuctionReviewResponse> getReviewsByMember(Long memberId) {
-        return auctionReviewRepository.findByAuctionMemberId(memberId)
-                .stream()
-                .map(review -> AuctionReviewResponse.builder()
-                        .nickname(maskNickname(review.getMember().getNickname()))
-                        .reviewText(review.getReviewText())
-                        .star(review.getStar())
-                        .createdAt(review.getCreatedAt())
-                        .build())
+        return auctionReviewRepository.findByAuctionMemberId(memberId).stream()
+                .map(review -> AuctionReviewResponse.builder().id(review.getId()).auctionId(review.getAuction().getId())
+                        .nickname(maskNickname(review.getMember().getNickname())).reviewText(review.getReviewText())
+                        .cardCondition(review.getCardCondition()).priceSatisfaction(review.getPriceSatisfaction())
+                        .descriptionMatch(review.getDescriptionMatch()).star(review.getStar())
+                        .createdAt(review.getCreatedAt()).build())
                 .toList();
     }
 
