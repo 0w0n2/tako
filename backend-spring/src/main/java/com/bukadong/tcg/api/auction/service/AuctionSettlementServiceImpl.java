@@ -37,8 +37,6 @@ import org.web3j.utils.Convert;
 @Service
 @RequiredArgsConstructor
 public class AuctionSettlementServiceImpl implements AuctionSettlementService {
-    private final AuctionRepository auctionRepository;
-    private final MemberRepository memberRepository;
     private final BlockChainProperties blockChainProperties;
     private final AuctionContractService auctionContractService;
     private final AuctionResultService auctionResultService;
@@ -54,14 +52,7 @@ public class AuctionSettlementServiceImpl implements AuctionSettlementService {
      * 경매 종료 후 에스크로 생성 및 결과 저장 처리
      */
     @Override
-    public void createEscrowForAuction(Long auctionId, Long winnerMemberId, BigDecimal amount) {
-        /* 경매 정보 조회 */
-        Auction auction = auctionRepository.findById(auctionId)
-                .orElseThrow(() -> new IllegalStateException("Auction is not found while createEscrowForAuction"));
-        Member seller = auction.getMember();
-        Member buyer = memberRepository.findById(winnerMemberId)
-                .orElseThrow(() -> new IllegalStateException("Buyer is not found while createEscrowForAuction"));
-    
+    public void createEscrowForAuction(Long auctionId, BigDecimal amount, Member seller, Member buyer, PhysicalCard physicalCard) {
         /* 지갑 정보 유효성 검사 */
         if (!StringUtils.hasText(seller.getWalletAddress()) || !StringUtils.hasText(buyer.getWalletAddress())) {
             log.error("판매자 또는 구매자의 지갑 주소가 등록되지 않아 에스크로 생성을 중단합니다. Auction ID: {}", auctionId);
@@ -69,7 +60,6 @@ public class AuctionSettlementServiceImpl implements AuctionSettlementService {
             return;
         }
 
-        PhysicalCard physicalCard = auction.getPhysicalCard();
         String nftContractAddress;
         long tokenID;
 

@@ -1,5 +1,8 @@
 package com.bukadong.tcg.api.auction.service;
 
+import com.bukadong.tcg.api.card.entity.PhysicalCard;
+import com.bukadong.tcg.api.member.entity.Member;
+
 import java.math.BigDecimal;
 import java.time.Instant;
 
@@ -13,7 +16,7 @@ import java.time.Instant;
  * @RETURN 없음
  */
 public interface AuctionEventPublisher {
-    void publishAuctionSold(long auctionId, long winnerId, long bidId, BigDecimal amount, Instant closedAt);
+    void publishAuctionSold(long auctionId, long bidId, BigDecimal amount, Instant closedAt, Member seller, Member buyer, PhysicalCard physicalCard);
 
     void publishAuctionUnsold(long auctionId); // 유찰은 결과 저장 안 함(이벤트만 로그)
 }

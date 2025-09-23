@@ -4,7 +4,7 @@
     <timestamp key="bySecond" datePattern="yyyy-MM-dd'T'HH:mm:ss.SSS'Z'" />
 
     <property name="LOG_PATTERN"
-        value="%d{yyyy-MM-dd'T'HH:mm:ss.SSS'Z',UTC} [%thread] %-5level %logger{36} - %msg%n" />
+              value="%d{yyyy-MM-dd'T'HH:mm:ss.SSS'Z',UTC} %cyan([%thread]) %highlight(%-5level) %magenta(%logger{36}) - %msg%n" />
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>

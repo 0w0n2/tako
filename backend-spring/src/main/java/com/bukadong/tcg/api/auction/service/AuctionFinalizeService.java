@@ -1,11 +1,12 @@
 package com.bukadong.tcg.api.auction.service;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.time.ZoneOffset;
 
+import com.bukadong.tcg.api.member.entity.Member;
+import com.bukadong.tcg.api.member.repository.MemberRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -35,10 +36,10 @@ public class AuctionFinalizeService {
 
     private final AuctionRepository auctionRepository;
     private final AuctionWinnerQuery auctionWinnerQuery;
-    private final AuctionSettlementService settlementService;
     private final AuctionEventPublisher eventPublisher;
     private static final ZoneOffset UTC = ZoneOffset.UTC;
     private final AuctionDeadlineIndex deadlineIndex;
+    private final MemberRepository memberRepository;
 
     /**
      * 경매 종료 처리 (마감 도달 시에만)
@@ -51,7 +52,7 @@ public class AuctionFinalizeService {
      */
     @Transactional
     public void finalizeIfDue(Long auctionId) {
-        log.info(">>>> finalizeIfDue 진입: auctionId={}", auctionId);
+        log.debug("[FinalizeIfDue] start: auctionId={}", auctionId);
         Auction auction = auctionRepository.findByIdForUpdate(auctionId)
                 .orElseThrow(() -> new IllegalStateException("Auction is not found"));
 
@@ -59,12 +60,13 @@ public class AuctionFinalizeService {
             return; // 아직 마감 시간이 아님
         }
 
+        log.debug("Auction is closed. auctionId={}", auctionId);
+
         Optional<WinnerSnapshot> winnerOpt = auctionWinnerQuery.tryGetWinnerSnapshot(auctionId);
 
         // 유찰(입찰 0건) → 정상 종료
         if (winnerOpt.isEmpty()) {
             auction.markClosed(AuctionCloseReason.NO_BIDS, LocalDateTime.now(UTC));
-            auctionRepository.save(auction);
             eventPublisher.publishAuctionUnsold(auctionId);
             afterCommitRemoveIndex(auctionId); // 트랜잭션 커밋 후에 제거
             log.info("Auction closed as UNSOLD (no bids). auctionId={}", auctionId);
@@ -74,28 +76,26 @@ public class AuctionFinalizeService {
         // 낙찰 처리
         WinnerSnapshot winner = winnerOpt.get();
         auction.setWinner(winner.memberId(), winner.bidId(), winner.amount());
-
         auction.markClosed(AuctionCloseReason.SOLD, LocalDateTime.now(UTC));
-        auctionRepository.save(auction);
+
+        Member seller = auction.getMember();
+        Member buyer = memberRepository.findById(winner.memberId())
+                .orElseThrow(() -> new IllegalStateException("Winner member is not found"));
 
         Instant closedAt = auction.getClosedAt().atZone(UTC).toInstant();
-        eventPublisher.publishAuctionSold(auctionId, winner.memberId(), winner.bidId(), winner.amount(), closedAt);
+        eventPublisher.publishAuctionSold(
+                auctionId,
+                winner.bidId(),
+                winner.amount(),
+                closedAt,
+                seller,
+                buyer,
+                auction.getPhysicalCard()
+        );
 
-        afterCommitCreateEscrow(auctionId, winner.memberId(), winner.amount());
         afterCommitRemoveIndex(auctionId); // 커밋 성공 후에 제거
         log.info("Auction closed as SOLD. auctionId={}, winner={}, amount={}", auctionId, winner.memberId(),
                 winner.amount());
-    }
-
-    /* DB 트랜잭션이 성공적으로 커밋된 후에 블록체인 에스크로 생성을 시작 */
-    private void afterCommitCreateEscrow(Long auctionId, Long winnerMemberId, BigDecimal amount) {
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCommit() {
-                log.info("DB transaction for Auction ID {} commited. Starting blockchain escrow creation...", auctionId);
-                settlementService.createEscrowForAuction(auctionId, winnerMemberId, amount);
-            }
-        });
     }
 
     /* DB 트랜잭션이 성공적으로 커밋된 후에 Redis 인덱스를 제거 */

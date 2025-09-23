@@ -19,6 +19,6 @@ public class AuctionResultService {
         auctionResultRepository.findByAuctionId(auctionId).ifPresent(result -> {
             result.updateSettleTxHash(escrowAddress);
         });
-        log.info("[Settlement] Auction ID: {} -> Escrow contract address saved: {}", auctionId, escrowAddress);
+        log.debug("[Settlement] Auction ID: {} -> Escrow contract address saved: {}", auctionId, escrowAddress);
     }
 }
