@@ -123,20 +123,23 @@ function normalizeAuctionDetail(result: RawResponse['result']): AuctionDetailPro
   } as AuctionDetailProps;
 }
 
-/** `/v1/auctions/{id}?historySize=5` 요청 */
+export type AuctionDetailPageData = {
+  detail: AuctionDetailProps;
+  wished: boolean;
+};
+
 export async function getAuctionDetail(
   auctionId: number | string,
   opts?: { historySize?: number; signal?: AbortSignal }
-): Promise<AuctionDetailProps> {
+): Promise<AuctionDetailPageData> {
   const { historySize = 5, signal } = opts || {};
-  const res = await api.get<RawResponse>(`/v1/auctions/${auctionId}`, {
-    params: { historySize },
-    signal,
-  });
+  const res = await api.get<RawResponse>(`/v1/auctions/${auctionId}`, { params: { historySize }, signal });
 
   const payload = res.data;
-  if (!payload?.isSuccess) {
-    throw new Error(payload?.message || '요청 실패');
-  }
-  return normalizeAuctionDetail(payload.result);
+  if (!payload?.isSuccess) throw new Error(payload?.message || '요청 실패');
+
+  return {
+    detail: normalizeAuctionDetail(payload.result),
+    wished: Boolean(payload.result?.wished),
+  };
 }

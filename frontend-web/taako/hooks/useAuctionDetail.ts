@@ -2,13 +2,18 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import type { AuctionDetailProps } from '@/types/auction';
-import { getAuctionDetail } from '@/lib/auction';
+import { getAuctionDetail  } from '@/lib/auction';
+import { addWishAuction, removeWishAuction } from '@/lib/wish';
 import { normalizeAxiosError, type NormalizedHttpError } from '@/lib/normalizeAxiosError';
 
 export function useAuctionDetail(auctionId: number, historySize = 5) {
   const [data, setData] = useState<AuctionDetailProps | null>(null);
+  const [wished, setWished] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<NormalizedHttpError | null>(null);
+
+  const [pendingWish, setPendingWish] = useState(false);
+  const [wishError, setWishError] = useState<NormalizedHttpError | null>(null);
 
   const abortRef = useRef<AbortController | null>(null);
   const reqSeqRef = useRef(0); // 요청 시퀀스
@@ -36,11 +41,12 @@ export function useAuctionDetail(auctionId: number, historySize = 5) {
     setError(null);
 
     try {
-      const res = await getAuctionDetail(auctionId, { historySize, signal: ctrl.signal });
+      const { detail, wished } = await getAuctionDetail(auctionId, { historySize, signal: ctrl.signal });
 
       // 마지막 요청만 반영
       if (mySeq === reqSeqRef.current) {
-        setData(res);
+        setData(detail);
+        setWished(wished);
       }
     } catch (e) {
       const ne = normalizeAxiosError(e);
@@ -74,5 +80,29 @@ export function useAuctionDetail(auctionId: number, historySize = 5) {
     fetchOnce();
   }, [fetchOnce]);
 
-  return { data, loading, error, refetch };
+  const toggleWish = useCallback(async () => {
+    if (!data?.id) return;
+    const next = !wished;
+
+    setWished(next);
+    setPendingWish(true);
+    setWishError(null);
+
+    const ctrl = new AbortController();
+
+    try {
+      if (next) await addWishAuction(data.id, ctrl.signal);
+      else await removeWishAuction(data.id, ctrl.signal);
+    } catch (e) {
+      const ne = normalizeAxiosError(e);
+      if (!ne.canceled) {
+        setWished(!next); // 롤백
+        setWishError(ne);
+      }
+    } finally {
+      setPendingWish(false);
+    }
+  }, [data?.id, wished]);
+
+  return { data, loading, error, refetch, wished, pendingWish, wishError, toggleWish };
 }
