@@ -15,7 +15,13 @@ export function useAuctionDetail(auctionId: number, historySize = 5) {
 
   const fetchOnce = useCallback(async () => {
     if (!Number.isFinite(auctionId) || auctionId <= 0) {
-      setError({ name: 'ValidationError', message: '유효하지 않은 경매 ID입니다.' });
+        const err: NormalizedHttpError = {
+            name: 'ValidationError',
+            message: '유효하지 않은 경매 ID입니다.',
+            safeMessage: '유효하지 않은 경매 ID입니다.',
+            retryable: false,
+        };
+      setError(err);
       setLoading(false);
       return;
     }
