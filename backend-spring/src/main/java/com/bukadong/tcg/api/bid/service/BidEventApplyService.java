@@ -20,7 +20,6 @@ import org.hibernate.exception.LockAcquisitionException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.TransientDataAccessException;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,9 +47,9 @@ public class BidEventApplyService {
     private final AuctionBidRepository auctionBidRepository;
     private final AuctionCacheService auctionCacheService;
     private final ObjectMapper om;
+    private final com.bukadong.tcg.api.auction.sse.AuctionLiveSseService auctionLiveSseService;
+    private final com.bukadong.tcg.api.member.repository.MemberRepository memberRepository;
 
-    /** 데드라인 스케줄 반영용 Redis */
-    private final StringRedisTemplate stringRedisTemplate;
     private final AuctionDeadlineIndex deadlineIndex;
     /** 연장 기능 on/off */
     @Value("${auction.extension.enabled:true}")
@@ -141,8 +140,15 @@ public class BidEventApplyService {
             // 5) DB 현재가 갱신
             auction.changeCurrentPrice(bid);
 
-            // 6) Redis 가격 캐시 보정(상승만 반영)
+            // 6) Redis 가격 캐시 보정(상승만 반영) + SSE 가격/입찰 브로드캐스트
             auctionCacheService.overwritePrice(auctionId, bid.toPlainString());
+            long nowSec = Instant.now().getEpochSecond();
+            auctionLiveSseService.publishPriceUpdate(auctionId, bid.toPlainString(), null);
+            // 상세 전용 bid 이벤트: 닉네임/시간 문자열로 변환
+            String nickname = memberRepository.findById(memberId)
+                    .map(com.bukadong.tcg.api.member.entity.Member::getNickname).orElse("member-" + memberId);
+            String timeIso = java.time.Instant.ofEpochSecond(nowSec).toString();
+            auctionLiveSseService.publishBidAccepted(auctionId, nickname, bid.toPlainString(), timeIso);
 
             // 7) (핵심) 마감 연장 & 데드라인 ZSET 갱신
             // - 같은 트랜잭션 맥락에서 endAt 변경 및 ZSET 스코어 갱신
@@ -160,7 +166,15 @@ public class BidEventApplyService {
                         // (a) DB 엔티티 반영(도메인 메서드 사용)
                         auction.setEndDatetime(newEndAt.atOffset(java.time.ZoneOffset.UTC).toLocalDateTime());
 
-                        // (b) Redis ZSET 스코어 갱신(epochMillis)
+                        // (b) Redis 해시 end_ts 갱신(초) + ZSET 스코어 갱신(epochMillis)
+                        try {
+                            long newEndSec = newEndAt.getEpochSecond();
+                            auctionCacheService.reopenUntil(auctionId, newEndSec);
+                            auctionLiveSseService.publishEndTsUpdate(auctionId, newEndSec);
+                        } catch (Exception ignore) {
+                            // end_ts 캐시/SSE 반영 실패는 워커/리컨실로 보정 가능하므로 무시
+                        }
+                        // (c) Redis ZSET 스코어 갱신(epochMillis)
                         deadlineIndex.upsert(auctionId, newEndAt.toEpochMilli());
 
                         log.debug("Auction end extended: auctionId={}, old={}, new={}", auctionId, endAt, newEndAt);
