@@ -26,8 +26,6 @@ public class TakoNftContractService {
     private final ContractExceptionHelper contractExceptionHelper;
     private final BlockChainProperties blockChainProperties;
 
-    private final String LOG_PREFIX = "[BlockChain](TakoNFT)";
-
     /**
      * NFT를 민팅하고(safeMint) 시크릿을 등록(registerSecret)
      */
@@ -35,14 +33,14 @@ public class TakoNftContractService {
         TakoCardNFT contract = contractLoader.loadTakoCardNft();
         String serverWalletAddress = blockChainProperties.sepolia().walletAddress();
 
-        log.debug("{} Attempting safeMint for tokenId: {}", LOG_PREFIX, tokenId);
+        log.debug("Attempting safeMint for tokenId: {}", tokenId);
         contract.safeMint(serverWalletAddress, tokenId).send();
-        log.debug("{} safeMint SUCCESS for tokenId: {}", LOG_PREFIX, tokenId);
+        log.debug("safeMint SUCCESS for tokenId: {}", tokenId);
 
-        log.debug("{} Attempting registerSecret for tokenId: {}", LOG_PREFIX, tokenId);
+        log.debug("Attempting registerSecret for tokenId: {}", tokenId);
         byte[] secretHash = Hash.sha3(secret.getBytes());
         contract.registerSecret(tokenId, secretHash).send();
-        log.debug("{} registerSecret SUCCESS for tokenId: {}", LOG_PREFIX, tokenId);
+        log.debug("registerSecret SUCCESS for tokenId: {}", tokenId);
     }
 
     /**
