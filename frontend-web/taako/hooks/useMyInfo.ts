@@ -21,11 +21,19 @@ export function useMyInfo() {
   // 안전하게 배열 반환
   const myBidAuctions = myBidAuctionsData?.result?.content ?? [];
 
+  // isEnd 기준으로 배열 분리
+  const ongoingAuctions = myBidAuctions.filter(auction => !auction.isEnd);
+  const endedAuctions = myBidAuctions.filter(auction => auction.isEnd);
+  const countOngoing = ongoingAuctions.length;
+  const countEnded = endedAuctions.length;
+
   return {
     myInfo: myInfo?.result ?? null,
     myInfoLoading,
     myInfoError,
     myBidAuctions,
+    ongoingAuctions, countOngoing,
+    endedAuctions, countEnded,
     myBidLoading,
     myBidError,
   };
