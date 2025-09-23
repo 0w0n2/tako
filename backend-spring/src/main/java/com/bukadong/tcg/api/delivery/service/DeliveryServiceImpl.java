@@ -10,6 +10,9 @@ import com.bukadong.tcg.api.delivery.repository.AddressRepository;
 import com.bukadong.tcg.api.delivery.repository.DeliveryRepository;
 import com.bukadong.tcg.api.member.entity.Member;
 import com.bukadong.tcg.global.common.base.BaseResponseStatus;
+import com.bukadong.tcg.api.trade.repository.TradeHistoryRepository;
+import com.bukadong.tcg.api.trade.entity.TradeHistory;
+import com.bukadong.tcg.api.trade.entity.TradeRole;
 import com.bukadong.tcg.global.common.exception.BaseException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,6 +29,7 @@ public class DeliveryServiceImpl implements DeliveryService {
     private final DeliveryRepository deliveryRepository;
     private final AddressRepository addressRepository;
     private final com.bukadong.tcg.api.notification.service.NotificationCommandService notificationService;
+    private final TradeHistoryRepository tradeHistoryRepository;
 
     @Value("${delivery.auto-complete.min-minutes:60}")
     private int autoCompleteMinMinutes;
@@ -161,8 +165,17 @@ public class DeliveryServiceImpl implements DeliveryService {
             throw new BaseException(BaseResponseStatus.DELIVERY_NOT_ARRIVED);
         }
 
-        // 에스크로 트리거 (stub)
+        // 에스크로 트리거 (stub) - 성공 시에만 거래내역 기록
         triggerEscrowPayout();
+
+        // 거래내역 기록 (BUYER, SELLER) - 중복 방지
+        if (!tradeHistoryRepository.existsByAuctionAndRole(a, TradeRole.BUYER)) {
+            tradeHistoryRepository.save(TradeHistory.builder().auction(a).member(buyer).role(TradeRole.BUYER).build());
+        }
+        if (!tradeHistoryRepository.existsByAuctionAndRole(a, TradeRole.SELLER)) {
+            tradeHistoryRepository
+                    .save(TradeHistory.builder().auction(a).member(a.getMember()).role(TradeRole.SELLER).build());
+        }
 
         Delivery updated = Delivery.builder().id(d.getId()).senderAddress(d.getSenderAddress())
                 .recipientAddress(d.getRecipientAddress()).trackingNumber(d.getTrackingNumber())
