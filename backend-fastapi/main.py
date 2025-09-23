@@ -15,10 +15,7 @@ from typing import Dict, Tuple, List
 from PIL import Image, ImageStat
 from io import BytesIO
 import numpy as np
-import cv2
-import math
-import uvicorn
-import os
+import cv2, math, uvicorn, os, uuid
 from ws import ws_manager
 
 # ===== YOLO =====
@@ -476,6 +473,7 @@ async def condition_check(
         },
         "score": final_score,
         "grade": grade(final_score),
+        "hash": uuid.uuid4(),
     }
     return JSONResponse(result)
 

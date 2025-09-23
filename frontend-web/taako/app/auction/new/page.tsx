@@ -28,12 +28,13 @@ export default function NewAuctionPage() {
     edge4: null
   });
   const [grade, setGrade] = useState<string>("");
+  const [gradeHash, setGradeHash] = useState<string>("")
 
   const { register, handleSubmit, control, watch, setValue, formState: { errors } } = useForm<AuctionFormProps>({
     defaultValues: {
       files: [],
       requestDto: {
-        gradeHash: "hash123",
+        gradeHash: null,
         categoryMajorId: null,
         categoryMediumId: null,
         cardId: null,
@@ -89,8 +90,8 @@ export default function NewAuctionPage() {
         formData.append('image_side_4', uploadedImages.edge4);
       }
 
-      // const response = await api.post("https://dev.api.tako.today/ai/condition-check", formData, {
-      const response = await api.post("http://127.0.0.1:8000/condition-check", formData, {
+      const response = await api.post("https://dev.api.tako.today/ai/condition-check", formData, {
+      // const response = await api.post("http://127.0.0.1:8000/condition-check", formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -98,6 +99,10 @@ export default function NewAuctionPage() {
 
       // 응답에서 grade 값을 추출
       const grade = response.data.grade;
+      setGrade(grade)
+
+      const hash = response.data.hash
+      setGradeHash(hash)
 
     } catch (error) {
       console.error("AI 감정 중 오류 발생:", error);
@@ -132,6 +137,8 @@ export default function NewAuctionPage() {
 
   const onSubmit: SubmitHandler<AuctionFormProps> = data => {
     const { requestDto } = data;
+
+    requestDto.gradeHash = gradeHash;
 
     // 시작,종료 시간 비교
       if (requestDto.startDatetime && requestDto.endDatetime) {
@@ -359,7 +366,7 @@ export default function NewAuctionPage() {
             </div>
           </div>
           <div className="flex-5">
-            <span className="text-sm text-[#a5a5a5]">{grade ? `AI 카드 감정을 통해 등급을 알 수 있어요! ${grade}` : "AI 카드 감정을 통해 등급을 알 수 있어요!"}</span>
+            <span className="text-sm text-[#a5a5a5]">{grade ? `${grade}` : "AI 카드 감정을 통해 등급을 알 수 있어요!"}</span>
           </div>
         </div>
 
