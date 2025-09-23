@@ -2,9 +2,11 @@ package com.bukadong.tcg.api.auction.controller;
 
 import com.bukadong.tcg.api.auction.dto.response.AuctionDetailResponse;
 import com.bukadong.tcg.api.auction.dto.response.AuctionListItemResponse;
+import com.bukadong.tcg.api.auction.dto.response.EscrowAddressResponseDto;
 import com.bukadong.tcg.api.auction.repository.AuctionSort;
 import com.bukadong.tcg.api.auction.dto.response.MyAuctionListItemResponse;
 import com.bukadong.tcg.api.auction.service.AuctionQueryService;
+import com.bukadong.tcg.api.auction.service.AuctionResultService;
 import com.bukadong.tcg.api.member.service.MemberQueryService;
 import com.bukadong.tcg.api.popularity.aop.AutoPopularityView;
 import com.bukadong.tcg.global.common.base.BaseResponse;
@@ -27,10 +29,10 @@ import java.util.stream.Collectors;
 
 /**
  * 경매 조회 및 입찰 API
- * <P>
+ * <p>
  * 컨트롤러는 얇게 유지하고, 비즈니스 로직은 서비스에서 수행한다.
  * </P>
- * 
+ *
  * @PARAM 없음
  * @RETURN BaseResponse로 래핑된 DTO
  */
@@ -43,10 +45,11 @@ public class AuctionQueryController {
 
     private final AuctionQueryService auctionQueryService;
     private final MemberQueryService memberQueryService;
+    private final AuctionResultService auctionResultService;
 
     /**
      * 경매 목록 조회
-     * <P>
+     * <p>
      * 페이지 당 20개로 고정된다.
      * </P>
      *
@@ -77,7 +80,7 @@ public class AuctionQueryController {
             @AuthenticationPrincipal CustomUserDetails user) {
         Set<String> gradeSet = (grades == null || grades.isBlank()) ? null
                 : Arrays.stream(grades.split(",")).map(String::trim).filter(s -> !s.isEmpty())
-                        .collect(Collectors.toSet());
+                .collect(Collectors.toSet());
         Long memberId = (user == null) ? null : memberQueryService.getByUuid(user.getUuid()).getId();
 
         var pageData = auctionQueryService.getAuctionList(categoryMajorId, categoryMediumId, title, cardId,
@@ -88,10 +91,10 @@ public class AuctionQueryController {
 
     /**
      * 경매 상세 조회
-     * <P>
+     * <p>
      * 경매/카드/이미지/일주일 시세/입찰 히스토리를 포함한 상세 정보를 조회한다.
      * </P>
-     * 
+     *
      * @PARAM id 경매 ID (Path)
      * @PARAM historySize 히스토리 개수 (Query, 기본 5)
      * @RETURN BaseResponse<AuctionDetailResponse>
@@ -132,4 +135,11 @@ public class AuctionQueryController {
         return BaseResponse.onSuccess(auctionQueryService.getMyBidAuctions(memberId, page, size, recentBidCount));
     }
 
+    @Operation(summary = "경매 에스크로 컨트랙트 주소 조회", description = "완료된 경매의 에스크로 컨트랙트 주소를 조회한다.")
+    @GetMapping("/{auctionId}/contract-address/escrow")
+    public BaseResponse<EscrowAddressResponseDto> getEscrowAddress(
+            @Parameter(description = "경매 ID") @PathVariable("auctionId") Long auctionId
+    ) {
+        return BaseResponse.onSuccess(EscrowAddressResponseDto.toDto(auctionResultService.getEscrowAddress(auctionId)));
+    }
 }

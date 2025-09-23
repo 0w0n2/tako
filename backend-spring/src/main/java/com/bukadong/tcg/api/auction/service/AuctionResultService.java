@@ -3,6 +3,8 @@ package com.bukadong.tcg.api.auction.service;
 import com.bukadong.tcg.api.auction.entity.Auction;
 import com.bukadong.tcg.api.auction.entity.AuctionResult;
 import com.bukadong.tcg.api.auction.repository.AuctionResultRepository;
+import com.bukadong.tcg.global.common.base.BaseResponseStatus;
+import com.bukadong.tcg.global.common.exception.BaseException;
 import com.bukadong.tcg.api.card.entity.PhysicalCard;
 import com.bukadong.tcg.api.member.entity.Member;
 import com.bukadong.tcg.global.blockchain.service.TakoNftContractService;
@@ -10,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
 import java.math.BigInteger;
@@ -31,6 +34,14 @@ public class AuctionResultService {
         log.debug("[Settlement] Auction ID: {} -> Escrow contract address saved: {}", auctionId, escrowAddress);
     }
 
+    @Transactional(readOnly = true)
+    public String getEscrowAddress(Long auctionId) {
+        String contractAddress = auctionResultRepository.findSettleTxHash(auctionId);
+        if (!StringUtils.hasText(contractAddress)) {
+            throw new BaseException(BaseResponseStatus.AUCTION_ESCROW_CONTRACT_NOT_FOUND);
+        }
+        return contractAddress;
+    }
 
     /**
      * 블록체인 이벤트로부터 경매 완료 기록을 처리하고, NFT 컨트랙트에 기록
