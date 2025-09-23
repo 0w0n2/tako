@@ -5,6 +5,7 @@ import com.bukadong.tcg.api.auction.entity.AuctionResult;
 import com.bukadong.tcg.api.auction.event.AuctionSoldEvent;
 import com.bukadong.tcg.api.auction.repository.AuctionRepository;
 import com.bukadong.tcg.api.auction.repository.AuctionResultRepository;
+import com.bukadong.tcg.api.auction.service.AuctionSettlementService;
 import com.bukadong.tcg.api.auction.util.AuctionDeadlineIndex;
 import com.bukadong.tcg.api.bid.repository.AuctionBidRepository;
 import com.bukadong.tcg.api.notification.service.NotificationCommandService;
@@ -36,6 +37,7 @@ public class AuctionSoldListener {
     private final AuctionRepository auctionRepository;
     private final AuctionBidRepository bidRepository;
     private final NotificationCommandService notificationService; // 알림 도메인 서비스
+    private final AuctionSettlementService auctionSettlementService;
 
     /**
      * 결과 저장 및 알림 발송
@@ -43,6 +45,7 @@ public class AuctionSoldListener {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onClosed(AuctionSoldEvent e) {
+
         // 이미 결과가 있으면 스킵
         boolean exists = resultRepository.existsByAuction_Id(e.auctionId());
         if (!exists) {
@@ -57,9 +60,19 @@ public class AuctionSoldListener {
             resultRepository.save(result);
         }
 
+        // 블록체인 에스크로 생성 시작
+        auctionSettlementService.createEscrowForAuction(
+                e.auctionId(),
+                e.amount(),
+                e.seller(),
+                e.buyer(),
+                e.physicalCard()
+        );
+
+        // 알림 발송
         try {
             // 구매자 알림
-            notificationService.notifyAuctionWon(e.winnerId(), e.auctionId(), e.amount(), e.closedAt());
+            notificationService.notifyAuctionWon(e.buyer().getId(), e.auctionId(), e.amount(), e.closedAt());
 
             // 판매자 알림
             auctionRepository.findById(e.auctionId()).ifPresent(a -> {

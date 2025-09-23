@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -31,6 +32,8 @@ public class BidQueueProducer {
     private static final String AUCTION_KEY_PREFIX = "auction:";
     private final RedisTemplate<String, String> redisTemplate;
     private final DefaultRedisScript<List> bidAtomicScript; // ⬅️ 빈 주입
+    @Value("${auction.bid.idempotency-ttl-seconds:1800}")
+    private long idemTtlSeconds;
 
     /**
      * 입찰 원자 검증/적재
@@ -82,7 +85,7 @@ public class BidQueueProducer {
         @SuppressWarnings("unchecked")
         List<String> ret = redisTemplate.execute(bidAtomicScript, keys, priceStr, // ARGV[1]
                 String.valueOf(now), // ARGV[2]
-                "1800", // ARGV[3]
+                String.valueOf(idemTtlSeconds), // ARGV[3]
                 payloadOk, // ARGV[4]
                 payloadMissing, // ARGV[5]
                 payloadNotRunning, // ARGV[6]

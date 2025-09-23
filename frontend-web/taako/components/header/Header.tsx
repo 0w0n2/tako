@@ -32,7 +32,9 @@ export default function Header() {
             </Link>
             <SearchInput />
           </div>
-          <HeaderNavigationMenu />
+          <div className="flex items-center gap-4">
+            <HeaderNavigationMenu />
+          </div>
         </div>
       </div>
       {/* {isLoginModalOpen && <LoginModal onClose={() => setIsLoginModalOpen(false)} />} */}

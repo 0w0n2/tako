@@ -3,27 +3,25 @@ package com.bukadong.tcg.api.delivery.entity;
 import com.bukadong.tcg.api.member.entity.Member;
 import jakarta.persistence.*;
 import lombok.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
- * 회원 배송지
- *
- * 스키마 자동 생성 시 적용되는 @Table 메타데이터:
- * - @UniqueConstraint uk_address_member_place : (member_id, place_name) 복합 고유
- * 제약 생성
- * - @Index idx_address_member : member_id 인덱스 생성
- * - @Index idx_address_zipcode : zipcode 인덱스 생성
+ * 회원 배송지 스키마 자동 생성 시 적용되는 @Table 메타데이터: - @UniqueConstraint
+ * uk_address_member_place : (member_id, place_name) 복합 고유 제약 생성 - @Index
+ * idx_address_member : member_id 인덱스 생성 - @Index idx_address_zipcode : zipcode
+ * 인덱스 생성
  */
 @Entity
 @Table(name = "address", uniqueConstraints = {
-        @UniqueConstraint(name = "uk_address_member_place", columnNames = { "member_id", "place_name" })
-}, indexes = {
-        @Index(name = "idx_address_member", columnList = "member_id"),
-        @Index(name = "idx_address_zipcode", columnList = "zipcode")
-})
+        @UniqueConstraint(name = "uk_address_member_place", columnNames = { "member_id", "place_name" }) }, indexes = {
+                @Index(name = "idx_address_member", columnList = "member_id"),
+                @Index(name = "idx_address_zipcode", columnList = "zipcode") })
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 public class Address {
 
     /** ID */
@@ -34,6 +32,7 @@ public class Address {
     /** 소유 회원 */
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "member_id", nullable = false)
+    @JsonIgnore
     private Member member;
 
     /** 장소 별칭(예: 집, 회사) */

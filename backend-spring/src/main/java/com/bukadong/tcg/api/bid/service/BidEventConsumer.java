@@ -2,6 +2,8 @@ package com.bukadong.tcg.api.bid.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -29,6 +31,8 @@ public class BidEventConsumer {
 
     private final RedisTemplate<String, String> redisTemplate;
     private final BidEventApplyService bidEventApplyService;
+    private final AuctionCacheService auctionCacheService;
+    private final ObjectMapper om;
     private static final String RETRY_KEY_PREFIX = ":retry";
 
     /**
@@ -77,6 +81,16 @@ public class BidEventConsumer {
         } catch (Exception fatal) {
             redisTemplate.opsForList().rightPush(queue + ":dead", json);
             log.error("Dead-lettered event: {}", fatal.toString());
+            // 보상: DB 반영 실패로 인한 Redis 가격과 DB 불일치 시 정합성 복구 시도
+            try {
+                JsonNode n = om.readTree(json);
+                if (n != null && n.hasNonNull("auctionId")) {
+                    long aid = n.get("auctionId").asLong();
+                    auctionCacheService.syncExactCurrentPrice(aid);
+                }
+            } catch (Exception ignore) {
+                // 보수적으로 무시
+            }
         }
     }
 

@@ -27,6 +27,10 @@ import java.util.Optional;
  * @RETURN 표준 CRUD + 커스텀 조회
  */
 public interface AuctionRepository extends JpaRepository<Auction, Long> {
+    /** Delivery ID로 역참조하여 경매 조회 */
+    @Query("select a from Auction a where a.delivery.id = :deliveryId")
+    Optional<Auction> findByDeliveryId(@Param("deliveryId") Long deliveryId);
+
     /**
      * 내 경매 목록
      */
@@ -186,4 +190,13 @@ public interface AuctionRepository extends JpaRepository<Auction, Long> {
             """)
     org.springframework.data.domain.Page<Auction> findOngoingByMemberBids(@Param("memberId") Long memberId,
             org.springframework.data.domain.Pageable pageable);
+
+    /**
+     * 미종료 경매 ID 전체 조회(부팅 워밍용)
+     * <P>
+     * closeReason이 NULL이거나 isEnd=false 인 것 기준. 도메인 필드 기준으로 isEnd=false를 우선 사용.
+     * </P>
+     */
+    @Query("select a.id from Auction a where a.isEnd = false")
+    List<Long> findAllOpenIds();
 }

@@ -6,7 +6,7 @@ import Image from "next/image"
 import Link from "next/link";
 import { useState, useEffect, useRef, useCallback } from "react";
 import RankElement from "../atoms/RankElement";
-import { Heart } from 'lucide-react';
+import { Heart, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { addWishAuction, removeWishAuction } from '@/lib/wish'
 import { normalizeAxiosError } from '@/lib/normalizeAxiosError'
 
@@ -21,6 +21,8 @@ export default function AuctionCard({ item, onWishChange }: Props){
     const [wished, setWished] = useState<boolean>(item.wished)
     const [pending, setPending] = useState(false)
     const abortRef = useRef<AbortController | null>(null)
+    const [likeCount, setLikeCount] = useState(0);
+    const [dislikeCount, setDislikeCount] = useState(0);
 
     useEffect(() => {
         if (remainingTime <= 0) return;

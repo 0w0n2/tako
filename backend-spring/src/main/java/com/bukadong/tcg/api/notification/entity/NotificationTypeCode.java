@@ -22,6 +22,12 @@ public enum NotificationTypeCode {
     // 경매
     AUCTION_WON,
 
+    // 배송
+    DELIVERY_STARTED, // 운송장 등록 등으로 배송 시작됨(구매자)
+    DELIVERY_STATUS_CHANGED, // 배송 상태 변경 알림(구매자)
+    DELIVERY_CONFIRM_REQUEST, // 배송 완료 시 구매 확정 요청(구매자)
+    DELIVERY_CONFIRMED_SELLER, // 구매자가 확정 완료(판매자)
+
     // 판매자 알림 추가
     AUCTION_CLOSED_SELLER,
 
