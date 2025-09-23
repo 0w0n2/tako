@@ -3,6 +3,7 @@ import { GetHotCards, AuctionDetailProps, WeeklyAuctions } from "@/types/auction
 import type { Card } from '@/types/card';
 import type { Seller } from '@/types/seller';
 import type { History } from '@/types/history';
+import type { BidQueueRequest, BidQueueResponse } from "@/types/bid";
 
 // 경매 등록
 export const createAuction = async(requestDto:any, files: File[]) => {
@@ -142,4 +143,47 @@ export async function getAuctionDetail(
     detail: normalizeAuctionDetail(payload.result),
     wished: Boolean(payload.result?.wished),
   };
+}
+
+function genRequestId() {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
+  return "req_" + Math.random().toString(36).slice(2) + Date.now().toString(36);
+}
+
+/**
+ * 상대경로 호출: /v1/auctions/{id}/bids/queue
+ * requestId는 "사용자 고유 UUID"여야 함 (필수)
+ */
+export async function queueBid(
+  auctionId: string | number,
+  amount: number,
+  opts: { token?: string; requestId: string } // ← 필수로 받도록
+): Promise<BidQueueResponse> {
+  if (!opts?.requestId) throw new Error("requestId(사용자 UUID)가 필요합니다.");
+
+  const body: BidQueueRequest = {
+    amount,
+    requestId: opts.requestId,
+  };
+
+  const res = await fetch(`/v1/auctions/${auctionId}/bids/queue`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(opts?.token ? { Authorization: `Bearer ${opts.token}` } : {}),
+    },
+    credentials: "include",
+    body: JSON.stringify(body),
+  });
+
+  const text = await res.text();
+  if (!res.ok) throw new Error(text || `입찰 실패 (HTTP ${res.status})`);
+
+  let data: BidQueueResponse;
+  try { data = JSON.parse(text); } catch { throw new Error("응답 파싱에 실패했습니다."); }
+
+  if (!data.isSuccess || data.httpStatus?.error) {
+    throw new Error(data.message || "입찰 처리 중 오류가 발생했습니다.");
+  }
+  return data;
 }

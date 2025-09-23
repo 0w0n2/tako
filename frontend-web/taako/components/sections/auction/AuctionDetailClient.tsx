@@ -1,12 +1,12 @@
 // components/sections/auction/AuctionDetailClient.tsx
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import Loading from '@/components/Loading';
 import RankElement from '@/components/atoms/RankElement';
-import BidInputForm from '@/components/atoms/BidInputForm';
+import BidInputForm from '@/components/atoms/BidInputForm'; // ← 경로 수정
 import AuctionDetailImages from '@/components/sections/auction/AuctionDetailImages';
 import RemainingTime from '@/components/atoms/RemainingTime';
 import AuctionChart from '@/components/charts/AuctionChart';
@@ -19,11 +19,25 @@ type Props = {
 };
 
 export default function AuctionDetailClient({ auctionId, historySize = 5 }: Props) {
-  const { data, loading, error, wished, pendingWish, wishError, toggleWish } = useAuctionDetail(auctionId, historySize);
+  // ⚠️ 모든 Hook은 최상단에서 호출
+  const { data, loading, error, wished, pendingWish, wishError, toggleWish } =
+    useAuctionDetail(auctionId, historySize);
+
+  // 실시간/낙관적 반영을 위한 현재가 로컬 상태
+  const [currentPrice, setCurrentPrice] = useState<number | null>(null);
+
+  // 문의 개수
   const [inqTotal, setInqTotal] = useState<number>(0);
   const handleTotalChange = (n: number) => {
-    setInqTotal((prev) => (prev === n ? prev : n));  // ✅ 같은 값이면 렌더 스킵
+    setInqTotal((prev) => (prev === n ? prev : n)); // 같은 값이면 렌더 스킵
   };
+
+  // 상세 데이터가 바뀔 때 현재가 동기화 (Hook은 항상 호출되므로 안전)
+  useEffect(() => {
+    if (typeof data?.currentPrice === 'number') {
+      setCurrentPrice((prev) => (prev === data.currentPrice ? prev : data.currentPrice));
+    }
+  }, [data?.currentPrice]);
 
   if (loading) {
     return (
@@ -54,11 +68,18 @@ export default function AuctionDetailClient({ auctionId, historySize = 5 }: Prop
 
   if (!auc.card) {
     return (
-        <div className="default-container pb-[80px]">
+      <div className="default-container pb-[80px]">
         <p>카드 정보가 없어요. 잠시 후 다시 시도해주세요.</p>
-        </div>
+      </div>
     );
-    }
+  }
+
+  // 표기용 현재가 (로컬 상태가 아직 null이면 서버 값 사용)
+  const displayPrice = (currentPrice ?? auc.currentPrice) as number;
+
+  // 최소 증분: Sepolia ETH 기준 0.01
+  // 백엔드에서 별도 필드를 주면 우선 사용하고, 없으면 0.01로 고정
+  const minStep = 0.01 as number;
 
   return (
     <div className="default-container pb-[80px] relative">
@@ -66,19 +87,19 @@ export default function AuctionDetailClient({ auctionId, historySize = 5 }: Prop
         <div className="pb-5 border-b border-[#353535]">
           <div className="flex gap-1 text-[#a5a5a5] mb-3">
             <Link href={`/search?categoryMajorId=${auc.card?.categoryMajorId ?? ''}`}>
-                {auc.card?.categoryMajorName ?? '카테고리'}
+              {auc.card?.categoryMajorName ?? '카테고리'}
             </Link>
             {` > `}
             <Link
-                href={`/search?categoryMajorId=${auc.card?.categoryMajorId ?? ''}&categoryMediumId=${auc.card?.categoryMediumId ?? ''}`}
+              href={`/search?categoryMajorId=${auc.card?.categoryMajorId ?? ''}&categoryMediumId=${auc.card?.categoryMediumId ?? ''}`}
             >
-                {auc.card?.categoryMediumName ?? '중분류'}
+              {auc.card?.categoryMediumName ?? '중분류'}
             </Link>
             {` > `}
             <Link
-                href={`/search?categoryMajorId=${auc.card?.categoryMajorId ?? ''}&categoryMediumId=${auc.card?.categoryMediumId ?? ''}&cardId=${auc.card?.id ?? ''}`}
+              href={`/search?categoryMajorId=${auc.card?.categoryMajorId ?? ''}&categoryMediumId=${auc.card?.categoryMediumId ?? ''}&cardId=${auc.card?.id ?? ''}`}
             >
-                {auc.card?.name ?? '카드'}
+              {auc.card?.name ?? '카드'}
             </Link>
           </div>
           <h2>{auc.title}</h2>
@@ -94,7 +115,8 @@ export default function AuctionDetailClient({ auctionId, historySize = 5 }: Prop
           <div className="w-[50%] px-[40px]">
             <div>
               <p className="text-[#ddd]">현재 입찰가</p>
-              <p className="-mt-1 text-[40px]">{auc.currentPrice} TKC</p>
+              {/* 통화 표기는 Sepolia ETH */}
+              <p className="-mt-1 text-[40px]">{displayPrice} ETH</p>
             </div>
 
             {/* 경매 속성 */}
@@ -147,7 +169,12 @@ export default function AuctionDetailClient({ auctionId, historySize = 5 }: Prop
 
             {/* 입찰 */}
             <div className="mt-4">
-              <BidInputForm props={auc} />
+              <BidInputForm
+                auctionId={auctionId}
+                currentPrice={displayPrice}            // ← 로컬/서버 값 사용
+                minIncrement={0.01}                    // ← 숫자 타입으로 전달
+                onBidApplied={(nextPrice) => setCurrentPrice(nextPrice)} // 성공 시 즉시 반영
+              />
             </div>
 
             {/* 히스토리 */}
