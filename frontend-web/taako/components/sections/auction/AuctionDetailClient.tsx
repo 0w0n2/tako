@@ -18,7 +18,7 @@ type Props = {
 };
 
 export default function AuctionDetailClient({ auctionId, historySize = 5 }: Props) {
-  const { data, loading, error, refetch, wished, pendingWish, wishError, toggleWish } = useAuctionDetail(auctionId, historySize);
+  const { data, loading, error, wished, pendingWish, wishError, toggleWish } = useAuctionDetail(auctionId, historySize);
 
   if (loading) {
     return (
@@ -125,12 +125,12 @@ export default function AuctionDetailClient({ auctionId, historySize = 5 }: Prop
                 aria-pressed={wished}
                 className={`rounded-md border-1 border-[#353535] flex-1 py-4 flex gap-2 justify-center items-center transition
                   ${wished ? 'bg-[#2a2a2a] border-[#ff5a5a]' : 'hover:bg-white/5'}`}
-                title={wished ? '관심상품에서 제거' : '관심상품에 추가'}
+                title={wished ? '관심경매에서 제거' : '관심경매에 추가'}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill={wished ? '#ff5a5a' : 'none'} stroke={wished ? '#ff5a5a' : '#ffffff'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                 </svg>
-                <p>{wished ? (pendingWish ? '추가 중...' : '관심상품') : (pendingWish ? '해제 중...' : '관심상품')}</p>
+                <p>{wished ? (pendingWish ? '추가 중...' : '관심경매') : (pendingWish ? '해제 중...' : '관심경매')}</p>
               </button>
             </div>
 
