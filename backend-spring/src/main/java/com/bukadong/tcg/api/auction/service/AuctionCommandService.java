@@ -8,8 +8,10 @@ import com.bukadong.tcg.api.auction.util.AuctionDeadlineIndex;
 import com.bukadong.tcg.api.bid.entity.AuctionBidUnit;
 import com.bukadong.tcg.api.card.entity.Card;
 import com.bukadong.tcg.api.card.entity.CardAiGrade;
+import com.bukadong.tcg.api.card.entity.PhysicalCard;
 import com.bukadong.tcg.api.card.repository.CardRepository;
 import com.bukadong.tcg.api.card.repository.CardAiGradeRepository;
+import com.bukadong.tcg.api.card.repository.PhysicalCardRepository;
 import com.bukadong.tcg.api.category.entity.CategoryMajor;
 import com.bukadong.tcg.api.category.entity.CategoryMedium;
 import com.bukadong.tcg.api.category.repository.CategoryMajorRepository;
@@ -18,6 +20,7 @@ import com.bukadong.tcg.api.media.entity.MediaType;
 import com.bukadong.tcg.api.media.service.MediaAttachmentService;
 import com.bukadong.tcg.api.member.entity.Member;
 import com.bukadong.tcg.api.member.repository.MemberRepository;
+import com.bukadong.tcg.global.blockchain.service.TakoNftContractService;
 import com.bukadong.tcg.global.common.base.BaseResponseStatus;
 import com.bukadong.tcg.global.common.exception.BaseException;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +35,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.bukadong.tcg.api.notification.service.NotificationCommandService;
 import com.bukadong.tcg.api.wish.repository.WishQueryPort;
 
+import java.math.BigInteger;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -68,6 +72,8 @@ public class AuctionCommandService {
     private final AuctionDeadlineIndex deadlineIndex;
     private final Logger logger = LoggerFactory.getLogger(AuctionCommandService.class);
     private final MemberRepository memberRepository;
+    private final PhysicalCardRepository physicalCardRepository;
+    private final TakoNftContractService takoNftContractService;
 
     /**
      * 경매 생성 가능 여부 조회, 사용자 계정에 지갑 주소가 등록되어 있어야 한다.
@@ -94,6 +100,16 @@ public class AuctionCommandService {
     @Transactional
     public AuctionCreateResponse create(AuctionCreateRequest requestDto, Member me, List<MultipartFile> files,
             String dir) {
+        
+        // NFT 등록 경매일 때, NFT 토큰의 소유주가 사용자와 일치하는지 확인
+        PhysicalCard nftPhysicalCard = null;
+        if (requestDto.getTokenId() != null) {
+            nftPhysicalCard = physicalCardRepository.findByTokenId(BigInteger.valueOf(requestDto.getTokenId()))
+                    .orElseThrow(() -> new BaseException(BaseResponseStatus.PHYSICAL_CARD_NOT_FOUND));
+            if (!me.getWalletAddress().equals(takoNftContractService.getOwnerAddress(requestDto.getTokenId()))) {
+                throw new BaseException(BaseResponseStatus.PHYSICAL_CARD_OWNER_INVALID);
+            }
+        }
 
         // 필수 엔티티 로드 (DB 의존 검증)
         CardAiGrade grade = cardAiGradeRepository.findByHash(requestDto.getGradeHash())
@@ -122,7 +138,7 @@ public class AuctionCommandService {
         }
         int durationDays = Math.max(1, (int) java.time.Duration.between(startUtc, endUtc).toDays());
 
-        Auction auction = Auction.builder().member(me).delivery(null).physicalCard(null) // ← 명시적으로 null
+        Auction auction = Auction.builder().member(me).delivery(null).physicalCard(nftPhysicalCard)
                 .card(card).categoryMajor(major).categoryMedium(medium).grade(grade).code(UUID.randomUUID().toString())
                 .title(requestDto.getTitle()).detail(requestDto.getDetail()).startPrice(requestDto.getStartPrice())
                 .currentPrice(Optional.ofNullable(requestDto.getCurrentPrice()).orElse(requestDto.getStartPrice()))

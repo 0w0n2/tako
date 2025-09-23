@@ -171,6 +171,7 @@ public enum BaseResponseStatus {
 
     PHYSICAL_CARD_NOT_FOUND(HttpStatus.NOT_FOUND, false, 1250, "실물 카드 정보를 찾을 수 없습니다."),
     NFT_ID_GENERATE_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, false, 1251, "NFT ID 생성에 실패했습니다."),
+    PHYSICAL_CARD_OWNER_INVALID(HttpStatus.NOT_FOUND, false, 1252, "NFT 카드의 소유주가 아닙니다."),
 
     /**
      * 1300: 메일(SMTP) Error

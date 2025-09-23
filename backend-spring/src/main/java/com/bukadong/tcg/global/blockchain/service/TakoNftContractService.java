@@ -50,10 +50,24 @@ public class TakoNftContractService {
         try {
             TakoCardNFT contract = contractLoader.loadTakoCardNft();
             List<TakoCardNFT.AuctionHistory> histories = contract.getAuctionHistories(BigInteger.valueOf(tokenId)).send();
-
             return histories.stream()
                     .map(NftAuctionHistoryResponseDto::toDto)
                     .collect(Collectors.toList());
+        } catch (TransactionException e) {
+            throw contractExceptionHelper.handleTransactionException(e);
+        } catch (Exception e) {
+            log.error("Failed to get auction histories for tokenId: {}", tokenId, e);
+            throw new BaseException(BaseResponseStatus.CONTRACT_EXECUTION_ERROR);
+        }
+    }
+
+    /**
+     * 특정 토큰의 소유주 지갑 주소를 블록체인에서 조회
+     */
+    public String getOwnerAddress(Long tokenId) {
+        try {
+            TakoCardNFT contract = contractLoader.loadTakoCardNft();
+            return contract.ownerOf(BigInteger.valueOf(tokenId)).send();
         } catch (TransactionException e) {
             throw contractExceptionHelper.handleTransactionException(e);
         } catch (Exception e) {
