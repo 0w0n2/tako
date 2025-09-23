@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 
 import { useState } from 'react'
 import WalletProfile from "@/components/wallet/WalletProfile" 
+// import ClaimButton from "@/components/nft/ClaimButton"
 
 export default function Mypage() {
   const tabs = [
