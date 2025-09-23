@@ -25,7 +25,7 @@ public class BaseEntity {
 
     @PrePersist // 저장 전에 동작
     public void prePersist() {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
         if (createdAt == null)
             createdAt = now;
         if (updatedAt == null)

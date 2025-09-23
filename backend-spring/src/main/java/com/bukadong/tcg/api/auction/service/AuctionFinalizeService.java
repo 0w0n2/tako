@@ -15,7 +15,9 @@ import com.bukadong.tcg.api.auction.entity.Auction;
 import com.bukadong.tcg.api.auction.entity.AuctionCloseReason;
 import com.bukadong.tcg.api.auction.repository.AuctionRepository;
 import com.bukadong.tcg.api.auction.service.dto.WinnerSnapshot;
+import com.bukadong.tcg.api.auction.sse.AuctionLiveSseService;
 import com.bukadong.tcg.api.auction.util.AuctionDeadlineIndex;
+import com.bukadong.tcg.api.bid.service.AuctionCacheService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,8 +40,10 @@ public class AuctionFinalizeService {
     private final AuctionWinnerQuery auctionWinnerQuery;
     private final AuctionEventPublisher eventPublisher;
     private static final ZoneOffset UTC = ZoneOffset.UTC;
-    private final AuctionDeadlineIndex deadlineIndex;
     private final MemberRepository memberRepository;
+    private final AuctionDeadlineIndex deadlineIndex;
+    private final AuctionCacheService auctionCacheService;
+    private final AuctionLiveSseService auctionLiveSseService;
 
     /**
      * 경매 종료 처리 (마감 도달 시에만)
@@ -68,6 +72,7 @@ public class AuctionFinalizeService {
         if (winnerOpt.isEmpty()) {
             auction.markClosed(AuctionCloseReason.NO_BIDS, LocalDateTime.now(UTC));
             eventPublisher.publishAuctionUnsold(auctionId);
+            afterCommitMarkEndedAndNotify(auctionId);
             afterCommitRemoveIndex(auctionId); // 트랜잭션 커밋 후에 제거
             log.info("Auction closed as UNSOLD (no bids). auctionId={}", auctionId);
             return;
@@ -83,16 +88,9 @@ public class AuctionFinalizeService {
                 .orElseThrow(() -> new IllegalStateException("Winner member is not found"));
 
         Instant closedAt = auction.getClosedAt().atZone(UTC).toInstant();
-        eventPublisher.publishAuctionSold(
-                auctionId,
-                winner.bidId(),
-                winner.amount(),
-                closedAt,
-                seller,
-                buyer,
-                auction.getPhysicalCard()
-        );
-
+        eventPublisher.publishAuctionSold(auctionId, winner.bidId(), winner.amount(), closedAt, seller, buyer,
+                auction.getPhysicalCard());
+        afterCommitMarkEndedAndNotify(auctionId);
         afterCommitRemoveIndex(auctionId); // 커밋 성공 후에 제거
         log.info("Auction closed as SOLD. auctionId={}, winner={}, amount={}", auctionId, winner.memberId(),
                 winner.amount());
@@ -104,6 +102,24 @@ public class AuctionFinalizeService {
             @Override
             public void afterCommit() {
                 deadlineIndex.remove(auctionId);
+            }
+        });
+    }
+
+    private void afterCommitMarkEndedAndNotify(Long auctionId) {
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                try {
+                    auctionCacheService.markEnded(auctionId);
+                } catch (Exception ignore) {
+                    // Redis 캐시 마킹 실패는 치명적이지 않음(다음 접근 시 ensureLoaded 또는 워커 보정)
+                }
+                try {
+                    auctionLiveSseService.publishEnded(auctionId);
+                } catch (Exception ignore) {
+                    // SSE 전파 실패는 일부 클라이언트의 일시 손실일 뿐, 다음 하트비트/새 구독으로 회복
+                }
             }
         });
     }
