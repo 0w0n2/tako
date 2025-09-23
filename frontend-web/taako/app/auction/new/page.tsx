@@ -32,7 +32,6 @@ export default function NewAuctionPage() {
 
   const { register, handleSubmit, control, watch, setValue, formState: { errors } } = useForm<AuctionFormProps>({
     defaultValues: {
-      files: [],
       requestDto: {
         gradeHash: null,
         categoryMajorId: null,

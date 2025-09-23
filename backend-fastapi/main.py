@@ -8,6 +8,7 @@ from fastapi import (
     Security,
     status,
     Request,
+    Body,
 )
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer
@@ -15,8 +16,13 @@ from typing import Dict, Tuple, List
 from PIL import Image, ImageStat
 from io import BytesIO
 import numpy as np
-import cv2, math, uvicorn, os, uuid
+import cv2, math, uvicorn, os, uuid, datetime
 from ws import ws_manager
+from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy import text
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # ===== YOLO =====
 # Ultralytics는 lazy import 권장 (모델 로딩 비용이 큼)
@@ -52,6 +58,33 @@ async def optional_auth(request: Request, token=Security(security)):
 VERIFY_MODEL_PATH = os.getenv("VERIFY_MODEL_PATH", "models/card_verification.pt")
 SEG_MODEL_PATH = os.getenv("SEG_MODEL_PATH", "models/card_segmentation.pt")
 DEFECT_MODEL_PATH = os.getenv("DEFECT_MODEL_PATH", "models/card_defect_detection.pt")
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+assert DATABASE_URL is not None
+engine = create_async_engine(DATABASE_URL, future=True)
+
+
+async def insert_grade(hash):
+    now = datetime.datetime.utcnow()
+
+    sql = text(
+        """
+        INSERT INTO card_ai_grade (grade_code, created_at, updated_at, hash, physical_card_hash)
+        VALUES (:grade_code, :created_at, :updated_at, :hash, :physical_card_hash)
+    """
+    )
+    async with engine.begin() as conn:
+        await conn.execute(
+            sql,
+            {
+                "grade_code": "A1",
+                "created_at": now,
+                "updated_at": now,
+                "hash": hash,
+                "physical_card_hash": None,
+            },
+        )
+
 
 try:
     verify_model = YOLO(VERIFY_MODEL_PATH)
@@ -448,6 +481,7 @@ async def condition_check(
             return "C"
         return "D"
 
+    hash = str(uuid.uuid4())
     result = {
         "steps": {
             "file_ext_check": "ok",
@@ -473,8 +507,9 @@ async def condition_check(
         },
         "score": final_score,
         "grade": grade(final_score),
-        "hash": uuid.uuid4(),
+        "hash": hash,
     }
+    await insert_grade(hash)
     return JSONResponse(result)
 
 
