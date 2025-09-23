@@ -15,6 +15,7 @@ import com.bukadong.tcg.api.auction.entity.Auction;
 import com.bukadong.tcg.api.auction.entity.AuctionCloseReason;
 import com.bukadong.tcg.api.auction.repository.AuctionRepository;
 import com.bukadong.tcg.api.auction.service.dto.WinnerSnapshot;
+import com.bukadong.tcg.api.auction.sse.AuctionLiveSseService;
 import com.bukadong.tcg.api.auction.util.AuctionDeadlineIndex;
 import com.bukadong.tcg.api.bid.service.AuctionCacheService;
 
@@ -41,14 +42,13 @@ public class AuctionFinalizeService {
     private static final ZoneOffset UTC = ZoneOffset.UTC;
     private final MemberRepository memberRepository;
     private final AuctionDeadlineIndex deadlineIndex;
-
-    private final com.bukadong.tcg.api.bid.service.AuctionCacheService auctionCacheService;
-    private final com.bukadong.tcg.api.auction.sse.AuctionLiveSseService auctionLiveSseService;
+    private final AuctionCacheService auctionCacheService;
+    private final AuctionLiveSseService auctionLiveSseService;
 
     /**
-     * * 경매 종료 처리 (마감 도달 시에만)
+     * 경매 종료 처리 (마감 도달 시에만)
      * <p>
-     * * 찰 0건이면 UNSOLD(유찰)로 정상 종료한다.
+     * 입찰 0건이면 UNSOLD(유찰)로 정상 종료한다.
      * </P>
      *
      * @PARAM auctionId 경매 ID

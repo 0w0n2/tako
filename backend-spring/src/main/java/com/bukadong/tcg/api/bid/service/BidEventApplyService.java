@@ -1,6 +1,7 @@
 package com.bukadong.tcg.api.bid.service;
 
 import com.bukadong.tcg.api.auction.entity.Auction;
+import com.bukadong.tcg.api.auction.sse.AuctionLiveSseService;
 import com.bukadong.tcg.api.auction.util.AuctionDeadlineIndex;
 import com.bukadong.tcg.api.bid.entity.AuctionBid;
 import com.bukadong.tcg.api.bid.entity.AuctionBidReason;
@@ -8,6 +9,7 @@ import com.bukadong.tcg.api.bid.entity.AuctionBidStatus;
 import com.bukadong.tcg.api.bid.repository.AuctionBidRepository;
 import com.bukadong.tcg.api.bid.repository.AuctionLockRepository;
 import com.bukadong.tcg.api.member.entity.Member;
+import com.bukadong.tcg.api.member.repository.MemberRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
@@ -25,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 
 /**
@@ -47,8 +50,8 @@ public class BidEventApplyService {
     private final AuctionBidRepository auctionBidRepository;
     private final AuctionCacheService auctionCacheService;
     private final ObjectMapper om;
-    private final com.bukadong.tcg.api.auction.sse.AuctionLiveSseService auctionLiveSseService;
-    private final com.bukadong.tcg.api.member.repository.MemberRepository memberRepository;
+    private final AuctionLiveSseService auctionLiveSseService;
+    private final MemberRepository memberRepository;
 
     private final AuctionDeadlineIndex deadlineIndex;
     /** 연장 기능 on/off */
@@ -145,8 +148,7 @@ public class BidEventApplyService {
             long nowSec = Instant.now().getEpochSecond();
             auctionLiveSseService.publishPriceUpdate(auctionId, bid.toPlainString(), null);
             // 상세 전용 bid 이벤트: 닉네임/시간 문자열로 변환
-            String nickname = memberRepository.findById(memberId)
-                    .map(com.bukadong.tcg.api.member.entity.Member::getNickname).orElse("member-" + memberId);
+            String nickname = memberRepository.findById(memberId).map(Member::getNickname).orElse("member-" + memberId);
             String timeIso = java.time.Instant.ofEpochSecond(nowSec).toString();
             auctionLiveSseService.publishBidAccepted(auctionId, nickname, bid.toPlainString(), timeIso);
 
@@ -156,7 +158,7 @@ public class BidEventApplyService {
                 if (extensionEnabled && auction.isExtensionFlag() && !auction.isEnd()
                         && auction.getEndDatetime() != null) {
                     Instant now = Instant.now();
-                    Instant endAt = auction.getEndDatetime().atOffset(java.time.ZoneOffset.UTC).toInstant();
+                    Instant endAt = auction.getEndDatetime().atOffset(ZoneOffset.UTC).toInstant();
                     long remainingSec = ChronoUnit.SECONDS.between(now, endAt);
 
                     if (remainingSec <= extensionThresholdSeconds) {
@@ -164,7 +166,7 @@ public class BidEventApplyService {
                         Instant newEndAt = endAt.plusSeconds(extendBySeconds);
 
                         // (a) DB 엔티티 반영(도메인 메서드 사용)
-                        auction.setEndDatetime(newEndAt.atOffset(java.time.ZoneOffset.UTC).toLocalDateTime());
+                        auction.setEndDatetime(newEndAt.atOffset(ZoneOffset.UTC).toLocalDateTime());
 
                         // (b) Redis 해시 end_ts 갱신(초) + ZSET 스코어 갱신(epochMillis)
                         try {
@@ -184,7 +186,7 @@ public class BidEventApplyService {
                     }
                 } else if (auction.getEndDatetime() != null) {
                     // 연장 기능 OFF이거나 확장 비대상이어도, 최소 1회 ZSET 등록은 보장
-                    Instant endAt = auction.getEndDatetime().atOffset(java.time.ZoneOffset.UTC).toInstant();
+                    Instant endAt = auction.getEndDatetime().atOffset(ZoneOffset.UTC).toInstant();
                     deadlineIndex.upsert(auctionId, endAt.toEpochMilli());
                 }
             } catch (Exception schedEx) {
