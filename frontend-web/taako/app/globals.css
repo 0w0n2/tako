@@ -149,46 +149,6 @@ h2.main{
   font-weight: 700;
 }
 
-/* 메인 swiper 커스텀 css */
-.mySwiper{
-  overflow: unset!important;
-}
-
-.mySwiper .swiper-slide{
-  padding: 32px 40px;
-  height: 480px;
-  border: 3px solid #ffffff36;border-radius: 70px;
-  box-shadow: 0 2px 5px 2px #00000020;
-  transition: all .3s;
-  cursor: pointer;
-  transform: skew(-3deg, 5deg)!important;
-}
-
-.mySwiper .swiper-slide .img{
-  width: 100%;
-  position: absolute;top:135px;left: 50%;
-  transform: translate(-50%, 0);
-}
-
-.mySwiper .swiper-slide-active{
-  transform: translateY(-100px) skew(0deg, 0deg)!important ;
-  z-index: 2;
-}
-
-.mySwiper .swiper-slide-prev{
-  transform: translateY(-50px) skew(3deg, -5deg)!important ;
-  z-index: 1;
-}
-
-.mySwiper .swiper-slide-next{
-  transform: translateY(-50px) skew(-3deg, 5deg)!important;
-  z-index: 1;
-}
-
-.mySwiper .swiper-slide-active:hover{
-  transform: translateY(-120px)!important;
-}
-
 
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
