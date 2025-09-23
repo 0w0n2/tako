@@ -1,4 +1,5 @@
 import Image from "next/image"
+import Link from "next/link";
 import { Button } from "@/components/ui/button"
 import { useMyInfo } from "@/hooks/useMyInfo"
 import { useState } from "react";
@@ -23,19 +24,19 @@ export default function BuyOnGoingAuction(){
               </div>
               <div className="py-4 px-6 flex justify-between">
                 <div className="flex items-center gap-5">
-                  <div className="rounded-lg overflow-hidden w-25 h-25"><Image className="w-full h-full object-cover" src={item?.imageUrl || "/no-image.jpg"} alt="thumnail" width={100} height={100} /></div>
+                  <div className="rounded-lg overflow-hidden w-22 h-22"><Image className="w-full h-full object-cover" src={item?.imageUrl || "/no-image.jpg"} alt="thumnail" width={100} height={100} /></div>
                   <div className="">
                     <h3 className="bid">{item.title}</h3>
-                    <p className="text-lg">입찰가 {item.currentPrice} PKC</p>
+                    <p className="text-lg">입찰가 {item.currentPrice} TKC</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="flex flex-col gap-1 items-end">
-                    <p className="text-sm">현재 입찰가 <span className="text-green-500 ml-1">{item.currentPrice} PKC</span></p>
-                    <p className="text-sm">내 입찰가 <span className="text-red-500 ml-1">{item.myTopBidAmount} PKC</span></p>
+                    <p className="text-sm">현재 입찰가 <span className="text-green-500 ml-1">{item.currentPrice} TKC</span></p>
+                    <p className="text-sm">내 입찰가 <span className="text-red-500 ml-1">{item.myTopBidAmount} TKC</span></p>
                   </div>
                   <div className="grid grid-cols-1 gap-3">
-                    <Button className="text-sm text-[#dedede] h-10 w-[120px] !rounded-md bg-[#191924] border-1 border-[#353535] hover:bg-[#242433] cursor-pointer" variant="default">재입찰</Button>
+                    <Link href={`/auction/${item.auctionId}`} className="text-sm text-[#dedede] h-10 w-[120px] !rounded-md bg-[#191924] border-1 border-[#353535] hover:bg-[#242433] cursor-pointer">재입찰</Link>
                     <Button disabled className="text-sm text-[#dedede] h-10 w-[120px] !rounded-md bg-[#191924] border-1 border-[#353535] hover:bg-[#242433] cursor-pointer" variant="default">즉시구매</Button>
                   </div>
                 </div>
