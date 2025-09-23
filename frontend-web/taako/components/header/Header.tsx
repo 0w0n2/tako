@@ -1,26 +1,11 @@
 'use client';
 
-// import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image';
 import SearchInput from "../atoms/Input/SearchInput"
-// import LoginModal from "../modals/LoginModal"
 import HeaderNavigationMenu from './HeaderNavigationMenu';
-import { useAuthStore } from "@/stores/useAuthStore";
 
 export default function Header() {
-  const token = useAuthStore((state) => state.token);
-  // const isLoggedIn = !!token;
-  
-  // const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-
-  // // 로그인 시 모달 닫기
-  // useEffect(() => {
-  //   if (isLoggedIn) {
-  //     setIsLoginModalOpen(false);
-  //   }
-  // }, [isLoggedIn]);
-
   return (
     <>
       {/* 헤더 */}
@@ -35,7 +20,6 @@ export default function Header() {
           <HeaderNavigationMenu />
         </div>
       </div>
-      {/* {isLoginModalOpen && <LoginModal onClose={() => setIsLoginModalOpen(false)} />} */}
     </>
   );
 }

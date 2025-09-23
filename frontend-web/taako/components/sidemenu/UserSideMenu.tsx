@@ -30,7 +30,7 @@ export default function UserSideMenu(){
               </SheetDescription>
               <div className="grid grid-cols-2 gap-3 my-3">
                 <SheetClose asChild>
-                  <Link href="/mypage" className="text-center bg-[#353535] rounded-md flex justify-center items-center">마이페이지</Link>
+                  <Link href="/mypage" className="text-center text-sm bg-[#353535] rounded-md flex justify-center items-center">마이페이지</Link>
                 </SheetClose>
                 <Button type="button" variant="destructive" className="cursor-pointer text-center py-2 border-1 border-[#353535] rounded-md" onClick={handleLogout}>로그아웃</Button>
               </div>
