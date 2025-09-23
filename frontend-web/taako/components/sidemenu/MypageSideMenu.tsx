@@ -12,7 +12,7 @@ export default function MypageSideMenu() {
     console.log(pathname)
 
     return (
-        <div className="w-[240px]">
+        <div className="w-[200px]">
             <ul className="mypage-side-menu flex flex-col gap-8">
                 <li><h2><Link href="/mypage">마이페이지</Link></h2></li>
                 <li>
