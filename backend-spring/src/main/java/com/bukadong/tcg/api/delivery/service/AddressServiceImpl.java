@@ -55,7 +55,7 @@ public class AddressServiceImpl implements AddressService {
     @Transactional
     public Address update(Member member, Long id, AddressUpdateRequest req) {
         Address address = addressRepository.findByIdAndMember(id, member)
-                .orElseThrow(() -> new BaseException(BaseResponseStatus.NOT_FOUND));
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.ADDRESS_NOT_FOUND));
 
         // placeName 변경 시 중복 검증 (자기 자신 제외)
         String newPlaceName = req.getPlaceName();
@@ -93,7 +93,7 @@ public class AddressServiceImpl implements AddressService {
     @Transactional
     public void delete(Member member, Long id) {
         Address address = addressRepository.findByIdAndMember(id, member)
-                .orElseThrow(() -> new BaseException(BaseResponseStatus.NOT_FOUND));
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.ADDRESS_NOT_FOUND));
 
         // 기본 배송지였다면 매핑 제거
         defaultAddressRepository.findByMember(member).filter(da -> da.getAddress().getId().equals(address.getId()))
@@ -105,7 +105,7 @@ public class AddressServiceImpl implements AddressService {
     @Override
     public Address get(Member member, Long id) {
         return addressRepository.findByIdAndMember(id, member)
-                .orElseThrow(() -> new BaseException(BaseResponseStatus.NOT_FOUND));
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.ADDRESS_NOT_FOUND));
     }
 
     @Override
@@ -117,14 +117,14 @@ public class AddressServiceImpl implements AddressService {
     @Transactional
     public void setDefault(Member member, Long addressId) {
         Address address = addressRepository.findByIdAndMember(addressId, member)
-                .orElseThrow(() -> new BaseException(BaseResponseStatus.NOT_FOUND));
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.ADDRESS_NOT_FOUND));
         upsertDefault(member, address);
     }
 
     @Override
     public Address getDefault(Member member) {
         return defaultAddressRepository.findByMember(member).map(DefaultAddress::getAddress)
-                .orElseThrow(() -> new BaseException(BaseResponseStatus.NOT_FOUND));
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.DEFAULT_ADDRESS_NOT_FOUND));
     }
 
     private void upsertDefault(Member member, Address address) {

@@ -196,7 +196,13 @@ public enum BaseResponseStatus {
     /**
      * 1500: 배송/주소 Error
      */
-    ADDRESS_PLACENAME_DUPLICATION(HttpStatus.CONFLICT, false, 1500, "이미 존재하는 배송지 별칭입니다.");
+    ADDRESS_PLACENAME_DUPLICATION(HttpStatus.CONFLICT, false, 1500, "이미 존재하는 배송지 별칭입니다."),
+    DELIVERY_NOT_ARRIVED(HttpStatus.BAD_REQUEST, false, 1501, "아직 배송이 완료되지 않았습니다."),
+    DELIVERY_FORBIDDEN_NOT_WINNER(HttpStatus.FORBIDDEN, false, 1502, "이 경매의 낙찰자만 요청할 수 있습니다."),
+    DELIVERY_FORBIDDEN_NOT_SELLER(HttpStatus.FORBIDDEN, false, 1503, "이 경매의 판매자만 요청할 수 있습니다."),
+    DELIVERY_FORBIDDEN_NOT_PARTICIPANT(HttpStatus.FORBIDDEN, false, 1504, "판매자 또는 낙찰자만 배송 정보를 조회할 수 있습니다."),
+    ADDRESS_NOT_FOUND(HttpStatus.NOT_FOUND, false, 1505, "주소가 존재하지 않습니다."),
+    DEFAULT_ADDRESS_NOT_FOUND(HttpStatus.NOT_FOUND, false, 1506, "기본 배송지가 설정되어 있지 않습니다.");
 
     private final HttpStatusCode httpStatusCode;
     private final boolean isSuccess;

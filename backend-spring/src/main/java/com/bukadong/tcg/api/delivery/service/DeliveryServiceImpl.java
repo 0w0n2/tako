@@ -45,7 +45,7 @@ public class DeliveryServiceImpl implements DeliveryService {
         Auction a = getEndedAuction(auctionId);
         if (!a.getMember().getId().equals(requester.getId())
                 && (a.getWinnerMemberId() == null || !a.getWinnerMemberId().equals(requester.getId()))) {
-            throw new BaseException(BaseResponseStatus.ACCESS_DENIED);
+            throw new BaseException(BaseResponseStatus.DELIVERY_FORBIDDEN_NOT_PARTICIPANT);
         }
         return a.getDelivery();
     }
@@ -55,10 +55,10 @@ public class DeliveryServiceImpl implements DeliveryService {
     public Delivery setSenderAddress(Member seller, long auctionId, long addressId) {
         Auction a = getEndedAuction(auctionId);
         if (!a.getMember().getId().equals(seller.getId())) {
-            throw new BaseException(BaseResponseStatus.ACCESS_DENIED);
+            throw new BaseException(BaseResponseStatus.DELIVERY_FORBIDDEN_NOT_SELLER);
         }
         Address address = addressRepository.findByIdAndMember(addressId, seller)
-                .orElseThrow(() -> new BaseException(BaseResponseStatus.NOT_FOUND));
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.ADDRESS_NOT_FOUND));
         Delivery d = a.getDelivery();
         if (d == null) {
             d = Delivery.builder().senderAddress(address).recipientAddress(null).status(DeliveryStatus.WAITING).build();
@@ -78,10 +78,10 @@ public class DeliveryServiceImpl implements DeliveryService {
     public Delivery setRecipientAddress(Member buyer, long auctionId, long addressId) {
         Auction a = getEndedAuction(auctionId);
         if (a.getWinnerMemberId() == null || !a.getWinnerMemberId().equals(buyer.getId())) {
-            throw new BaseException(BaseResponseStatus.ACCESS_DENIED);
+            throw new BaseException(BaseResponseStatus.DELIVERY_FORBIDDEN_NOT_WINNER);
         }
         Address address = addressRepository.findByIdAndMember(addressId, buyer)
-                .orElseThrow(() -> new BaseException(BaseResponseStatus.NOT_FOUND));
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.ADDRESS_NOT_FOUND));
         Delivery d = a.getDelivery();
         if (d == null) {
             d = Delivery.builder().senderAddress(null).recipientAddress(address).status(DeliveryStatus.WAITING).build();
@@ -104,7 +104,7 @@ public class DeliveryServiceImpl implements DeliveryService {
         }
         Auction a = getEndedAuction(auctionId);
         if (!a.getMember().getId().equals(seller.getId())) {
-            throw new BaseException(BaseResponseStatus.ACCESS_DENIED);
+            throw new BaseException(BaseResponseStatus.DELIVERY_FORBIDDEN_NOT_SELLER);
         }
         Delivery d = a.getDelivery();
         if (d == null || d.getSenderAddress() == null || d.getRecipientAddress() == null) {
@@ -154,11 +154,11 @@ public class DeliveryServiceImpl implements DeliveryService {
     public void confirmByBuyer(Member buyer, long auctionId) {
         Auction a = getEndedAuction(auctionId);
         if (a.getWinnerMemberId() == null || !a.getWinnerMemberId().equals(buyer.getId())) {
-            throw new BaseException(BaseResponseStatus.ACCESS_DENIED);
+            throw new BaseException(BaseResponseStatus.DELIVERY_FORBIDDEN_NOT_WINNER);
         }
         Delivery d = a.getDelivery();
         if (d == null || d.getStatus() != DeliveryStatus.COMPLETED) {
-            throw new BaseException(BaseResponseStatus.BAD_REQUEST);
+            throw new BaseException(BaseResponseStatus.DELIVERY_NOT_ARRIVED);
         }
 
         // 에스크로 트리거 (stub)

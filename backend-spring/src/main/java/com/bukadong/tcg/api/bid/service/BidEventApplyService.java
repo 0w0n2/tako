@@ -101,6 +101,8 @@ public class BidEventApplyService {
 
         // 멱등 처리: 동일 eventId 재실행 방지
         if (auctionBidRepository.existsByEventId(eventId)) {
+            log.warn("Skip duplicate bid event: eventId={}, auctionId={}, memberId={}, amount={}", eventId, auctionId,
+                    memberId, bidStr);
             return;
         }
 
@@ -126,7 +128,8 @@ public class BidEventApplyService {
 
             // 3) ACCEPT인데 경매가 없으면 영구 실패
             if (auction == null) {
-                log.error("ACCEPT event but auction missing: auctionId={}, eventId={}", auctionId, eventId);
+                log.error("ACCEPT event but auction missing: auctionId={}, eventId={}, amount={}", auctionId, eventId,
+                        bidStr);
                 throw new NonRetryableException("AUCTION_NOT_FOUND:" + auctionId);
             }
 
