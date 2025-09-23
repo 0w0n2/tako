@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useRef, useState, useCallback, useEffect } from 'react';
 import { formatEther } from 'ethers';
 import { sendWalletAddress } from '@/lib/bc/wallet';
 import {
@@ -8,10 +8,12 @@ import {
   getMetaMaskProvider,
   friendlyChainName,
   getMetaMaskInstallUrl,
-  switchNetwork as ethSwitchNetwork, // ← 유틸 가져오기
-  type NetworkKey,                    // ← 타입도 가져오기
+  switchNetwork as ethSwitchNetwork,
+  type NetworkKey,
 } from '@/lib/ethereum';
 import type { MetaMaskInpageProvider } from '@metamask/providers';
+
+const AUTO_CONNECT_KEY = 'MM_AUTO_CONNECT';
 
 interface UseWalletReturn {
   walletAddress: string;
@@ -20,11 +22,18 @@ interface UseWalletReturn {
   error: string;
   loading: boolean;
   needsMetaMask: boolean;
+  isInstalling: boolean;
   connectWallet: () => Promise<void>;
   disconnect: () => void;
   switchNetwork: (key: NetworkKey) => Promise<void>;
   installMetaMask: () => void;
+  reloadAndAutoConnect: () => void;
 }
+
+const isUserRejected = (e: any) => {
+  const code = e?.code ?? e?.error?.code;
+  return code === 4001 || code === 'ACTION_REJECTED';
+};
 
 const useWallet = (): UseWalletReturn => {
   const [walletAddress, setWalletAddress] = useState<string>('');
@@ -33,11 +42,13 @@ const useWallet = (): UseWalletReturn => {
   const [error, setError] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [needsMetaMask, setNeedsMetaMask] = useState(false);
+  const [isInstalling, setIsInstalling] = useState(false);
+
+  const connectingRef = useRef(false); // 중복 클릭 방지
 
   const prettyEth = (wei: bigint) => {
     const eth = parseFloat(formatEther(wei));
     return Number.isFinite(eth) ? eth.toFixed(4) : '0.0000';
-    // 필요하면 Intl.NumberFormat으로 포맷 업그레이드 가능
   };
 
   const fetchChainAndBalance = useCallback(async (address: string) => {
@@ -66,21 +77,39 @@ const useWallet = (): UseWalletReturn => {
     }
   }, []);
 
+  // 새로고침 + 자동연결 플로우
+  const reloadAndAutoConnect = useCallback(() => {
+    try {
+      localStorage.setItem(AUTO_CONNECT_KEY, '1');
+    } catch {}
+    if (typeof window !== 'undefined') {
+      window.location.reload();
+    }
+  }, []);
+
   const connectWallet = useCallback(async () => {
+    if (connectingRef.current) return;
+    connectingRef.current = true;
+
     setError('');
     setNeedsMetaMask(false);
     setLoading(true);
     try {
       let provider = getBrowserProvider();
+
       if (!provider) {
-        // ⏳ 설치 체크 모드: 짧게 대기
+        // 메타마스크 없음 → 설치 유도 + 장기 폴링
         setNeedsMetaMask(true);
-        const found = await waitForMetaMask(15000, 500); // 15초 폴링
+        setIsInstalling(true);
+
+        const found = await waitForMetaMask(180000, 1000); // ⏱ 최대 3분, 1초 간격
+        setIsInstalling(false);
+
         if (!found) {
-          setError('메타마스크 설치 후 새로고침이 필요할 수 있습니다.');
+          setError('메타마스크가 감지되지 않았습니다. "새로고침 후 자동 연결"을 눌러주세요.');
           return;
         }
-        // 주입되었으면 이어서 진행
+
         provider = getBrowserProvider();
         if (!provider) {
           setError('메타마스크 감지에 실패했습니다. 새로고침 후 다시 시도해주세요.');
@@ -89,12 +118,13 @@ const useWallet = (): UseWalletReturn => {
         setNeedsMetaMask(false);
       }
 
-      await provider.send('eth_requestAccounts', []);
+      // 계정 요청
+      const signerAccounts = await provider.send('eth_requestAccounts', []);
       const signer = await provider.getSigner();
-      const addr = await signer.getAddress();
+      const addr = (signerAccounts?.[0] ?? (await signer.getAddress())) as string;
 
       if (walletAddress && addr.toLowerCase() === walletAddress.toLowerCase()) {
-        await fetchChainAndBalance(addr); // 같은 지갑이면 새로고침만
+        await fetchChainAndBalance(addr);
         return;
       }
 
@@ -102,8 +132,16 @@ const useWallet = (): UseWalletReturn => {
       await upsertAddress(addr);
       await fetchChainAndBalance(addr);
     } catch (err: any) {
-      if (err?.code === 4001) setError('사용자가 연결을 거절했습니다.');
-      else setError(err?.message ?? '지갑 연결 중 오류가 발생했습니다.');
+      // -32002: 요청 진행 중 (MetaMask Pending)
+      if (isUserRejected(err)) {
+        setError('연결이 취소됐어요. 다시 연결해주세요.');
+      } else if (err?.code === -32002) {
+        setError('MetaMask에서 이전 요청이 진행 중입니다. 확장창을 확인해주세요.');
+      } else {
+        // 그 외: 짧은 일반 문구
+        setError('지갑 연결 중 오류가 발생했어요. 잠시 후 다시 시도해주세요.');
+      }
+
       if (!needsMetaMask) {
         setWalletAddress('');
         setChainName('');
@@ -112,6 +150,9 @@ const useWallet = (): UseWalletReturn => {
       console.error('[wallet] connect error:', err);
     } finally {
       setLoading(false);
+      connectingRef.current = false;
+      // 연결 성공/실패와 무관하게 자동연결 플래그 제거(루프 방지)
+      try { localStorage.removeItem(AUTO_CONNECT_KEY); } catch {}
     }
   }, [walletAddress, upsertAddress, fetchChainAndBalance, needsMetaMask]);
 
@@ -120,27 +161,30 @@ const useWallet = (): UseWalletReturn => {
     setChainName('');
     setBalance('');
     setError('');
+    try { localStorage.removeItem(AUTO_CONNECT_KEY); } catch {}
   }, []);
 
   const installMetaMask = useCallback(() => {
+    // 설치하러 나가기 전에 자동연결 플래그를 미리 켬
+    try { localStorage.setItem(AUTO_CONNECT_KEY, '1'); } catch {}
     const url = getMetaMaskInstallUrl();
-    // 새 탭으로 안전하게 열기
     if (typeof window !== 'undefined') {
       window.open(url, '_blank', 'noopener,noreferrer');
     }
+    // 이 탭에서 사용자가 돌아오면 폴링/가시성 이벤트가 감지함
   }, []);
 
-  // ✅ 네트워크 전환: 훅에서 노출
   const switchNetwork = useCallback(async (key: NetworkKey) => {
     setError('');
     setLoading(true);
     try {
-      await ethSwitchNetwork(key);        // 네트워크 전환(추가 포함)
+      await ethSwitchNetwork(key);
       if (walletAddress) {
-        await fetchChainAndBalance(walletAddress); // 전환 후 최신화
+        await fetchChainAndBalance(walletAddress);
       }
     } catch (e: any) {
       if (e?.code === 4001) setError('사용자가 네트워크 전환을 거절했습니다.');
+      else if (e?.code === -32002) setError('이전 네트워크 전환 요청이 진행 중입니다. MetaMask 창을 확인하세요.');
       else setError(e?.message || '네트워크 전환 실패');
       console.error('[wallet] switchNetwork error', e);
       throw e;
@@ -150,11 +194,10 @@ const useWallet = (): UseWalletReturn => {
   }, [walletAddress, fetchChainAndBalance]);
 
   // MetaMask 설치 감지: interval 동안 window.ethereum 등장 대기
-  const waitForMetaMask = (timeoutMs = 15000, intervalMs = 500): Promise<boolean> =>
+  const waitForMetaMask = (timeoutMs = 180000, intervalMs = 1000): Promise<boolean> =>
     new Promise((resolve) => {
       if (typeof window === 'undefined') return resolve(false);
 
-      // 이미 주입되어 있으면 즉시 true
       if ((window as any).ethereum) return resolve(true);
 
       let elapsed = 0;
@@ -162,31 +205,30 @@ const useWallet = (): UseWalletReturn => {
         elapsed += intervalMs;
         if ((window as any).ethereum) {
           window.clearInterval(iv);
+          document.removeEventListener('visibilitychange', onVisible);
           resolve(true);
         } else if (elapsed >= timeoutMs) {
           window.clearInterval(iv);
+          document.removeEventListener('visibilitychange', onVisible);
           resolve(false);
         }
       }, intervalMs);
 
-      // 탭 포커스가 돌아올 때도 한 번 더 확인
       const onVisible = () => {
         if ((window as any).ethereum) {
-          document.removeEventListener('visibilitychange', onVisible);
           window.clearInterval(iv);
+          document.removeEventListener('visibilitychange', onVisible);
           resolve(true);
         }
       };
-      document.addEventListener('visibilitychange', onVisible, { once: true });
+      document.addEventListener('visibilitychange', onVisible);
     });
 
-
-  // 이벤트 바인딩
+  // 이벤트 바인딩 + 초기 자동 연결
   useEffect(() => {
     const mm = getMetaMaskProvider() as MetaMaskInpageProvider | undefined;
     if (!mm) {
       setNeedsMetaMask(true);
-      return;
     }
 
     const onAccountsChanged = async (...args: unknown[]) => {
@@ -208,42 +250,67 @@ const useWallet = (): UseWalletReturn => {
       } catch {}
     };
 
-    const onChainChanged = async (..._args: unknown[]) => {
+    const onChainChanged = async () => {
       if (!walletAddress) return;
       try { await fetchChainAndBalance(walletAddress); } catch (e) {
         console.error('[wallet] chainChanged refetch error', e);
       }
     };
 
-    const onDisconnect = (..._args: unknown[]) => {
+    const onDisconnect = () => {
       disconnect();
     };
 
-    mm.on?.('accountsChanged', onAccountsChanged as (...args: unknown[]) => void);
-    mm.on?.('chainChanged', onChainChanged as (...args: unknown[]) => void);
-    mm.on?.('disconnect', onDisconnect as (...args: unknown[]) => void);
+    mm?.on?.('accountsChanged', onAccountsChanged as any);
+    mm?.on?.('chainChanged', onChainChanged as any);
+    mm?.on?.('disconnect', onDisconnect as any);
 
     (async () => {
       try {
         const provider = getBrowserProvider();
         if (!provider) return;
+
         const accounts = await provider.send('eth_accounts', []);
         if (accounts?.[0]) {
           setNeedsMetaMask(false);
           setWalletAddress(accounts[0]);
           await fetchChainAndBalance(accounts[0]);
+          return;
+        }
+
+        // 초기 자동 연결 트리거
+        const shouldAuto = (() => {
+          try { return !!localStorage.getItem(AUTO_CONNECT_KEY); } catch { return false; }
+        })();
+
+        if (shouldAuto) {
+          // 사용자가 설치를 마치고 돌아온 케이스: 자동으로 연결 시도
+          await connectWallet();
         }
       } catch {/* noop */}
     })();
 
     return () => {
-      mm.removeListener?.('accountsChanged', onAccountsChanged as (...args: unknown[]) => void);
-      mm.removeListener?.('chainChanged', onChainChanged as (...args: unknown[]) => void);
-      mm.removeListener?.('disconnect', onDisconnect as (...args: unknown[]) => void);
+      mm?.removeListener?.('accountsChanged', onAccountsChanged as any);
+      mm?.removeListener?.('chainChanged', onChainChanged as any);
+      mm?.removeListener?.('disconnect', onDisconnect as any);
     };
-  }, [walletAddress, fetchChainAndBalance, upsertAddress, disconnect]);
+  }, [walletAddress, fetchChainAndBalance, upsertAddress, disconnect, connectWallet]);
 
-  return { walletAddress, chainName, balance, error, loading, connectWallet, disconnect, switchNetwork, needsMetaMask, installMetaMask};
+  return {
+    walletAddress,
+    chainName,
+    balance,
+    error,
+    loading,
+    needsMetaMask,
+    isInstalling,
+    connectWallet,
+    disconnect,
+    switchNetwork,
+    installMetaMask,
+    reloadAndAutoConnect,
+  };
 };
 
 export default useWallet;

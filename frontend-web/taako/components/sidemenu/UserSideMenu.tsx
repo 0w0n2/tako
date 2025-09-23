@@ -39,7 +39,7 @@ export default function UserSideMenu(){
                 </div>
                 <div className="flex flex-col gap-6">
                   {[1,2].map((item, index)=> (
-                    <div>
+                    <div key={`bid-history-${item}-${index}`}>
                       <div className="flex justify-between pb-2 border-b border-[#353535]">
                         <p className="text-sm">경매제목: 피카츄 팝니다 선제요</p>
                       </div>
