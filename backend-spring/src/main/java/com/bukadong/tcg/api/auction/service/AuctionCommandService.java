@@ -5,7 +5,6 @@ import com.bukadong.tcg.api.auction.dto.response.AuctionCreateResponse;
 import com.bukadong.tcg.api.auction.entity.Auction;
 import com.bukadong.tcg.api.auction.repository.AuctionRepository;
 import com.bukadong.tcg.api.auction.repository.AuctionRepositoryCustom;
-import com.bukadong.tcg.api.auction.repository.AuctionResultRepository;
 import com.bukadong.tcg.api.auction.util.AuctionDeadlineIndex;
 import com.bukadong.tcg.api.bid.entity.AuctionBidUnit;
 import com.bukadong.tcg.api.card.entity.Card;
@@ -90,7 +89,7 @@ public class AuctionCommandService {
                 throw new BaseException(BaseResponseStatus.PHYSICAL_CARD_IS_BEING_SOLD);
             }
 
-            // NFT 등록 경매일 때, NFT 토큰의 소유주가 사용자와 일치하는지 확인
+            // NFT 등록 경매일 때, NFT 토큰의 소유주가 사용자와 일치하는지 확인g
             nftPhysicalCard = physicalCardRepository.findByTokenId(BigInteger.valueOf(tokenId))
                     .orElseThrow(() -> new BaseException(BaseResponseStatus.PHYSICAL_CARD_NOT_FOUND));
             if (!me.getWalletAddress().equalsIgnoreCase(takoNftContractService.getOwnerAddress(tokenId))) {
