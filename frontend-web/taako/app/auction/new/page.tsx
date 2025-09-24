@@ -95,6 +95,7 @@ export default function NewAuctionPage() {
       });
       
       if (!response.ok) {
+        console.log(response)
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
