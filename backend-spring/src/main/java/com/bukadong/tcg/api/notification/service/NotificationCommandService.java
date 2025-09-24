@@ -11,6 +11,7 @@ import com.bukadong.tcg.global.common.base.BaseResponseStatus;
 import com.bukadong.tcg.global.common.exception.BaseException;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,6 +38,7 @@ public class NotificationCommandService {
     private final NotificationTypeRepository notificationTypeRepository;
     private final NotificationTargetUrlBuilder targetUrlBuilder;
     private final MemberRepository memberRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * 공통 생성 로직
@@ -65,10 +67,15 @@ public class NotificationCommandService {
         String targetUrl = buildTargetUrl(typeCode, causeId);
 
         Notification n = Notification.builder().memberId(memberId).type(type).causeId(causeId).title(title)
-                .message(message).targetUrl(targetUrl) // 현재는 ""
-                .build();
+                .message(message).targetUrl(targetUrl).build();
 
-        return notificationRepository.save(n).getId();
+        Long id = notificationRepository.save(n).getId();
+
+        // 트랜잭션 커밋 후 FCM 발송을 위해 이벤트 발행
+        eventPublisher.publishEvent(new com.bukadong.tcg.api.notification.event.NotificationCreatedEvent(id, memberId,
+                typeCode, causeId, title, message));
+
+        return id;
     }
 
     // ===== 편의 메서드(도메인 이벤트 별 메시지 템플릿) =====
@@ -186,7 +193,7 @@ public class NotificationCommandService {
 
     private String buildTargetUrl(NotificationTypeCode typeCode, Long causeId) {
         return switch (typeCode) {
-        case WISH_AUCTION_STARTED, WISH_AUCTION_DUE_SOON, WISH_AUCTION_ENDED, AUCTION_NEW_INQUIRY, AUCTION_WON, AUCTION_CLOSED_SELLER, AUCTION_CANCELED, DELIVERY_STARTED, DELIVERY_STATUS_CHANGED, DELIVERY_CONFIRM_REQUEST, DELIVERY_CONFIRMED_SELLER -> targetUrlBuilder
+        case WISH_AUCTION_STARTED, WISH_AUCTION_DUE_SOON, WISH_AUCTION_ENDED, AUCTION_NEW_INQUIRY, AUCTION_WON, AUCTION_CLOSED_SELLER, AUCTION_CANCELED, DELIVERY_STARTED, DELIVERY_STATUS_CHANGED, DELIVERY_CONFIRM_REQUEST, DELIVERY_CONFIRMED_SELLER, BID_ACCEPTED, BID_REJECTED, BID_FAILED -> targetUrlBuilder
                 .buildForAuction(causeId);
         case WISH_CARD_LISTED -> targetUrlBuilder.buildForCard(causeId);
         case INQUIRY_ANSWERED -> targetUrlBuilder.buildForInquiry(causeId);
@@ -240,5 +247,33 @@ public class NotificationCommandService {
             return "";
         int len = Math.min(title.length(), 10);
         return title.substring(0, len);
+    }
+
+    // ================= 입찰 결과 편의 메서드 =================
+
+    /** 입찰 반영 성공(VALID) */
+    @Transactional
+    public Long notifyBidAccepted(Long memberId, Long auctionId, BigDecimal amount) {
+        String title = "입찰 성공";
+        String message = "입찰이 반영되었습니다. 금액: " + safeAmount(amount);
+        return create(memberId, NotificationTypeCode.BID_ACCEPTED, auctionId, title, message);
+    }
+
+    /** 입찰 거절(REJECTED) */
+    @Transactional
+    public Long notifyBidRejected(Long memberId, Long auctionId, BigDecimal amount, String reasonCode) {
+        String title = "입찰 거절";
+        String reason = (reasonCode == null ? "조건 미충족" : reasonCode);
+        String message = "입찰이 반영되지 않았습니다. 금액: " + safeAmount(amount) + " (사유: " + reason + ")";
+        return create(memberId, NotificationTypeCode.BID_REJECTED, auctionId, title, message);
+    }
+
+    /** 입찰 시스템 오류(FAILED) */
+    @Transactional
+    public Long notifyBidFailed(Long memberId, Long auctionId, BigDecimal amount, String reasonCode) {
+        String title = "입찰 처리 오류";
+        String code = (reasonCode == null ? "SYSTEM" : reasonCode);
+        String message = "시스템 오류로 입찰 반영에 실패했습니다. 금액: " + safeAmount(amount) + " (코드: " + code + ")";
+        return create(memberId, NotificationTypeCode.BID_FAILED, auctionId, title, message);
     }
 }
