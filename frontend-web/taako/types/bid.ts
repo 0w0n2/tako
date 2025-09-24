@@ -6,14 +6,15 @@ export type BidQueueRequest = {
 
 export type BidStatus = "ACCEPTED" | "REJECTED" | "QUEUED" | "FAILED" | string;
 
+// types/bid.ts
 export type BidQueueResponse = {
-  httpStatus: {
-    error: boolean;
-    is1xxInformational: boolean;
-    is2xxSuccessful: boolean;
-    is3xxRedirection: boolean;
-    is4xxClientError: boolean;
-    is5xxServerError: boolean;
+  httpStatus?: {
+    error?: boolean;
+    is1xxInformational?: boolean;
+    is2xxSuccessful?: boolean;
+    is3xxRedirection?: boolean;
+    is4xxClientError?: boolean;
+    is5xxServerError?: boolean;
   };
   isSuccess: boolean;
   message: string;
@@ -22,7 +23,8 @@ export type BidQueueResponse = {
     bidId: number;
     auctionId: number;
     currentPrice: number;
-    bidAt: string; // ISO
+    bidAt: string;
     status: BidStatus;
   };
 };
+

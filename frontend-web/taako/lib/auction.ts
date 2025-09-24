@@ -157,33 +157,33 @@ function genRequestId() {
 export async function queueBid(
   auctionId: string | number,
   amount: number,
-  opts: { token?: string; requestId: string } // ← 필수로 받도록
+  opts: { token?: string; requestId: string }
 ): Promise<BidQueueResponse> {
   if (!opts?.requestId) throw new Error("requestId(사용자 UUID)가 필요합니다.");
 
   const body: BidQueueRequest = {
-    amount,
+    amount,                 // ⚠ 서버가 정수만 받는다면 Math.round(amount)로 맞춰줘
     requestId: opts.requestId,
   };
 
-  const res = await fetch(`/v1/auctions/${auctionId}/bids/queue`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...(opts?.token ? { Authorization: `Bearer ${opts.token}` } : {}),
-    },
-    credentials: "include",
-    body: JSON.stringify(body),
-  });
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  if (opts.token) headers.Authorization = `Bearer ${opts.token}`;
 
-  const text = await res.text();
-  if (!res.ok) throw new Error(text || `입찰 실패 (HTTP ${res.status})`);
+  // axios 인스턴스 사용(기존 getAuctionDetail과 동일한 베이스 URL/쿠키 정책)
+  const { data } = await api.post<BidQueueResponse>(
+    `/v1/auctions/${auctionId}/bids/queue`,
+    body,
+    { headers, withCredentials: true }
+  );
 
-  let data: BidQueueResponse;
-  try { data = JSON.parse(text); } catch { throw new Error("응답 파싱에 실패했습니다."); }
-
-  if (!data.isSuccess || data.httpStatus?.error) {
-    throw new Error(data.message || "입찰 처리 중 오류가 발생했습니다.");
+  // 판정은 HTTP 2xx + isSuccess 기준으로
+  if (!data?.isSuccess) {
+    // 서버가 message를 준다면 그대로 노출
+    throw new Error(data?.message || "입찰 처리 중 오류가 발생했습니다.");
   }
+
+  // httpStatus.error 에 의존하지 않음 (문서 예시가 헷갈림)
   return data;
 }
