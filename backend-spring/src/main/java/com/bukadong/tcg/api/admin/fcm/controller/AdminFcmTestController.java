@@ -2,7 +2,6 @@ package com.bukadong.tcg.api.admin.fcm.controller;
 
 import com.bukadong.tcg.api.fcm.dto.SendTestPushRequest;
 import com.bukadong.tcg.api.fcm.service.FcmPushService;
-import com.bukadong.tcg.api.member.service.MemberQueryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -28,7 +27,7 @@ public class AdminFcmTestController {
     @PostMapping("/test/member/{memberId}")
     @Operation(summary = "회원 대상 테스트 푸시", description = "지정한 회원 ID 의 모든 토큰으로 테스트 푸시를 전송합니다.")
     public ResponseEntity<String> sendToMember(
-            @Parameter(description = "회원 ID", required = true) @PathVariable Long memberId,
+            @Parameter(description = "회원 ID", required = true) @PathVariable("memberId") Long memberId,
             @Valid @RequestBody SendTestPushRequest req) {
         int success = fcmPushService.sendToMember(memberId, req.getTitle(), req.getBody());
         return ResponseEntity.ok("sent=" + success);
