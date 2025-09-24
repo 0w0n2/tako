@@ -1,10 +1,9 @@
-// components/atoms/Input/BidInputForm.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { queueBid } from "@/lib/auction";
 import type { BidQueueResponse } from "@/types/bid";
-import { getOrCreateUserUuid } from "@/lib/auth/uuid";
+import { getOrCreateUserUuid, onUuidReset } from "@/lib/auth/uuid";
 import { Button } from "@/components/ui/button";
 import { useBidLock } from "@/hooks/useBidLock";
 import { useBidAmount } from "@/hooks/useBidAmount";
@@ -37,7 +36,17 @@ export default function BidInputForm({
     useBidAmount(currentPrice, minIncrement, maxBid);
 
   // 상태: 내가 마지막 입찰자인지
-  const { iAmTop, lockAsTop } = useBidLock(currentPrice);
+  const { iAmTop, lockAsTop, resetLock } = useBidLock(currentPrice);
+
+  // UUID 리셋 시 잠금 해제 및 메시지 초기화
+  useEffect(() => {
+    const unsubscribe = onUuidReset(() => {
+      resetLock();
+      setError("");
+      setOkMsg("");
+    });
+    return unsubscribe;
+  }, [resetLock]);
 
   // 전송 상태/메시지
   const [submitting, setSubmitting] = useState(false);

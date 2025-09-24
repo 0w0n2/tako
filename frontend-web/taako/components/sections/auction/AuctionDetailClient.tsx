@@ -1,4 +1,3 @@
-// components/sections/auction/AuctionDetailClient.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -63,9 +62,7 @@ export default function AuctionDetailClient({ auctionId, historySize = 5 }: Prop
     );
   }
 
-  // ---- data는 AuctionDetailProps 타입이라고 가정 ----
   const auc = data;
-
   if (!auc.card) {
     return (
       <div className="default-container pb-[80px]">
@@ -74,11 +71,7 @@ export default function AuctionDetailClient({ auctionId, historySize = 5 }: Prop
     );
   }
 
-  // 표기용 현재가 (로컬 상태가 아직 null이면 서버 값 사용)
   const displayPrice = (currentPrice ?? auc.currentPrice) as number;
-
-  // 최소 증분: Sepolia ETH 기준 0.01
-  // 백엔드에서 별도 필드를 주면 우선 사용하고, 없으면 0.01로 고정
   const minStep = 0.01 as number;
 
   return (
@@ -172,7 +165,7 @@ export default function AuctionDetailClient({ auctionId, historySize = 5 }: Prop
               <BidInputForm
                 auctionId={auctionId}
                 currentPrice={displayPrice}            // ← 로컬/서버 값 사용
-                minIncrement={0.01}                    // ← 숫자 타입으로 전달
+                minIncrement={auc.bidUnit || 0.01}                    // ← 숫자 타입으로 전달
                 onBidApplied={(nextPrice) => setCurrentPrice(nextPrice)} // 성공 시 즉시 반영
               />
             </div>
@@ -200,6 +193,7 @@ export default function AuctionDetailClient({ auctionId, historySize = 5 }: Prop
                       width={80}
                       height={80}
                       alt="profile-image"
+                      unoptimized
                     />
                   </div>
                   <div>
