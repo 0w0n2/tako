@@ -2,9 +2,9 @@
 
 import * as React from "react"
 import { useForm, SubmitHandler, Controller } from "react-hook-form"
+import { useState } from "react"
 
 import Image from "next/image"
-import RegisterImage from "@/components/atoms/RegisterImage"
 import CreateAuctionCategories from "@/components/categories/CreateAuctionCategories"
 import AuctionNewCalendar from "@/components/auction/new/AuctionNewCalendar"
 import { AuctionFormProps } from "@/types/auction"
@@ -14,16 +14,26 @@ import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { createAuction } from "@/lib/auction"
+import RankElement from "@/components/atoms/RankElement"
 
 export default function NewAuctionPage() {
   const [selectedCardName, setSelectedCardName] = React.useState<string>("");
   const [selectedCardImageUrl, setSelectedCardImageUrl] = React.useState<string>("");
+  const [uploadedImages, setUploadedImages] = React.useState<{[key: string]: File | null}>({
+    front: null,
+    back: null,
+    edge1: null,
+    edge2: null,
+    edge3: null,
+    edge4: null
+  });
+  const [grade, setGrade] = useState<string>("");
+  const [gradeHash, setGradeHash] = useState<string>("")
 
   const { register, handleSubmit, control, watch, setValue, formState: { errors } } = useForm<AuctionFormProps>({
     defaultValues: {
-      files: [],
       requestDto: {
-        gradeHash: "hash123",
+        gradeHash: null,
         categoryMajorId: null,
         categoryMediumId: null,
         cardId: null,
@@ -41,8 +51,97 @@ export default function NewAuctionPage() {
 
   const isBuyItNow = watch("requestDto.buyNowFlag");
 
+  // AI 감정하기 핸들러
+  const handleAIGrading = async () => {
+    try {
+      // 업로드된 이미지가 있는지 확인
+      const hasImages = Object.values(uploadedImages).some(image => image !== null);
+      
+      if (!hasImages) {
+        alert("카드 이미지를 먼저 업로드해주세요.");
+        return;
+      }
+
+      // FormData 생성
+      const formData = new FormData();
+      
+      // 무작위 5자리 숫자 job_id 생성
+      const jobId = Math.floor(10000 + Math.random() * 90000).toString();
+      formData.append('job_id', jobId);
+      
+      // 각 이미지를 적절한 키로 추가
+      if (uploadedImages.front) {
+        formData.append('image_front', uploadedImages.front);
+      }
+      if (uploadedImages.back) {
+        formData.append('image_back', uploadedImages.back);
+      }
+      if (uploadedImages.edge1) {
+        formData.append('image_side_1', uploadedImages.edge1);
+      }
+      if (uploadedImages.edge2) {
+        formData.append('image_side_2', uploadedImages.edge2);
+      }
+      if (uploadedImages.edge3) {
+        formData.append('image_side_3', uploadedImages.edge3);
+      }
+      if (uploadedImages.edge4) {
+        formData.append('image_side_4', uploadedImages.edge4);
+      }
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_AI_API_BASE_URL}/condition-check`, {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const responseData = await response.json();
+
+      // 응답에서 grade 값을 추출
+      const grade = responseData.grade;
+      setGrade(grade)
+
+      const hash = responseData.hash
+      setGradeHash(hash)
+
+    } catch (error) {
+      console.error("AI 감정 중 오류 발생:", error);
+      alert("AI 감정 중 오류가 발생했습니다. 다시 시도해주세요.");
+    }
+  };
+
+  // 이미지 업로드 핸들러
+  const handleImageUpload = (type: string, file: File | null) => {
+    setUploadedImages(prev => ({
+      ...prev,
+      [type]: file
+    }));
+  };
+
+  // 이미지 미리보기 URL 생성
+  const getImagePreview = (file: File | null) => {
+    if (!file) return null;
+    return URL.createObjectURL(file);
+  };
+
+  // 컴포넌트 언마운트 시 URL 객체 정리
+  React.useEffect(() => {
+    return () => {
+      Object.values(uploadedImages).forEach(file => {
+        if (file) {
+          URL.revokeObjectURL(URL.createObjectURL(file));
+        }
+      });
+    };
+  }, []);
+
   const onSubmit: SubmitHandler<AuctionFormProps> = data => {
-    const { requestDto, files } = data;
+    const { requestDto } = data;
+
+    requestDto.gradeHash = gradeHash;
 
     // 시작,종료 시간 비교
       if (requestDto.startDatetime && requestDto.endDatetime) {
@@ -76,13 +175,16 @@ export default function NewAuctionPage() {
       emptyFields.push("buyNowPrice");
     }
 
-    if (!files || files.length === 0 || emptyFields.length > 0) {
+    // 업로드된 이미지들을 files 배열로 변환
+    const uploadedFiles = Object.values(uploadedImages).filter(file => file !== null) as File[];
+
+    if (uploadedFiles.length === 0 || emptyFields.length > 0) {
       alert("입력하지 않은 필수값이 있습니다.");
       return;
     }
 
     try {
-      const res = createAuction(requestDto, files);
+      createAuction(requestDto, uploadedFiles);
     } catch (err) {
       console.error(err);
     }
@@ -93,33 +195,6 @@ export default function NewAuctionPage() {
       <h2 className="mb-10">경매 등록하기</h2>
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-15" encType="multipart/form-data">
-
-        {/* 사진 등록 */}
-        <Controller
-          name="files"
-          control={control}
-          rules={{
-            validate: value =>
-              (value && value.length > 0) || "이미지를 1개 이상 등록해주세요."
-          }}
-          render={({ field: { value, onChange }, fieldState }) => (
-            <div className="flex flex-col gap-5">
-              <div className="flex-1 flex items-center gap-2">
-                <Label>사진 등록</Label>
-                <span className="text-red-500">*</span>
-              </div>
-              <div className="flex-5 flex flex-col gap-2">
-                <RegisterImage
-                  onChange={(files) => {
-                    // Controller가 파일 배열을 받을 수 있게 래핑
-                    onChange(files);
-                  }}
-                />
-                {fieldState.error && <p className="text-red-500 text-sm mt-1">{fieldState.error.message}</p>}
-              </div>
-            </div>
-          )}
-        />
 
         {/* 카테고리 */}
         <div className="flex flex-col gap-5 relative">
@@ -155,6 +230,7 @@ export default function NewAuctionPage() {
                     alt="선택된 카드 이미지"
                     width={100}
                     height={100}
+                    unoptimized
                   />
                 </div>
                 <p className="text-[#a5a5a5] text-center">{selectedCardName}</p>
@@ -186,50 +262,6 @@ export default function NewAuctionPage() {
             <div className="flex items-center gap-2 mt-2">
               <h3>카드 감정하기(AI)</h3>
               
-{/*        
-    "steps": {
-        "file_ext_check": "ok",
-        "size_brightness_check": "ok",
-        "card_verify": {
-            "front": {
-                "target": "Cardfront",
-                "best_conf": 0.9718924760818481,
-                "best_area_frac": 0.4663199150952666
-            },
-            "back": {
-                "target": "Cardback",
-                "best_conf": 0.9738189578056335,
-                "best_area_frac": 0.3625902746759206
-            }
-        },
-        "bending": {
-            "curvatures_percent": {
-                "image_side_1": 62.85375127232772,
-                "image_side_2": 50.88030352114601,
-                "image_side_3": 60.304751528057345,
-                "image_side_4": 58.32758458033241
-            },
-            "per_image_penalties": {
-                "image_side_1": 6,
-                "image_side_2": 6,
-                "image_side_3": 6,
-                "image_side_4": 6
-            },
-            "bend_penalty_total": 12
-        },
-        "other_defects": {
-            "front": {
-                "detections": []
-            },
-            "back": {
-                "detections": []
-            },
-            "other_penalties_total": 0
-        }
-    },
-    "score": 88,
-    "grade": "B"
-     } */}
               <span className="text-[#FF0000]">*</span>
             </div>
             <div className="flex gap-2 items-center">
@@ -239,11 +271,12 @@ export default function NewAuctionPage() {
           </div>
 
           <div className="w-full flex flex-col gap-4">
-            <div className="flex justify-between gap-2 mt-3">
-              <p className="text-sm text-[#a5a5a5]">카드 이미지를 등록해 주세요<br/>
+            <div className="flex items-center justify-between gap-2 mt-3">
+              <p className="text-sm text-[#a5a5a5] flex-1">카드 이미지를 등록해 주세요<br/>
               (촬영 가이드 참고)</p>
               <Button
                 type="button"
+                onClick={handleAIGrading}
                 className="rounded-lg px-6 h-[50px] bg-[#7DB7CD] border-1 border-[#7DB7CD] text-[#111] shadow-lg">
                 AI 감정하기
                 <svg
@@ -263,10 +296,63 @@ export default function NewAuctionPage() {
               </Button>
             </div>
 
-            <div className="grid grid-cols-4 gap-4">
-              {["(앞면)","(뒷면)","(긴모서리)","(짧은모서리)"].map((label) => (
-                <div key={label} className="flex flex-col items-center gap-2">
-                  <div className="w-full aspect-[4/5] border border-[#353535] bg-[#191924] rounded" />
+            <div className="grid grid-cols-3 gap-4">
+              {[
+                { key: "front", label: "(앞면)" },
+                { key: "back", label: "(뒷면)" },
+                { key: "edge1", label: "(모서리 1)" },
+                { key: "edge2", label: "(모서리 2)" },
+                { key: "edge3", label: "(모서리 3)" },
+                { key: "edge4", label: "(모서리 4)" }
+              ].map(({ key, label }) => (
+                <div key={key} className="flex flex-col items-center gap-2">
+                  <div className="relative w-full aspect-[4/5] border border-[#353535] bg-[#191924] rounded overflow-hidden">
+                    {uploadedImages[key] ? (
+                      <>
+                        <Image
+                          src={getImagePreview(uploadedImages[key])!}
+                          alt={label}
+                          className="object-cover"
+                          unoptimized
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleImageUpload(key, null)}
+                          className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600"
+                        >
+                          ×
+                        </button>
+                      </>
+                    ) : (
+                      <label className="w-full h-full flex items-center justify-center cursor-pointer hover:bg-[#2a2a2a] transition-colors">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0] || null;
+                            handleImageUpload(key, file);
+                          }}
+                        />
+                        <div className="text-center">
+                          <svg
+                            className="w-8 h-8 text-[#a5a5a5] mx-auto mb-2"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                            />
+                          </svg>
+                          <span className="text-xs text-[#a5a5a5]">이미지 업로드</span>
+                        </div>
+                      </label>
+                    )}
+                  </div>
                   <span className="text-sm text-[#a5a5a5]">{label}</span>
                 </div>
               ))}
@@ -284,7 +370,7 @@ export default function NewAuctionPage() {
             </div>
           </div>
           <div className="flex-5">
-            <span className="text-sm text-[#a5a5a5]">AI 카드 감정을 통해 등급을 알 수 있어요!</span>
+            <span className="text-sm text-[#a5a5a5]">{grade ? <RankElement rank={grade} /> : "AI 카드 감정을 통해 등급을 알 수 있어요!"}</span>
           </div>
         </div>
 
@@ -311,7 +397,7 @@ export default function NewAuctionPage() {
             name="requestDto.startDatetime"
             control={control}
             rules={{ required: "경매 시작일을 설정해주세요." }}
-            render={({ field, fieldState }) => (
+            render={({ field: _field, fieldState }) => (
               <div className="flex items-start gap-5">
                 <div className="flex-1 flex items-center gap-2 mt-2">
                   <Label>경매기간</Label>

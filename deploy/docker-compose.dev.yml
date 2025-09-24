@@ -64,6 +64,8 @@ services:
       context: ../frontend-web/taako
       dockerfile: Dockerfile
       args:
+        NEXT_PUBLIC_TAKO_NFT: ${NEXT_PUBLIC_TAKO_NFT}
+        NEXT_PUBLIC_SPENDER_ADDRESS: ${NEXT_PUBLIC_SPENDER_ADDRESS}
         APP_STAGE: "dev"
     container_name: tako_front_dev
     ports:
