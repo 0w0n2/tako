@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { fetchFcmStatus, getOrCreateFcmToken, registerTokenToBackend, requestNotificationPermission, removeFcmToken, resetSingleDevice } from "@/lib/fcm";
+import { fetchFcmStatus, enableNotifications, disableNotifications, requestNotificationPermission, getOrCreateFcmToken } from "@/lib/fcm";
 
 const DEBUG_FCM = process.env.NEXT_PUBLIC_DEBUG_FCM === "1";
 const slog = (...args: any[]) => {
@@ -34,9 +34,9 @@ export const usePushStore = create<PushState>()(
 				slog("checkStatus:start");
 				set({ loading: true });
 				try {
-					const currentToken = get().token || undefined;
-					slog("checkStatus:currentToken", currentToken?.substring(0, 12));
-					const status = await fetchFcmStatus(currentToken);
+					const token = get().token || undefined;
+					slog("checkStatus:currentToken", token?.substring(0, 12));
+					const status = await fetchFcmStatus(token);
 					slog("checkStatus:status", status);
 					set({
 						enabled: status.currentRegistered,
@@ -60,12 +60,12 @@ export const usePushStore = create<PushState>()(
 						set({ loading: false, error: "알림 권한이 거부되었습니다." });
 						return;
 					}
+					// enableNotifications 내부에서 token 생성 + 서버 등록
+					const ok = await enableNotifications();
+					if (!ok) throw new Error("토큰 생성 실패");
+					// 로컬 토큰 보관 (store 는 캐시 원본과 분리 가능)
 					const token = await getOrCreateFcmToken();
-					slog("enable:token", token?.substring(0, 25));
-					if (!token) throw new Error("토큰 생성 실패");
-					await registerTokenToBackend(token);
-					slog("enable:backend registered");
-					set({ token, enabled: true, anyRegistered: true, loading: false });
+					set({ token: token || null, enabled: true, anyRegistered: true, loading: false });
 					slog("enable:done");
 				} catch (e: any) {
 					slog("enable:error", e);
@@ -77,17 +77,7 @@ export const usePushStore = create<PushState>()(
 				slog("disable:start");
 				set({ loading: true, error: null });
 				try {
-					const token = get().token;
-					slog("disable:current token", token?.substring(0, 25));
-					if (token) {
-						try {
-							await resetSingleDevice(token);
-							slog("disable:backend resetSingleDevice done");
-						} catch (e) {
-							slog("disable:backend resetSingleDevice error (continue)", e);
-						}
-					}
-					await removeFcmToken(token || undefined);
+					await disableNotifications();
 					set({ token: null, enabled: false, loading: false });
 					slog("disable:done");
 				} catch (e: any) {
