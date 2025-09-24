@@ -63,6 +63,14 @@ export default function MypageSideMenu() {
                                     : 'text-[#A5A5A5] hover:text-[#F2B90C]'
                             }`}
                         >관심 카드</Link></li>
+                        <li><Link 
+                            href="/mypage/nftcard" 
+                            className={`text-sm transition-all duration-300 ${
+                                pathname === '/mypage/nftcard' 
+                                    ? 'text-[#F2B90C]' 
+                                    : 'text-[#A5A5A5] hover:text-[#F2B90C]'
+                            }`}
+                        >NFT 카드 등록</Link></li>
                     </ul>
                 </li>
                 <li>
