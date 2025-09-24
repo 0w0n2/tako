@@ -10,5 +10,6 @@ import com.bukadong.tcg.api.notification.entity.NotificationTypeCode;
  * </p>
  */
 public record NotificationCreatedEvent(Long notificationId, Long memberId, NotificationTypeCode typeCode, Long causeId,
-        String title, String message) {
+        String title, String message, String targetUrl // 실제 클릭 이동 경로(상대 또는 절대)
+) {
 }

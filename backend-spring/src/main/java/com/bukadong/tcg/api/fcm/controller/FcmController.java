@@ -1,8 +1,6 @@
 package com.bukadong.tcg.api.fcm.controller;
 
 import com.bukadong.tcg.api.fcm.dto.RegisterFcmTokenRequest;
-import com.bukadong.tcg.api.fcm.dto.SendTestPushRequest;
-import com.bukadong.tcg.api.fcm.service.FcmPushService;
 import com.bukadong.tcg.api.fcm.service.FcmTokenService;
 import com.bukadong.tcg.api.member.service.MemberQueryService;
 
@@ -29,7 +27,6 @@ import com.bukadong.tcg.global.security.dto.CustomUserDetails;
 public class FcmController {
 
     private final FcmTokenService fcmTokenService;
-    private final FcmPushService fcmPushService;
     private final MemberQueryService memberQueryService;
 
     @PostMapping("/enable")
@@ -56,30 +53,5 @@ public class FcmController {
             @Parameter(description = "확인할 FCM 토큰") @RequestParam(name = "token", required = false) String token) {
         Long memberId = memberQueryService.getByUuid(user.getUuid()).getId();
         return ResponseEntity.ok(fcmTokenService.status(memberId, token));
-    }
-
-    /**
-     * 특정 회원에게 테스트 푸시 (임시)
-     */
-    @PostMapping("/test/{memberId}")
-    @Operation(summary = "회원 대상 테스트 푸시 전송", description = "회원 ID와 푸시 제목 및 내용을 전달받아 해당 회원에게 등록된 모든 기기로 테스트 푸시를 전송합니다.")
-    public ResponseEntity<String> sendTest(
-            @Parameter(description = "회원 ID", required = true) @PathVariable("memberId") Long memberId,
-            @Valid @RequestBody SendTestPushRequest req) {
-        int success = fcmPushService.sendToMember(memberId, req.getTitle(), req.getBody());
-        return ResponseEntity.ok("sent=" + success);
-    }
-
-    /**
-     * Raw FCM registration token 으로 직접 테스트 (회원 관계 없이 단건) Swagger에서 실제 기기 토큰 붙여 전송
-     * 확인용.
-     */
-    @PostMapping("/test/raw")
-    @Operation(summary = "Raw FCM 토큰 테스트 푸시 전송", description = "회원 관계 없이 특정 FCM 토큰으로 테스트 푸시를 전송합니다. Swagger에서 실제 기기 토큰을 전달하여 테스트할 수 있습니다.")
-    public ResponseEntity<String> sendRaw(
-            @Parameter(description = "FCM 토큰", required = true) @RequestParam("token") String token,
-            @Valid @RequestBody SendTestPushRequest req) {
-        int success = fcmPushService.sendRawToken(token, req.getTitle(), req.getBody()) ? 1 : 0;
-        return ResponseEntity.ok("sent=" + success);
     }
 }

@@ -73,7 +73,7 @@ public class NotificationCommandService {
 
         // 트랜잭션 커밋 후 FCM 발송을 위해 이벤트 발행
         eventPublisher.publishEvent(new com.bukadong.tcg.api.notification.event.NotificationCreatedEvent(id, memberId,
-                typeCode, causeId, title, message));
+                typeCode, causeId, title, message, targetUrl));
 
         return id;
     }
@@ -197,6 +197,7 @@ public class NotificationCommandService {
                 .buildForAuction(causeId);
         case WISH_CARD_LISTED -> targetUrlBuilder.buildForCard(causeId);
         case INQUIRY_ANSWERED -> targetUrlBuilder.buildForInquiry(causeId);
+        case NOTICE_NEW -> "/notice/" + (causeId == null ? "" : causeId);
         };
     }
 

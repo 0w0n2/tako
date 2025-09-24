@@ -37,5 +37,8 @@ public enum NotificationTypeCode {
     AUCTION_CLOSED_SELLER,
 
     // 경매 취소
-    AUCTION_CANCELED
+    AUCTION_CANCELED,
+
+    // 공지 (신규: 전체 또는 특정 그룹 공지 브로드캐스트)
+    NOTICE_NEW
 }

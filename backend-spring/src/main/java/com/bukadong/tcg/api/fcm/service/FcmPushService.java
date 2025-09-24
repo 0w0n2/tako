@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -81,6 +82,41 @@ public class FcmPushService {
             log.warn("FCM raw send failed (unexpected) token={} msg={}", token, e.getMessage());
             return false;
         }
+    }
+
+    /**
+     * (신규) 메타데이터/경로 포함 전송 - Notification 이벤트 연동용
+     */
+    @Transactional
+    public int sendToMemberWithMeta(Long memberId, String title, String body, String path,
+            Map<String, String> extraData) {
+        List<FcmToken> tokens = fcmTokenRepository.findByMember_Id(memberId);
+        int success = 0;
+        for (FcmToken t : tokens) {
+            try {
+                Message message = pushMessageFactory.build(t.getToken(), memberId, title, body, path, extraData, null);
+                String id = FirebaseMessaging.getInstance().send(message);
+                log.debug("FCM sent(meta): token={}, msgId={}", t.getToken(), id);
+                success++;
+            } catch (FirebaseMessagingException e) {
+                MessagingErrorCode code = e.getMessagingErrorCode();
+                if (code == MessagingErrorCode.UNREGISTERED || code == MessagingErrorCode.INVALID_ARGUMENT
+                        || code == MessagingErrorCode.SENDER_ID_MISMATCH) {
+                    try {
+                        fcmTokenRepository.deleteByToken(t.getToken());
+                        log.info("Removed invalid FCM token={} reason={}", t.getToken(), code);
+                    } catch (Exception repoEx) {
+                        log.warn("Failed to remove invalid FCM token={} reason={} err={}", t.getToken(), code,
+                                repoEx.getMessage());
+                    }
+                } else {
+                    log.warn("FCM send(meta) failed token={} code={} msg={}", t.getToken(), code, e.getMessage());
+                }
+            } catch (Exception e) {
+                log.warn("FCM send(meta) failed (unexpected) token={} msg={}", t.getToken(), e.getMessage());
+            }
+        }
+        return success;
     }
 
 }

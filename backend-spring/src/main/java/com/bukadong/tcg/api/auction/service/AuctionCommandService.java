@@ -114,7 +114,7 @@ public class AuctionCommandService {
      */
     @Transactional
     public AuctionCreateResponse create(AuctionCreateRequest requestDto, Member me, List<MultipartFile> files,
-                                        String dir, PhysicalCard nftPhysicalCard) {
+            String dir, PhysicalCard nftPhysicalCard) {
         // 필수 엔티티 로드 (DB 의존 검증)
         CardAiGrade grade = cardAiGradeRepository.findByHash(requestDto.getGradeHash())
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.AUCTION_GRADE_NOT_FOUND));
@@ -142,8 +142,8 @@ public class AuctionCommandService {
         }
         int durationDays = Math.max(1, (int) java.time.Duration.between(startUtc, endUtc).toDays());
 
-        Auction auction = Auction.builder().member(me).delivery(null).physicalCard(nftPhysicalCard)
-                .card(card).categoryMajor(major).categoryMedium(medium).grade(grade).code(UUID.randomUUID().toString())
+        Auction auction = Auction.builder().member(me).delivery(null).physicalCard(nftPhysicalCard).card(card)
+                .categoryMajor(major).categoryMedium(medium).grade(grade).code(UUID.randomUUID().toString())
                 .title(requestDto.getTitle()).detail(requestDto.getDetail()).startPrice(requestDto.getStartPrice())
                 .currentPrice(Optional.ofNullable(requestDto.getCurrentPrice()).orElse(requestDto.getStartPrice()))
                 .bidUnit(bidUnit).startDatetime(startUtc).endDatetime(endUtc).durationDays(durationDays).isEnd(false)
@@ -159,8 +159,9 @@ public class AuctionCommandService {
 
         // 알림 트리거: 카드 위시한 회원들에게 알림 발송
         wishQueryPort.findMemberIdsWhoWishedCard(card.getId()).stream().filter(mid -> !mid.equals(me.getId()))
-                .forEach(mid -> notificationCommandService.notifyWishCardListed(mid, saved.getId(),
-                        Map.of("auctionId", saved.getId())));
+                .forEach(mid -> notificationCommandService.notifyWishCardListed(mid, card.getId(),
+                        Map.of("auctionId", saved.getId(), // 프론트가 바로 경매 상세로 이동하고 싶으면 data에서 사용
+                                "cardId", card.getId())));
 
         // 모든 시간 처리를 UTC 기준으로 일관화
         Instant endAt = auction.getEndDatetime().atOffset(ZoneOffset.UTC).toInstant();

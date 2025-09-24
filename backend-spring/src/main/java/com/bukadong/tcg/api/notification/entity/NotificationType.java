@@ -30,18 +30,14 @@ public class NotificationType {
     @Enumerated(EnumType.STRING)
     @Column(name = "code", length = 50, nullable = false, unique = true)
     private NotificationTypeCode code;
-    /** 표시명(선택) */
+
+    /** 표시명 */
     @Column(name = "name", length = 100, nullable = false)
     private String name;
 
-    /** 설명(선택) */
-    @Column(name = "description", length = 255)
-    private String description;
-
-    private NotificationType(NotificationTypeCode code, String name, String description) {
+    private NotificationType(NotificationTypeCode code, String name) {
         this.code = code;
         this.name = name;
-        this.description = description;
     }
 
     /**
@@ -52,10 +48,9 @@ public class NotificationType {
      * 
      * @PARAM code 코드
      * @PARAM name 표시명
-     * @PARAM description 설명
      * @RETURN NotificationType
      */
-    public static NotificationType of(NotificationTypeCode code, String name, String description) {
-        return new NotificationType(code, name, description);
+    public static NotificationType of(NotificationTypeCode code, String name) {
+        return new NotificationType(code, name);
     }
 }

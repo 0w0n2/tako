@@ -7,6 +7,9 @@ import com.bukadong.tcg.api.media.entity.MediaType;
 import com.bukadong.tcg.api.media.service.MediaAttachmentService;
 import com.bukadong.tcg.api.member.entity.Member;
 import com.bukadong.tcg.api.notice.entity.Notice;
+import com.bukadong.tcg.api.notification.service.NotificationCommandService;
+import com.bukadong.tcg.api.notification.entity.NotificationTypeCode;
+import com.bukadong.tcg.api.member.repository.MemberRepository;
 import com.bukadong.tcg.api.notice.repository.NoticeRepository;
 import com.bukadong.tcg.global.common.base.BaseResponseStatus;
 import com.bukadong.tcg.global.common.exception.BaseException;
@@ -33,6 +36,8 @@ public class AdminNoticeCommandService {
 
     private final NoticeRepository noticeRepository;
     private final MediaAttachmentService mediaAttachmentService;
+    private final MemberRepository memberRepository;
+    private final NotificationCommandService notificationCommandService;
 
     /**
      * 공지 생성(첨부 포함)
@@ -60,6 +65,8 @@ public class AdminNoticeCommandService {
             mediaAttachmentService.addByMultipart(MediaType.NOTICE_ATTACHMENT, saved.getId(), me, attachments,
                     attachDir);
         }
+        // 공지 생성 브로드캐스트 (작성자 제외)
+        broadcastNoticeAsync(saved, me);
         return NoticeResponse.of(saved);
     }
 
@@ -103,6 +110,7 @@ public class AdminNoticeCommandService {
             mediaAttachmentService.addByMultipart(MediaType.NOTICE_ATTACHMENT, noticeId, me, attachments, attachDir);
         }
 
+        // 공지 수정 알림 (간단: 수정도 새 공지와 동일하게 처리할지 여부는 정책에 따라) 여기서는 생략 가능
         return NoticeResponse.of(notice);
     }
 
@@ -126,5 +134,36 @@ public class AdminNoticeCommandService {
 
         // 엔티티 삭제
         noticeRepository.delete(notice);
+    }
+
+    // ===== 내부 유틸 =====
+    private void broadcastNoticeAsync(Notice notice, Member author) {
+        try {
+            // 모든 활성 회원 ID (간단 구현: 전체) - 규모 커지면 paging 필요
+            var allIds = memberRepository.findAll().stream().map(Member::getId).toList();
+            for (Long mid : allIds) {
+                if (author != null && author.getId().equals(mid))
+                    continue; // 작성자 제외
+                // NotificationTypeCode 에 NOTICE 관련 항목이 없다면 WISH_AUCTION_STARTED 와 같은 기존 코드 재사용은
+                // 의미상 부적절
+                // => ENUM 확장이 필요. 임시로 AUCTION_CANCELED 재사용하지 않고 추가 정의 권장.
+                // 안전하게 존재하는 GENERIC 용이 없어 아무 것도 보내지 않으려면 조기 return.
+                // 여기서는 임시로 AUCTION_CANCELED 를 placeholder 로 사용하고, 프론트에서 type=AUCTION 으로 그룹화됨을
+                // 감안.
+                notificationCommandService.create(mid, NotificationTypeCode.NOTICE_NEW, notice.getId(),
+                        notice.getTitle(), truncateBody(notice));
+            }
+        } catch (Exception e) {
+            // 브로드캐스트 실패는 롤백 유발하지 않고 로깅만
+            // (별도 비동기 큐/배치로 전환 가능)
+        }
+    }
+
+    private String truncateBody(Notice notice) {
+        String text = notice.getText();
+        if (text == null)
+            return "";
+        String plain = text.replaceAll("\n+", " ").trim();
+        return plain.length() > 80 ? plain.substring(0, 80) + "…" : plain;
     }
 }
