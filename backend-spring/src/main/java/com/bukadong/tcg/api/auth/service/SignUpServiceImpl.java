@@ -1,6 +1,10 @@
 package com.bukadong.tcg.api.auth.service;
 
 import com.bukadong.tcg.api.auth.dto.request.SignUpRequestDto;
+import com.bukadong.tcg.api.media.entity.Media;
+import com.bukadong.tcg.api.media.entity.MediaType;
+import com.bukadong.tcg.api.media.repository.MediaRepository;
+import com.bukadong.tcg.api.media.util.MediaDirResolver;
 import com.bukadong.tcg.api.member.entity.Member;
 import com.bukadong.tcg.api.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -8,6 +12,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Random;
 import java.util.UUID;
 
 @Service
@@ -16,6 +21,12 @@ public class SignUpServiceImpl implements SignUpService {
 
     private final MemberRepository memberRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final Random random = new Random();
+
+    private final int DEFAULT_PROFILE_IMAGE_COUNT = 9;
+    private final int DEFAULT_BACKGROUND_IMAGE_COUNT = 1;
+    private final MediaDirResolver mediaDirResolver;
+    private final MediaRepository mediaRepository;
 
     @Transactional
     @Override
@@ -30,10 +41,25 @@ public class SignUpServiceImpl implements SignUpService {
         String encodedPassword = bCryptPasswordEncoder.encode(requestDto.password());
         String memberUuid = UUID.randomUUID().toString();
 
-        // TODO: S3 배포, 설정 구현 후 디폴트 이미지 할당 로직 추가 필요
         Member member = memberRepository.save(requestDto.toMember(memberUuid, encodedPassword));
-        // TODO-SECURITY: 소셜 회원가입 로직 추가 필요
 
+        // 디폴트 프로필, 배경화면 이미지 설정
+        settingDefaultMemberImage(member, MediaType.MEMBER_PROFILE, DEFAULT_PROFILE_IMAGE_COUNT);
+        settingDefaultMemberImage(member, MediaType.MEMBER_BACKGROUND, DEFAULT_BACKGROUND_IMAGE_COUNT);
+
+        // TODO-SECURITY: 소셜 회원가입 로직 추가 필요
         return member;
+    }
+
+    private void settingDefaultMemberImage(Member member, MediaType mediaType, int defaultImageCount) {
+        String defaultImageUrl = "%s/default/%d.png".formatted(mediaDirResolver.resolve(mediaType), random.nextInt(defaultImageCount) + 1);
+        Media m = Media.builder()
+                .type(mediaType)
+                .ownerId(member.getId())
+                .s3keyOrUrl(defaultImageUrl)
+                .mimeType("image/png")
+                .seqNo(1)
+                .build();
+        mediaRepository.save(m);
     }
 }
