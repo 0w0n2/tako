@@ -3,6 +3,8 @@ FROM node:20-bookworm-slim AS builder
 WORKDIR /app
 
 # 빌드 인자: dev | prod
+ARG NEXT_PUBLIC_TAKO_NFT
+ARG NEXT_PUBLIC_SPENDER_ADDRESS
 ARG APP_STAGE=dev
 ENV APP_STAGE=${APP_STAGE}
 
