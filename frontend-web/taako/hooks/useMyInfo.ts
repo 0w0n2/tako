@@ -1,40 +1,34 @@
 import { useQuery } from "@tanstack/react-query";
 import { getInfo, getMyBidAuction } from "@/lib/mypage";
-import { MyInfo, MyBidAuctions } from "@/types/auth";
+import type { MyInfo } from "@/types/auth";
 
 export function useMyInfo() {
-  // 내 프로필 조회
-  const {
-    data: myInfo, isLoading: myInfoLoading, error: myInfoError,
-  } = useQuery<{ result: MyInfo }>({
-    queryKey: ["myInfo"],
-    queryFn: getInfo,
-  });
+  const { data: myInfo, isLoading: myInfoLoading, error: myInfoError } =
+    useQuery<MyInfo>({ queryKey: ["myInfo"], queryFn: getInfo });
 
-  // 내 입찰 경매 조회
-  const {
-    data: myBidAuctionsData, isLoading: myBidLoading, error: myBidError,
-  } = useQuery<{ result: { content: MyBidAuctions[] } }>({
-    queryKey: ["myBidAuctions"],
-    queryFn: getMyBidAuction,
-  });
-  // 안전하게 배열 반환
-  const myBidAuctions = myBidAuctionsData?.result?.content ?? [];
+  // 진행 중 (ended=false)
+  const { data: ongoingPage, isLoading: ongoingLoading, error: ongoingError } =
+    useQuery({
+      queryKey: ["myBidAuctions", { ended: false, page: 0, size: 20 }],
+      queryFn: () => getMyBidAuction({ ended: false, page: 0, size: 20 }),
+    });
 
-  // isEnd 기준으로 배열 분리
-  const ongoingAuctions = myBidAuctions.filter(auction => !auction.isEnd);
-  const endedAuctions = myBidAuctions.filter(auction => auction.isEnd);
-  const countOngoing = ongoingAuctions.length;
-  const countEnded = endedAuctions.length;
+  // 종료 (ended=true)
+  const { data: endedPage, isLoading: endedLoading, error: endedError } =
+    useQuery({
+      queryKey: ["myBidAuctions", { ended: true, page: 0, size: 20 }],
+      queryFn: () => getMyBidAuction({ ended: true, page: 0, size: 20 }),
+    });
+
+  const ongoingAuctions = ongoingPage?.content ?? [];
+  const endedAuctions   = endedPage?.content ?? [];
 
   return {
-    myInfo: myInfo?.result ?? null,
-    myInfoLoading,
-    myInfoError,
-    myBidAuctions,
-    ongoingAuctions, countOngoing,
-    endedAuctions, countEnded,
-    myBidLoading,
-    myBidError,
+    myInfo: myInfo ?? null,
+    myInfoLoading, myInfoError,
+    ongoingAuctions, countOngoing: ongoingAuctions.length,
+    endedAuctions,   countEnded:   endedAuctions.length,
+    myBidLoading: ongoingLoading || endedLoading,
+    myBidError: ongoingError || endedError,
   };
 }
