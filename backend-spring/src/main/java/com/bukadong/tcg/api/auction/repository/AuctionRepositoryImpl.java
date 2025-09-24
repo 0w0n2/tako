@@ -140,8 +140,13 @@ public class AuctionRepositoryImpl implements AuctionRepositoryCustom {
         // 토큰 ID 일치 여부
         where.and(auction.physicalCard.tokenId.eq(BigInteger.valueOf(tokenId)));
         // 정산 완료되지 않은 경매 존재 여부 (auction.isEnd = false OR auctionResult.settleFlag = false)
-        where.and(auction.isEnd.eq(false)
-                .or(auctionResult.settledFlag.eq(false)));
+        where.and(
+                auction.isEnd.isFalse()
+                        .or(
+                                auctionResult.isNotNull()
+                                        .and(auctionResult.settledFlag.isFalse())
+                        )
+        );
 
         Integer fetchResult = queryFactory
                 .selectOne()
