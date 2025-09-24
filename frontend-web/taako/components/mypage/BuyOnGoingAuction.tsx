@@ -36,7 +36,12 @@ export default function BuyOnGoingAuction(){
                     <p className="text-sm">내 입찰가 <span className="text-red-500 ml-1">{item.myTopBidAmount} TKC</span></p>
                   </div>
                   <div className="grid grid-cols-1 gap-3">
-                    <Link href={`/auction/${item.auctionId}`} className="text-sm text-[#dedede] h-10 w-[120px] !rounded-md bg-[#191924] border-1 border-[#353535] hover:bg-[#242433] cursor-pointer">재입찰</Link>
+                    <Link
+                      href={`/auction/${item.auctionId}`}
+                      className="inline-flex items-center justify-center h-10 w-[120px] rounded-md bg-[#191924] border border-[#353535] text-sm text-[#dedede] hover:bg-[#242433]"
+                    >
+                      재입찰
+                    </Link>
                     <Button disabled className="text-sm text-[#dedede] h-10 w-[120px] !rounded-md bg-[#191924] border-1 border-[#353535] hover:bg-[#242433] cursor-pointer" variant="default">즉시구매</Button>
                   </div>
                 </div>
