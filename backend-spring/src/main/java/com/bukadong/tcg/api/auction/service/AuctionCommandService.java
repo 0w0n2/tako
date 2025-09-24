@@ -4,6 +4,8 @@ import com.bukadong.tcg.api.auction.dto.request.AuctionCreateRequest;
 import com.bukadong.tcg.api.auction.dto.response.AuctionCreateResponse;
 import com.bukadong.tcg.api.auction.entity.Auction;
 import com.bukadong.tcg.api.auction.repository.AuctionRepository;
+import com.bukadong.tcg.api.auction.repository.AuctionRepositoryCustom;
+import com.bukadong.tcg.api.auction.repository.AuctionResultRepository;
 import com.bukadong.tcg.api.auction.util.AuctionDeadlineIndex;
 import com.bukadong.tcg.api.bid.entity.AuctionBidUnit;
 import com.bukadong.tcg.api.card.entity.Card;
@@ -45,10 +47,10 @@ import java.util.UUID;
 
 /**
  * 경매 생성 서비스
- * <P>
+ * <p>
  * 1) gradeHash로 CardAiGrade 조회 → 2) (옵션) 실물카드 매핑 → 3) Auction 저장 → 4) 이미지 첨부.
  * </P>
- * 
+ *
  * @PARAM request 경매 생성 요청, memberId 생성자 회원 ID, files 이미지 파일(옵션)
  * @RETURN AuctionCreateResponse
  */
@@ -60,7 +62,6 @@ public class AuctionCommandService {
 
     private final AuctionRepository auctionRepository;
     private final CardRepository cardRepository;
-    // PhysicalCard 미사용
     private final CardAiGradeRepository cardAiGradeRepository;
     private final CategoryMajorRepository categoryMajorRepository;
     private final CategoryMediumRepository categoryMediumRepository;
@@ -71,23 +72,41 @@ public class AuctionCommandService {
     private final Logger logger = LoggerFactory.getLogger(AuctionCommandService.class);
     private final PhysicalCardRepository physicalCardRepository;
     private final TakoNftContractService takoNftContractService;
+    private final AuctionRepositoryCustom auctionRepositoryCustom;
 
     /**
      * 경매 생성 가능 여부 조회, 사용자 계정에 지갑 주소가 등록되어 있어야 한다.
      */
     @Transactional(readOnly = true)
-    public void isWalletLinked(Member me) {
+    public PhysicalCard isValidToCreateAndGetPhysicalCard(Member me, Long tokenId) {
         if (!StringUtils.hasText(me.getWalletAddress())) {
             throw new BaseException(BaseResponseStatus.WALLET_ADDRESS_NOT_FOUND);
         }
+
+        PhysicalCard nftPhysicalCard = null;
+        if (tokenId != null) {
+            // 같은 NFT 카드로 진행 중인 경매가 있는지 체크
+            if (auctionRepositoryCustom.isDuplicatedTokenId(tokenId)) {
+                throw new BaseException(BaseResponseStatus.PHYSICAL_CARD_IS_BEING_SOLD);
+            }
+
+            // NFT 등록 경매일 때, NFT 토큰의 소유주가 사용자와 일치하는지 확인
+            nftPhysicalCard = physicalCardRepository.findByTokenId(BigInteger.valueOf(tokenId))
+                    .orElseThrow(() -> new BaseException(BaseResponseStatus.PHYSICAL_CARD_NOT_FOUND));
+            if (!me.getWalletAddress().equalsIgnoreCase(takoNftContractService.getOwnerAddress(tokenId))) {
+                throw new BaseException(BaseResponseStatus.PHYSICAL_CARD_OWNER_INVALID);
+            }
+        }
+
+        return nftPhysicalCard;
     }
-    
+
     /**
      * 경매 생성 서비스
-     * <P>
+     * <p>
      * 1) gradeHash로 CardAiGrade 조회 → 2) Auction 저장 → 3) 이미지 첨부(addByMultipart).
      * </P>
-     * 
+     *
      * @PARAM request 경매 생성 요청
      * @PARAM memberId 생성자 회원 ID
      * @PARAM files 이미지 파일(옵션)
@@ -96,18 +115,7 @@ public class AuctionCommandService {
      */
     @Transactional
     public AuctionCreateResponse create(AuctionCreateRequest requestDto, Member me, List<MultipartFile> files,
-            String dir) {
-        
-        // NFT 등록 경매일 때, NFT 토큰의 소유주가 사용자와 일치하는지 확인
-        PhysicalCard nftPhysicalCard = null;
-        if (requestDto.getTokenId() != null) {
-            nftPhysicalCard = physicalCardRepository.findByTokenId(BigInteger.valueOf(requestDto.getTokenId()))
-                    .orElseThrow(() -> new BaseException(BaseResponseStatus.PHYSICAL_CARD_NOT_FOUND));
-            if (!me.getWalletAddress().equalsIgnoreCase(takoNftContractService.getOwnerAddress(requestDto.getTokenId()))) {
-                throw new BaseException(BaseResponseStatus.PHYSICAL_CARD_OWNER_INVALID);
-            }
-        }
-
+                                        String dir, PhysicalCard nftPhysicalCard) {
         // 필수 엔티티 로드 (DB 의존 검증)
         CardAiGrade grade = cardAiGradeRepository.findByHash(requestDto.getGradeHash())
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.AUCTION_GRADE_NOT_FOUND));
