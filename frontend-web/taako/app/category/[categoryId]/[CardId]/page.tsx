@@ -8,7 +8,7 @@ import EffectCard from "@/components/cards/EffectCard"
 import CardInfo from "@/components/cards/CardInfo"
 import Loading from '@/components/Loading';
 import AuctionCard from "@/components/auction/AuctionCard";
-import Pagination from "@/components/atoms/Pagination";
+import Pagination from "@/components/atoms/PaginationComponent";
 import { useAuctionsQuery } from "@/hooks/useAuctionsQuery";
 import { GetAuction } from "@/types/auction";
 

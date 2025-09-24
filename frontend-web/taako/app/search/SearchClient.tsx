@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import SearchAuctionFilter from "@/components/filters/SearchAuctionFilter";
 import AuctionCard from "@/components/auction/AuctionCard";
-import Pagination from "@/components/atoms/Pagination";
+import PaginationComponent from "@/components/atoms/PaginationComponent";
 import { useAuctionsQuery } from "@/hooks/useAuctionsQuery";
 import { GetAuction } from "@/types/auction";
 
@@ -20,6 +20,7 @@ export default function SearchClient() {
       categoryMediumId: Number(searchParams.get("categoryMediumId")) || undefined,
       currentPriceMin: Number(searchParams.get("currentPriceMin")) || undefined,
       currentPriceMax: Number(searchParams.get("currentPriceMax")) || undefined,
+      sort: searchParams.get("sort") || "",
     };
   }, [searchParams]);
 
@@ -66,7 +67,7 @@ export default function SearchClient() {
         </div>
 
         <div className="mt-8">
-          <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+          <PaginationComponent />
         </div>
       </div>
     </div>

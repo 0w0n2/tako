@@ -3,7 +3,7 @@
 import SearchInput from "@/components/atoms/Input/SearchInput"
 import Filter from "@/components/filters/Filter"
 import SimpleCard from '@/components/cards/SimpleCard'
-import Pagination from '@/components/atoms/Pagination'
+import Pagination from '@/components/atoms/PaginationComponent'
 import '@/components/cards/all-cards.css'
 import { CategoryPageProps } from '@/types/category'
 import api from '@/lib/api'
