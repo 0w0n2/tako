@@ -4,6 +4,7 @@ import com.bukadong.tcg.api.bid.entity.AuctionBid;
 import com.bukadong.tcg.global.common.base.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.util.StringUtils;
 
 /**
  * 경매 결과 엔티티
@@ -51,4 +52,14 @@ public class AuctionResult extends BaseEntity {
     /** 정산 트랜잭션 해시 (블록체인 트랜잭션 식별, Unique) */
     @Column(name = "settle_tx_hash", length = 100, unique = true)
     private String settleTxHash;
+
+    public void updateSettleTxHash(String settleTxHash) {
+        if (StringUtils.hasText(settleTxHash)) {
+            this.settleTxHash = settleTxHash;
+        }
+    }
+
+    public void updateSettleFlag(boolean settleFlag) {
+        this.settledFlag = settleFlag;
+    }
 }

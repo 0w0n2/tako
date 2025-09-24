@@ -3,6 +3,7 @@ package com.bukadong.tcg.api.auction.controller;
 import com.bukadong.tcg.api.auction.dto.request.AuctionCreateRequest;
 import com.bukadong.tcg.api.auction.dto.response.AuctionCreateResponse;
 import com.bukadong.tcg.api.auction.service.AuctionCommandService;
+import com.bukadong.tcg.api.card.entity.PhysicalCard;
 import com.bukadong.tcg.api.media.entity.MediaType;
 import com.bukadong.tcg.api.media.util.MediaDirResolver;
 import com.bukadong.tcg.api.member.entity.Member;
@@ -51,8 +52,9 @@ public class AuctionCommandController {
             @Parameter(description = "경매 이미지 파일들(1장 이상 필수)", required = true, content = @Content(mediaType = MULTIPART_FORM_DATA_VALUE, array = @ArraySchema(schema = @Schema(type = "string", format = "binary")))) @RequestPart(name = "files", required = true) List<MultipartFile> files,
             @AuthenticationPrincipal CustomUserDetails user) {
         Member me = memberQueryService.getByUuid(user.getUuid());
+        PhysicalCard nftPhysicalCard = auctionCommandService.isValidToCreateAndGetPhysicalCard(me, requestDto.getTokenId());
         String dir = mediaDirResolver.resolve(MediaType.AUCTION_ITEM);
-        AuctionCreateResponse result = auctionCommandService.create(requestDto, me, files, dir);
+        AuctionCreateResponse result = auctionCommandService.create(requestDto, me, files, dir, nftPhysicalCard);
         return BaseResponse.onSuccess(result);
     }
 }

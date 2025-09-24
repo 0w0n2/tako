@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 
 /**
@@ -54,7 +55,7 @@ public class AuctionNotificationScheduler {
      * 시작된 경매: start_datetime ∈ (now - WINDOW, now]
      */
     private void notifyStarted() {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
         LocalDateTime from = now.minus(WINDOW);
         String sql = """
                     SELECT id FROM auction
@@ -77,7 +78,7 @@ public class AuctionNotificationScheduler {
      * 마감 임박: end_datetime - DUE_SOON_BEFORE ∈ (now - WINDOW, now]
      */
     private void notifyDueSoon() {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
         LocalDateTime from = now.minus(WINDOW);
         String sql = """
                     SELECT id FROM auction
@@ -102,7 +103,7 @@ public class AuctionNotificationScheduler {
      * 마감됨: end_datetime ∈ (now - WINDOW, now]
      */
     private void notifyEnded() {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
         LocalDateTime from = now.minus(WINDOW);
         String sql = """
                     SELECT id FROM auction

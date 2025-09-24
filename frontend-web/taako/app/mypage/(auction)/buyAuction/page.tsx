@@ -3,9 +3,11 @@
 import { useState } from 'react';
 import BuyOnGoingAuction from '@/components/mypage/BuyOnGoingAuction';
 import BuyEndedAuction from '@/components/mypage/BuyEndedAuction';
+import { useMyInfo } from '@/hooks/useMyInfo';
 
 export default function BuyAuctionPage() {
   const [activeTab, setActiveTab] = useState<'ongoing' | 'ended'>('ongoing');
+  const { countOngoing, countEnded } = useMyInfo();
 
   return (
     <div>
@@ -21,7 +23,7 @@ export default function BuyAuctionPage() {
           <div className={`${activeTab === 'ongoing' ? 'text-white font-medium' : 'font-light text-[#a5a5a5]'}`}>경매 중</div>
           <div className={`text-lg mb-0.5 ${
             activeTab === 'ongoing' ? 'text-[#F2B90C] font-medium' : 'font-light text-[#a5a5a5]'
-          }`}>3</div>
+          }`}>{countOngoing}</div>
         </button>
         {/* 종료 */}
         <button
@@ -31,7 +33,7 @@ export default function BuyAuctionPage() {
           <div className={`${activeTab === 'ended' ? 'text-white font-medium' : 'font-light text-[#a5a5a5]'}`}>종료</div>
           <div className={`text-lg mb-0.5 ${
             activeTab === 'ended' ? 'text-[#F2B90C] font-medium' : 'font-light text-[#a5a5a5]'
-          }`}>2</div>
+          }`}>{countEnded}</div>
         </button>
         
         {/* 활성 탭 표시 바 */}

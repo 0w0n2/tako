@@ -79,6 +79,7 @@ public enum BaseResponseStatus {
     // CONFLICT 방지 하단에 추가 REFACTOR 부탁해요~
     INVALID_AUCTION_BID_UNIT(HttpStatus.BAD_REQUEST, false, 400, "경매 입찰 단위 변환에 실패하였습니다."),
     BAD_REQUEST(HttpStatus.BAD_REQUEST, false, 400, "잘못된 요청입니다."),
+    REVIEW_ALREADY_EXISTS(HttpStatus.CONFLICT, false, 409, "이미 이 경매에 대한 리뷰를 작성했습니다."),
 
     /**
      * 600: 멤버 에러
@@ -158,7 +159,9 @@ public enum BaseResponseStatus {
     AUCTION_DUPLICATE_REQUEST(HttpStatus.BAD_REQUEST, false, 1121, "이미 처리된 요청입니다. 중복 요청은 허용되지 않습니다."),
     AUCTION_ALREADY_ENDED(HttpStatus.BAD_REQUEST, false, 1122, "이미 종료된 경매입니다."),
     AUCTION_EXISTING_BID(HttpStatus.BAD_REQUEST, false, 1123, "입찰이 존재하는 경매는 취소할 수 없습니다."),
+    WALLET_ADDRESS_NOT_FOUND(HttpStatus.FORBIDDEN, false, 1124, "지갑 주소가 연동되어 있지 않아 등록할 수 없습니다."),
 
+    AUCTION_ESCROW_CONTRACT_NOT_FOUND(HttpStatus.BAD_REQUEST, false, 1150, "생성된 에스크로 컨트랙트를 찾을 수 없습니다."),
     /**
      * 1200: 카드 Error
      */
@@ -169,6 +172,8 @@ public enum BaseResponseStatus {
 
     PHYSICAL_CARD_NOT_FOUND(HttpStatus.NOT_FOUND, false, 1250, "실물 카드 정보를 찾을 수 없습니다."),
     NFT_ID_GENERATE_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, false, 1251, "NFT ID 생성에 실패했습니다."),
+    PHYSICAL_CARD_OWNER_INVALID(HttpStatus.NOT_FOUND, false, 1252, "NFT 카드의 소유주가 아닙니다."),
+    PHYSICAL_CARD_IS_BEING_SOLD(HttpStatus.BAD_REQUEST, false, 1253, "해당 NFT 카드로 진행 중인 경매가 존재합니다."),
 
     /**
      * 1300: 메일(SMTP) Error
@@ -191,8 +196,18 @@ public enum BaseResponseStatus {
 
     CONTRACT_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, false, 4100, "이 작업을 수행할 권한이 없는 계정입니다."),
     CONTRACT_INVALID_STATE(HttpStatus.CONFLICT, false, 4101, "현재 컨트랙트 상태에서는 이 작업을 수행할 수 없습니다."),
-    CONTRACT_INCORRECT_AMOUNT(HttpStatus.BAD_REQUEST, false, 4012, "전송된 금액이 정확하지 않습니다.");
+    CONTRACT_INCORRECT_AMOUNT(HttpStatus.BAD_REQUEST, false, 4012, "전송된 금액이 정확하지 않습니다."),
 
+    /**
+     * 1500: 배송/주소 Error
+     */
+    ADDRESS_PLACENAME_DUPLICATION(HttpStatus.CONFLICT, false, 1500, "이미 존재하는 배송지 별칭입니다."),
+    DELIVERY_NOT_ARRIVED(HttpStatus.BAD_REQUEST, false, 1501, "아직 배송이 완료되지 않았습니다."),
+    DELIVERY_FORBIDDEN_NOT_WINNER(HttpStatus.FORBIDDEN, false, 1502, "이 경매의 낙찰자만 요청할 수 있습니다."),
+    DELIVERY_FORBIDDEN_NOT_SELLER(HttpStatus.FORBIDDEN, false, 1503, "이 경매의 판매자만 요청할 수 있습니다."),
+    DELIVERY_FORBIDDEN_NOT_PARTICIPANT(HttpStatus.FORBIDDEN, false, 1504, "판매자 또는 낙찰자만 배송 정보를 조회할 수 있습니다."),
+    ADDRESS_NOT_FOUND(HttpStatus.NOT_FOUND, false, 1505, "주소가 존재하지 않습니다."),
+    DEFAULT_ADDRESS_NOT_FOUND(HttpStatus.NOT_FOUND, false, 1506, "기본 배송지가 설정되어 있지 않습니다.");
 
     private final HttpStatusCode httpStatusCode;
     private final boolean isSuccess;

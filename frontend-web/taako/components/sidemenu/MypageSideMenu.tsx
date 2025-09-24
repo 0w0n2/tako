@@ -9,10 +9,10 @@ import WithdrawModal from "@/components/modals/WithdrawModal"
 export default function MypageSideMenu() {
     const [openWithdraw, setOpenWithdraw] = useState(false)
     const pathname = usePathname()
-    console.log(pathname)
+    // console.log(pathname)
 
     return (
-        <div className="w-[240px]">
+        <div className="w-[200px]">
             <ul className="mypage-side-menu flex flex-col gap-8">
                 <li><h2><Link href="/mypage">마이페이지</Link></h2></li>
                 <li>
@@ -63,6 +63,14 @@ export default function MypageSideMenu() {
                                     : 'text-[#A5A5A5] hover:text-[#F2B90C]'
                             }`}
                         >관심 카드</Link></li>
+                        <li><Link 
+                            href="/mypage/nftcard" 
+                            className={`text-sm transition-all duration-300 ${
+                                pathname === '/mypage/nftcard' 
+                                    ? 'text-[#F2B90C]' 
+                                    : 'text-[#A5A5A5] hover:text-[#F2B90C]'
+                            }`}
+                        >NFT 카드 등록</Link></li>
                     </ul>
                 </li>
                 <li>
@@ -76,6 +84,14 @@ export default function MypageSideMenu() {
                                     : 'text-[#A5A5A5] hover:text-[#F2B90C]'
                             }`}
                         >프로필 관리</Link></li>
+                        <li><Link 
+                            href="/mypage/address" 
+                            className={`text-sm transition-all duration-300 ${
+                                pathname === '/mypage/payment' 
+                                    ? 'text-[#F2B90C]' 
+                                    : 'text-[#A5A5A5] hover:text-[#F2B90C]'
+                            }`}
+                        >주소록</Link></li>
                         <li><Link 
                             href="/mypage/payment" 
                             className={`text-sm transition-all duration-300 ${

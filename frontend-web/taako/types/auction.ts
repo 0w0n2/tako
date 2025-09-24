@@ -28,9 +28,33 @@ export interface AuctionDetailProps {
   buyNowFlag: boolean;
   buyNowPrice: number | null;
   card: Card;
-  weeklyAuctions: WeeklyAuctions[],
+  weeklyAuctions: WeeklyAuctions[];
   history: History[];
   seller: Seller;
+}
+
+// 경매 목록 조회(request)
+export interface GetHotCards {
+  page: number | null;
+  categoryMajorId: number | null;
+  categoryMediumId: number | null;
+  title: string | null;
+  cardId: number | null;
+  currentPriceMin: number | null;
+  currentPriceMax: number | null;
+  grades: string | null;
+  sort: string | null;
+}
+// 경매 목록 조회(response)
+export interface GetAuction {
+  id: number;
+  grade: string;
+  title: string;
+  currentPrice: number;
+  bidCount: number;
+  remainingSeconds: number;
+  primaryImageUrl: string;
+  wished: boolean;
 }
 
 export interface WeeklyAuctions {
@@ -43,11 +67,13 @@ export interface WeeklyAuctions {
 // 경매 등록 폼
 export interface AuctionFormProps {
   files: File[];
+  registerNft?: boolean;
   requestDto: {
-    gradeHash:string|null,
-    categoryMajorId: number|null,
-    categoryMediumId: number|null,
-    cardId: number|null,
+    gradeHash: string | null;
+    categoryMajorId: number | null;
+    categoryMediumId: number | null;
+    cardId: number | null;
+    tokenId: number | null;
     title: string;
     detail: string;
     startDatetime: string;
@@ -56,5 +82,53 @@ export interface AuctionFormProps {
     buyNowPrice: number;
     bidUnit: number;
     startPrice: number;
-  }
+  };
+}
+
+// 내 경매 목록 응답
+export interface MyAuctionResponse {
+  auctionId: number;
+  title: string;
+  imageUrl: string | null;
+  isEnd: boolean;
+  closeReason: string | null;
+  currentPrice: number;
+  bids: {
+    nickname: string;
+    price: number;
+  }[];
+  startDatetime: string;
+  endDatetime: string;
+}
+
+export interface AuctionDetailApiResponse {
+  httpStatus: string;
+  isSuccess: boolean;
+  message: string;
+  code: number;
+  result: {
+    content: AuctionDetailContent[];
+    page: number;
+    size: number;
+    totalElements: number;
+    totalPages: number;
+  };
+}
+
+export interface AuctionDetailContent {
+  auctionId: number;
+  code: string;
+  title: string;
+  startDatetime: string;
+  endDatetime: string;
+  isEnd: boolean;
+  closeReason: string | null;
+  currentPrice: number;
+  myTopBidAmount: number;
+  imageUrl: string;
+  bids: {
+    time: string;
+    nickname: string;
+    price: number;
+  }[];
 }

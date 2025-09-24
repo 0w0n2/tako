@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 /**
  * 미디어 파일 메타정보 엔티티
@@ -45,7 +46,6 @@ public class Media {
     @Column(name = "s3key_or_url", nullable = false, length = 255)
     private String s3keyOrUrl;
 
-
     /** MIME 타입 (예: image/jpeg) */
     @Column(name = "mime_type", length = 30)
     private String mimeType;
@@ -62,7 +62,7 @@ public class Media {
     @PrePersist
     void prePersist() {
         if (createdAt == null) {
-            createdAt = LocalDateTime.now();
+            createdAt = LocalDateTime.now(ZoneOffset.UTC);
         }
     }
 

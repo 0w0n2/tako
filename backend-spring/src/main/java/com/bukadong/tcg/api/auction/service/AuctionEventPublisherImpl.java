@@ -3,6 +3,8 @@ package com.bukadong.tcg.api.auction.service;
 import java.math.BigDecimal;
 import java.time.Instant;
 
+import com.bukadong.tcg.api.card.entity.PhysicalCard;
+import com.bukadong.tcg.api.member.entity.Member;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
@@ -29,9 +31,9 @@ public class AuctionEventPublisherImpl implements AuctionEventPublisher {
     private final ApplicationEventPublisher publisher;
 
     @Override
-    public void publishAuctionSold(long auctionId, long winnerId, long bidId, BigDecimal amount, Instant closedAt) {
-        publisher.publishEvent(new AuctionSoldEvent(auctionId, winnerId, amount, bidId, closedAt));
-        log.info("[Event] SOLD auctionId={}, winnerId={}, bidId={}, amount={}", auctionId, winnerId, bidId, amount);
+    public void publishAuctionSold(long auctionId, long bidId, BigDecimal amount, Instant closedAt, Member seller, Member buyer, PhysicalCard physicalCard) {
+        publisher.publishEvent(new AuctionSoldEvent(auctionId, bidId, amount, closedAt, seller, buyer, physicalCard));
+        log.info("[Event] SOLD auctionId={}, winnerId={}, bidId={}, amount={}", auctionId, buyer.getId(), bidId, amount);
     }
 
     @Override

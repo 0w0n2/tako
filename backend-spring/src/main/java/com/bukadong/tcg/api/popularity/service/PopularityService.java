@@ -9,6 +9,7 @@ import com.bukadong.tcg.api.popularity.util.PopularityKeyUtil;
 import com.bukadong.tcg.api.media.entity.Media;
 import com.bukadong.tcg.api.media.entity.MediaType;
 import com.bukadong.tcg.api.media.repository.MediaRepository;
+import com.bukadong.tcg.api.media.service.MediaPresignQueryService;
 import com.bukadong.tcg.global.common.dto.PageResponse;
 
 import lombok.RequiredArgsConstructor;
@@ -20,7 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -41,6 +42,7 @@ public class PopularityService {
     private final AuctionRepository auctionRepository;
     private final CardRepository cardRepository;
     private final MediaRepository mediaRepository;
+    private final MediaPresignQueryService mediaPresignQueryService;
 
     /** 조회 가중치 (기본 1) */
     @Value("${popularity.weight.view:1}")
@@ -53,8 +55,6 @@ public class PopularityService {
     /** 분 버킷 TTL (분) */
     @Value("${popularity.bucket.ttl-minutes:70}")
     private long bucketTtlMinutes;
-
-    private static final ZoneId TZ = ZoneId.of("Asia/Seoul");
 
     /**
      * 조회 이벤트 기록
@@ -97,7 +97,7 @@ public class PopularityService {
      */
     @Transactional(readOnly = true)
     public PageResponse<PopularCardDto> getTopCardsLastHour(long categoryId, int page, int size) {
-        LocalDateTime now = LocalDateTime.now(TZ);
+        LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
 
         // 1) 최근 60분 키 생성
         List<String> minuteKeys = new ArrayList<>(60);
@@ -144,25 +144,33 @@ public class PopularityService {
             Map<Long, Card> cardMap = cardRepository.findAllById(cardIds).stream()
                     .collect(Collectors.toMap(Card::getId, c -> c));
 
-            // 7-1) 카드 대표 이미지(IMAGE, seqNo=1) 벌크 조회 → ownerId(=cardId) -> url 매핑
-            final Map<Long, String> imageUrlByCardId = cardIds.isEmpty() ? java.util.Collections.emptyMap()
+            // 7-1) 카드 대표 이미지(IMAGE, seqNo=1) 벌크 조회 → ownerId(=cardId) -> s3key 매핑
+            final Map<Long, String> imageKeyByCardId = cardIds.isEmpty() ? java.util.Collections.emptyMap()
                     : mediaRepository.findCardThumbnails(MediaType.CARD, cardIds).stream()
                             .collect(Collectors.toMap(Media::getOwnerId, Media::getS3keyOrUrl, (a, b) -> a)); // 중복시 첫 값
                                                                                                               // 유지
 
-            // 8) DTO 매핑: rarity는 enum 이름을 문자열로, imageUrl은 대표 썸네일
+            // 8) DTO 매핑: name/rarity, 이미지는 Presigned URL로 변환
             List<PopularCardDto> content = range.stream().map(t -> {
                 Long cardId = (t.getValue() != null) ? Long.valueOf(t.getValue()) : null;
-                double score = (t.getScore() != null) ? t.getScore() : 0.0;
+                Double scoreObj = t.getScore();
+                double score = (scoreObj != null) ? scoreObj.doubleValue() : 0.0;
                 Card card = (cardId != null) ? cardMap.get(cardId) : null;
 
+                String name = (card != null && card.getName() != null) ? card.getName() : null;
                 String rarity = Rarity.COMMON.name();
                 if (card != null && card.getRarity() != null) {
                     rarity = card.getRarity().name();
                 }
-                String imageUrl = (cardId != null) ? imageUrlByCardId.get(cardId) : null;
+                String presignedUrl = null;
+                if (cardId != null) {
+                    String key = imageKeyByCardId.get(cardId);
+                    if (key != null) {
+                        presignedUrl = mediaPresignQueryService.getPresignedUrl(key, java.time.Duration.ofMinutes(5));
+                    }
+                }
 
-                return new PopularCardDto(cardId, rarity, score, imageUrl);
+                return new PopularCardDto(cardId, name, rarity, score, presignedUrl);
             }).toList();
 
             return new PageResponse<>(content, page, size, totalElements, totalPages);
@@ -191,7 +199,7 @@ public class PopularityService {
         }
         Long cardId = cardIdOpt.get();
 
-        LocalDateTime now = LocalDateTime.now(TZ);
+        LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
         String key = PopularityKeyUtil.minuteKey(categoryId, now);
 
         // 멤버는 "cardId" 문자열 그대로 사용 → 파싱 단순화

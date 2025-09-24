@@ -4,64 +4,75 @@ import * as React from "react"
 import Link from "next/link";
 import {
     NavigationMenu,
+    NavigationMenuContent,
     NavigationMenuItem,
     NavigationMenuLink,
+    NavigationMenuTrigger,
+    navigationMenuTriggerStyle,
   } from "@/components/ui/navigation-menu"
 import { Badge } from "@/components/ui/badge"
+import { ChevronDown } from 'lucide-react';
 
-import { useLogin } from "@/hooks/useLogin";
 import { useAuthStore } from "@/stores/useAuthStore";
+import UserSideMenu from "../sidemenu/UserSideMenu";
+import { useMajorCategories } from "@/hooks/useMajorCategories";
 
-interface HeaderNavigationMenuProps {
-  onLoginClick: () => void;
-}
-
-export default function HeaderNavigationMenu({ onLoginClick }: HeaderNavigationMenuProps){
-  const {
-    handleLogout,
-  } = useLogin();
+export default function HeaderNavigationMenu(){
+  const { majorCategories } = useMajorCategories();
 
   const token = useAuthStore((state) => state.token);
   const isLoggedIn = !!token; 
 
   return(
-      <NavigationMenu className="gap-8">
+      <NavigationMenu className="gap-7">
+          <NavigationMenuItem className="list-none">
+            <NavigationMenuTrigger className="hover:text-[#f2b90c] cursor-pointer flex gap-1 items-center">TCG카드<ChevronDown className="w-4 transition-transform duration-300 group-hover:rotate-180" /></NavigationMenuTrigger>
+            <NavigationMenuContent>
+              <ul className="grid grid-cols-1 w-[200px] p-2 gap-2">
+                {majorCategories.map((component) => (
+                  <Link
+                    key={component.id}
+                    title={component.name}
+                    href={`/category/${component.id}`}
+                    className="flex justify-center items-center py-4 rounded-sm hover:bg-[#f2b90c]/20"
+                  >
+                    {component.name}
+                  </Link>
+                ))}
+              </ul>
+            </NavigationMenuContent>
+            </NavigationMenuItem>
           <NavigationMenuItem className="list-none">
               <NavigationMenuLink asChild>
-                  <Link href="#" className="hover:text-[#f2b90c]">미니게임</Link>
+                  <Link href="/search" className="hover:text-[#f2b90c]">전체경매</Link>
               </NavigationMenuLink>
           </NavigationMenuItem>
+              <NavigationMenuItem className="list-none">
+                  <NavigationMenuLink asChild>
+                      <Link href="#" className="hover:text-[#f2b90c]">미니게임</Link>
+                  </NavigationMenuLink>
+              </NavigationMenuItem>
           {!isLoggedIn ? (
             <NavigationMenuItem className="list-none">
-                  <button className="cursor-pointer hover:text-[#f2b90c]" onClick={onLoginClick}>로그인</button>
+                <NavigationMenuLink asChild>
+                    <Link href="/login" className="hover:text-[#f2b90c]">로그인</Link>
+                </NavigationMenuLink>
             </NavigationMenuItem>
           ) : (
             <>
               <NavigationMenuItem className="list-none">
-                    <button className="cursor-pointer hover:text-[#f2b90c]" onClick={handleLogout}>로그아웃</button>
+                  <NavigationMenuLink asChild>
+                      <Link href="/notification" className="flex items-center gap-1 hover:text-[#f2b90c]">알림
+                        <Badge className="h-4 min-w-4 rounded-full px-1 bg-[#f2b90c]">3</Badge>
+                      </Link>
+                  </NavigationMenuLink>
               </NavigationMenuItem>
               <NavigationMenuItem className="list-none">
-                  <NavigationMenuLink asChild>
-                      <Link href="/mypage" className="hover:text-[#f2b90c]">마이페이지</Link>
-                  </NavigationMenuLink>
+                {/* 회원 sheet */}
+                <UserSideMenu />
               </NavigationMenuItem>
             </>
           )}
-          <NavigationMenuItem className="list-none">
-              <NavigationMenuLink asChild>
-                  <Link href="/notification" className="flex items-center gap-1 hover:text-[#f2b90c]">알림
-                    <Badge className="h-4 min-w-4 rounded-full px-1 bg-[#f2b90c]">3</Badge>
-                  </Link>
-              </NavigationMenuLink>
-          </NavigationMenuItem>
-          <NavigationMenuItem className="list-none">
-              <NavigationMenuLink asChild>
-                  <Link
-                  href="/auction/new"
-                  className="px-8 py-3 bg-[#364153] text-[#7DB7CD] border-1 border-[#7DB7CD] cursor-pointer rounded-lg
-                  hover:bg-[#3E4C63] transition-all duration-300">경매등록</Link>
-              </NavigationMenuLink>
-          </NavigationMenuItem>
       </NavigationMenu>
   )
 }

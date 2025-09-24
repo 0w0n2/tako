@@ -36,4 +36,6 @@ public interface AuctionRepositoryCustom {
     Page<AuctionListProjection> searchAuctions(Long categoryMajorId, Long categoryMediumId, String titlePart,
             Long cardId, BigDecimal currentPriceMin, BigDecimal currentPriceMax, Set<String> grades, AuctionSort sort,
             Pageable pageable);
+
+    boolean isDuplicatedTokenId(Long tokenId);
 }

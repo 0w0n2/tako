@@ -4,6 +4,8 @@ import com.bukadong.tcg.api.auction.converter.AuctionListConverter;
 import com.bukadong.tcg.api.auction.dto.response.AuctionDetailResponse;
 import com.bukadong.tcg.api.auction.dto.response.AuctionListItemResponse;
 import com.bukadong.tcg.api.auction.repository.AuctionDetailRepository;
+import com.bukadong.tcg.api.auction.dto.response.MyAuctionListItemResponse;
+import com.bukadong.tcg.api.auction.dto.response.MyBidAuctionListItemResponse;
 import com.bukadong.tcg.api.auction.repository.AuctionRepository;
 import com.bukadong.tcg.api.auction.repository.AuctionRepositoryCustom;
 import com.bukadong.tcg.api.auction.repository.AuctionSort;
@@ -22,10 +24,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
 import java.util.Set;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import static com.bukadong.tcg.api.auction.entity.QAuction.auction;
 
 /**
@@ -39,7 +41,7 @@ import static com.bukadong.tcg.api.auction.entity.QAuction.auction;
 @Transactional(readOnly = true)
 public class AuctionQueryService {
 
-    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
+    private static final ZoneOffset UTC = ZoneOffset.UTC;
 
     private final AuctionRepositoryCustom auctionRepositoryCustom;
     private final AuctionDetailRepository auctionDetailRepository;
@@ -47,6 +49,8 @@ public class AuctionQueryService {
     private final MediaUrlService mediaUrlService;
     private final WishAuctionRepository wishAuctionRepository;
     private final JPAQueryFactory queryFactory;
+    private final com.bukadong.tcg.api.auction.repository.AuctionRepository auctionRepo;
+    private final com.bukadong.tcg.api.bid.repository.AuctionBidRepository auctionBidRepo;
 
     /**
      * 경매 목록 조회 서비스(컨트롤러 편의 오버로드)
@@ -131,10 +135,89 @@ public class AuctionQueryService {
      * @RETURN 경매 ID 리스트
      */
     public List<Long> findDueAuctionIds(int limit) {
-        LocalDateTime now = LocalDateTime.now(KST);
+        LocalDateTime now = LocalDateTime.now(UTC);
         return queryFactory.select(auction.id).from(auction)
                 .where(auction.isEnd.isFalse(), auction.endDatetime.loe(now))
                 .orderBy(auction.endDatetime.asc(), auction.id.asc()).limit(limit).fetch();
+    }
+
+    /**
+     * 내 경매 목록(최근 입찰 N개 포함)
+     */
+    public PageResponse<MyAuctionListItemResponse> getMyAuctions(Long memberId, int page, int size,
+            int recentBidCount) {
+        var pageable = PageRequest.of(page, size);
+        var pageAuc = auctionRepo.findByMember_IdOrderByIdDesc(memberId, pageable);
+
+        var items = pageAuc.getContent().stream().map(a -> {
+            var bidPage = PageRequest.of(0, Math.max(0, recentBidCount));
+            var bids = auctionBidRepo.findByAuction_IdOrderByCreatedAtDesc(a.getId(), bidPage).stream()
+                    .map(b -> new MyAuctionListItemResponse.BidItem(b.getCreatedAt(),
+                            b.getMember() != null ? b.getMember().getNickname() : null, b.getAmount()))
+                    .toList();
+            var primaryImageUrl = mediaUrlService
+                    .getPrimaryImageUrl(MediaType.AUCTION_ITEM, a.getId(), Duration.ofMinutes(5)).orElse(null);
+            MyAuctionListItemResponse.DeliverySummary deliverySummary = null;
+            var delivery = a.getDelivery();
+            if (delivery != null) {
+                deliverySummary = new MyAuctionListItemResponse.DeliverySummary(
+                        delivery.getStatus() != null ? delivery.getStatus().name() : null,
+                        delivery.getTrackingNumber() != null && !delivery.getTrackingNumber().isBlank(),
+                        delivery.getRecipientAddress() != null, delivery.getSenderAddress() != null);
+            }
+            return new MyAuctionListItemResponse(a.getId(), a.getCode(), a.getTitle(), a.getStartDatetime(),
+                    a.getEndDatetime(), a.isEnd(), a.getCloseReason() != null ? a.getCloseReason().name() : null,
+                    a.getCurrentPrice(), primaryImageUrl, bids, deliverySummary);
+        }).toList();
+
+        var mapped = new org.springframework.data.domain.PageImpl<>(items, pageable, pageAuc.getTotalElements());
+        return PageResponse.from(mapped);
+    }
+
+    /**
+     * 내가 입찰한 경매 목록(최근 입찰 N개 포함) + 내 최고가 포함
+     * <p>
+     * ended=false(기본): 진행중 경매 → 종료 임박(남은시간 짧은) 순 정렬(Repository: endDatetime ASC)
+     * ended=true: 종료된 경매 → 가장 최근에 종료된 순(endDatetime DESC)
+     * </p>
+     *
+     * @param ended true면 종료된 경매만, false면 진행중 경매만
+     */
+    public PageResponse<MyBidAuctionListItemResponse> getMyBidAuctions(Long memberId, int page, int size,
+            int recentBidCount, boolean ended) {
+        var pageable = PageRequest.of(page, size);
+        var pageAuc = ended ? auctionRepo.findEndedByMemberBids(memberId, pageable)
+                : auctionRepo.findOngoingByMemberBids(memberId, pageable);
+
+        var items = pageAuc.getContent().stream().map(a -> {
+            var bidPage = PageRequest.of(0, Math.max(0, recentBidCount));
+            var bids = auctionBidRepo.findByAuction_IdOrderByCreatedAtDesc(a.getId(), bidPage).stream()
+                    .map(b -> new MyBidAuctionListItemResponse.BidItem(b.getCreatedAt(),
+                            b.getMember() != null ? b.getMember().getNickname() : null, b.getAmount()))
+                    .toList();
+            var primaryImageUrl = mediaUrlService
+                    .getPrimaryImageUrl(MediaType.AUCTION_ITEM, a.getId(), Duration.ofMinutes(5)).orElse(null);
+            var myTop = auctionBidRepo
+                    .findTopByAuction_IdAndMember_IdOrderByAmountDescCreatedAtDesc(a.getId(), memberId).orElse(null);
+            var myTopAmount = myTop != null ? myTop.getAmount() : null;
+            MyBidAuctionListItemResponse.DeliverySummary deliverySummary = null;
+            // 내가 낙찰자(최종 winner)인 경우만 배송 정보 노출
+            if (a.getWinnerMemberId() != null && a.getWinnerMemberId().equals(memberId)) {
+                var delivery = a.getDelivery();
+                if (delivery != null) {
+                    deliverySummary = new MyBidAuctionListItemResponse.DeliverySummary(
+                            delivery.getStatus() != null ? delivery.getStatus().name() : null,
+                            delivery.getTrackingNumber() != null && !delivery.getTrackingNumber().isBlank(),
+                            delivery.getRecipientAddress() != null, delivery.getSenderAddress() != null);
+                }
+            }
+            return new MyBidAuctionListItemResponse(a.getId(), a.getCode(), a.getTitle(), a.getStartDatetime(),
+                    a.getEndDatetime(), a.isEnd(), a.getCloseReason() != null ? a.getCloseReason().name() : null,
+                    a.getCurrentPrice(), myTopAmount, primaryImageUrl, bids, deliverySummary);
+        }).toList();
+
+        var mapped = new PageImpl<>(items, pageable, pageAuc.getTotalElements());
+        return PageResponse.from(mapped);
     }
 
 }

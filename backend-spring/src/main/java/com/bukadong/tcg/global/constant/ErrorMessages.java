@@ -18,4 +18,5 @@ public final class ErrorMessages {
     public static final String VERIFICATION_CODE_NOT_FOUND = "이메일 검증 코드를 입력해주세요.";
     public static final String PASSWORD_RESET_CODE_NOT_FOUND = "비밀번호 재설정 검증 코드를 입력해주세요.";
     public static final String WALLET_ADDRESS_NOT_FOUND = "지갑 주소를 입력해주세요.";
+    public static final String AUCTION_ID_NOT_FOUND = "경매 ID를 입력해주세요.";
 }

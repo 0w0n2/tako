@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 /**
  * 알림 읽음 처리 서비스
@@ -41,7 +42,7 @@ public class NotificationReadService {
         Notification n = notificationRepository.findByIdAndMemberId(notificationId, memberId)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.NOT_FOUND));
         if (!n.isRead()) {
-            n.markRead(LocalDateTime.now());
+            n.markRead(LocalDateTime.now(ZoneOffset.UTC));
         }
     }
 
@@ -56,7 +57,7 @@ public class NotificationReadService {
      */
     @Transactional
     public int markAllRead(Long memberId) {
-        return notificationRepository.markAllReadByMemberId(memberId, LocalDateTime.now());
+        return notificationRepository.markAllReadByMemberId(memberId, LocalDateTime.now(ZoneOffset.UTC));
     }
 
     /**

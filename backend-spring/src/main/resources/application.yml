@@ -27,7 +27,10 @@ spring:
     username: ${DB_USERNAME}
     password: "${DB_PASSWORD}"
     driver-class-name: ${DB_DRIVER}
-
+    hikari:
+      connection-init-sql: "SET time_zone = '+00:00'"
+  jackson:
+    time-zone: UTC
   jpa:
     hibernate:
       ddl-auto: ${JPA_HIBERNATE_DDL}
@@ -35,7 +38,8 @@ spring:
     properties:
       hibernate:
         format_sql: ${JPA_FORMAT_SQL}
-
+        jdbc:
+          time_zone: UTC
   batch:
     job:
       enabled: ${BATCH_JOB_ENABLED}
@@ -82,6 +86,8 @@ auction:
     enabled: true
     threshold-seconds: 300 # 마감 300초 이내면
     extend-by-seconds: 60 # 60초 연장
+  sse:
+    heartbeat-ms: 15000 # SSE 하트비트 주기(밀리초)
   finalize:
     tick-ms: 1000 # 스케줄 주기
     batch-size: 500 # 한 번에 가져올 최대 개수
@@ -95,6 +101,10 @@ auction:
       enabled: true
       cron: "0 */5 * * * *"
 
+delivery:
+  auto-complete:
+    min-minutes: ${DELIVERY_AUTO_COMPLETE_MIN_MINUTES:2}
+
 security:
   jwt:
     secret-key: ${SECURITY_JWT_SECRET_KEY}
@@ -103,7 +113,7 @@ security:
       refresh-token: ${SECURITY_JWT_EXPIRE_TIME_REFRESH}
 
   whitelist:
-    GET: ${SECURITY_WHITELIST_GET},${SECURITY_WHITELIST_GET_SWAGGER},${SECURITY_WHITELIST_GET_AUTH},${SECURITY_WHITELIST_GET_OAUTH},${SECURITY_WHITELIST_GET_NOTICE},${SECURITY_WHITELIST_GET_CATEGORY},${SECURITY_WHITELIST_GET_CARD},${SECURITY_WHITELIST_GET_AUCTION},${SECURITY_WHITELIST_GET_MEMBER},${SECURITY_WHITELIST_GET_GAME},${SECURITY_WHITELIST_GET_POPULARITY},${SECURITY_WHITELIST_GET_INQUIRY}
+    GET: ${SECURITY_WHITELIST_GET},${SECURITY_WHITELIST_GET_SWAGGER},${SECURITY_WHITELIST_GET_AUTH},${SECURITY_WHITELIST_GET_OAUTH},${SECURITY_WHITELIST_GET_NOTICE},${SECURITY_WHITELIST_GET_CATEGORY},${SECURITY_WHITELIST_GET_CARD},${SECURITY_WHITELIST_GET_AUCTION},${SECURITY_WHITELIST_GET_MEMBER},${SECURITY_WHITELIST_GET_GAME},${SECURITY_WHITELIST_GET_POPULARITY},${SECURITY_WHITELIST_GET_INQUIRY},${SECURITY_WHITELIST_GET_LIVE}
     POST: ${SECURITY_WHITELIST_POST},${SECURITY_WHITELIST_POST_AUTH}
     PUT: ${SECURITY_WHITELIST_PUT}
     DELETE: ${SECURITY_WHITELIST_DELETE}
@@ -136,6 +146,9 @@ popularity:
     ttl-minutes: ${POPULARITY_BUCKET_TTL_MINUTES:70} # 분 버킷 TTL. 기본 70분(60분 + 버퍼)
 
 logging:
+  charset:
+    console: EUC-KR
+    file: EUC-KR
   level:
     com.bukadong.tcg.api.media.service.MediaPresignQueryService: DEBUG
     com.bukadong.tcg.api.inquiry.service.InquiryQueryService: DEBUG
@@ -148,7 +161,6 @@ logging:
     com.bukadong.tcg.api.media.guard.MediaUploadGuard: DEBUG
     org.springframework.data.redis: INFO
     io.lettuce.core: INFO
-    # com.bukadong.tcg.global.blockchain.listener: DEBUG
 
 app:
   web-url:
@@ -163,12 +175,12 @@ app:
         max-count: 1
         allowed-mimes: [image/jpeg, image/png, image/webp]
         allowed-exts: [jpg, jpeg, png, webp]
-        image:
-          square: true
-          min-width: 256
-          min-height: 256
-          max-width: 2048
-          max-height: 2048
+      MEMBER_BACKGROUND:
+        per-file: 5MB
+        per-request: 10MB
+        max-count: 1
+        allowed-mimes: [image/jpeg, image/png, image/webp]
+        allowed-exts: [jpg, jpeg, png, webp]
 
       AUCTION_ITEM:
         per-file: 8MB
@@ -235,11 +247,11 @@ app:
         allowed-exts: [jpg, jpeg, png, webp]
 
 block-chain:
-    sepolia:
-      rpc-url: "${SEPOLIA_RPC_URL}"
-      private-key: "${SEPOLIA_PRIVATE_KEY}"
-      wallet-address: "${SEPOLIA_WALLET_ADDRESS}"
-    contract-address:
-      auction:
-        factory: "${AUCTION_FACTORY_CONTRACT_ADDRESS}"
-      tako-card-nft: "${TAKO_CARD_NFT_CONTRACT_ADDRESS}"
+  sepolia:
+    rpc-url: "${SEPOLIA_RPC_URL}"
+    private-key: "${SEPOLIA_PRIVATE_KEY}"
+    wallet-address: "${SEPOLIA_WALLET_ADDRESS}"
+  contract-address:
+    auction:
+      factory: "${AUCTION_FACTORY_CONTRACT_ADDRESS}"
+    tako-card-nft: "${TAKO_CARD_NFT_CONTRACT_ADDRESS}"

@@ -19,7 +19,8 @@ import org.springframework.web.bind.annotation.*;
 import com.bukadong.tcg.api.popularity.aop.AutoPopularityBid;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 /**
  * 큐 기반 입찰 컨트롤러
@@ -36,7 +37,7 @@ public class BidQueueController {
     private final MemberQueryService memberQueryService;
     private final BidQueueProducer bidQueueProducer;
     private final AuctionCacheService auctionCacheService;
-    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
+    private static final ZoneOffset UTC = ZoneOffset.UTC;
 
     /**
      * 입찰 생성(큐)
@@ -73,7 +74,7 @@ public class BidQueueController {
 
         BigDecimal curAfter = new BigDecimal(r.get("currentPriceAfter"));
         BidResultResponse body = new BidResultResponse(null, // bidId는 비동기 생성
-                auctionId, curAfter, LocalDateTime.now(KST), "QUEUED");
+                auctionId, curAfter, LocalDateTime.now(UTC), "QUEUED");
         return BaseResponse.onSuccess(body);
     }
 }

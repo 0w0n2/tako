@@ -1,5 +1,8 @@
 package com.bukadong.tcg.api.auction.service;
 
+import com.bukadong.tcg.api.card.entity.PhysicalCard;
+import com.bukadong.tcg.api.member.entity.Member;
+
 import java.math.BigDecimal;
 
 /**
@@ -13,4 +16,6 @@ import java.math.BigDecimal;
  */
 public interface AuctionSettlementService {
     void enqueue(Long auctionId, Long winnerMemberId, BigDecimal amount);
+
+    void createEscrowForAuction(Long auctionId, BigDecimal amount, Member seller, Member buyer, PhysicalCard physicalCard);
 }

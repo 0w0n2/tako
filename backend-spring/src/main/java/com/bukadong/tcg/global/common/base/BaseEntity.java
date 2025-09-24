@@ -7,11 +7,11 @@ import jakarta.persistence.PreUpdate;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 /**
- * 생성일, 수정일 관리용 베이스 엔티티
- * createdAt, updatedAt 필드를 자동으로 관리.
- * jpa entity 클래스에 extends 해서 사용하면 됩니둥.
+ * 생성일, 수정일 관리용 베이스 엔티티 createdAt, updatedAt 필드를 자동으로 관리. jpa entity 클래스에
+ * extends 해서 사용하면 됩니둥.
  */
 @MappedSuperclass
 @Getter
@@ -25,7 +25,7 @@ public class BaseEntity {
 
     @PrePersist // 저장 전에 동작
     public void prePersist() {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
         if (createdAt == null)
             createdAt = now;
         if (updatedAt == null)
@@ -34,6 +34,6 @@ public class BaseEntity {
 
     @PreUpdate // 업데이트 전에 동작
     public void preUpdate() {
-        updatedAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now(ZoneOffset.UTC);
     }
 }

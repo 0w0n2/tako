@@ -8,6 +8,7 @@ pipeline {
     booleanParam(name: 'MANUAL_BACK', defaultValue: false, description: 'Backend only')
     booleanParam(name: 'MANUAL_FRONT', defaultValue: false, description: 'Frontend only')
     booleanParam(name: 'MANUAL_AI', defaultValue: false, description: 'AI Backend only')
+    booleanParam(name: 'MANUAL_MYSQL', defaultValue: false, description: 'MySQL only')
   }
 
   triggers {
@@ -54,10 +55,7 @@ pipeline {
     stage('Prepare repo(develop)') {
       when {
         expression {
-          params.MANUAL_DEV_DEPLOY || (
-            ((env.GL_MR_ACTION ?: "") == "merge" || (env.GL_MR_STATE ?: "") == "merged") &&
-            (env.GL_MR_TARGET == env.DEVELOP_BRANCH)
-          )
+          params.MANUAL_DEV_DEPLOY
         }
       }
       steps {
@@ -76,10 +74,7 @@ pipeline {
     stage('Prepare repo(release)') {
       when {
         expression {
-          params.MANUAL_PROD_DEPLOY || (
-            ((env.GL_MR_ACTION ?: "") == "merge" || (env.GL_MR_STATE ?: "") == "merged") &&
-            (env.GL_MR_TARGET == env.RELEASE_BRANCH)
-          )
+          params.MANUAL_PROD_DEPLOY
         }
       }
       steps {
@@ -98,10 +93,7 @@ pipeline {
     stage('Prepare .env.dev') {
       when {
         expression {
-          params.MANUAL_DEV_DEPLOY || (
-            ((env.GL_MR_ACTION ?: "") == "merge" || (env.GL_MR_STATE ?: "") == "merged") &&
-            (env.GL_MR_TARGET == env.DEVELOP_BRANCH)
-          )
+          params.MANUAL_DEV_DEPLOY
         }
       }
       steps {
@@ -117,10 +109,7 @@ pipeline {
     stage('Prepare .env.prod') {
       when {
         expression {
-          params.MANUAL_PROD_DEPLOY || (
-            ((env.GL_MR_ACTION ?: "") == "merge" || (env.GL_MR_STATE ?: "") == "merged") &&
-            (env.GL_MR_TARGET == env.RELEASE_BRANCH)
-          )
+          params.MANUAL_PROD_DEPLOY
         }
       }
       steps {
@@ -133,13 +122,26 @@ pipeline {
       }
     }
 
+    stage('Prepare .env.ai') {
+      when {
+        expression {
+          params.MANUAL_AI
+        }
+      }
+      steps {
+        withCredentials([file(credentialsId: 'ENV_AI_FILE', variable: 'ENV_AI_FILE')]) {
+          sh '''
+            set -eu
+            install -m 600 "$ENV_AI_FILE" deploy/.env.ai
+          '''
+        }
+      }
+    }
+
     stage('Back dev Deploy (compose up)') {
       when {
         expression {
-          (params.MANUAL_DEV_DEPLOY && params.MANUAL_BACK) || (
-            ((env.GL_MR_ACTION ?: "") == "merge" || (env.GL_MR_STATE ?: "") == "merged") &&
-            (env.GL_MR_TARGET == env.DEVELOP_BRANCH)
-          )
+          params.MANUAL_DEV_DEPLOY && params.MANUAL_BACK
         }
       }
       steps {
@@ -157,10 +159,7 @@ pipeline {
     stage('Front dev Deploy (compose up)') {
       when {
         expression {
-          (params.MANUAL_DEV_DEPLOY && params.MANUAL_FRONT) || (
-            ((env.GL_MR_ACTION ?: "") == "merge" || (env.GL_MR_STATE ?: "") == "merged") &&
-            (env.GL_MR_TARGET == env.DEVELOP_BRANCH)
-          )
+          params.MANUAL_DEV_DEPLOY && params.MANUAL_FRONT
         }
       }
       steps {
@@ -176,10 +175,7 @@ pipeline {
     stage('Back prod Deploy (compose up)') {
       when {
         expression {
-          (params.MANUAL_PROD_DEPLOY && params.MANUAL_BACK) || (
-            ((env.GL_MR_ACTION ?: "") == "merge" || (env.GL_MR_STATE ?: "") == "merged") &&
-            (env.GL_MR_TARGET == env.RELEASE_BRANCH)
-          )
+          params.MANUAL_PROD_DEPLOY && params.MANUAL_BACK
         }
       }
       steps {
@@ -195,10 +191,7 @@ pipeline {
     stage('Front prod Deploy (compose up)') {
       when {
         expression {
-          (params.MANUAL_PROD_DEPLOY && params.MANUAL_FRONT) || (
-            ((env.GL_MR_ACTION ?: "") == "merge" || (env.GL_MR_STATE ?: "") == "merged") &&
-            (env.GL_MR_TARGET == env.RELEASE_BRANCH)
-          )
+          params.MANUAL_PROD_DEPLOY && params.MANUAL_FRONT
         }
       }
       steps {
@@ -214,18 +207,47 @@ pipeline {
     stage('AI Deploy (compose up)') {
       when {
         expression {
-          params.MANUAL_AI || (
-            ((env.GL_MR_ACTION ?: "") == "merge" || (env.GL_MR_STATE ?: "") == "merged") &&
-            (env.GL_MR_TARGET == env.DEVELOP_BRANCH)
-          )
+          params.MANUAL_AI && (params.MANUAL_DEV_DEPLOY || params.MANUAL_PROD_DEPLOY)
         }
       }
       steps {
         sh '''
           set -eux
 
-          docker compose -f "$COMPOSE_AI_FILE" pull || true
-          docker compose -f "$COMPOSE_AI_FILE" up -d --build tako_ai
+          docker compose --env-file deploy/.env.ai -f "$COMPOSE_AI_FILE" pull || true
+          docker compose --env-file deploy/.env.ai -f "$COMPOSE_AI_FILE" up -d --build tako_ai
+        '''
+      }
+    }
+
+    stage('MySQL dev (compose up)') {
+      when {
+        expression {
+          params.MANUAL_DEV_DEPLOY && params.MANUAL_MYSQL
+        }
+      }
+      steps {
+        sh '''
+          set -eux
+
+          docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" pull || true
+          docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" up -d --build mysql_dev
+        '''
+      }
+    }
+
+    stage('MySQL prod (compose up)') {
+      when {
+        expression {
+          params.MANUAL_PROD_DEPLOY && params.MANUAL_MYSQL
+        }
+      }
+      steps {
+        sh '''
+          set -eux
+
+          docker compose --env-file deploy/.env.prod -f "$COMPOSE_PROD_FILE" pull || true
+          docker compose --env-file deploy/.env.prod -f "$COMPOSE_PROD_FILE" up -d --build mysql_prod
         '''
       }
     }

@@ -27,6 +27,15 @@ import java.util.Optional;
  * @RETURN 표준 CRUD + 커스텀 조회
  */
 public interface AuctionRepository extends JpaRepository<Auction, Long> {
+    /** Delivery ID로 역참조하여 경매 조회 */
+    @Query("select a from Auction a where a.delivery.id = :deliveryId")
+    Optional<Auction> findByDeliveryId(@Param("deliveryId") Long deliveryId);
+
+    /**
+     * 내 경매 목록
+     */
+    org.springframework.data.domain.Page<Auction> findByMember_IdOrderByIdDesc(Long memberId,
+            org.springframework.data.domain.Pageable pageable);
 
     /**
      * 경매 ID로 연결된 카드 ID를 조회한다.
@@ -83,12 +92,13 @@ public interface AuctionRepository extends JpaRepository<Auction, Long> {
     // 추가
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("""
-                update Auction a
-                   set a.isEnd = true,
-                       a.closeReason = :reason,
-                       a.closedAt = :closedAt
-                 where a.id = :id
-                   and a.isEnd = false
+              update Auction a
+                 set a.isEnd = true,
+                     a.closeReason = :reason,
+                     a.closedAt = :closedAt,
+                     a.updatedAt = :closedAt
+               where a.id = :id
+                 and a.isEnd = false
             """)
     int closeManually(@Param("id") Long id, @Param("reason") AuctionCloseReason reason,
             @Param("closedAt") LocalDateTime closedAt);
@@ -96,7 +106,7 @@ public interface AuctionRepository extends JpaRepository<Auction, Long> {
     /**
      * 마감 도래했고 아직 종료되지 않은 경매를 종료 상태로 전환
      * <P>
-     * isEnd=false && endDatetime<=NOW(KST)인 경우에만 종료 마킹.
+     * isEnd=false && endDatetime<=NOW인 경우에만 종료 마킹.
      * </P>
      * 
      * @PARAM auctionId 경매 ID
@@ -105,15 +115,17 @@ public interface AuctionRepository extends JpaRepository<Auction, Long> {
      */
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("""
-                update Auction a
-                   set a.isEnd = true,
-                       a.closeReason = :reason,
-                       a.closedAt = CURRENT_TIMESTAMP
-                 where a.id = :auctionId
-                   and a.isEnd = false
-                   and a.endDatetime <= CURRENT_TIMESTAMP
+              update Auction a
+                 set a.isEnd = true,
+                     a.closeReason = :reason,
+                     a.closedAt = :nowUtc,
+                     a.updatedAt = :nowUtc
+               where a.id = :auctionId
+                 and a.isEnd = false
+                 and a.endDatetime <= :nowUtc
             """)
-    int closeIfDue(@Param("auctionId") long auctionId, @Param("reason") AuctionCloseReason reason);
+    int closeIfDue(@Param("auctionId") long auctionId, @Param("reason") AuctionCloseReason reason,
+            @Param("nowUtc") LocalDateTime nowUtc);
 
     /**
      * 다건 종료(배치)
@@ -127,15 +139,16 @@ public interface AuctionRepository extends JpaRepository<Auction, Long> {
      */
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("""
-                update Auction a
-                   set a.isEnd = true,
-                       a.closeReason = :reason,
-                       a.closedAt = CURRENT_TIMESTAMP
-                 where a.id in :auctionIds
-                   and a.isEnd = false
-                   and a.endDatetime <= CURRENT_TIMESTAMP
+              update Auction a
+                 set a.isEnd = true,
+                     a.closeReason = :reason,
+                     a.closedAt = :nowUtc
+               where a.id in :auctionIds
+                 and a.isEnd = false
+                 and a.endDatetime <= :nowUtc
             """)
-    int closeIfDueIn(@Param("auctionIds") List<Long> auctionIds, @Param("reason") AuctionCloseReason reason);
+    int closeIfDueIn(@Param("auctionIds") List<Long> auctionIds, @Param("reason") AuctionCloseReason reason,
+            @Param("nowUtc") LocalDateTime nowUtc);
 
     /**
      * 부트스트랩: 미종료 & end_datetime <= horizon 인 경매의 (id, endAtMillis) 목록 (MySQL:
@@ -166,4 +179,40 @@ public interface AuctionRepository extends JpaRepository<Auction, Long> {
     @Query("select a from Auction a where a.id = :id")
     Optional<Auction> findByIdForUpdate(@Param("id") Long id);
 
+    /**
+     * 회원이 입찰한 진행중 경매 목록 조회 (페이지네이션)
+     */
+    @Query("""
+            select a from Auction a
+             where a.isEnd = false
+               and exists (select 1 from AuctionBid b where b.auction = a and b.member.id = :memberId)
+             order by a.endDatetime asc, a.id asc
+            """)
+    org.springframework.data.domain.Page<Auction> findOngoingByMemberBids(@Param("memberId") Long memberId,
+            org.springframework.data.domain.Pageable pageable);
+
+    /**
+     * 회원이 입찰한 종료된 경매 목록 조회 (페이지네이션)
+     * <p>
+     * 종료된 경매는 최근 종료된 항목이 먼저 오도록 endDatetime DESC 정렬. (요구사항: "종료된 경매도 끝나는 시간 순" 해석을
+     * 최근 종료 우선으로 가정. 필요 시 ASC로 변경 가능.)
+     * </p>
+     */
+    @Query("""
+            select a from Auction a
+             where a.isEnd = true
+               and exists (select 1 from AuctionBid b where b.auction = a and b.member.id = :memberId)
+             order by a.endDatetime desc, a.id desc
+            """)
+    org.springframework.data.domain.Page<Auction> findEndedByMemberBids(@Param("memberId") Long memberId,
+            org.springframework.data.domain.Pageable pageable);
+
+    /**
+     * 미종료 경매 ID 전체 조회(부팅 워밍용)
+     * <P>
+     * closeReason이 NULL이거나 isEnd=false 인 것 기준. 도메인 필드 기준으로 isEnd=false를 우선 사용.
+     * </P>
+     */
+    @Query("select a.id from Auction a where a.isEnd = false")
+    List<Long> findAllOpenIds();
 }
