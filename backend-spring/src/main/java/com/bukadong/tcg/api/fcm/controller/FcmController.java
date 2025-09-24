@@ -4,6 +4,7 @@ import com.bukadong.tcg.api.fcm.dto.RegisterFcmTokenRequest;
 import com.bukadong.tcg.api.fcm.dto.SendTestPushRequest;
 import com.bukadong.tcg.api.fcm.service.FcmPushService;
 import com.bukadong.tcg.api.fcm.service.FcmTokenService;
+import com.bukadong.tcg.api.member.service.MemberQueryService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -29,43 +30,32 @@ public class FcmController {
 
     private final FcmTokenService fcmTokenService;
     private final FcmPushService fcmPushService;
-    private final com.bukadong.tcg.api.member.service.MemberQueryService memberQueryService;
+    private final MemberQueryService memberQueryService;
 
-    /**
-     * 토큰 등록 기존 memberId QueryParam -> 인증 principal 로 변경.
-     */
-    @PostMapping("/token")
-    @Operation(summary = "FCM 토큰 등록", description = "로그인한 사용자의 FCM 토큰을 등록합니다. 동일 토큰이 이미 존재하면 무시합니다.")
-    public ResponseEntity<Void> register(@AuthenticationPrincipal CustomUserDetails user,
+    @PostMapping("/enable")
+    @Operation(summary = "FCM 활성화(토큰 등록)", description = "현재 로그인한 사용자에 대해 전달된 FCM 토큰을 등록합니다.")
+    public ResponseEntity<Void> enable(@AuthenticationPrincipal CustomUserDetails user,
             @Valid @RequestBody RegisterFcmTokenRequest req) {
         Long memberId = memberQueryService.getByUuid(user.getUuid()).getId();
         fcmTokenService.register(memberId, req.getToken());
         return ResponseEntity.ok().build();
     }
 
-    /**
-     * 이 기기만 활성화(재설정) - 기존 모든 토큰 제거 후 새 토큰 하나만 등록
-     */
-    @PostMapping("/token/reset")
-    @Operation(summary = "FCM 토큰 재설정", description = "로그인한 사용자의 기존 모든 토큰을 삭제하고 본 기기의 토큰 하나만 유지합니다.")
-    public ResponseEntity<Void> resetSingle(@AuthenticationPrincipal CustomUserDetails user,
+    @PostMapping("/disable")
+    @Operation(summary = "FCM 비활성화(토큰 해제)", description = "현재 로그인한 사용자의 전달된 FCM 토큰을 해제(삭제)합니다.")
+    public ResponseEntity<Void> disable(@AuthenticationPrincipal CustomUserDetails user,
             @Valid @RequestBody RegisterFcmTokenRequest req) {
         Long memberId = memberQueryService.getByUuid(user.getUuid()).getId();
-        fcmTokenService.resetSingleDevice(memberId, req.getToken());
+        fcmTokenService.unregister(memberId, req.getToken());
         return ResponseEntity.ok().build();
     }
 
-    /**
-     * FCM 활성 상태 조회
-     * 
-     * @param memberId 회원 ID (임시) / currentToken (선택) : 현재 브라우저가 가진 토큰이 등록되어 있는지 확인용
-     */
     @GetMapping("/status")
-    @Operation(summary = "FCM 상태 조회", description = "회원 ID와 선택적으로 현재 토큰을 전달받아 FCM 활성 상태를 조회합니다.")
+    @Operation(summary = "FCM 상태 조회", description = "현재 로그인한 사용자의 FCM 등록 상태를 조회합니다. token 파라미터를 주면 해당 토큰 등록 여부도 함께 반환합니다.")
     public ResponseEntity<FcmTokenService.FcmStatus> status(@AuthenticationPrincipal CustomUserDetails user,
-            @Parameter(description = "현재 FCM 토큰") @RequestParam(name = "currentToken", required = false) String currentToken) {
+            @Parameter(description = "확인할 FCM 토큰") @RequestParam(name = "token", required = false) String token) {
         Long memberId = memberQueryService.getByUuid(user.getUuid()).getId();
-        return ResponseEntity.ok(fcmTokenService.status(memberId, currentToken));
+        return ResponseEntity.ok(fcmTokenService.status(memberId, token));
     }
 
     /**
