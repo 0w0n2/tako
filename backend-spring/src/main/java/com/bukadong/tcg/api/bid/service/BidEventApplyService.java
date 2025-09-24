@@ -24,6 +24,8 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.TransientDataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -135,65 +137,73 @@ public class BidEventApplyService {
                 throw new NonRetryableException("AUCTION_NOT_FOUND:" + auctionId);
             }
 
-            // 4) 정상 ACCEPT 처리: 입찰 저장
+            // 4) 정상 ACCEPT 처리: 입찰 저장 + DB 엔티티 가격 갱신
             AuctionBid ab = AuctionBid.builder().auction(auction).member(em.getReference(Member.class, memberId))
                     .amount(bid).status(AuctionBidStatus.VALID).eventId(eventId).build();
             auctionBidRepository.save(ab);
 
-            // 5) DB 현재가 갱신
-            auction.changeCurrentPrice(bid);
+            auction.changeCurrentPrice(bid); // 도메인 유효성 검사 포함
 
-            // 6) Redis 가격 캐시 보정(상승만 반영) + SSE 가격/입찰 브로드캐스트
-            auctionCacheService.overwritePrice(auctionId, bid.toPlainString());
-            long nowSec = Instant.now().getEpochSecond();
-            auctionLiveSseService.publishPriceUpdate(auctionId, bid.toPlainString(), null);
-            // 상세 전용 bid 이벤트: 닉네임/시간 문자열로 변환
-            String nickname = memberRepository.findById(memberId).map(Member::getNickname).orElse("member-" + memberId);
-            String timeIso = java.time.Instant.ofEpochSecond(nowSec).toString();
-            auctionLiveSseService.publishBidAccepted(auctionId, nickname, bid.toPlainString(), timeIso);
+            // 부작용(캐시/SSE/ZSET)은 커밋 성공 후 수행하도록 캡처
+            final String bidPlain = bid.toPlainString();
+            final long nowSec = Instant.now().getEpochSecond();
+            final String nickname = memberRepository.findById(memberId).map(Member::getNickname)
+                    .orElse("member-" + memberId);
 
-            // 7) (핵심) 마감 연장 & 데드라인 ZSET 갱신
-            // - 같은 트랜잭션 맥락에서 endAt 변경 및 ZSET 스코어 갱신
-            try {
-                if (extensionEnabled && auction.isExtensionFlag() && !auction.isEnd()
-                        && auction.getEndDatetime() != null) {
-                    Instant now = Instant.now();
-                    Instant endAt = auction.getEndDatetime().atOffset(ZoneOffset.UTC).toInstant();
+            // 연장 관련 사전 계산 (DB endDatetime 은 즉시 변경해도 JPA flush 시 반영)
+            final Instant endAtBefore = auction.getEndDatetime() != null
+                    ? auction.getEndDatetime().atOffset(ZoneOffset.UTC).toInstant()
+                    : null;
+            final boolean[] extendedHolder = { false };
+            final Instant[] newEndAtHolder = { null };
+            if (extensionEnabled && auction.isExtensionFlag() && !auction.isEnd() && auction.getEndDatetime() != null) {
+                Instant now = Instant.now();
+                Instant endAt = endAtBefore;
+                if (endAt != null) {
                     long remainingSec = ChronoUnit.SECONDS.between(now, endAt);
-
                     if (remainingSec <= extensionThresholdSeconds) {
-                        // 임계 이하 → 연장
-                        Instant newEndAt = endAt.plusSeconds(extendBySeconds);
-
-                        // (a) DB 엔티티 반영(도메인 메서드 사용)
-                        auction.setEndDatetime(newEndAt.atOffset(ZoneOffset.UTC).toLocalDateTime());
-
-                        // (b) Redis 해시 end_ts 갱신(초) + ZSET 스코어 갱신(epochMillis)
-                        try {
-                            long newEndSec = newEndAt.getEpochSecond();
-                            auctionCacheService.reopenUntil(auctionId, newEndSec);
-                            auctionLiveSseService.publishEndTsUpdate(auctionId, newEndSec);
-                        } catch (Exception ignore) {
-                            // end_ts 캐시/SSE 반영 실패는 워커/리컨실로 보정 가능하므로 무시
-                        }
-                        // (c) Redis ZSET 스코어 갱신(epochMillis)
-                        deadlineIndex.upsert(auctionId, newEndAt.toEpochMilli());
-
-                        log.debug("Auction end extended: auctionId={}, old={}, new={}", auctionId, endAt, newEndAt);
-                    } else {
-                        // 연장 조건 미충족 → 그래도 ZSET에 보장 등록
-                        deadlineIndex.upsert(auctionId, endAt.toEpochMilli());
+                        Instant newEndAtInstant = endAt.plusSeconds(extendBySeconds);
+                        auction.setEndDatetime(newEndAtInstant.atOffset(ZoneOffset.UTC).toLocalDateTime());
+                        extendedHolder[0] = true;
+                        newEndAtHolder[0] = newEndAtInstant;
                     }
-                } else if (auction.getEndDatetime() != null) {
-                    // 연장 기능 OFF이거나 확장 비대상이어도, 최소 1회 ZSET 등록은 보장
-                    Instant endAt = auction.getEndDatetime().atOffset(ZoneOffset.UTC).toInstant();
-                    deadlineIndex.upsert(auctionId, endAt.toEpochMilli());
                 }
-            } catch (Exception schedEx) {
-                // 스케줄 갱신 실패는 입찰 자체 실패로 만들지 않음 (워커/리컨실 보정으로 회복 가능)
-                log.error("Failed to update deadline scheduling. auctionId={}, eventId={}", auctionId, eventId,
-                        schedEx);
             }
+
+            // 커밋 이후 실행 등록
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    try {
+                        // 가격 캐시 & SSE
+                        auctionCacheService.overwritePrice(auctionId, bidPlain);
+                        auctionLiveSseService.publishPriceUpdate(auctionId, bidPlain, null);
+                        String timeIso = java.time.Instant.ofEpochSecond(nowSec).toString();
+                        auctionLiveSseService.publishBidAccepted(auctionId, nickname, bidPlain, timeIso);
+
+                        // 마감 연장/등록 처리
+                        try {
+                            if (extendedHolder[0] && newEndAtHolder[0] != null) {
+                                long newEndSec = newEndAtHolder[0].getEpochSecond();
+                                auctionCacheService.reopenUntil(auctionId, newEndSec);
+                                auctionLiveSseService.publishEndTsUpdate(auctionId, newEndSec);
+                                deadlineIndex.upsert(auctionId, newEndAtHolder[0].toEpochMilli());
+                                log.debug("[afterCommit] Auction end extended: auctionId={}, new={}", auctionId,
+                                        newEndAtHolder[0]);
+                            } else if (endAtBefore != null) {
+                                deadlineIndex.upsert(auctionId, endAtBefore.toEpochMilli());
+                            }
+                        } catch (Exception schedEx) {
+                            log.error("[afterCommit] Failed deadline scheduling update auctionId={}, eventId={}",
+                                    auctionId, eventId, schedEx);
+                        }
+                    } catch (Exception sideEx) {
+                        // 커밋 후 부작용 실패는 워커/리컨실/주기적 보정으로 회복 (로그만 남김)
+                        log.error("[afterCommit] Side effect error auctionId={}, eventId={}", auctionId, eventId,
+                                sideEx);
+                    }
+                }
+            });
 
         } catch (PessimisticLockException | LockAcquisitionException e) {
             // 락 경합 등 일시 오류 → 재시도
@@ -209,9 +219,8 @@ public class BidEventApplyService {
             // 위에서 명시적으로 분류된 영구 실패
             throw non;
         } catch (Exception ex) {
-            // 예기치 못한 오류 → FAILED 기록 시도 후 DLQ
-            safelyRecordFailed(auctionId, memberId, bid, eventId, "UNEXPECTED");
-            throw new NonRetryableException("UNEXPECTED", ex);
+            // 예기치 못한 오류: 우선 재시도(일시 환경 요인 가능). 재시도 후에도 반복되면 운영介入.
+            throw new RetryableException("UNEXPECTED_TRANSIENT?", ex);
         }
     }
 
