@@ -80,7 +80,7 @@ assert DATABASE_URL is not None
 engine = create_async_engine(DATABASE_URL, future=True)
 
 
-async def insert_grade(hash):
+async def insert_grade(hash, grade):
     now = datetime.datetime.utcnow()
 
     sql = text(
@@ -93,7 +93,7 @@ async def insert_grade(hash):
         await conn.execute(
             sql,
             {
-                "grade_code": "A1",
+                "grade_code": grade,
                 "created_at": now,
                 "updated_at": now,
                 "hash": hash,
@@ -537,7 +537,7 @@ async def condition_check(
         "grade": grade(final_score),
         "hash": hash,
     }
-    await insert_grade(hash)
+    await insert_grade(hash, grade(final_score))
     return JSONResponse(result)
 
 
