@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import SellOnGoingAuction from '@/components/mypage/SellOnGoingAuction';
+import SellEndedAuction from '@/components/mypage/SellEndedAuction';
 
 export default function SellAuctionPage() {
   const [activeTab, setActiveTab] = useState<'ongoing' | 'ended'>('ongoing');
@@ -44,7 +45,7 @@ export default function SellAuctionPage() {
           <SellOnGoingAuction />
         )}
         {activeTab==='ended' && (
-          <></>
+          <SellEndedAuction />
         )}
       </div>
     </div>

@@ -47,11 +47,12 @@ export interface MySellAuctions {
   startDatetime: string|null;
   endDatetime: string|null;
   isEnd: boolean|null;
+  idDelivery: boolean| null;
   currentPrice: number|null;
   imageUrl: string|null;
   bids: Bids[];
 }
-interface Bids {
+export interface Bids {
   data: string|null;
   nickname: string|null;
   price: number|null;

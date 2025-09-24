@@ -11,9 +11,6 @@ import { MyBidAuctions } from "@/types/auth"
 export default function UserSideMenu(){
     const { handleLogout } = useLogin();
     const { myInfo, myInfoLoading, myInfoError, myBidAuctions } = useMyInfo();
-  
-    if (myInfoLoading) return <p>불러오는 중...</p>;
-    if (myInfoError) return <p>내 정보를 불러오지 못했습니다.</p>;
 
     // console.log(myBidAuctions)
 
@@ -26,7 +23,11 @@ export default function UserSideMenu(){
             <SheetHeader>
               <SheetTitle>{myInfo?.nickname}</SheetTitle>
               <SheetDescription>
-                최근 입찰내역을 확인하세요.
+                {myInfoError ? (
+                  <p>정보를 불러오지 못했습니다.</p>
+                ) : (
+                  <p>최근 입찰내역을 확인하세요.</p>
+                )}
               </SheetDescription>
               <div className="grid grid-cols-2 gap-3 my-3">
                 <SheetClose asChild>
