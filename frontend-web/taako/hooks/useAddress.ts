@@ -1,7 +1,7 @@
 'use client'
 
-import { addMyAddress, getMyAddress, deleteMyAddress, defaultAddAddress } from "@/lib/address";
-import { AddressRequest, AddressResponse } from "@/types/address";
+import { addMyAddress, getMyAddress, deleteMyAddress, defaultAddAddress, defaultGetAddress } from "@/lib/address";
+import { AddressResponse } from "@/types/address";
 import { useEffect, useState } from "react";
 
 export function useAddress() {

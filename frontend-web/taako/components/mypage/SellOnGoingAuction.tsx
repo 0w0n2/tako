@@ -24,7 +24,13 @@ const dummy: MySellAuctions[] = [
       { data:"2025/09/05T10:00", nickname:"as12df", price:50 },
       { data:"2025/09/17T12:00", nickname:"hhhdf", price:90 },
       { data:"2025/09/24T10:00", nickname:"as12df", price:124 },
-    ]
+    ],
+    delivery: {
+      "status": "string",
+      "existTrackingNumber": true,
+      "existRecipientAddress": true,
+      "existSenderAddress": true
+    }
   }
 ];
 

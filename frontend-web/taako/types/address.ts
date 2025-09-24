@@ -16,3 +16,12 @@ export interface AddressResponse {
     zipcode: string;
     default: boolean;
 }
+
+
+// 기본 배송지 조회
+export interface GetDefaultAddress {
+    id: number;
+    placeName: string;
+    baseAddress: string;
+    zipcode: string;
+}

@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { getInfo, getMyBidAuction } from "@/lib/mypage";
-import { MyInfo, MyBidAuctions } from "@/types/auth";
+import { getInfo, getMyBidAuction, getMySellAutcion } from "@/lib/mypage";
+import { MyInfo, MyBidAuctions, MySellAuctions } from "@/types/auth";
 
 export function useMyInfo() {
   // 내 프로필 조회
@@ -27,14 +27,23 @@ export function useMyInfo() {
   const countOngoing = ongoingAuctions.length;
   const countEnded = endedAuctions.length;
 
+
+  // 내 판매 경매 조회
+  const {
+    data: mySellAuctionsData, isLoading: mySellLoading, error: mySellError,
+  } = useQuery<{ result: { content: MySellAuctions[] } }>({
+    queryKey: ["mySellAuctions"],
+    queryFn: getMySellAutcion,
+  });
+  const mySellAuctions = mySellAuctionsData?.result?.content ?? [];
+
+  const ongoingSellAuctions = mySellAuctions.filter(auction => !auction.isEnd);
+  const endedSellAuctions = mySellAuctions.filter(auction => auction.isEnd);
+
   return {
-    myInfo: myInfo?.result ?? null,
-    myInfoLoading,
-    myInfoError,
-    myBidAuctions,
-    ongoingAuctions, countOngoing,
-    endedAuctions, countEnded,
-    myBidLoading,
-    myBidError,
+    myInfo: myInfo?.result ?? null, myInfoLoading, myInfoError,
+    ongoingAuctions, countOngoing, endedAuctions, countEnded,
+    myBidAuctions, myBidLoading, myBidError,
+    mySellAuctionsData, ongoingSellAuctions, endedSellAuctions
   };
 }
