@@ -32,7 +32,7 @@ export default function SearchAuctionFilter() {
 
   const selectedMajorId = Number(searchParams.get("categoryMajorId")) || null;
   const selectedMinorId = Number(searchParams.get("categoryMediumId")) || null;
-  const currentSort = searchParams.get("sort");
+  const currentSort = searchParams.get("sort") || "";
 
   // 🔹 SelectValue 상태 관리
   const [majorValue, setMajorValue] = useState<string>("");
