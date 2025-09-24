@@ -78,7 +78,7 @@ export async function removeFcmToken(token?: string): Promise<boolean> {
 // 백엔드 구현 (/v1/fcm/enable)과 맞춘 등록(활성화)
 export async function registerTokenToBackend(token: string) {
 	log("registerTokenToBackend(/enable) start", { tokenPreview: token.substring(0, 10) });
-	await api.post(`http://localhost:8080/v1/fcm/enable`, { token });
+	await api.post(`/v1/fcm/enable`, { token });
 	log("registerTokenToBackend done");
 }
 
@@ -86,14 +86,14 @@ export async function registerTokenToBackend(token: string) {
 // 토큰을 유지하면서 비활성화하는 패턴과 다름에 유의.
 export async function unregisterTokenFromBackend(token: string) {
 	log("unregisterTokenFromBackend(/disable) start", { tokenPreview: token.substring(0, 10) });
-	await api.post(`http://localhost:8080/v1/fcm/disable`, { token });
+	await api.post(`/v1/fcm/disable`, { token });
 	log("unregisterTokenFromBackend done");
 }
 
 export async function fetchFcmStatus(token?: string): Promise<FcmStatus> {
 	const query = token ? `?token=${encodeURIComponent(token)}` : "";
 	log("fetchFcmStatus ->", query || "(no token param)");
-	const res = await api.get(`http://localhost:8080/v1/fcm/status${query}`);
+	const res = await api.get(`/v1/fcm/status${query}`);
 	log("fetchFcmStatus raw response", res.data);
 	// 백엔드가 { active, currentRegistered, tokenCount } 형태라고 로그 상 추정 → hasAnyToken 에 active 매핑
 	const data = res.data;

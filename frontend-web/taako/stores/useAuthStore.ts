@@ -14,7 +14,7 @@ export const useAuthStore = create<AuthState>()(
 				set({ loading: true, error: null });
 				try {
 					const res = await api.post(
-						"http://localhost:8080/v1/auth/sign-in",
+						"/v1/auth/sign-in",
 						{
 							email,
 							password,
@@ -62,7 +62,7 @@ export const useAuthStore = create<AuthState>()(
 			refreshAccessToken: async () => {
 				try {
 					const oldToken = get().token;
-					const res = await api.post("http://localhost:8080/v1/auth/token/refresh", undefined, {
+					const res = await api.post("/v1/auth/token/refresh", undefined, {
 						// payload 없음으로 판단하고 헤더 사용
 						headers: { Authorization: oldToken },
 						withCredentials: true,

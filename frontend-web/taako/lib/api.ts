@@ -28,7 +28,7 @@ api.interceptors.response.use(
 	async (error) => {
 		const originalRequest = error.config;
 
-		if (originalRequest.url.includes("http://localhost:8080/v1/auth/token/refresh")) {
+		if (originalRequest.url.includes("/v1/auth/token/refresh")) {
 			return Promise.reject(error);
 		}
 
