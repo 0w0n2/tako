@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import Loading from '@/components/Loading';
@@ -11,6 +11,7 @@ import RemainingTime from '@/components/atoms/RemainingTime';
 import AuctionChart from '@/components/charts/AuctionChart';
 import AuctionInquiry from '@/components/sections/auction/AuctionInquiry';
 import { useAuctionDetail } from '@/hooks/useAuctionDetail';
+import { useAuctionPrice } from '@/hooks/useAuctionPrice';
 
 type Props = {
   auctionId: number;
@@ -18,12 +19,8 @@ type Props = {
 };
 
 export default function AuctionDetailClient({ auctionId, historySize = 5 }: Props) {
-  // ⚠️ 모든 Hook은 최상단에서 호출
   const { data, loading, error, wished, pendingWish, wishError, toggleWish } =
     useAuctionDetail(auctionId, historySize);
-
-  // 실시간/낙관적 반영을 위한 현재가 로컬 상태
-  const [currentPrice, setCurrentPrice] = useState<number | null>(null);
 
   // 문의 개수
   const [inqTotal, setInqTotal] = useState<number>(0);
@@ -31,12 +28,15 @@ export default function AuctionDetailClient({ auctionId, historySize = 5 }: Prop
     setInqTotal((prev) => (prev === n ? prev : n)); // 같은 값이면 렌더 스킵
   };
 
-  // 상세 데이터가 바뀔 때 현재가 동기화 (Hook은 항상 호출되므로 안전)
-  useEffect(() => {
-    if (typeof data?.currentPrice === 'number') {
-      setCurrentPrice((prev) => (prev === data.currentPrice ? prev : data.currentPrice));
-    }
-  }, [data?.currentPrice]);
+  // 상세 로드된 현재가를 초기값으로, SSE+폴링으로 계속 갱신
+  const initial = typeof data?.currentPrice === 'number' ? data.currentPrice : 0;
+  const [currentPrice, setCurrentPrice] = useAuctionPrice(auctionId, initial, {
+    sseUrl: `${process.env.NEXT_PUBLIC_API_BASE_URL}/v1/auctions/${auctionId}/live`,
+    pollUrl: `/v1/auctions/${auctionId}`,
+    withCredentials: true, // 세션 쿠키 사용 시
+    pollMs: 4000,
+    getPrice: (j) => j?.result?.currentPrice ?? j?.currentPrice,
+  });
 
   if (loading) {
     return (
