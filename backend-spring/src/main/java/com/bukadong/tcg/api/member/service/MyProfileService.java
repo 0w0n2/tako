@@ -47,8 +47,7 @@ public class MyProfileService {
         Map<String, Integer> map = settings.stream().collect(Collectors.toMap(
                 s -> s.getNotificationType().getCode().name(), s -> Boolean.TRUE.equals(s.getEnabled()) ? 1 : 0));
 
-        return new MyProfileResponse(me.getId(), me.getEmail(), me.getNickname(), me.getIntroduction(), profileUrl,
-                backgroundUrl, map);
+        return MyProfileResponse.toDto(me, profileUrl, backgroundUrl, map);
     }
 
     @Transactional
