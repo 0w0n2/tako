@@ -230,6 +230,7 @@ export default function NewAuctionPage() {
                     alt="선택된 카드 이미지"
                     width={100}
                     height={100}
+                    unoptimized
                   />
                 </div>
                 <p className="text-[#a5a5a5] text-center">{selectedCardName}</p>
@@ -311,8 +312,8 @@ export default function NewAuctionPage() {
                         <Image
                           src={getImagePreview(uploadedImages[key])!}
                           alt={label}
-                          fill
                           className="object-cover"
+                          unoptimized
                         />
                         <button
                           type="button"
