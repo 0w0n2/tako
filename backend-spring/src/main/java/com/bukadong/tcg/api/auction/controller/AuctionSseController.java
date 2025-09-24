@@ -2,6 +2,9 @@ package com.bukadong.tcg.api.auction.controller;
 
 import com.bukadong.tcg.api.auction.sse.AuctionLiveSseService;
 import com.bukadong.tcg.api.bid.service.AuctionCacheService;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -34,8 +37,9 @@ public class AuctionSseController {
     /**
      * 경매 상세 화면 SSE 구독 (특정 경매)
      */
+    @Operation(summary = "경매 상세 화면 SSE 구독 (특정 경매)", description = "특정 경매의 실시간 업데이트를 구독합니다.")
     @GetMapping(path = "/{auctionId}/live", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter subscribeAuction(@PathVariable("auctionId") long auctionId) {
+    public SseEmitter subscribeAuction(@Parameter(description = "경매 ID") @PathVariable("auctionId") long auctionId) {
         // 상세는 최초 1회 Redis 스냅샷을 전송하기 위해 ensureLoaded 이후 해시 조회
         auctionCacheService.ensureLoaded(auctionId);
         Map<Object, Object> raw = sseService.readSnapshot(auctionId);
@@ -47,8 +51,10 @@ public class AuctionSseController {
     /**
      * 경매 목록 화면 SSE 구독 (선택한 경매 ID들만) 예: /v1/auctions/live/select?ids=1,2,3
      */
+    @Operation(summary = "경매 목록 화면 SSE 구독 (선택한 경매 ID들만)", description = "ids 쿼리 파라미터로 구독할 경매 ID들을 쉼표로 구분하여 전달합니다. 예: ids=1,2,3")
     @GetMapping(path = "/live/select", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter subscribeSelected(@RequestParam(name = "ids", required = false) String idsParam) {
+    public SseEmitter subscribeSelected(
+            @Parameter(description = "구독할 경매 ID들 (쉼표로 구분)") @RequestParam(name = "ids", required = false) String idsParam) {
         // ids 파싱 및 정리
         Set<Long> ids = new LinkedHashSet<>();
         if (idsParam != null && !idsParam.isBlank()) {
