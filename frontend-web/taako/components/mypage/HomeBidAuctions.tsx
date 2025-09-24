@@ -4,7 +4,7 @@ import { useMyInfo } from "@/hooks/useMyInfo"
 
 export default function HomeBidAuctions(){
     const {
-      myBidAuctions,
+      myInfo,
       myBidLoading,
       myBidError,
     } = useMyInfo();
