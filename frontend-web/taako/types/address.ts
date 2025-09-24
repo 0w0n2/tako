@@ -16,3 +16,15 @@ export interface AddressResponse {
     zipcode: string;
     default: boolean;
 }
+
+// 상세 조회/생성/수정 응답 (result 스키마)
+export interface AddressDetail {
+  id: number;
+  placeName: string;
+  name: string;
+  phone: string;
+  baseAddress: string;
+  addressDetail: string;
+  zipcode: string;
+  default: boolean;
+}
