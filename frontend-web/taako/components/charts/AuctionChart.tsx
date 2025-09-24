@@ -6,13 +6,25 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts"
 interface History {
     props: AuctionDetailProps
 }
-
 export default function AuctionChart({ props }: History) {
     const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    const chartData = props.weeklyAuctions.map(d => ({
-        ...d,
-        weekDay: weekDays[new Date(d.date).getDay()],
-    }));
+    
+    // 데이터 검증 및 변환
+    const chartData = props.weeklyAuctions
+        ?.filter(d => d && d.date)
+        ?.map(d => {
+            const date = new Date(d.date);
+            // 유효한 날짜인지 확인
+            if (isNaN(date.getTime())) {
+                console.warn('Invalid date:', d.date);
+                return null;
+            }
+            return {
+                ...d,
+                weekDay: weekDays[date.getDay()],
+            };
+        })
+        ?.filter(Boolean) || [];
 
     const CustomTooltip = ({ active, payload, label }: any) => {
         if (active && payload && payload.length) {
@@ -52,15 +64,21 @@ export default function AuctionChart({ props }: History) {
 
     return (
         <div>
-            <LineChart width={540} height={200} data={chartData}>
-                <CartesianGrid stroke="#222" strokeDasharray="3 3" />
-                <XAxis dataKey="weekDay" tick={{ fill: "#aaa" }} axisLine={false} />
-                <YAxis tick={{ fill: "#aaa" }} axisLine={false} />
-                <Tooltip content={<CustomTooltip />} />
-                <Line type="monotone" dataKey="maxPrice" name="최대경매가" stroke="#ffffff" strokeWidth={2} dot={false} />
-                <Line type="monotone" dataKey="avgPrice" name="평균경매가" stroke="#888888" strokeWidth={2} dot={false} />
-                <Line type="monotone" dataKey="minPrice" name="최소경매가" stroke="#ffffff" strokeWidth={2} dot={false} />
-            </LineChart>
+            {chartData.length > 0 ? (
+                <LineChart width={540} height={200} data={chartData}>
+                    <CartesianGrid stroke="#222" strokeDasharray="3 3" />
+                    <XAxis dataKey="weekDay" tick={{ fill: "#aaa" }} axisLine={false} />
+                    <YAxis tick={{ fill: "#aaa" }} axisLine={false} />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Line type="monotone" dataKey="maxPrice" name="최대경매가" stroke="#ffffff" strokeWidth={2} dot={false} />
+                    <Line type="monotone" dataKey="avgPrice" name="평균경매가" stroke="#888888" strokeWidth={2} dot={false} />
+                    <Line type="monotone" dataKey="minPrice" name="최소경매가" stroke="#ffffff" strokeWidth={2} dot={false} />
+                </LineChart>
+            ) : (
+                <div className="w-[540px] h-[200px] flex items-center justify-center bg-gray-800 rounded border border-gray-700">
+                    <p className="text-gray-400 text-sm">지난 7일간의 거래 데이터가 없습니다.</p>
+                </div>
+            )}
 
             {/* 히스토리 테이블 */}
             <div className="">
@@ -80,7 +98,7 @@ export default function AuctionChart({ props }: History) {
                                     {formattedDate} {formattedTime}
                                 </div>
                                 <div className="flex-1 text-right">
-                                    <div className="text-[#a5a5a5] font-medium">{item.bidPrice} TKC</div>
+                                    <div className="text-[#a5a5a5] font-medium">{item.amount} TKC</div>
                                 </div>
                                 <div className="flex-1 text-right">
                                     <div className="text-[#a5a5a5]">{item.bidderNickname}</div>

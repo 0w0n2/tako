@@ -9,7 +9,12 @@ import java.util.List;
  */
 public record MyBidAuctionListItemResponse(Long auctionId, String code, String title, LocalDateTime startDatetime,
         LocalDateTime endDatetime, boolean isEnd, String closeReason, BigDecimal currentPrice,
-        BigDecimal myTopBidAmount, String imageUrl, List<BidItem> bids) {
+        BigDecimal myTopBidAmount, String imageUrl, List<BidItem> bids, DeliverySummary delivery) {
     public record BidItem(LocalDateTime time, String nickname, BigDecimal price) {
+    }
+
+    /** 배송 요약 (내가 낙찰자인 경우에만 포함, 아니면 null) */
+    public record DeliverySummary(String status, boolean existTrackingNumber, boolean existRecipientAddress,
+            boolean existSenderAddress) {
     }
 }
