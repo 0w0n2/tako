@@ -186,9 +186,25 @@ public interface AuctionRepository extends JpaRepository<Auction, Long> {
             select a from Auction a
              where a.isEnd = false
                and exists (select 1 from AuctionBid b where b.auction = a and b.member.id = :memberId)
-             order by a.endDatetime desc, a.id desc
+             order by a.endDatetime asc, a.id asc
             """)
     org.springframework.data.domain.Page<Auction> findOngoingByMemberBids(@Param("memberId") Long memberId,
+            org.springframework.data.domain.Pageable pageable);
+
+    /**
+     * 회원이 입찰한 종료된 경매 목록 조회 (페이지네이션)
+     * <p>
+     * 종료된 경매는 최근 종료된 항목이 먼저 오도록 endDatetime DESC 정렬. (요구사항: "종료된 경매도 끝나는 시간 순" 해석을
+     * 최근 종료 우선으로 가정. 필요 시 ASC로 변경 가능.)
+     * </p>
+     */
+    @Query("""
+            select a from Auction a
+             where a.isEnd = true
+               and exists (select 1 from AuctionBid b where b.auction = a and b.member.id = :memberId)
+             order by a.endDatetime desc, a.id desc
+            """)
+    org.springframework.data.domain.Page<Auction> findEndedByMemberBids(@Param("memberId") Long memberId,
             org.springframework.data.domain.Pageable pageable);
 
     /**

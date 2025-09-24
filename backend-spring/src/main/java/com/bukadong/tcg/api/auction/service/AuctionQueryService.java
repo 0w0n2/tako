@@ -5,6 +5,7 @@ import com.bukadong.tcg.api.auction.dto.response.AuctionDetailResponse;
 import com.bukadong.tcg.api.auction.dto.response.AuctionListItemResponse;
 import com.bukadong.tcg.api.auction.repository.AuctionDetailRepository;
 import com.bukadong.tcg.api.auction.dto.response.MyAuctionListItemResponse;
+import com.bukadong.tcg.api.auction.dto.response.MyBidAuctionListItemResponse;
 import com.bukadong.tcg.api.auction.repository.AuctionRepository;
 import com.bukadong.tcg.api.auction.repository.AuctionRepositoryCustom;
 import com.bukadong.tcg.api.auction.repository.AuctionSort;
@@ -145,11 +146,11 @@ public class AuctionQueryService {
      */
     public PageResponse<MyAuctionListItemResponse> getMyAuctions(Long memberId, int page, int size,
             int recentBidCount) {
-        var pageable = org.springframework.data.domain.PageRequest.of(page, size);
+        var pageable = PageRequest.of(page, size);
         var pageAuc = auctionRepo.findByMember_IdOrderByIdDesc(memberId, pageable);
 
         var items = pageAuc.getContent().stream().map(a -> {
-            var bidPage = org.springframework.data.domain.PageRequest.of(0, Math.max(0, recentBidCount));
+            var bidPage = PageRequest.of(0, Math.max(0, recentBidCount));
             var bids = auctionBidRepo.findByAuction_IdOrderByCreatedAtDesc(a.getId(), bidPage).stream()
                     .map(b -> new MyAuctionListItemResponse.BidItem(b.getCreatedAt(),
                             b.getMember() != null ? b.getMember().getNickname() : null, b.getAmount()))
@@ -166,35 +167,38 @@ public class AuctionQueryService {
     }
 
     /**
-     * 내가 입찰중인 경매 목록(최근 입찰 N개 포함) + 내 최고가 포함
+     * 내가 입찰한 경매 목록(최근 입찰 N개 포함) + 내 최고가 포함
+     * <p>
+     * ended=false(기본): 진행중 경매 → 종료 임박(남은시간 짧은) 순 정렬(Repository: endDatetime ASC)
+     * ended=true: 종료된 경매 → 가장 최근에 종료된 순(endDatetime DESC)
+     * </p>
+     *
+     * @param ended true면 종료된 경매만, false면 진행중 경매만
      */
-    public com.bukadong.tcg.global.common.dto.PageResponse<com.bukadong.tcg.api.auction.dto.response.MyBidAuctionListItemResponse> getMyBidAuctions(
-            Long memberId, int page, int size, int recentBidCount) {
-        var pageable = org.springframework.data.domain.PageRequest.of(page, size);
-        var pageAuc = auctionRepo.findOngoingByMemberBids(memberId, pageable);
+    public PageResponse<MyBidAuctionListItemResponse> getMyBidAuctions(Long memberId, int page, int size,
+            int recentBidCount, boolean ended) {
+        var pageable = PageRequest.of(page, size);
+        var pageAuc = ended ? auctionRepo.findEndedByMemberBids(memberId, pageable)
+                : auctionRepo.findOngoingByMemberBids(memberId, pageable);
 
         var items = pageAuc.getContent().stream().map(a -> {
-            var bidPage = org.springframework.data.domain.PageRequest.of(0, Math.max(0, recentBidCount));
+            var bidPage = PageRequest.of(0, Math.max(0, recentBidCount));
             var bids = auctionBidRepo.findByAuction_IdOrderByCreatedAtDesc(a.getId(), bidPage).stream()
-                    .map(b -> new com.bukadong.tcg.api.auction.dto.response.MyBidAuctionListItemResponse.BidItem(
-                            b.getCreatedAt(), b.getMember() != null ? b.getMember().getNickname() : null,
-                            b.getAmount()))
+                    .map(b -> new MyBidAuctionListItemResponse.BidItem(b.getCreatedAt(),
+                            b.getMember() != null ? b.getMember().getNickname() : null, b.getAmount()))
                     .toList();
             var primaryImageUrl = mediaUrlService
-                    .getPrimaryImageUrl(com.bukadong.tcg.api.media.entity.MediaType.AUCTION_ITEM, a.getId(),
-                            java.time.Duration.ofMinutes(5))
-                    .orElse(null);
+                    .getPrimaryImageUrl(MediaType.AUCTION_ITEM, a.getId(), Duration.ofMinutes(5)).orElse(null);
             var myTop = auctionBidRepo
                     .findTopByAuction_IdAndMember_IdOrderByAmountDescCreatedAtDesc(a.getId(), memberId).orElse(null);
             var myTopAmount = myTop != null ? myTop.getAmount() : null;
-            return new com.bukadong.tcg.api.auction.dto.response.MyBidAuctionListItemResponse(a.getId(), a.getCode(),
-                    a.getTitle(), a.getStartDatetime(), a.getEndDatetime(), a.isEnd(),
-                    a.getCloseReason() != null ? a.getCloseReason().name() : null, a.getCurrentPrice(), myTopAmount,
-                    primaryImageUrl, bids);
+            return new MyBidAuctionListItemResponse(a.getId(), a.getCode(), a.getTitle(), a.getStartDatetime(),
+                    a.getEndDatetime(), a.isEnd(), a.getCloseReason() != null ? a.getCloseReason().name() : null,
+                    a.getCurrentPrice(), myTopAmount, primaryImageUrl, bids);
         }).toList();
 
-        var mapped = new org.springframework.data.domain.PageImpl<>(items, pageable, pageAuc.getTotalElements());
-        return com.bukadong.tcg.global.common.dto.PageResponse.from(mapped);
+        var mapped = new PageImpl<>(items, pageable, pageAuc.getTotalElements());
+        return PageResponse.from(mapped);
     }
 
 }

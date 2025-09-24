@@ -79,6 +79,7 @@ public enum BaseResponseStatus {
     // CONFLICT 방지 하단에 추가 REFACTOR 부탁해요~
     INVALID_AUCTION_BID_UNIT(HttpStatus.BAD_REQUEST, false, 400, "경매 입찰 단위 변환에 실패하였습니다."),
     BAD_REQUEST(HttpStatus.BAD_REQUEST, false, 400, "잘못된 요청입니다."),
+    REVIEW_ALREADY_EXISTS(HttpStatus.CONFLICT, false, 409, "이미 이 경매에 대한 리뷰를 작성했습니다."),
 
     /**
      * 600: 멤버 에러
