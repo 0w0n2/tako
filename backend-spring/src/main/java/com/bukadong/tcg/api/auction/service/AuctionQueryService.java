@@ -71,13 +71,13 @@ public class AuctionQueryService {
      * @PARAM memberId 로그인 회원 ID(없으면 null)
      * @RETURN PageResponse<AuctionListItemResponse>
      */
+    @SuppressWarnings("java:S107")
     public PageResponse<AuctionListItemResponse> getAuctionList(Long categoryMajorId, Long categoryMediumId,
             String titlePart, Long cardId, BigDecimal currentPriceMin, BigDecimal currentPriceMax, Set<String> grades,
-            AuctionSort sort, int page, Long memberId) {
+            AuctionSort sort, boolean isEnded, int page, Long memberId) {
         Pageable pageable = PageRequest.of(page, 20);
-
         var rows = auctionRepositoryCustom.searchAuctions(categoryMajorId, categoryMediumId, titlePart, cardId,
-                currentPriceMin, currentPriceMax, grades, (sort == null ? AuctionSort.ENDTIME_ASC : sort), pageable);
+                currentPriceMin, currentPriceMax, grades, sort, isEnded, pageable);
 
         // 현재 페이지의 경매 ID들
         List<Long> ids = rows.getContent().stream().map(r -> r.id()).toList();
@@ -94,6 +94,8 @@ public class AuctionQueryService {
         Page<AuctionListItemResponse> p = new PageImpl<>(items, pageable, rows.getTotalElements());
         return PageResponse.from(p);
     }
+
+    // 오버로드 제거: 컨트롤러는 위 메서드를 직접 호출
 
     /**
      * 경매 상세 조회
@@ -183,6 +185,7 @@ public class AuctionQueryService {
      *
      * @param ended true면 종료된 경매만, false면 진행중 경매만
      */
+    @SuppressWarnings("java:S3776")
     public PageResponse<MyBidAuctionListItemResponse> getMyBidAuctions(Long memberId, int page, int size,
             int recentBidCount, boolean ended) {
         var pageable = PageRequest.of(page, size);

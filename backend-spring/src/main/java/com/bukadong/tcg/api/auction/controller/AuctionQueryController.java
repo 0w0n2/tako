@@ -62,8 +62,7 @@ public class AuctionQueryController {
      * @param currentPriceMin  현재가 최소
      * @param currentPriceMax  현재가 최대
      * @param grades           등급 CSV(예: "PS,NM")
-     * @param sort             정렬
-     *                         (ENDTIME_ASC|ENDTIME_DESC|BIDCOUNT_DESC|BIDCOUNT_ASC)
+     * @param sort             정렬 (ENDTIME_ASC|ENDTIME_DESC|BIDCOUNT_DESC|BIDCOUNT_ASC)
      * @return BaseResponse로 감싼 PageResponse
      */
     @Operation(summary = "경매 목록 조회", description = "카테고리/제목/카드/가격/등급 조건으로 페이지네이션된 경매 목록을 반환합니다. 페이지 당 20개로 고정되며, page는 0-base 입니다.")
@@ -77,7 +76,8 @@ public class AuctionQueryController {
             @Parameter(description = "현재가 최소(원)") @RequestParam(name = "currentPriceMin", required = false) BigDecimal currentPriceMin,
             @Parameter(description = "현재가 최대(원)") @RequestParam(name = "currentPriceMax", required = false) BigDecimal currentPriceMax,
             @Parameter(description = "등급 CSV(쉼표 구분). 예: \"PS,NM\"") @RequestParam(name = "grades", required = false) String grades,
-            @Parameter(description = "정렬 기준: ENDTIME_ASC | ENDTIME_DESC | BIDCOUNT_DESC | BIDCOUNT_ASC") @RequestParam(name = "sort", required = false) AuctionSort sort,
+            @Parameter(description = "정렬 기준: ENDTIME_ASC | ENDTIME_DESC | BIDCOUNT_DESC | BIDCOUNT_ASC (기본: ID_DESC)") @RequestParam(name = "sort", required = false) AuctionSort sort,
+            @Parameter(description = "종료된 경매 포함 여부 (기본: 포함하지 않음)") @RequestParam(name = "isEnded", required = false, defaultValue = "false") boolean isEnded,
             @AuthenticationPrincipal CustomUserDetails user) {
         Set<String> gradeSet = (grades == null || grades.isBlank()) ? null
                 : Arrays.stream(grades.split(",")).map(String::trim).filter(s -> !s.isEmpty())
@@ -85,7 +85,7 @@ public class AuctionQueryController {
         Long memberId = (user == null) ? null : memberQueryService.getByUuid(user.getUuid()).getId();
 
         var pageData = auctionQueryService.getAuctionList(categoryMajorId, categoryMediumId, title, cardId,
-                currentPriceMin, currentPriceMax, gradeSet, sort, page, memberId);
+                currentPriceMin, currentPriceMax, gradeSet, sort, isEnded, page, memberId);
 
         return BaseResponse.onSuccess(pageData);
     }

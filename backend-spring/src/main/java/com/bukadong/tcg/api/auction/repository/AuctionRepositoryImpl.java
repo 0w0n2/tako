@@ -1,7 +1,6 @@
 package com.bukadong.tcg.api.auction.repository;
 
 import com.bukadong.tcg.api.auction.dto.projection.AuctionListProjection;
-import com.bukadong.tcg.api.auction.entity.AuctionCloseReason;
 import com.bukadong.tcg.api.bid.entity.AuctionBidStatus;
 import com.bukadong.tcg.api.media.entity.MediaType;
 import com.querydsl.core.BooleanBuilder;
@@ -56,11 +55,14 @@ public class AuctionRepositoryImpl implements AuctionRepositoryCustom {
      */
     @Override
     public Page<AuctionListProjection> searchAuctions(Long categoryMajorId, Long categoryMediumId, String titlePart,
-                                                      Long cardId, BigDecimal currentPriceMin, BigDecimal currentPriceMax, Set<String> grades, AuctionSort sort,
-                                                      Pageable pageable) {
+            Long cardId, BigDecimal currentPriceMin, BigDecimal currentPriceMax, Set<String> grades, AuctionSort sort,
+            boolean includeEnded, Pageable pageable) {
 
         BooleanBuilder where = buildWhere(categoryMajorId, categoryMediumId, titlePart, cardId, currentPriceMin,
                 currentPriceMax, grades);
+        if (!includeEnded) {
+            where.and(auction.isEnd.isFalse());
+        }
 
         // 입찰수: VALID만 LEFT JOIN 후 COUNT
         NumberExpression<Long> bidCountExpr = auctionBid.id.count();
@@ -69,9 +71,9 @@ public class AuctionRepositoryImpl implements AuctionRepositoryCustom {
 
         // 콘텐츠 쿼리
         List<AuctionListProjection> content = queryFactory.select(Projections.constructor(AuctionListProjection.class,
-                        auction.id, auction.grade.gradeCode, auction.title, auction.currentPrice, bidCountExpr, // 집계된 입찰수
-                        auction.endDatetime, media.s3keyOrUrl // 대표 이미지 key (seq_no=1)
-                )).from(auction).leftJoin(auctionBid)
+                auction.id, auction.grade.gradeCode, auction.title, auction.currentPrice, bidCountExpr, // 집계된 입찰수
+                auction.endDatetime, media.s3keyOrUrl // 대표 이미지 key (seq_no=1)
+        )).from(auction).leftJoin(auctionBid)
                 .on(auctionBid.auction.eq(auction).and(auctionBid.status.eq(AuctionBidStatus.VALID))).leftJoin(media)
                 .on(media.ownerId.eq(auction.id).and(media.type.eq(MediaType.AUCTION_ITEM)).and(media.seqNo.eq(1)))
                 .where(where)
@@ -89,7 +91,7 @@ public class AuctionRepositoryImpl implements AuctionRepositoryCustom {
      * 동적 where 절 빌더
      */
     private BooleanBuilder buildWhere(Long categoryMajorId, Long categoryMediumId, String titlePart, Long cardId,
-                                      BigDecimal currentPriceMin, BigDecimal currentPriceMax, Set<String> grades) {
+            BigDecimal currentPriceMin, BigDecimal currentPriceMax, Set<String> grades) {
         BooleanBuilder where = new BooleanBuilder();
 
         if (categoryMajorId != null) {
@@ -122,11 +124,15 @@ public class AuctionRepositoryImpl implements AuctionRepositoryCustom {
      */
     private OrderSpecifier<?>[] buildOrder(AuctionSort sort, NumberExpression<Long> bidCountExpr) {
         OrderSpecifier<?> tieBreaker = auction.id.desc();
+        if (sort == null) {
+            // 기본 정렬: id DESC
+            return new OrderSpecifier<?>[] { tieBreaker };
+        }
         return switch (sort) {
-            case ENDTIME_ASC -> new OrderSpecifier<?>[]{auction.endDatetime.asc(), tieBreaker};
-            case ENDTIME_DESC -> new OrderSpecifier<?>[]{auction.endDatetime.desc(), tieBreaker};
-            case BIDCOUNT_DESC -> new OrderSpecifier<?>[]{new OrderSpecifier<>(Order.DESC, bidCountExpr), tieBreaker};
-            case BIDCOUNT_ASC -> new OrderSpecifier<?>[]{new OrderSpecifier<>(Order.ASC, bidCountExpr), tieBreaker};
+        case ENDTIME_ASC -> new OrderSpecifier<?>[] { auction.endDatetime.asc(), tieBreaker };
+        case ENDTIME_DESC -> new OrderSpecifier<?>[] { auction.endDatetime.desc(), tieBreaker };
+        case BIDCOUNT_DESC -> new OrderSpecifier<?>[] { new OrderSpecifier<>(Order.DESC, bidCountExpr), tieBreaker };
+        case BIDCOUNT_ASC -> new OrderSpecifier<?>[] { new OrderSpecifier<>(Order.ASC, bidCountExpr), tieBreaker };
         };
     }
 
@@ -139,21 +145,12 @@ public class AuctionRepositoryImpl implements AuctionRepositoryCustom {
 
         // 토큰 ID 일치 여부
         where.and(auction.physicalCard.tokenId.eq(BigInteger.valueOf(tokenId)));
-        // 정산 완료되지 않은 경매 존재 여부 (auction.isEnd = false OR auctionResult.settleFlag = false)
-        where.and(
-                auction.isEnd.isFalse()
-                        .or(
-                                auctionResult.isNotNull()
-                                        .and(auctionResult.settledFlag.isFalse())
-                        )
-        );
+        // 정산 완료되지 않은 경매 존재 여부 (auction.isEnd = false OR auctionResult.settleFlag =
+        // false)
+        where.and(auction.isEnd.isFalse().or(auctionResult.isNotNull().and(auctionResult.settledFlag.isFalse())));
 
-        Integer fetchResult = queryFactory
-                .selectOne()
-                .from(auction)
-                .leftJoin(auctionResult).on(auction.id.eq(auctionResult.auction.id))
-                .where(where)
-                .fetchFirst();
+        Integer fetchResult = queryFactory.selectOne().from(auction).leftJoin(auctionResult)
+                .on(auction.id.eq(auctionResult.auction.id)).where(where).fetchFirst();
         return fetchResult != null;
     }
 }

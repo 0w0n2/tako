@@ -29,13 +29,15 @@ public interface AuctionRepositoryCustom {
      * @param currentPriceMin  현재가 최소(옵션)
      * @param currentPriceMax  현재가 최대(옵션)
      * @param grades           등급 집합(옵션)
-     * @param sort             정렬 기준(필수)
+     * @param sort             정렬 기준(옵션, null이면 id DESC)
+     * @param includeEnded     종료된 경매 포함 여부 (true면 종료/진행 모두 포함, false면 진행중만)
      * @param pageable         페이지 정보(서비스에서 size=20 강제)
      * @return 내부 행 DTO 페이지
      */
+    @SuppressWarnings("java:S107")
     Page<AuctionListProjection> searchAuctions(Long categoryMajorId, Long categoryMediumId, String titlePart,
             Long cardId, BigDecimal currentPriceMin, BigDecimal currentPriceMax, Set<String> grades, AuctionSort sort,
-            Pageable pageable);
+            boolean includeEnded, Pageable pageable);
 
     boolean isDuplicatedTokenId(Long tokenId);
 }
