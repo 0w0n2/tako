@@ -7,6 +7,7 @@ import { useState } from "react"
 import Image from "next/image"
 import CreateAuctionCategories from "@/components/categories/CreateAuctionCategories"
 import AuctionNewCalendar from "@/components/auction/new/AuctionNewCalendar"
+import RegisterImage from "@/components/atoms/RegisterImage"
 import { AuctionFormProps } from "@/types/auction"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -32,6 +33,7 @@ export default function NewAuctionPage() {
 
   const { register, handleSubmit, control, watch, setValue, formState: { errors } } = useForm<AuctionFormProps>({
     defaultValues: {
+      files : [],
       requestDto: {
         gradeHash: null,
         categoryMajorId: null,
@@ -133,14 +135,19 @@ export default function NewAuctionPage() {
     return () => {
       Object.values(uploadedImages).forEach(file => {
         if (file) {
-          URL.revokeObjectURL(URL.createObjectURL(file));
+          const url = URL.createObjectURL(file);
+          URL.revokeObjectURL(url);
         }
       });
     };
-  }, []);
+  }, [uploadedImages]);
 
   const onSubmit: SubmitHandler<AuctionFormProps> = data => {
     const { requestDto } = data;
+
+    // 디버깅: 폼 데이터 출력
+    console.log("폼 제출 데이터:", data);
+    console.log("requestDto:", requestDto);
 
     requestDto.gradeHash = gradeHash;
 
@@ -168,7 +175,16 @@ export default function NewAuctionPage() {
 
     let emptyFields: string[] = requiredFields.filter((key) => {
       const value = requestDto[key as keyof typeof requestDto];
-      return value === null || value === "" || (typeof value === "number" && value <= 0);
+      if (value === null || value === "") return true;
+      if (typeof value === "number") {
+        // startPrice와 bidUnit은 0보다 큰 값이어야 함
+        if (key === "startPrice" || key === "bidUnit") {
+          return value <= 0;
+        }
+        // 다른 숫자 필드는 0도 허용
+        return false;
+      }
+      return false;
     });
 
     // buyNowFlag true일 때 buyNowPrice 필수 체크
@@ -178,6 +194,10 @@ export default function NewAuctionPage() {
 
     // 업로드된 이미지들을 files 배열로 변환
     const uploadedFiles = Object.values(uploadedImages).filter(file => file !== null) as File[];
+
+    // 디버깅: 검증 결과 출력
+    console.log("빈 필드들:", emptyFields);
+    console.log("업로드된 파일 수:", uploadedFiles.length);
 
     if (uploadedFiles.length === 0 || emptyFields.length > 0) {
       alert("입력하지 않은 필수값이 있습니다.");
@@ -196,7 +216,31 @@ export default function NewAuctionPage() {
       <h2 className="mb-10">경매 등록하기</h2>
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-15" encType="multipart/form-data">
-
+      <Controller
+          name="files"
+          control={control}
+          rules={{
+            validate: value =>
+              (value && value.length > 0) || "이미지를 1개 이상 등록해주세요."
+          }}
+          render={({ field: { onChange }, fieldState }) => (
+            <div className="flex flex-col gap-5">
+              <div className="flex-1 flex items-center gap-2">
+                <Label>사진 등록</Label>
+                <span className="text-red-500">*</span>
+              </div>
+              <div className="flex-5 flex flex-col gap-2">
+                <RegisterImage
+                  onChange={(files) => {
+                    // Controller가 파일 배열을 받을 수 있게 래핑
+                    onChange(files);
+                  }}
+                />
+                {fieldState.error && <p className="text-red-500 text-sm mt-1">{fieldState.error.message}</p>}
+              </div>
+            </div>
+          )}
+        />
         {/* 카테고리 */}
         <div className="flex flex-col gap-5 relative">
           <div className="flex-1">
@@ -313,7 +357,9 @@ export default function NewAuctionPage() {
                         <Image
                           src={getImagePreview(uploadedImages[key])!}
                           alt={label}
-                          className="object-cover"
+                          width={200}
+                          height={250}
+                          className="object-cover w-full h-full"
                           unoptimized
                         />
                         <button
@@ -448,7 +494,7 @@ export default function NewAuctionPage() {
                 className="w-[200px]"
                 {...register("requestDto.startPrice", {
                   required: "시작 입찰가를 입력해주세요.",
-                  valueAsNumber: true,
+                  setValueAs: (value) => value === "" ? 0 : parseFloat(value),
                   min: { value: 0.01, message: "0 이상의 값을 입력해주세요." },
                 })}
                 placeholder="0"
@@ -464,7 +510,7 @@ export default function NewAuctionPage() {
                     <>
                       <Select
                         onValueChange={(value) => field.onChange(parseFloat(value))}
-                        value={field.value ? String(field.value) : ""}
+                        value={field.value !== null && field.value !== undefined ? String(field.value) : ""}
                       >
                         <SelectTrigger className="h-[50px] bg-[#191924] border-[#353535]">
                           <SelectValue placeholder="입찰 단위 선택" />
@@ -517,7 +563,7 @@ export default function NewAuctionPage() {
                 type="number"
                 className="h-12 w-[200px]"
                 {...register("requestDto.buyNowPrice", {
-                  valueAsNumber: true,
+                  setValueAs: (value) => value === "" ? 0 : parseFloat(value),
                   validate: value => value > 0 || "즉시구매가를 입력해주세요."
                 })}
                 placeholder="0"
