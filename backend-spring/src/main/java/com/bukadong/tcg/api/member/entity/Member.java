@@ -149,4 +149,9 @@ public class Member {
             this.introduction = introduction;
         }
     }
+
+    public void changeSoftDeletedState(Boolean isDeleted) {
+        this.isDeleted = isDeleted;
+        this.deletedAt = LocalDateTime.now(ZoneOffset.UTC);
+    }
 }
