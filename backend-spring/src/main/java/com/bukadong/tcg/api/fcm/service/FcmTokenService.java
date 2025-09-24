@@ -16,39 +16,33 @@ public class FcmTokenService {
 
     @Transactional
     public void register(Long memberId, String token) {
-        fcmTokenRepository.findByToken(token).ifPresent(existing -> {
-            if (!existing.getMember().getId().equals(memberId)) {
-                // 다른 회원이 쓰던 토큰이면 재소유 - 재사용 위해 삭제 후 다시 저장
-                fcmTokenRepository.delete(existing);
-            } else {
-                // 동일 회원 & 동일 토큰 이미 존재 -> 조용히 반환
-                return;
+        // FCM 토큰 등록
+        // 1. 토큰을 조회한다.
+        // 2. 없으면 새로 저장.
+        // 3. 있으면 같은 회원이면 아무 것도 안 함, 다른 회원이면 소유권 이전: 기존 삭제 후 새로 저장.
+        var existingOpt = fcmTokenRepository.findByToken(token);
+        if (existingOpt.isPresent()) {
+            var existing = existingOpt.get();
+            if (existing.getMember().getId().equals(memberId)) {
+                return; // 이미 내 것 -> 종료
             }
-        });
+            fcmTokenRepository.delete(existing); // 소유권 이전 위해 삭제
+        }
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("Member not found: " + memberId));
-        FcmToken entity = FcmToken.builder().member(member).token(token).build();
-        fcmTokenRepository.save(entity);
+        fcmTokenRepository.save(FcmToken.builder().member(member).token(token).build());
     }
 
     /**
-     * 재설정: 해당 회원의 기존 모든 토큰 제거 후 새 토큰 하나만 등록. 프론트에서 "이 기기로만 푸시 받기" 기능을 제공할 때 사용.
+     * 특정 토큰 해제: 해당 회원이 가진 토큰일 때만 삭제 (보안상 회원 소유 검증)
      */
     @Transactional
-    public void resetSingleDevice(Long memberId, String newToken) {
-        // 1) 내가 아닌 다른 회원이 쓰던 동일 토큰은 제거 (register 로직 재활용 위해 선행 삭제)
-        fcmTokenRepository.findByToken(newToken).ifPresent(existing -> {
-            if (!existing.getMember().getId().equals(memberId)) {
+    public void unregister(Long memberId, String token) {
+        fcmTokenRepository.findByToken(token).ifPresent(existing -> {
+            if (existing.getMember().getId().equals(memberId)) {
                 fcmTokenRepository.delete(existing);
             }
         });
-        // 2) 내 기존 토큰 전체 삭제
-        fcmTokenRepository.deleteByMember_Id(memberId);
-        // 3) 새 토큰 저장
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("Member not found: " + memberId));
-        FcmToken entity = FcmToken.builder().member(member).token(newToken).build();
-        fcmTokenRepository.save(entity);
     }
 
     @Transactional(readOnly = true)

@@ -159,6 +159,7 @@ logging:
     com.bukadong.tcg.global.util.RedisUtils: DEBUG
     com.bukadong.tcg.global.util.S3Uploader: DEBUG
     com.bukadong.tcg.api.media.guard.MediaUploadGuard: DEBUG
+    com.bukadong.tcg.api.fcm.service.FcmPushService: DEBUG
     org.springframework.data.redis: INFO
     io.lettuce.core: INFO
 
@@ -262,3 +263,10 @@ fcm:
   # 2) 여기서 ${FIREBASE_SERVICE_ACCOUNT_B64} 로 참조 (비어있으면 시작 실패)
   service-account:
     base64: ${FIREBASE_SERVICE_ACCOUNT_B64:}
+
+push:
+  web-icon: ${PUSH_WEB_ICON:/icon/fcm_icon_192.png}
+  web-badge: ${PUSH_WEB_BADGE:/icon/fcm_icon_72.png}
+  click-base-url: ${PUSH_CLICK_BASE_URL:/}
+  android-channel-id: ${PUSH_ANDROID_CHANNEL_ID:default-channel}
+  ios-sound: ${PUSH_IOS_SOUND:default}
