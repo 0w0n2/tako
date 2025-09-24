@@ -12,6 +12,7 @@ from fastapi import (
 )
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer
+from fastapi.middleware.cors import CORSMiddleware
 from typing import Dict, Tuple, List
 from PIL import Image, ImageStat
 from io import BytesIO
@@ -31,6 +32,21 @@ from ultralytics import YOLO
 app = FastAPI(title="Card Condition Checker", root_path="/ai")
 
 api_router = APIRouter(prefix="/ai")
+
+origins = [
+    "http://localhost:3000",
+    "https://dev-api.tako.today",
+    "https://dev.api.tako.today",
+    "https://dev.tako.today",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all HTTP methods
+    allow_headers=["*"],  # Allows all headers
+)
 
 
 @api_router.get("/docs")
@@ -398,45 +414,50 @@ async def condition_check(
     for key, up in uploads.items():
         assert up.filename is not None
         if not ext_ok(up.filename):
-            raise HTTPException(
-                status_code=400,
-                detail=f"{up.filename}: 올바른 파일 형식이 아닙니다. (png, jpeg, webp, jpg)",
+            detail = (
+                f"{up.filename}: 올바른 파일 형식이 아닙니다. (png, jpeg, webp, jpg)"
             )
+            return JSONResponse(status_code=400, content={"error": detail})
 
     # ---- 로드 & 공통 전처리 ----
     imgs: Dict[str, Image.Image] = {}
-    for key, up in uploads.items():
-        imgs[key] = read_image_bytes(up)
+    try:
+        for key, up in uploads.items():
+            imgs[key] = read_image_bytes(up)
+    except HTTPException as e:
+        return JSONResponse(status_code=e.status_code, content={"error": e.detail})
     # await notify(job_id, "file_ext_check")
 
     # ---- Step 1: 사이즈 및 밝기 검증 ----
     for key, img in imgs.items():
         if not check_size(img):
-            raise HTTPException(
-                status_code=400,
-                detail=f"{key}: 이미지 사이즈가 800x800 이상이어야 합니다.",
+            w, h = img.size
+            detail = (
+                f"{key}: 이미지 사이즈가 800x800 이상이어야 합니다. (현재: {w}x{h})"
             )
+            return JSONResponse(status_code=400, content={"error": detail})
         if not check_brightness(img):
-            raise HTTPException(
-                status_code=400,
-                detail=f"{key}: 이미지가 너무 어둡거나 밝습니다. 촬영 환경을 조정해 주세요.",
-            )
+            L = img.convert("L")
+            mean = ImageStat.Stat(L).mean[0]
+            detail = f"{key}: 이미지가 너무 어둡거나 밝습니다. (밝기: {mean:.2f}, 정상 범위: {BRIGHT_MIN}~{BRIGHT_MAX})"
+            return JSONResponse(status_code=400, content={"error": detail})
     # await notify(job_id, "size_brightness_check")
 
     # ---- Step 2: 카드 맞는지 검증 (YOLO detect) ----
-    ok_front, info_front = yolo_detect_verify(imgs["image_front"], expect_front=True)
-    if not ok_front:
-        raise HTTPException(
-            status_code=400,
-            detail=f"정면 이미지(Cardfront) 인식 실패. conf={info_front['best_conf']:.2f}, area={info_front['best_area_frac']:.2f}",
+    try:
+        ok_front, info_front = yolo_detect_verify(
+            imgs["image_front"], expect_front=True
         )
+        if not ok_front:
+            detail = f"정면 이미지(Cardfront) 인식 실패. conf={info_front['best_conf']:.2f} (기준: {CONF_THRESH:.2f}), area={info_front['best_area_frac']:.2f} (기준: {AREA_FRAC_MIN:.2f})"
+            return JSONResponse(status_code=400, content={"error": detail})
 
-    ok_back, info_back = yolo_detect_verify(imgs["image_back"], expect_front=False)
-    if not ok_back:
-        raise HTTPException(
-            status_code=400,
-            detail=f"후면 이미지(Cardback) 인식 실패. conf={info_back['best_conf']:.2f}, area={info_back['best_area_frac']:.2f}",
-        )
+        ok_back, info_back = yolo_detect_verify(imgs["image_back"], expect_front=False)
+        if not ok_back:
+            detail = f"후면 이미지(Cardback) 인식 실패. conf={info_back['best_conf']:.2f} (기준: {CONF_THRESH:.2f}), area={info_back['best_area_frac']:.2f} (기준: {AREA_FRAC_MIN:.2f})"
+            return JSONResponse(status_code=400, content={"error": detail})
+    except HTTPException as e:
+        return JSONResponse(status_code=e.status_code, content={"error": e.detail})
     # await notify(job_id, "card_verify", extra={"front_conf": 0.91, "back_conf": 0.93})
 
     # ---- Step 3: 카드 휨 검증 (세그멘테이션 -> 곡률%) ----
@@ -444,24 +465,31 @@ async def condition_check(
     curvature_list: List[float] = []
     curvature_infos: Dict[str, Dict] = {}
 
-    for k in side_keys:
-        curve_percent, extra = segmentation_curvature_percent(imgs[k])
-        curvature_list.append(curve_percent)
-        curvature_infos[k] = {"curvature_percent": curve_percent, **extra}
+    try:
+        for k in side_keys:
+            curve_percent, extra = segmentation_curvature_percent(imgs[k])
+            curvature_list.append(curve_percent)
+            curvature_infos[k] = {"curvature_percent": curve_percent, **extra}
+    except HTTPException as e:
+        return JSONResponse(status_code=e.status_code, content={"error": e.detail})
     # await notify(job_id, "bending", extra={"max_curvature_percent": 1.2})
 
     # 점수 계산 규칙:
     # - 휨(곡률) 점수는 "감산 점수"로 사용 (곡률 ↑ -> 감산 ↑)
     #   각 이미지별 penalty = curvature_penalty_points(curve%)
-    #   4장 중 상위 2장만 합산 (최대 12점)  ← 요구사항 "최대 점수 12점" 반영
     per_image_penalties = [curvature_penalty_points(c) for c in curvature_list]
     top2_penalty = sum(sorted(per_image_penalties, reverse=True)[:2])
-    bend_penalty_total = min(12, top2_penalty)
+    bend_penalty_total = min(4, top2_penalty)
 
     # ---- Step 4: 기타 결함 검증 (찢어짐, 구김 등) ----
-    defect_penalty_front, defect_info_front = yolo_detect_defects(imgs["image_front"])
-    defect_penalty_back, defect_info_back = yolo_detect_defects(imgs["image_back"])
-    other_penalties = defect_penalty_front + defect_penalty_back
+    try:
+        defect_penalty_front, defect_info_front = yolo_detect_defects(
+            imgs["image_front"]
+        )
+        defect_penalty_back, defect_info_back = yolo_detect_defects(imgs["image_back"])
+        other_penalties = defect_penalty_front + defect_penalty_back
+    except HTTPException as e:
+        return JSONResponse(status_code=e.status_code, content={"error": e.detail})
     # await notify(job_id, "other_defects", extra={"total_penalty": other_penalties})
 
     # ---- 최종 점수/등급 ----
