@@ -57,6 +57,13 @@ export interface GetAuction {
   wished: boolean
 }
 
+// 경매 조회 - 페이지
+export interface PageProps {
+  page:number;
+  size:number;
+  totalElements:number;
+  totalPages:number;
+}
 
 export interface WeeklyAuctions {
   date: string;

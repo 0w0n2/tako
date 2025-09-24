@@ -49,7 +49,7 @@ export default function Mypage() {
         <div className="pl-8 flex gap-10 w-full bg-[#3D3D4D] absolute bottom-0 left-0 rounded-bl-xl rounded-br-xl overflow-hidden">
           <div className="flex-2"></div>
           <div className="flex-7 relative">
-            <ul className={`grid grid-cols-${tabs.length}`}>
+            <ul className={`grid grid-cols-4`}>
               {tabs.map(tab => (
                 <li
                   key={tab.id}
