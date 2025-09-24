@@ -83,9 +83,6 @@ public class MyProfileService {
         if (req.introduction() != null) {
             me.changeIntroduction(req.introduction());
         }
-        if (req.notificationSetting() != null) {
-            upsertNotificationSettings(me, req.notificationSetting());
-        }
 
         // 이미지 교체 처리: 파일이 온 경우 기존 이미지 전체 삭제 후 새 파일 1장 업로드
         if (profileImage != null && !profileImage.isEmpty()) {
