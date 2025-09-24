@@ -36,3 +36,12 @@ export interface GetDefaultAddress {
     baseAddress: string;
     zipcode: string;
 }
+
+// 조회용
+export interface AddressResponse {
+    id: number;
+    placeName: string;
+    baseAddress: string;
+    zipcode: string;
+    default: boolean;
+}
