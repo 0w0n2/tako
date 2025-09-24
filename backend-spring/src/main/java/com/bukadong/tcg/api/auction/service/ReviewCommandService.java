@@ -52,7 +52,7 @@ public class ReviewCommandService {
         Optional<AuctionReview> existing = auctionReviewRepository.findByMember_IdAndAuction_Id(writerMemberId,
                 auction.getId());
         if (existing.isPresent()) {
-            throw new BaseException(BaseResponseStatus.BAD_REQUEST);
+            throw new BaseException(BaseResponseStatus.REVIEW_ALREADY_EXISTS);
         }
 
         AuctionReview saved = auctionReviewRepository
