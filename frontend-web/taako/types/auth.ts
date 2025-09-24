@@ -51,6 +51,12 @@ export interface MySellAuctions {
   currentPrice: number|null;
   imageUrl: string|null;
   bids: Bids[];
+  delivery: {
+    status: string|null;
+    existTrackingNumber: boolean|null;
+    existRecipientAddress: boolean|null;
+    existSenderAddress: boolean|null;
+  }
 }
 export interface Bids {
   data: string|null;

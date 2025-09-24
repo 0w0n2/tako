@@ -26,3 +26,9 @@ export async function getInfo() {
 	const res = await api.get("/v1/auctions/me");
 	return res.data.result;
 }
+
+// 내 판매 경매 조회
+export const getMySellAutcion = async () => {
+    const res = await api.get("/v1/auctions/me");
+    return res.data;
+};
