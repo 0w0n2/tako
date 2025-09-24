@@ -1,5 +1,5 @@
-export interface History{
+export interface History {
     createdAt: string;
-    bidPrice: number;
+    amount: number;
     bidderNickname: string;
 }

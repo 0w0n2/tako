@@ -99,3 +99,35 @@ export interface MyAuctionResponse {
   startDatetime: string;
   endDatetime: string;
 }
+
+export interface AuctionDetailApiResponse {
+  httpStatus: string;
+  isSuccess: boolean;
+  message: string;
+  code: number;
+  result: {
+    content: AuctionDetailContent[];
+    page: number;
+    size: number;
+    totalElements: number;
+    totalPages: number;
+  };
+}
+
+export interface AuctionDetailContent {
+  auctionId: number;
+  code: string;
+  title: string;
+  startDatetime: string;
+  endDatetime: string;
+  isEnd: boolean;
+  closeReason: string | null;
+  currentPrice: number;
+  myTopBidAmount: number;
+  imageUrl: string;
+  bids: {
+    time: string;
+    nickname: string;
+    price: number;
+  }[];
+}

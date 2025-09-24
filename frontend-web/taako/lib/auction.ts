@@ -6,28 +6,28 @@ import type { History } from '@/types/history';
 import type { BidQueueRequest, BidQueueResponse } from "@/types/bid";
 
 // 경매 등록
-export const createAuction = async(requestDto:any, files: File[]) => {
-    const formData = new FormData();
-    // requestDto는 JSON형식, files는 파일형식으로 request
-    formData.append("requestDto", JSON.stringify(requestDto));
-    files.forEach(file => {
-        formData.append("files", file);
-    });
+export const createAuction = async (requestDto: any, files: File[]) => {
+  const formData = new FormData();
+  // requestDto는 JSON형식, files는 파일형식으로 request
+  formData.append("requestDto", JSON.stringify(requestDto));
+  files.forEach(file => {
+    formData.append("files", file);
+  });
 
-    const res = await api.post("/v1/auctions", formData,{
-        headers: {
-            "Content-Type": "multipart/form-data", // 이거 필수
-        },
-    })
-    return res.data;
+  const res = await api.post("/v1/auctions", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data", // 이거 필수
+    },
+  })
+  return res.data;
 }
 
 // 경매 목록 조회
-export const getAuctions = async(params: GetHotCards) => {
-    const res = await api.get("/v1/auctions", {
-        params: params
-    })
-    return res.data;
+export const getAuctions = async (params: GetHotCards) => {
+  const res = await api.get("/v1/auctions?sort=ENDTIME_ASC", {
+    params: params
+  })
+  return res.data;
 }
 
 // 경매 상세 페이지
@@ -74,7 +74,7 @@ function normalizeSeller(raw: any): Seller {
 function normalizeHistory(list: any[]): History[] {
   return (list ?? []).map((h) => ({
     createdAt: h?.createdAt ?? h?.time ?? '',
-    bidPrice: h?.bidPrice ?? h?.price ?? 0,
+    amount: h?.amount ?? h?.bidPrice ?? h?.price ?? 0,
     bidderNickname: h?.bidderNickname ?? h?.nickname ?? '',
   })) as History[];
 }
