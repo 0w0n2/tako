@@ -7,7 +7,7 @@ const DOMAINS = {
   dev: {
     SITE: 'https://dev.tako.today',
     API: 'https://dev-api.tako.today',
-    AI_API: 'https://dev-api.tako.today/ai'
+    AI_API: 'https://dev.tako.today/ai'
 
   },
   prod: {
