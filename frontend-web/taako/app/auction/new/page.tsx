@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { createAuction } from "@/lib/auction"
-import api from "@/lib/api"
+import RankElement from "@/components/atoms/RankElement"
 
 export default function NewAuctionPage() {
   const [selectedCardName, setSelectedCardName] = React.useState<string>("");
@@ -89,18 +89,22 @@ export default function NewAuctionPage() {
         formData.append('image_side_4', uploadedImages.edge4);
       }
 
-      const response = await api.post("https://dev.api.tako.today/ai/condition-check", formData, {
-      // const response = await api.post("http://127.0.0.1:8000/condition-check", formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+      const response = await fetch(`${process.env.NEXT_PUBLIC_AI_API_BASE_URL}/condition-check`, {
+        method: 'POST',
+        body: formData,
       });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const responseData = await response.json();
 
       // 응답에서 grade 값을 추출
-      const grade = response.data.grade;
+      const grade = responseData.grade;
       setGrade(grade)
 
-      const hash = response.data.hash
+      const hash = responseData.hash
       setGradeHash(hash)
 
     } catch (error) {
@@ -291,7 +295,7 @@ export default function NewAuctionPage() {
               </Button>
             </div>
 
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               {[
                 { key: "front", label: "(앞면)" },
                 { key: "back", label: "(뒷면)" },
@@ -365,7 +369,7 @@ export default function NewAuctionPage() {
             </div>
           </div>
           <div className="flex-5">
-            <span className="text-sm text-[#a5a5a5]">{grade ? `${grade}` : "AI 카드 감정을 통해 등급을 알 수 있어요!"}</span>
+            <span className="text-sm text-[#a5a5a5]">{grade ? <RankElement rank={grade} /> : "AI 카드 감정을 통해 등급을 알 수 있어요!"}</span>
           </div>
         </div>
 
