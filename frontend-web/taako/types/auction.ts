@@ -67,7 +67,6 @@ export interface WeeklyAuctions {
 
 // 경매 등록 폼
 export interface AuctionFormProps {
-  files: File[];
   requestDto: {
     gradeHash: string | null,
     categoryMajorId: number | null,
