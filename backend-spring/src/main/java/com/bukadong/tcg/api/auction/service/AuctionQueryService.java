@@ -157,9 +157,17 @@ public class AuctionQueryService {
                     .toList();
             var primaryImageUrl = mediaUrlService
                     .getPrimaryImageUrl(MediaType.AUCTION_ITEM, a.getId(), Duration.ofMinutes(5)).orElse(null);
+            MyAuctionListItemResponse.DeliverySummary deliverySummary = null;
+            var delivery = a.getDelivery();
+            if (delivery != null) {
+                deliverySummary = new MyAuctionListItemResponse.DeliverySummary(
+                        delivery.getStatus() != null ? delivery.getStatus().name() : null,
+                        delivery.getTrackingNumber() != null && !delivery.getTrackingNumber().isBlank(),
+                        delivery.getRecipientAddress() != null, delivery.getSenderAddress() != null);
+            }
             return new MyAuctionListItemResponse(a.getId(), a.getCode(), a.getTitle(), a.getStartDatetime(),
                     a.getEndDatetime(), a.isEnd(), a.getCloseReason() != null ? a.getCloseReason().name() : null,
-                    a.getCurrentPrice(), primaryImageUrl, bids);
+                    a.getCurrentPrice(), primaryImageUrl, bids, deliverySummary);
         }).toList();
 
         var mapped = new org.springframework.data.domain.PageImpl<>(items, pageable, pageAuc.getTotalElements());
@@ -192,9 +200,20 @@ public class AuctionQueryService {
             var myTop = auctionBidRepo
                     .findTopByAuction_IdAndMember_IdOrderByAmountDescCreatedAtDesc(a.getId(), memberId).orElse(null);
             var myTopAmount = myTop != null ? myTop.getAmount() : null;
+            MyBidAuctionListItemResponse.DeliverySummary deliverySummary = null;
+            // 내가 낙찰자(최종 winner)인 경우만 배송 정보 노출
+            if (a.getWinnerMemberId() != null && a.getWinnerMemberId().equals(memberId)) {
+                var delivery = a.getDelivery();
+                if (delivery != null) {
+                    deliverySummary = new MyBidAuctionListItemResponse.DeliverySummary(
+                            delivery.getStatus() != null ? delivery.getStatus().name() : null,
+                            delivery.getTrackingNumber() != null && !delivery.getTrackingNumber().isBlank(),
+                            delivery.getRecipientAddress() != null, delivery.getSenderAddress() != null);
+                }
+            }
             return new MyBidAuctionListItemResponse(a.getId(), a.getCode(), a.getTitle(), a.getStartDatetime(),
                     a.getEndDatetime(), a.isEnd(), a.getCloseReason() != null ? a.getCloseReason().name() : null,
-                    a.getCurrentPrice(), myTopAmount, primaryImageUrl, bids);
+                    a.getCurrentPrice(), myTopAmount, primaryImageUrl, bids, deliverySummary);
         }).toList();
 
         var mapped = new PageImpl<>(items, pageable, pageAuc.getTotalElements());
