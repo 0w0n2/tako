@@ -1,66 +1,15 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect } from "react";
 import { useMyInfo } from "@/hooks/useMyInfo";
-import { usePushStore } from "@/stores/usePushStore";
-const DEBUG_FCM = process.env.NEXT_PUBLIC_DEBUG_FCM === "1";
-const pageLog = (...args: any[]) => {
-	if (DEBUG_FCM) console.log("[EditPage]", ...args);
-};
-
-// 슬라이드 토글 컴포넌트 (간단 구현)
-function Switch({ checked, disabled, onChange }: { checked: boolean; disabled?: boolean; onChange: (val: boolean) => void }) {
-	return (
-		<button
-			type="button"
-			onClick={() => !disabled && onChange(!checked)}
-			className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none ${checked ? "bg-[#3E4C63]" : "bg-gray-600"} ${
-				disabled ? "opacity-50 cursor-not-allowed" : ""
-			}`}
-		>
-			<span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${checked ? "translate-x-6" : "translate-x-1"}`} />
-		</button>
-	);
-}
 
 export default function EditPage() {
-	// myInfo 호출로 인증 상태(토큰 등) 로딩을 트리거 할 수 있으나 현재 값은 직접 사용하지 않음
+	// myInfo 호출로 인증 상태(토큰 등) 로딩 트리거
 	useMyInfo();
-	const pushStore = usePushStore();
-
-	// AuthenticationPrincipal 기반이라 별도 memberId 필요 없음
-	useEffect(() => {
-		if (!pushStore.initialized) {
-			pageLog("mount: checkStatus start");
-			pushStore.checkStatus();
-		}
-	}, [pushStore.initialized]);
-
-	const handleToggle = async () => {
-		pageLog("toggle clicked");
-		pageLog("current state before", { enabled: pushStore.enabled, loading: pushStore.loading, token: pushStore.token?.substring(0, 12) });
-		if (pushStore.enabled) {
-			await pushStore.disable();
-			const state = usePushStore.getState();
-			pageLog("after disable (fresh state)", { enabled: state.enabled, token: state.token?.substring(0, 12) });
-		} else {
-			await pushStore.enable();
-			const state = usePushStore.getState();
-			pageLog("after enable (fresh state)", { enabled: state.enabled, token: state.token?.substring(0, 18) });
-		}
-	};
 
 	return (
 		<div className="space-y-6">
-			<div className="flex items-center justify-between">
-				<h2 className="text-xl font-semibold">내 정보 수정</h2>
-				<div className="flex items-center gap-3">
-					<span className="text-sm text-[#a5a5a5]">푸시 알림</span>
-					<Switch checked={pushStore.enabled} disabled={pushStore.loading} onChange={handleToggle} />
-				</div>
-			</div>
-			{pushStore.error && <div className="text-[#FF3737] text-sm">{pushStore.error}</div>}
+			<h2 className="text-xl font-semibold">내 정보 수정</h2>
 			<div>
 				<form className="flex flex-col gap-10 my-10">
 					<div>
