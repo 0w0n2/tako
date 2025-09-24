@@ -1,5 +1,7 @@
 /** @type {import('next').NextConfig} */
 const APP_STAGE = process.env.APP_STAGE || 'dev'; // dev | prod
+const NEXT_PUBLIC_TAKO_NFT = process.env.NEXT_PUBLIC_TAKO_NFT;
+const NEXT_PUBLIC_SPENDER_ADDRESS = process.env.NEXT_PUBLIC_SPENDER_ADDRESS || '';
 
 const DOMAINS = {
   dev: {
