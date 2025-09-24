@@ -14,7 +14,9 @@ import {
 
 import { AuctionNewCalendarProps } from "@/types/createAuction";
 
-export default function AuctionNewCalendar({ onChange }: AuctionNewCalendarProps) {
+export default function AuctionNewCalendar({
+  onChange,
+}: AuctionNewCalendarProps) {
   // 시작일시
   const [startDate, setStartDate] = React.useState<Date>();
   const [startTime, setStartTime] = React.useState("10:00:00");
@@ -24,6 +26,10 @@ export default function AuctionNewCalendar({ onChange }: AuctionNewCalendarProps
   const [endTime, setEndTime] = React.useState("10:00:00");
   const [startPopoverOpen, setStartPopoverOpen] = React.useState(false);
   const [endPopoverOpen, setEndPopoverOpen] = React.useState(false);
+
+  // '오늘'의 시작 (00:00:00)을 계산
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
   // 한 번에 전달
   React.useEffect(() => {
@@ -47,7 +53,10 @@ export default function AuctionNewCalendar({ onChange }: AuctionNewCalendarProps
                 <ChevronDownIcon />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[300px] overflow-hidden p-0 z-91" align="start">
+            <PopoverContent
+              className="w-[300px] overflow-hidden p-0 z-91"
+              align="start"
+            >
               <Calendar
                 mode="single"
                 selected={startDate}
@@ -55,7 +64,7 @@ export default function AuctionNewCalendar({ onChange }: AuctionNewCalendarProps
                   setStartDate(date);
                   setStartPopoverOpen(false); // 선택 후 닫기
                 }}
-                disabled={(date) => date < new Date()}
+                disabled={(date) => date < today}
               />
             </PopoverContent>
           </Popover>
@@ -81,12 +90,16 @@ export default function AuctionNewCalendar({ onChange }: AuctionNewCalendarProps
               <Button
                 variant="outline"
                 className="w-[150px] h-[50px] justify-between"
+                disabled={!startDate}
               >
                 {endDate ? endDate.toLocaleDateString() : "종료 날짜"}
                 <ChevronDownIcon />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[300px] overflow-hidden p-0 z-91" align="start">
+            <PopoverContent
+              className="w-[300px] overflow-hidden p-0 z-91"
+              align="start"
+            >
               <Calendar
                 mode="single"
                 selected={endDate}
@@ -94,7 +107,7 @@ export default function AuctionNewCalendar({ onChange }: AuctionNewCalendarProps
                   setEndDate(date);
                   setEndPopoverOpen(false); // 선택 후 닫기
                 }}
-                disabled={(date) => date < (startDate ?? new Date())} // 시작일 이후만 선택
+                disabled={(date) => date < (startDate ?? today)} // 시작일 이후만 선택
               />
             </PopoverContent>
           </Popover>

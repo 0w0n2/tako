@@ -42,9 +42,8 @@ public class MyProfileService {
                 .getPrimaryImageUrl(MediaType.MEMBER_PROFILE, me.getId(), Duration.ofMinutes(5)).orElse(null);
         String backgroundUrl = mediaUrlService
                 .getPrimaryImageUrl(MediaType.MEMBER_BACKGROUND, me.getId(), Duration.ofMinutes(5)).orElse(null);
-        Map<String, Integer> map = buildNotificationSettingMap(me);
-        return new MyProfileResponse(me.getId(), me.getEmail(), me.getNickname(), me.getIntroduction(), profileUrl,
-                backgroundUrl, map);
+
+        return MyProfileResponse.toDto(me, profileUrl, backgroundUrl);
     }
 
     @Transactional(readOnly = true)
