@@ -45,6 +45,8 @@ module.exports = {
     NEXT_PUBLIC_API_BASE_URL: API,
     NEXT_PUBLIC_AI_API_BASE_URL: getAI_API_URL(),
     APP_STAGE,
+    NEXT_PUBLIC_TAKO_NFT,
+    NEXT_PUBLIC_SPENDER_ADDRESS
   },
 
   async rewrites() {
