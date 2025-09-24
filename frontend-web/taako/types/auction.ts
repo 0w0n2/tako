@@ -28,7 +28,7 @@ export interface AuctionDetailProps {
   buyNowFlag: boolean;
   buyNowPrice: number | null;
   card: Card;
-  weeklyAuctions: WeeklyAuctions[],
+  weeklyAuctions: WeeklyAuctions[];
   history: History[];
   seller: Seller;
 }
@@ -54,9 +54,8 @@ export interface GetAuction {
   bidCount: number;
   remainingSeconds: number;
   primaryImageUrl: string;
-  wished: boolean
+  wished: boolean;
 }
-
 
 export interface WeeklyAuctions {
   date: string;
@@ -68,11 +67,13 @@ export interface WeeklyAuctions {
 // 경매 등록 폼
 export interface AuctionFormProps {
   files: File[];
+  registerNft?: boolean;
   requestDto: {
-    gradeHash: string | null,
-    categoryMajorId: number | null,
-    categoryMediumId: number | null,
-    cardId: number | null,
+    gradeHash: string | null;
+    categoryMajorId: number | null;
+    categoryMediumId: number | null;
+    cardId: number | null;
+    tokenId: number | null;
     title: string;
     detail: string;
     startDatetime: string;
@@ -81,7 +82,7 @@ export interface AuctionFormProps {
     buyNowPrice: number;
     bidUnit: number;
     startPrice: number;
-  }
+  };
 }
 
 // 내 경매 목록 응답
