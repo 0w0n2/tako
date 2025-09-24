@@ -79,7 +79,7 @@ function normalizeSeller(raw: any): Seller {
 function normalizeHistory(list: any[]): History[] {
   return (list ?? []).map((h) => ({
     createdAt: h?.createdAt ?? h?.time ?? "",
-    bidPrice: h?.bidPrice ?? h?.price ?? 0,
+    amount: h?.amount ?? h?.amount ?? 0,
     bidderNickname: h?.bidderNickname ?? h?.nickname ?? "",
   })) as History[];
 }
