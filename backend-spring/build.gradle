@@ -82,6 +82,9 @@ dependencies {
 	// == Web3J ==
 	implementation 'org.web3j:core:4.13.0'
 	implementation 'org.web3j:abi:4.13.0'
+
+	// FCM
+	implementation 'com.google.firebase:firebase-admin:9.1.1'
 }
 
 tasks.named('test') {
