@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/v1/admin/fcm")
-@Tag(name = "Admin FCM Test", description = "관리자 전용 FCM 테스트 발송 API")
+@Tag(name = "Admin")
 public class AdminFcmTestController {
 
     private final FcmPushService fcmPushService;
