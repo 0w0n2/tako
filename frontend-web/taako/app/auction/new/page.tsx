@@ -95,7 +95,7 @@ export default function NewAuctionPage() {
       });
       
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(`HTTP error! status: ${response}`);
       }
       
       const responseData = await response.json();
