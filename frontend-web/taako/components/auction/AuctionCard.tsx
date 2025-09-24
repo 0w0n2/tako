@@ -110,7 +110,7 @@ export default function AuctionCard({ item, onWishChange }: Props){
                         <Image 
                             src={item.primaryImageUrl || '/no-image.jpg'} 
                             alt={item.title}
-                            width={300} 
+                            width={200} 
                             height={300}
                             className="w-full h-full object-cover rounded"
                             unoptimized

@@ -9,7 +9,7 @@ export default function RankElement({ rank }: Rank) {
         return 'text-[#30E6F7] shadow-[#30E6F7]';
       case 'S':
         return 'text-[#837BFF] shadow-[#837BFF]';
-      case 'A':
+      case 'A+':
         return 'text-[#FF5DA3] shadow-[#FF5DA3]';
       case 'B':
         return 'shadow-[#BCBCBC]';
@@ -20,7 +20,7 @@ export default function RankElement({ rank }: Rank) {
 
   return (
     <div className={`flex justify-center items-center bg-[#191924]
-        w-[50px] h-[50px] border-2 rounded-xl ${getRankStyle(rank)}`
+        w-[50px] h-[50px] border-3 rounded-xl ${getRankStyle(rank)}`
     }
     >
         <p className="text-[32px] font-bold -translate-y-0.5"
