@@ -97,7 +97,8 @@ public class AuctionDetailResponse {
     @AllArgsConstructor
     @NoArgsConstructor
     public static class BidHistoryItem {
-        private LocalDateTime createdAt;
+        // ISO 8601 UTC (e.g., 2025-09-25T12:34:56Z)
+        private String createdAt;
         private BigDecimal amount;
         private String bidderNickname;
     }

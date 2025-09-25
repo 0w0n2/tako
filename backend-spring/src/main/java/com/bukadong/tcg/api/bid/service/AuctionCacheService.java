@@ -29,6 +29,15 @@ public class AuctionCacheService {
     private final AuctionRepository auctionRepository;
     private final RedisTemplate<String, String> redisTemplate;
     private static final String AUCTION_KEY_PREFIX = "auction:";
+    // Redis Hash field constants
+    private static final String F_IS_END = "is_end";
+    private static final String F_START_TS = "start_ts";
+    private static final String F_END_TS = "end_ts";
+    private static final String F_CURRENT_PRICE = "current_price";
+    private static final String F_BID_UNIT = "bid_unit";
+    private static final String F_OWNER_ID = "owner_id";
+    private static final String F_BUY_NOW_FLAG = "buy_now_flag";
+    private static final String F_BUY_NOW_PRICE = "buy_now_price";
 
     /**
      * 경매 메타 캐시 보정/워밍
@@ -39,7 +48,6 @@ public class AuctionCacheService {
      * @PARAM auctionId 경매 ID
      * @RETURN 없음
      */
-    @Transactional(readOnly = true)
     public void ensureLoaded(Long auctionId) {
         Auction a = auctionRepository.findById(auctionId).orElse(null);
         if (a == null)
@@ -49,17 +57,17 @@ public class AuctionCacheService {
         HashOperations<String, String, String> h = redisTemplate.opsForHash();
 
         if (Boolean.FALSE.equals(redisTemplate.hasKey(key)) || h.entries(key).isEmpty()
-                || h.get(key, "current_price") == null || h.get(key, "bid_unit") == null
-                || h.get(key, "start_ts") == null || h.get(key, "end_ts") == null || h.get(key, "owner_id") == null
-                || h.get(key, "buy_now_flag") == null) {
+                || h.get(key, F_CURRENT_PRICE) == null || h.get(key, F_BID_UNIT) == null
+                || h.get(key, F_START_TS) == null || h.get(key, F_END_TS) == null || h.get(key, F_OWNER_ID) == null
+                || h.get(key, F_BUY_NOW_FLAG) == null) {
             String buyNowFlag = a.isBuyNowFlag() ? "1" : "0";
             String buyNowPrice = (a.getBuyNowPrice() != null) ? a.getBuyNowPrice().toPlainString() : "";
-            h.putAll(key, Map.of("is_end", a.isEnd() ? "1" : "0", "start_ts",
-                    String.valueOf(a.getStartDatetime().toEpochSecond(ZoneOffset.UTC)), "end_ts",
-                    String.valueOf(a.getEndDatetime().toEpochSecond(ZoneOffset.UTC)), "current_price",
-                    a.getCurrentPrice().toPlainString(), "bid_unit", a.getBidUnit().toBigDecimal().toPlainString(),
-                    "owner_id", String.valueOf(a.getMember() != null ? a.getMember().getId() : 0L), "buy_now_flag",
-                    buyNowFlag, "buy_now_price", buyNowPrice));
+            h.putAll(key, Map.of(F_IS_END, a.isEnd() ? "1" : "0", F_START_TS,
+                    String.valueOf(a.getStartDatetime().toEpochSecond(ZoneOffset.UTC)), F_END_TS,
+                    String.valueOf(a.getEndDatetime().toEpochSecond(ZoneOffset.UTC)), F_CURRENT_PRICE,
+                    a.getCurrentPrice().toPlainString(), F_BID_UNIT, a.getBidUnit().toBigDecimal().toPlainString(),
+                    F_OWNER_ID, String.valueOf(a.getMember() != null ? a.getMember().getId() : 0L), F_BUY_NOW_FLAG,
+                    buyNowFlag, F_BUY_NOW_PRICE, buyNowPrice));
         }
     }
 
@@ -75,16 +83,16 @@ public class AuctionCacheService {
      */
     public void overwritePrice(Long auctionId, String currentPriceStr) {
         String key = AUCTION_KEY_PREFIX + auctionId;
-        String cur = (String) redisTemplate.opsForHash().get(key, "current_price");
+        String cur = (String) redisTemplate.opsForHash().get(key, F_CURRENT_PRICE);
         try {
             if (cur == null) {
-                redisTemplate.opsForHash().put(key, "current_price", currentPriceStr);
+                redisTemplate.opsForHash().put(key, F_CURRENT_PRICE, currentPriceStr);
                 return;
             }
             BigDecimal newV = new BigDecimal(currentPriceStr);
             BigDecimal oldV = new BigDecimal(cur);
             if (newV.compareTo(oldV) > 0) {
-                redisTemplate.opsForHash().put(key, "current_price", currentPriceStr);
+                redisTemplate.opsForHash().put(key, F_CURRENT_PRICE, currentPriceStr);
             }
         } catch (Exception ignore) {
             // no-op: 보수적으로 무시 (로그 노이즈 방지)
@@ -104,7 +112,7 @@ public class AuctionCacheService {
             return;
         String key = AUCTION_KEY_PREFIX + auctionId;
         try {
-            redisTemplate.opsForHash().put(key, "current_price", a.getCurrentPrice().toPlainString());
+            redisTemplate.opsForHash().put(key, F_CURRENT_PRICE, a.getCurrentPrice().toPlainString());
         } catch (Exception ignore) {
             // 보수적으로 무시
         }
@@ -121,7 +129,7 @@ public class AuctionCacheService {
      */
     public void markEnded(Long auctionId) {
         String key = AUCTION_KEY_PREFIX + auctionId;
-        redisTemplate.opsForHash().put(key, "is_end", "1");
+        redisTemplate.opsForHash().put(key, F_IS_END, "1");
     }
 
     /**
@@ -136,7 +144,7 @@ public class AuctionCacheService {
      */
     public void reopenUntil(Long auctionId, long newEndTsEpoch) {
         String key = AUCTION_KEY_PREFIX + auctionId;
-        redisTemplate.opsForHash().putAll(key, Map.of("end_ts", String.valueOf(newEndTsEpoch), "is_end", "0"));
+        redisTemplate.opsForHash().putAll(key, Map.of(F_END_TS, String.valueOf(newEndTsEpoch), F_IS_END, "0"));
     }
 
     /**
@@ -153,6 +161,6 @@ public class AuctionCacheService {
     public void applyAdminChange(Long auctionId, boolean isEnd, long endTsEpoch) {
         String key = AUCTION_KEY_PREFIX + auctionId;
         redisTemplate.opsForHash().putAll(key,
-                Map.of("is_end", isEnd ? "1" : "0", "end_ts", String.valueOf(endTsEpoch)));
+                Map.of(F_IS_END, isEnd ? "1" : "0", F_END_TS, String.valueOf(endTsEpoch)));
     }
 }
