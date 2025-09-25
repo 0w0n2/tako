@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import SellOnGoingAuction from '@/components/mypage/SellOnGoingAuction';
 import SellEndedAuction from '@/components/mypage/SellEndedAuction';
-import { useMyInfo } from '@/hooks/useMyInfo';
+import { useMyInfo } from '@/hooks/useMySellInfo';
 
 export default function SellAuctionPage() {
   const { ongoingSellAuctions ,endedSellAuctions } = useMyInfo();
