@@ -3,9 +3,14 @@
 import { useState } from 'react';
 import SellOnGoingAuction from '@/components/mypage/SellOnGoingAuction';
 import SellEndedAuction from '@/components/mypage/SellEndedAuction';
+import { useMyInfo } from '@/hooks/useMySellInfo';
 
 export default function SellAuctionPage() {
+  const { ongoingSellAuctions ,endedSellAuctions } = useMyInfo();
   const [activeTab, setActiveTab] = useState<'ongoing' | 'ended'>('ongoing');
+  const ongoing = ongoingSellAuctions.length || 0
+  const ended = endedSellAuctions.length || 0
+
   return (
     <div>
       <h2>판매 경매 조회</h2>
@@ -18,7 +23,7 @@ export default function SellAuctionPage() {
           <div className={`${activeTab === 'ongoing' ? 'text-white font-medium' : 'font-light text-[#a5a5a5]'}`}>판매 중</div>
           <div className={`text-lg mb-0.5 ${
             activeTab === 'ongoing' ? 'text-[#F2B90C] font-medium' : 'font-light text-[#a5a5a5]'
-          }`}>1</div>
+          }`}>{ongoing}</div>
         </button>
         {/* 종료 */}
         <button
@@ -28,7 +33,7 @@ export default function SellAuctionPage() {
           <div className={`${activeTab === 'ended' ? 'text-white font-medium' : 'font-light text-[#a5a5a5]'}`}>종료</div>
           <div className={`text-lg mb-0.5 ${
             activeTab === 'ended' ? 'text-[#F2B90C] font-medium' : 'font-light text-[#a5a5a5]'
-          }`}>1</div>
+          }`}>{ended}</div>
         </button>
         
         {/* 활성 탭 표시 바 */}

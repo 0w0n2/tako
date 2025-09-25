@@ -29,8 +29,8 @@ export const createAuction = async (requestDto: any, files: File[]) => {
 // 경매 목록 조회
 export const getAuctions = async (params: GetHotCards) => {
   const res = await api.get("/v1/auctions", {
-    params: params,
-  });
+    params: params
+  })
   return res.data;
 };
 

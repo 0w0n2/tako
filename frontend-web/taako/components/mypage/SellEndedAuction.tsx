@@ -1,11 +1,16 @@
 'use client'
 
+import { useState } from "react";
 import Image from "next/image"
 import { 
   LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, 
   LabelList, ReferenceLine, ReferenceArea 
 } from "recharts";
 import { MySellAuctions, Bids } from "@/types/auth";
+import { useMyInfo } from "@/hooks/useMySellInfo";
+import { useDelivery } from "@/hooks/useSellDelivery";
+import AddTracking from "./delivery/AddTracking";
+import SellDeliveryForm from "./delivery/SellDeliveryForm";
 
 const dummy: MySellAuctions[] = [
   {
@@ -23,7 +28,13 @@ const dummy: MySellAuctions[] = [
       { data:"2025/09/05T10:00", nickname:"as12df", price:50 },
       { data:"2025/09/17T12:00", nickname:"hhhdf", price:90 },
       { data:"2025/09/24T10:00", nickname:"as12df", price:124 },
-    ]
+    ],
+    delivery: {
+      "status": "string",
+      "existTrackingNumber": true,
+      "existRecipientAddress": true,
+      "existSenderAddress": true
+    }
   }
 ]
 
@@ -78,94 +89,202 @@ const getChartData = (auction: MySellAuctions) => {
       } else {
         current.bids.push(bid);
       }
-    }
+    } 
   });
 
   const chartData = Array.from(dailyMaxMap.entries())
     .sort((a, b) => a[0] - b[0])
-    .map(([dayKey, { bids, price }]) => ({
-      date: dayKey,
-      bids,
-      price,
-    }));
+    .map(([dayKey, { bids, price }]) => ({ date: dayKey, bids, price, }));
 
   return chartData;
 };
 
-// LabelList 커스텀
-const CustomLabel = (props: any) => {
-  const { x, y, value, index, data } = props;
-  if (index === data.length - 1) {
-    return (
-      <text
-        x={x}
-        y={y - 12}
-        fill="#f2b90c"
-        fontSize={14}
-        textAnchor="middle"
-      >
-        {value}TKC
-      </text>
-    );
-  }
-  return null;
+const statusMap: Record<string, string> = {
+  WAITING: "배송준비중",
+  IN_PROGRESS: "배송중",
+  COMPLETED: "배송완료",
+  CONFIRMED: "구매확정",
 };
 
 export default function SellOnGoingAuction() {
   const auction = dummy[0];
-  const chartData = getChartData(auction);
+  const [isDeliveryOpen, setIsDeliveryOpen] = useState(false); // 배송지 모달
+  const [isTrackingOpen, setIsTrackingOpen] = useState(false); // 송장 모달
 
+  const { endedSellAuctions } = useMyInfo();
+  // console.log(endedSellAuctions)
+
+  const { handlerGetAuctionDelivery, auctionDelivery } = useDelivery();
+
+  const chartData = getChartData(auction);
   const today = new Date();
   const todayTs = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
   const endDate = new Date(auction.endDatetime!.replace(/\//g, "-"));
   const endDateTs = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate()).getTime();
 
   return (
-    <div className="grid grid-cols-2 gap-3 py-5 pt-8 border-b border-[#353535]">
-      <div className="flex flex-col justify-between">
-        <div className="flex flex-col gap-1 px-4">
-          <p className="text-sm text-[#a5a5a5]">경매 번호: {auction.code}</p>
-          <h3 className="bid">{auction.title}</h3>
-        </div>
-        <div className="py-4 px-4 flex justify-between">
-          <div className="flex items-center gap-5">
-            <div className="rounded-lg overflow-hidden w-25 h-25">
-              <Image
-                className="w-full h-full object-cover"
-                src={auction.imageUrl || "/no-image.jpg"}
-                alt="thumbnail"
-                width={100}
-                height={100}
-              />
-            </div>
-            <div>
-              <p className="text-xl mb-1">입찰가: {auction.currentPrice} TKC</p>
-              <p className="text-sm font-bold text-red-500">경매 종료</p>
-            </div>
-          </div>
-          <div className="flex flex-col justify-center gap-2">
-            <button className="px-8 py-3 text-sm rounded-md border-1 border-[#353535] bg-[#191924]">배송지등록</button>
-            <button className="px-8 py-3 text-sm rounded-md border-1 border-[#353535] bg-[#191924]">송장번호입력</button>
-          </div>
-        </div>
-      </div>
+    <div>
+      {endedSellAuctions.length === 0 ? (
+        <p className="text-center text-sm text-[#a5a5a5] py-20">종료된 경매가 없습니다.</p>
+      ) : (
+        endedSellAuctions.map((item, index) => {
+          const chartData = getChartData(item);
+          const endDate = new Date(item.endDatetime!.replace(/\//g, "-"));
+          const endDateTs = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate()).getTime();
 
-      <LineChart width={540} height={164} data={chartData} margin={{ top: 20, right:40 }}>
-        <CartesianGrid stroke="#222" strokeDasharray="3 3" />
-        <XAxis
-          dataKey="date"
-          type="number"
-          domain={['dataMin', 'dataMax']}
-          tickFormatter={formatDateForXAxis}
-          tick={{ fill: "#a5a5a5", fontSize: 14, dy: 8 }}
-          axisLine={false}
+          return (
+            <div key={index} className="grid grid-cols-2 gap-3 py-5 pt-8 border-b border-[#353535]">
+              <div className="flex flex-col justify-between">
+                <div className="flex flex-col gap-1 px-4">
+                  <p className="text-sm text-[#a5a5a5]">경매 번호: {item.code}</p>
+                  <h3 className="bid">{item.title}</h3>
+                </div>
+                <div className="py-4 px-4 flex justify-between">
+                  <div className="flex items-center gap-5">
+                    <div className="rounded-lg overflow-hidden w-25 h-25">
+                      <Image
+                        className="w-full h-full object-cover"
+                        src={item.imageUrl || "/no-image.jpg"}
+                        alt="thumbnail"
+                        width={100}
+                        height={100}
+                      />
+                    </div>
+                    <div>
+                      <p className="text-xl mb-1">입찰가: {item.currentPrice} TKC</p>
+                      <p className="text-sm font-bold text-red-500">
+                        {statusMap[auctionDelivery?.status ?? ""] || "배송입력대기"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex flex-col justify-center gap-2">
+                    <button
+                      className="px-8 py-3 text-sm rounded-md border-1 border-[#353535] bg-[#191924]"
+                      onClick={() => setIsDeliveryOpen(true)}
+                    >
+                      배송지등록
+                    </button>
+                    <button
+                      className="px-8 py-3 text-sm rounded-md border-1 border-[#353535] bg-[#191924]"
+                      onClick={() => setIsTrackingOpen(true)}
+                    >
+                      송장번호입력
+                    </button>
+                  </div>
+                </div>
+
+                {/* 배송지입력버튼 모달 */}
+                {isDeliveryOpen && (
+                  <SellDeliveryForm
+                    auctionId={item.auctionId}
+                    onClose={() => setIsDeliveryOpen(false)}
+                  />
+                )}
+                {/* 송장번호입력버튼 모달 */}
+                {isTrackingOpen && (
+                  <AddTracking
+                    auctionId={item.auctionId}
+                    item={auctionDelivery}
+                    onClose={() => setIsTrackingOpen(false)}
+                  />
+                )}
+              </div>
+
+              <LineChart width={540} height={164} data={chartData} margin={{ top: 20, right: 40 }}>
+                <CartesianGrid stroke="#222" strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="date"
+                  type="number"
+                  domain={['dataMin', 'dataMax']}
+                  tickFormatter={formatDateForXAxis}
+                  tick={{ fill: "#a5a5a5", fontSize: 14, dy: 8 }}
+                  axisLine={false}
+                />
+                <YAxis tick={{ fill: "#aaa", fontSize: 12, dx: -4 }} axisLine={false} />
+                <Tooltip content={<CustomTooltip />} />
+                <ReferenceArea x1={todayTs} x2={endDateTs} fill="#353535" fillOpacity={0.3} />
+                <ReferenceLine
+                  x={todayTs}
+                  stroke="#00ff00"
+                  strokeWidth={2}
+                  label={{ position: "top", value: "오늘", fill: "#00ff00", dy: -2, fontSize: 12 }}
+                />
+                <Line type="monotone" dataKey="price" name="입찰가" stroke="#ffffff" strokeWidth={2} dot />
+              </LineChart>
+            </div>
+          );
+        })
+      )}
+
+      
+      {/* 배송지입력버튼 모달 */}
+      {/* {isDeliveryOpen && (
+        <SellDeliveryForm
+          auctionId={auction.auctionId}
+          onClose={() => setIsDeliveryOpen(false)}
         />
-        <YAxis tick={{ fill: "#aaa", fontSize: 12, dx: -4}} axisLine={false} />
-        <Tooltip content={<CustomTooltip />} />
-        <ReferenceArea x1={todayTs} x2={endDateTs} fill="#353535" fillOpacity={0.3} />
-        <ReferenceLine x={todayTs} stroke="#00ff00" strokeWidth={2} label={{ position: "top", value: "오늘", fill: "#00ff00", dy:-2, fontSize: 12 }} />
-        <Line type="monotone" dataKey="price" name="입찰가" stroke="#ffffff" strokeWidth={2} dot />
-      </LineChart>
+      )} */}
+      {/* 송장번호입력버튼 모달 */}
+      {/* {isTrackingOpen && (
+        <AddTracking
+          auctionId={auction.auctionId}
+          item={auctionDelivery}
+          onClose={() => setIsTrackingOpen(false)}
+        />
+      )} */}
+
+        {/* <div className="grid grid-cols-2 gap-3 py-5 pt-8 border-b border-[#353535]">
+          <div className="flex flex-col justify-between">
+            <div className="flex flex-col gap-1 px-4">
+              <p className="text-sm text-[#a5a5a5]">경매 번호: {auction.code}</p>
+              <h3 className="bid">{auction.title}</h3>
+            </div>
+            <div className="py-4 px-4 flex justify-between">
+              <div className="flex items-center gap-5">
+                <div className="rounded-lg overflow-hidden w-25 h-25">
+                  <Image
+                    className="w-full h-full object-cover"
+                    src={auction.imageUrl || "/no-image.jpg"}
+                    alt="thumbnail"
+                    width={100}
+                    height={100}
+                  />
+                </div>
+                <div>
+                  <p className="text-xl mb-1">입찰가: {auction.currentPrice} TKC</p>
+                  <p className="text-sm font-bold text-red-500">경매 종료</p>
+                </div>
+              </div>
+              <div className="flex flex-col justify-center gap-2">
+                <button
+                  className="px-8 py-3 text-sm rounded-md border-1 border-[#353535] bg-[#191924]"
+                  onClick={() => setIsDeliveryOpen(true)}
+                >배송지등록</button>
+                <button
+                  className="px-8 py-3 text-sm rounded-md border-1 border-[#353535] bg-[#191924]"
+                  onClick={() => setIsTrackingOpen(true)}
+                >송장번호입력</button>
+              </div>
+            </div>
+          </div>
+
+          <LineChart width={540} height={164} data={chartData} margin={{ top: 20, right:40 }}>
+            <CartesianGrid stroke="#222" strokeDasharray="3 3" />
+            <XAxis
+              dataKey="date"
+              type="number"
+              domain={['dataMin', 'dataMax']}
+              tickFormatter={formatDateForXAxis}
+              tick={{ fill: "#a5a5a5", fontSize: 14, dy: 8 }}
+              axisLine={false}
+            />
+            <YAxis tick={{ fill: "#aaa", fontSize: 12, dx: -4}} axisLine={false} />
+            <Tooltip content={<CustomTooltip />} />
+            <ReferenceArea x1={todayTs} x2={endDateTs} fill="#353535" fillOpacity={0.3} />
+            <ReferenceLine x={todayTs} stroke="#00ff00" strokeWidth={2} label={{ position: "top", value: "오늘", fill: "#00ff00", dy:-2, fontSize: 12 }} />
+            <Line type="monotone" dataKey="price" name="입찰가" stroke="#ffffff" strokeWidth={2} dot />
+          </LineChart>
+        </div> */}
     </div>
   );
 }
