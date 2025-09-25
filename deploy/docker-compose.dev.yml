@@ -49,9 +49,9 @@ services:
       - "8080:8080"
     env_file:
       - .env.dev
-    mem_limit: 768m
-    memswap_limit: 768m
-    cpus: "0.3"
+    mem_limit: 1536m
+    memswap_limit: 1536m
+    cpus: "1"
     depends_on:
       - mysql_dev
       - redis_dev
