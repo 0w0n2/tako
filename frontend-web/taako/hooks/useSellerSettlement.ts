@@ -3,19 +3,18 @@
 
 import { useMemo } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { useDelivery } from "@/hooks/useDelivery";
 import { useEscrowAddress } from "@/hooks/useEscrowAddress";
+import { useEscrowState } from "@/hooks/useEscrowState";
 import { useERC721Approval } from "@/hooks/useERC721Approval";
 import { releaseFunds } from "@/lib/bc/escrow";
-// import type { DeliveryStatus } from "@/types/delivery"; // ← 더 이상 직접 선언 안 쓰면 불필요
+import { ESCROW_STATE } from "@/lib/bc/escrowAbi";
 
 type Params = {
   auctionId: number;
-  nftAddress: `0x${string}`;
+  nftAddress: string;
   tokenId: number | string | bigint;
   sellerWallet?: `0x${string}`;
   preferForAll?: boolean;
-  addressId?: number;
 };
 
 export function useSellerSettlement({
@@ -24,50 +23,61 @@ export function useSellerSettlement({
   tokenId,
   sellerWallet,
   preferForAll = true,
-  addressId,
 }: Params) {
   // 1) 에스크로 주소
   const { data: escrowAddress, isLoading: escrowLoading, error: escrowError } =
     useEscrowAddress(auctionId);
 
-  // 2) 배송 상태 (구매확정 확인) - options 객체로 전달
-  const {
-    info: delivery,
-    loading: deliveryLoading,
-    error: deliveryError,
-    status: deliveryStatus, // ← 이름을 바꿔 받기
-  } = useDelivery(auctionId, { addressId });
+  // 2) 에스크로 상태
+  const { state: escrowState, loading: stateLoading, error: stateError, refetch: refetchState } =
+    useEscrowState(auctionId, true, 10_000);
 
-  // 전달받은 status를 그대로 사용
-  const isConfirmed = deliveryStatus === "CONFIRMED";
+  const buyerConfirmed = escrowState === ESCROW_STATE.COMPLETED; // = 2
 
-  // 3) 승인 상태 훅
+  // hooks/useSellerSettlement.ts
   const approval = useERC721Approval({
     nftAddress,
-    tokenId: typeof tokenId === "bigint" ? tokenId : BigInt(tokenId),
+    tokenId:
+      tokenId !== undefined
+        ? (typeof tokenId === "bigint" ? tokenId : BigInt(tokenId))
+        : BigInt(0), // ← 0n 대신 BigInt(0)
     spender: (escrowAddress ?? "0x0000000000000000000000000000000000000000") as string,
   });
 
-  const canApprove = useMemo(() => Boolean(escrowAddress), [escrowAddress]);
-  const canRelease = useMemo(() => Boolean(escrowAddress) && isConfirmed, [escrowAddress, isConfirmed]);
+  // 버튼 활성 조건
+  // - approve: buyerConfirmed && !alreadyApproved
+  // - release: buyerConfirmed && alreadyApproved
+  const canApprove = useMemo(
+    () => Boolean(escrowAddress) && buyerConfirmed && !approval.isAlreadyApproved,
+    [escrowAddress, buyerConfirmed, approval.isAlreadyApproved]
+  );
 
-  // 4) 승인의 실제 실행
+  const canRelease = useMemo(
+    () => Boolean(escrowAddress) && buyerConfirmed && approval.isAlreadyApproved,
+    [escrowAddress, buyerConfirmed, approval.isAlreadyApproved]
+  );
+
+  // 승인 실행
   const approveMutation = useMutation({
     mutationFn: async () => {
       if (!escrowAddress) throw new Error("에스크로 주소를 불러오지 못했습니다.");
-      if (preferForAll) {
-        return await approval.setApprovalForAll(true);
-      }
+      if (preferForAll) return await approval.setApprovalForAll(true);
       return await approval.approveToken();
+    },
+    onSuccess: () => {
+      void approval.refresh();
     },
   });
 
-  // 5) 정산 실행
+  // 정산 실행
   const releaseMutation = useMutation({
     mutationFn: async () => {
       if (!escrowAddress) throw new Error("에스크로 주소를 불러오지 못했습니다.");
-      if (!isConfirmed) throw new Error("구매자가 아직 '구매 확정'을 완료하지 않았습니다.");
-      return await releaseFunds(escrowAddress as `0x${string}`);
+      if (!approval.isAlreadyApproved) throw new Error("먼저 NFT 승인(approve)을 완료해주세요.");
+      const receipt = await releaseFunds(escrowAddress as `0x${string}`);
+      // 상태 변화가 있으면 갱신
+      void refetchState();
+      return receipt;
     },
   });
 
@@ -76,19 +86,18 @@ export function useSellerSettlement({
     if (/user rejected|rejected by user/i.test(msg)) return "사용자가 서명을 거부했습니다.";
     if (/insufficient funds/i.test(msg)) return "가스비(ETH)가 부족합니다.";
     if (/MetaMask|ethereum/i.test(msg)) return "MetaMask 연결이 필요합니다.";
-    if (/구매 확정/.test(msg)) return msg;
+    if (/confirmReceipt|구매자가 아직/.test(msg)) return msg;
+    if (/approve/.test(msg)) return "먼저 NFT 승인(approve)을 완료해주세요.";
     return `오류가 발생했습니다: ${msg}`;
   };
 
   return {
     // 상태
     escrowAddress,
-    status: deliveryStatus, // ← 노출은 그대로 status로
-    isConfirmed,
-    escrowLoading,
-    deliveryLoading,
-    escrowError,
-    deliveryError,
+    escrowState,               // 0/1/2/3
+    buyerConfirmed,            // currentState === 2
+    escrowLoading: escrowLoading || stateLoading,
+    escrowError: escrowError || stateError || "",
 
     // 승인 관련
     alreadyApproved: approval.isAlreadyApproved,
@@ -103,7 +112,6 @@ export function useSellerSettlement({
     approve: async () => {
       try {
         await approveMutation.mutateAsync();
-        await approval.refresh();
         return { ok: true, message: "승인이 완료되었습니다." };
       } catch (e) {
         return { ok: false, message: humanize(e) };
