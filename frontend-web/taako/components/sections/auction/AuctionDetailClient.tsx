@@ -9,7 +9,8 @@ import BidInputForm from "@/components/atoms/BidInputForm"; // ← 경로 수정
 import AuctionDetailImages from "@/components/sections/auction/AuctionDetailImages";
 import RemainingTime from "@/components/atoms/RemainingTime";
 import { formatKSTFull } from "@/lib/formatKST";
-import AuctionChart from "@/components/charts/AuctionChart";
+import AuctionHistoryTable from "@/components/charts/parts/AuctionHistoryTable";
+import AuctionWeeklyChart from "@/components/charts/parts/AuctionWeeklyChart";
 import AuctionInquiry from "@/components/sections/auction/AuctionInquiry";
 import { useAuctionDetail } from "@/hooks/useAuctionDetail";
 import { useAuctionPrice } from "@/hooks/useAuctionPrice";
@@ -200,12 +201,19 @@ export default function AuctionDetailClient({ auctionId, historySize = 5 }: Read
 							/>
 						</div>
 
-						{/* 히스토리 (차트 + 실시간 포함 테이블) */}
+						{/* 입찰 기록 / 주간 차트 분리 */}
 						<div className="mt-10">
 							<p className="text-[20px]">실시간 입찰 기록</p>
-							<p className="text-sm text-[#a5a5a5] mt-2">지난 7일간 해당 카드와 같은 등급의 거래 내역과 실시간 입찰이 함께 표시됩니다.</p>
-							<div className="mt-10">
-								<AuctionChart props={auc} realtimeBids={realtimeEvents} maxRows={15} />
+							<p className="text-sm text-[#a5a5a5] mt-2">실시간(LIVE) 과 과거 입찰 내역을 최신순으로 최대 15개까지 표시합니다.</p>
+							<div className="mt-6">
+								<AuctionHistoryTable auction={auc} realtimeBids={realtimeEvents} maxRows={15} />
+							</div>
+						</div>
+						<div className="mt-14">
+							<p className="text-[20px]">최근 7일 경매가 추이</p>
+							<p className="text-sm text-[#a5a5a5] mt-2">동일 카드 등급의 일별 최대/평균/최소 낙찰가 추이를 보여줍니다.</p>
+							<div className="mt-6">
+								<AuctionWeeklyChart auction={auc} />
 							</div>
 						</div>
 
