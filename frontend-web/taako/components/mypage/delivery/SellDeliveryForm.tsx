@@ -19,8 +19,8 @@ export default function SellDeliveryForm({ auctionId, onClose }: SellDeliveryFor
 
   // defaultAddress가 로드되면 기본값으로 세팅
   useEffect(() => {
-    if (defaultAddress && defaultAddress.length > 0) {
-      setAddressId(defaultAddress[0].id);
+    if (defaultAddress) {
+      setAddressId(defaultAddress.id);
     }
   }, [defaultAddress]);
 
