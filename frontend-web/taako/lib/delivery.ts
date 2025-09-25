@@ -11,3 +11,9 @@ export const sellerDelivery = async(auctionId:number, addressId:number) => {
     const res = await api.post(`/v1/deliveries/${auctionId}/sender/${addressId}`);
     return res.data;
 }
+
+// 판매자: 운송장 등록
+export const addTrackingNumber = async(auctionId:number, trackingNumber:string) => {
+    const res = await api.post(`/v1/deliveries/${auctionId}/tracking?trackingNumber=${trackingNumber}`);
+    return res.data;
+}
