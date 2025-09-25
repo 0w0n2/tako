@@ -21,39 +21,19 @@ public class PushProperties {
         return webIcon;
     }
 
-    public void setWebIcon(String webIcon) {
-        this.webIcon = webIcon;
-    }
-
     public String getWebBadge() {
         return webBadge;
-    }
-
-    public void setWebBadge(String webBadge) {
-        this.webBadge = webBadge;
     }
 
     public String getClickBaseUrl() {
         return clickBaseUrl;
     }
 
-    public void setClickBaseUrl(String clickBaseUrl) {
-        this.clickBaseUrl = clickBaseUrl;
-    }
-
     public String getAndroidChannelId() {
         return androidChannelId;
     }
 
-    public void setAndroidChannelId(String androidChannelId) {
-        this.androidChannelId = androidChannelId;
-    }
-
     public String getIosSound() {
         return iosSound;
-    }
-
-    public void setIosSound(String iosSound) {
-        this.iosSound = iosSound;
     }
 }
