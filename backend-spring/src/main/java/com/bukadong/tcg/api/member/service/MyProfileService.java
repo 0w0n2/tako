@@ -43,11 +43,35 @@ public class MyProfileService {
         String backgroundUrl = mediaUrlService
                 .getPrimaryImageUrl(MediaType.MEMBER_BACKGROUND, me.getId(), Duration.ofMinutes(5)).orElse(null);
 
+        return MyProfileResponse.toDto(me, profileUrl, backgroundUrl);
+    }
+
+    @Transactional(readOnly = true)
+    public Map<String, Integer> getNotificationSettings(Member me) {
+        return buildNotificationSettingMap(me);
+    }
+
+    @Transactional
+    public void updateNotificationSettings(Member me, Map<String, Integer> incoming) {
+        if (incoming == null) {
+            return;
+        }
+        upsertNotificationSettings(me, incoming);
+    }
+
+    private Map<String, Integer> buildNotificationSettingMap(Member me) {
         List<NotificationSetting> settings = notificationSettingRepository.findByMember(me);
+        if (settings.isEmpty()) {
+            List<NotificationType> allTypes = notificationTypeRepository.findAll();
+            return allTypes.stream().collect(Collectors.toMap(t -> t.getCode().name(), t -> 1));
+        }
         Map<String, Integer> map = settings.stream().collect(Collectors.toMap(
                 s -> s.getNotificationType().getCode().name(), s -> Boolean.TRUE.equals(s.getEnabled()) ? 1 : 0));
-
-        return MyProfileResponse.toDto(me, profileUrl, backgroundUrl, map);
+        List<NotificationType> allTypes = notificationTypeRepository.findAll();
+        for (NotificationType t : allTypes) {
+            map.putIfAbsent(t.getCode().name(), 1);
+        }
+        return map;
     }
 
     @Transactional
@@ -58,9 +82,6 @@ public class MyProfileService {
         }
         if (req.introduction() != null) {
             me.changeIntroduction(req.introduction());
-        }
-        if (req.notificationSetting() != null) {
-            upsertNotificationSettings(me, req.notificationSetting());
         }
 
         // 이미지 교체 처리: 파일이 온 경우 기존 이미지 전체 삭제 후 새 파일 1장 업로드
@@ -83,36 +104,26 @@ public class MyProfileService {
     }
 
     private void upsertNotificationSettings(Member me, Map<String, Integer> incoming) {
-        for (Map.Entry<String, Integer> e : incoming.entrySet()) {
-            String codeStr = e.getKey();
-            Integer onoff = e.getValue();
-            boolean skip = (onoff == null);
-            NotificationTypeCode code = null;
-            if (!skip) {
-                try {
-                    code = NotificationTypeCode.valueOf(codeStr);
-                } catch (IllegalArgumentException ex) {
-                    skip = true; // 알 수 없는 코드는 무시
-                }
-            }
-            NotificationType t = null;
-            if (!skip) {
-                t = notificationTypeRepository.findByCode(code).orElse(null);
-                if (t == null) {
-                    skip = true;
-                }
-            }
-            if (skip) {
-                continue;
-            }
-            final NotificationType type = t;
+        incoming.forEach((codeStr, onoff) -> handleSingleSettingUpsert(me, codeStr, onoff));
+    }
 
-            NotificationSetting existing = notificationSettingRepository.findByMemberAndNotificationType(me, type)
-                    .orElseGet(() -> NotificationSetting.builder().member(me).notificationType(type).enabled(false)
-                            .build());
-            NotificationSetting toSave = NotificationSetting.builder().id(existing.getId()).member(me)
-                    .notificationType(type).enabled(onoff == 1).build();
-            notificationSettingRepository.save(toSave);
+    private void handleSingleSettingUpsert(final Member me, final String codeStr, final Integer onoff) {
+        if (onoff == null) {
+            return;
         }
+        final NotificationTypeCode code;
+        try {
+            code = NotificationTypeCode.valueOf(codeStr);
+        } catch (IllegalArgumentException ex) {
+            return; // unknown code
+        }
+        final NotificationType type = notificationTypeRepository.findByCode(code)
+                .orElseGet(() -> notificationTypeRepository.save(NotificationType.of(code, code.name())));
+        final NotificationSetting existing = notificationSettingRepository.findByMemberAndNotificationType(me, type)
+                .orElseGet(
+                        () -> NotificationSetting.builder().member(me).notificationType(type).enabled(false).build());
+        final NotificationSetting toSave = NotificationSetting.builder().id(existing.getId()).member(me)
+                .notificationType(type).enabled(onoff == 1).build();
+        notificationSettingRepository.save(toSave);
     }
 }
