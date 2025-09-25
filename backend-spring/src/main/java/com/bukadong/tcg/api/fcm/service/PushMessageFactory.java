@@ -20,7 +20,7 @@ public class PushMessageFactory {
     private final PushProperties props;
 
     public Message build(String token, Long memberId, String title, String body, String path,
-            Map<String, String> extraData, Integer iosBadge) {
+                         Map<String, String> extraData, Integer iosBadge) {
         if (path == null)
             path = "/";
         Map<String, String> data = new HashMap<>();
@@ -36,23 +36,23 @@ public class PushMessageFactory {
                 .setNotification(Notification.builder().setTitle(title).setBody(body).build());
 
         // Web (PWA) 설정
-        if (props.getWebIcon() != null) {
+        if (props.webIcon() != null) {
             builder.setWebpushConfig(
                     WebpushConfig.builder()
-                            .setNotification(WebpushNotification.builder().setIcon(props.getWebIcon())
-                                    .setBadge(props.getWebBadge()).putCustomData("click_action", path).build())
+                            .setNotification(WebpushNotification.builder().setIcon(props.webIcon())
+                                    .setBadge(props.webBadge()).putCustomData("click_action", path).build())
                             .build());
         }
 
         // Android 설정
         builder.setAndroidConfig(AndroidConfig.builder().setPriority(AndroidConfig.Priority.HIGH)
-                .setNotification(AndroidNotification.builder().setChannelId(props.getAndroidChannelId())
+                .setNotification(AndroidNotification.builder().setChannelId(props.androidChannelId())
                         .setClickAction("OPEN_MAIN") // 앱 PendingIntent 필터 액션과 매칭되도록 조정
                         .build())
                 .build());
 
         // iOS 설정 (badge 지정 시)
-        Aps.Builder apsBuilder = Aps.builder().setSound(props.getIosSound());
+        Aps.Builder apsBuilder = Aps.builder().setSound(props.iosSound());
         if (iosBadge != null) {
             apsBuilder.setBadge(iosBadge);
         }
