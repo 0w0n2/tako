@@ -1,3 +1,4 @@
+// AddressBookModal.tsx
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
@@ -7,14 +8,22 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { X, Home, CheckCircle2, Pencil, Trash2, Plus } from 'lucide-react';
+import { X, Home, CheckCircle2, Pencil, Trash2, Plus, Send } from 'lucide-react';
 import { useAddress } from '@/hooks/useAddress';
+import { useDelivery } from '@/hooks/useDelivery';
 import type { AddressRequest, AddressDetail } from '@/types/address';
 
-type Props = { open: boolean; onClose: () => void };
+type Props = {
+  open: boolean;
+  onClose: () => void;
+  /** 배송 수령지(구매자 주소)를 판매자에게 전달하려는 경매 ID */
+  auctionId?: number; // 없으면 버튼 숨김
+  /** 전달 성공 시 콜백(선택) */
+  onSentToSeller?: () => void;
+};
 type FormMode = 'add' | 'edit';
 
-export default function AddressBookModal({ open, onClose }: Props) {
+export default function AddressBookModal({ open, onClose, auctionId, onSentToSeller }: Props) {
   const {
     address,
     defaultAddress,
@@ -25,6 +34,9 @@ export default function AddressBookModal({ open, onClose }: Props) {
     handlerGetAddressDetail,
     handlerUpdateAddress,
   } = useAddress();
+
+  // useDelivery: 전달 버튼만 쓸 거라 poll 비활성화
+  const delivery = auctionId ? useDelivery(auctionId, { poll: false }) : null;
 
   const [selectedId, setSelectedId] = useState<number | null>(defaultAddress?.id ?? null);
   const [mode, setMode] = useState<FormMode>('add');
@@ -125,6 +137,23 @@ export default function AddressBookModal({ open, onClose }: Props) {
     () => selectedId != null && selectedId !== defaultAddress?.id,
     [selectedId, defaultAddress?.id]
   );
+
+  // --- 판매자(배송) 정보에 선택 주소 전달 ---
+  const canSendToSeller = useMemo(
+    () => !!auctionId && selectedId != null && !delivery?.settingRecipient,
+    [auctionId, selectedId, delivery?.settingRecipient]
+  );
+
+  const handleSendToSeller = async () => {
+    if (!auctionId || selectedId == null || !delivery) return;
+    try {
+      await delivery.setRecipient(selectedId);
+      await delivery.refetch?.();
+      onSentToSeller?.();
+    } catch (e: any) {
+      alert(e?.message ?? '주소 전달 중 오류가 발생했습니다.');
+    }
+  };
 
   if (!open) return null;
 
@@ -237,7 +266,8 @@ export default function AddressBookModal({ open, onClose }: Props) {
               })}
             </div>
 
-            <div className="px-3 py-3 border-t border-[#2a2a3b] flex justify-end">
+            <div className="px-3 py-3 border-t border-[#2a2a3b] flex flex-wrap gap-2 justify-end">
+              {/* 기본 배송지 설정 */}
               <Button
                 onClick={async () => {
                   if (selectedId == null) return;
@@ -250,6 +280,19 @@ export default function AddressBookModal({ open, onClose }: Props) {
               >
                 기본 배송지로 설정
               </Button>
+
+              {/* 배송 정보에 입력 (auctionId 있을 때만 노출) */}
+              {auctionId && (
+                <Button
+                  onClick={handleSendToSeller}
+                  disabled={!canSendToSeller}
+                  title={!auctionId ? '경매 ID 필요' : undefined}
+                  className="text-sm !rounded-md bg-[#1f9c5a] hover:bg-[#18854c] text-white"
+                >
+                  <Send size={16} className="mr-1" />
+                  {delivery?.settingRecipient ? '전달 중...' : '이 주소를 수령지로 지정'}
+                </Button>
+              )}
             </div>
           </div>
 
