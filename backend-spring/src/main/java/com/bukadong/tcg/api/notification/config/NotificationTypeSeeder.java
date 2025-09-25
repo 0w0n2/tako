@@ -53,8 +53,12 @@ public class NotificationTypeSeeder implements ApplicationRunner {
                 case DELIVERY_STATUS_CHANGED -> "배송 상태 변경";
                 case DELIVERY_CONFIRM_REQUEST -> "구매 확정 요청";
                 case DELIVERY_CONFIRMED_SELLER -> "판매 확정 완료(구매자 확정)";
+                case BID_ACCEPTED -> "입찰 성공";
+                case BID_REJECTED -> "입찰 거절";
+                case BID_FAILED -> "입찰 처리 실패";
+                case NOTICE_NEW -> "새 공지";
                 };
-                repo.save(NotificationType.of(code, name, ""));
+                repo.save(NotificationType.of(code, name));
                 log.info("Seeded notification type: {}", code);
             }
         });

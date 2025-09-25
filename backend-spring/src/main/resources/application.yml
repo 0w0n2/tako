@@ -159,6 +159,7 @@ logging:
     com.bukadong.tcg.global.util.RedisUtils: DEBUG
     com.bukadong.tcg.global.util.S3Uploader: DEBUG
     com.bukadong.tcg.api.media.guard.MediaUploadGuard: DEBUG
+    com.bukadong.tcg.api.fcm.service.FcmPushService: DEBUG
     org.springframework.data.redis: INFO
     io.lettuce.core: INFO
 
@@ -255,3 +256,17 @@ block-chain:
     auction:
       factory: "${AUCTION_FACTORY_CONTRACT_ADDRESS}"
     tako-card-nft: "${TAKO_CARD_NFT_CONTRACT_ADDRESS}"
+
+fcm:
+  # Base64 로 인코딩된 서비스 계정 JSON (유일한 방식으로 사용).
+  # 1) 파일 Base64 인코딩 후 환경변수 FIREBASE_SERVICE_ACCOUNT_B64 로 주입
+  # 2) 여기서 ${FIREBASE_SERVICE_ACCOUNT_B64} 로 참조 (비어있으면 시작 실패)
+  service-account:
+    base64: ${FIREBASE_SERVICE_ACCOUNT_B64:}
+
+push:
+  web-icon: ${PUSH_WEB_ICON:/icon/fcm_icon_192.png}
+  web-badge: ${PUSH_WEB_BADGE:/icon/fcm_icon_72.png}
+  click-base-url: ${PUSH_CLICK_BASE_URL:/}
+  android-channel-id: ${PUSH_ANDROID_CHANNEL_ID:default-channel}
+  ios-sound: ${PUSH_IOS_SOUND:default}

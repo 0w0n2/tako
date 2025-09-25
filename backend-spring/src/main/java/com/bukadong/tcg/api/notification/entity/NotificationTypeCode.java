@@ -22,6 +22,11 @@ public enum NotificationTypeCode {
     // 경매
     AUCTION_WON,
 
+    // 입찰 결과 (비동기 반영)
+    BID_ACCEPTED, // 입찰 반영 성공
+    BID_REJECTED, // 입찰 거절 (가격/기간 등 조건 미충족)
+    BID_FAILED, // 시스템 오류로 반영 실패 (옵션)
+
     // 배송
     DELIVERY_STARTED, // 운송장 등록 등으로 배송 시작됨(구매자)
     DELIVERY_STATUS_CHANGED, // 배송 상태 변경 알림(구매자)
@@ -32,5 +37,8 @@ public enum NotificationTypeCode {
     AUCTION_CLOSED_SELLER,
 
     // 경매 취소
-    AUCTION_CANCELED
+    AUCTION_CANCELED,
+
+    // 공지 (신규: 전체 또는 특정 그룹 공지 브로드캐스트)
+    NOTICE_NEW
 }
