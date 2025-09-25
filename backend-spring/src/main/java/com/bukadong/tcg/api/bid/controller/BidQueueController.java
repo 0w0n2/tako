@@ -58,7 +58,11 @@ public class BidQueueController {
             @AuthenticationPrincipal CustomUserDetails user, @Valid @RequestBody BidQueueRequest request) {
         auctionCacheService.ensureLoaded(auctionId);
 
-        Long memberId = memberQueryService.getByUuid(user.getUuid()).getId();
+        var member = memberQueryService.getByUuid(user.getUuid());
+        if (member.getWalletAddress() == null || member.getWalletAddress().isBlank()) {
+            return BaseResponse.onFailure(BaseResponseStatus.WALLET_ADDRESS_NOT_FOUND);
+        }
+        Long memberId = member.getId();
         var r = bidQueueProducer.enqueue(auctionId, memberId, request.getAmount(), request.getRequestId());
         String code = r.get("code");
 
@@ -94,6 +98,9 @@ public class BidQueueController {
         auctionCacheService.ensureLoaded(auctionId);
 
         var me = memberQueryService.getByUuid(user.getUuid());
+        if (me.getWalletAddress() == null || me.getWalletAddress().isBlank()) {
+            return BaseResponse.onFailure(BaseResponseStatus.WALLET_ADDRESS_NOT_FOUND);
+        }
         var auction = auctionRepository.findById(auctionId)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.NOT_FOUND));
 
