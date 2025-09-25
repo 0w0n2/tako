@@ -1,9 +1,19 @@
 'use client'
 
-import { useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 import Marquee from "react-fast-marquee";
 import { useMajorCategories } from "@/hooks/useMajorCategories"
 import { getHotCard } from "@/lib/card";
+
+interface HotCard {
+    cardId: number;
+    name: string;
+    rarity: string;
+    score: number;
+    url: string;
+}
 
 export default function MainHotCardSection(){
     const {
@@ -12,15 +22,24 @@ export default function MainHotCardSection(){
 
     // 카테고리 인기카드조회 handler
     const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(3);
+    const [hotCards, setHotCards] = useState<HotCard[]>([]);
+    useEffect(() => {
+        if (selectedCategoryId !== null) {
+            handleHotCards(selectedCategoryId);
+        }
+    }, [selectedCategoryId]);
+
     const handleHotCards = async(categoryId:number) => {
         try{
             setSelectedCategoryId(categoryId);
             const res = await getHotCard(categoryId);
             // console.log(res);
+            setHotCards(res.result.content);
         }catch(err:any){
             console.log(err.message);
         }
     }
+    console.log(hotCards)
 
     return(
         <div className="py-30">
@@ -40,13 +59,20 @@ export default function MainHotCardSection(){
                     ))}
                 </ul>
             </div>
-            <Marquee>
-                <div>1</div>
-                <div>2</div>
-                <div>3</div>
-                <div>4</div>
-                <div>5</div>
-            </Marquee>
+                {hotCards && hotCards.length>0 ? (
+                    <Marquee>
+                        {hotCards.map((item, index)=>(
+                            <div key={index} className="mt-10">
+                                <Link href={`/category/${selectedCategoryId}/${item.cardId}`}>
+                                    <Image src={`${item.url}`} alt={`hotCard-${item.cardId}`} width={230} height={100} unoptimized />
+                                </Link>
+                            </div>
+                        ))}
+                    </Marquee>
+                    
+                ): (
+                    <div className="text-sm text-[#a5a5a5] text-center py-20">아직 집계된 인기 카드가 없습니다.</div>
+                )}
         </div>
     )
 }

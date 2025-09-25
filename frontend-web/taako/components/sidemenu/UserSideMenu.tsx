@@ -35,6 +35,13 @@ export default function UserSideMenu(){
                 </SheetClose>
                 <Button type="button" variant="destructive" className="cursor-pointer text-center py-2 border-1 border-[#353535] rounded-md" onClick={handleLogout}>로그아웃</Button>
               </div>
+              <SheetClose asChild>
+                <Link
+                  href="/auction/new"
+                  className="block px-8 py-2 bg-[#364153] text-sm text-center text-[#7DB7CD] border-1 border-[#7DB7CD] cursor-pointer rounded-lg
+                  hover:bg-[#3E4C63] transition-all duration-300">경매등록
+                </Link>
+              </SheetClose>
             </SheetHeader>
             {/* 내용 */}
             <div className="py-10">
@@ -46,7 +53,7 @@ export default function UserSideMenu(){
                     <ChevronRight className="w-4" />
                   </Link>
                 </div>
-                <div className="flex flex-col gap-6">
+                <div className="bid-auctions-scroll flex flex-col gap-8 max-h-150 overflow-y-scroll pr-2">
                   {myBidAuctions && myBidAuctions.length > 0 ? (
                     myBidAuctions.map((item: MyBidAuctions, index: number) => (
                       <div key={index}>
@@ -64,13 +71,6 @@ export default function UserSideMenu(){
 
             </div>
             <SheetFooter className="flex !flex-col gap-2">
-              <SheetClose asChild>
-                <Link
-                  href="/auction/new"
-                  className="block px-8 py-3 bg-[#364153] text-center text-[#7DB7CD] border-1 border-[#7DB7CD] cursor-pointer rounded-lg
-                  hover:bg-[#3E4C63] transition-all duration-300">경매등록
-                </Link>
-              </SheetClose>
               {/* <div>
                 <Button type="submit">로그아웃</Button>
                 <SheetClose asChild>

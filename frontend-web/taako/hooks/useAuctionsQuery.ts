@@ -14,7 +14,7 @@ export function useAuctionsQuery(
   options?: Options
 ) {
   const merged = useMemo<Partial<GetHotCards>>(
-    () => ({ page: 0, ...params }),
+    () => ({ ...params }),
     [params]
   );
 
