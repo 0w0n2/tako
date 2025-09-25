@@ -232,6 +232,7 @@ export default function SellOnGoingAuction() {
                         alt="thumbnail"
                         width={100}
                         height={100}
+                        unoptimized
                       />
                     </div>
                     <div>

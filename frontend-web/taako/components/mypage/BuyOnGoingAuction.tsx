@@ -24,7 +24,7 @@ export default function BuyOnGoingAuction(){
               </div>
               <div className="py-4 px-6 flex justify-between">
                 <div className="flex items-center gap-5">
-                  <div className="rounded-lg overflow-hidden w-22 h-22"><Image className="w-full h-full object-cover" src={item?.imageUrl || "/no-image.jpg"} alt="thumnail" width={100} height={100} /></div>
+                  <div className="rounded-lg overflow-hidden w-22 h-22"><Image className="w-full h-full object-cover" src={item?.imageUrl || "/no-image.jpg"} alt="thumnail" width={100} height={100} unoptimized /></div>
                   <div className="">
                     <h3 className="bid">{item.title}</h3>
                     <p className="text-lg">입찰가 {item.currentPrice} TKC</p>
