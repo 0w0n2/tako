@@ -16,9 +16,10 @@ import { useAuctionPrice } from '@/hooks/useAuctionPrice';
 type Props = {
   auctionId: number;
   historySize?: number;
+  token?: string;
 };
 
-export default function AuctionDetailClient({ auctionId, historySize = 5 }: Props) {
+export default function AuctionDetailClient({ auctionId, historySize = 5, token }: Props) {
   const { data, loading, error, wished, pendingWish, wishError, toggleWish } =
     useAuctionDetail(auctionId, historySize);
 
@@ -31,7 +32,8 @@ export default function AuctionDetailClient({ auctionId, historySize = 5 }: Prop
   // 상세 로드된 현재가를 초기값으로, SSE+폴링으로 계속 갱신
   const initial = typeof data?.currentPrice === 'number' ? data.currentPrice : 0;
   const [currentPrice, setCurrentPrice] = useAuctionPrice(auctionId, initial, {
-    sseUrl: `${process.env.NEXT_PUBLIC_API_BASE_URL}/v1/auctions/${auctionId}/live`,
+    sseUrl: `${process.env.NEXT_PUBLIC_API_BASE_URL}/v1/auctions/${auctionId}/live${
+      token ? `?token=${encodeURIComponent(token)}&` : '?'}`,
     pollUrl: `/v1/auctions/${auctionId}`,
     withCredentials: true, // 세션 쿠키 사용 시
     pollMs: 4000,
@@ -72,7 +74,7 @@ export default function AuctionDetailClient({ auctionId, historySize = 5 }: Prop
   }
 
   const displayPrice = (currentPrice ?? auc.currentPrice) as number;
-  const minStep = 0.01 as number;
+  const minStep = Number(auc.bidUnit ?? 0.01);
 
   return (
     <div className="default-container pb-[80px] relative">
@@ -163,10 +165,14 @@ export default function AuctionDetailClient({ auctionId, historySize = 5 }: Prop
             {/* 입찰 */}
             <div className="mt-4">
               <BidInputForm
+                key={auctionId}
                 auctionId={auctionId}
-                currentPrice={displayPrice}            // ← 로컬/서버 값 사용
-                minIncrement={auc.bidUnit || 0.01}                    // ← 숫자 타입으로 전달
-                onBidApplied={(nextPrice) => setCurrentPrice(nextPrice)} // 성공 시 즉시 반영
+                currentPrice={displayPrice}
+                minIncrement={minStep}
+                token={token}
+                onBidApplied={(nextPrice) => {
+                  if (typeof nextPrice === 'number') setCurrentPrice(nextPrice);
+                }}
               />
             </div>
 

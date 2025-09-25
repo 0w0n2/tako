@@ -1,10 +1,7 @@
+// lib/bc/escrow.ts
 import { Contract, parseEther } from "ethers";
 import { getSigner } from "./provider";
-
-export const ESCROW_ABI = [
-  "function deposit() external payable",
-  "function confirmReceipt() external",
-] as const;
+import { ESCROW_ABI } from "./escrowAbi";
 
 export const getEscrow = async (escrowAddress: `0x${string}`) => {
   const signer = await getSigner();
@@ -21,9 +18,16 @@ export const depositToEscrow = async (
   return await tx.wait();
 };
 
-/** 배송 완료 후 구매확정 */
+/** 구매자 배송 완료 후 구매확정 */
 export const confirmReceipt = async (escrowAddress: `0x${string}`) => {
   const c = await getEscrow(escrowAddress);
   const tx = await c.confirmReceipt();
+  return await tx.wait();
+};
+
+/** 판매자 정산(대금 인출) */
+export const releaseFunds = async (escrowAddress: `0x${string}`) => {
+  const c = await getEscrow(escrowAddress);
+  const tx = await c.releaseFunds();
   return await tx.wait();
 };
