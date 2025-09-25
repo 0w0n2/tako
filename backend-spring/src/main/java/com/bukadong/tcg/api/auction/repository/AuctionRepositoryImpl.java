@@ -6,7 +6,9 @@ import com.bukadong.tcg.api.media.entity.MediaType;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.NumberExpression;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
@@ -152,5 +154,50 @@ public class AuctionRepositoryImpl implements AuctionRepositoryCustom {
         Integer fetchResult = queryFactory.selectOne().from(auction).leftJoin(auctionResult)
                 .on(auction.id.eq(auctionResult.auction.id)).where(where).fetchFirst();
         return fetchResult != null;
+    }
+
+    @Override
+    public boolean existsActiveAuctionAsSeller(Long memberId) {
+        // 판매자 역할로 활성화된(종료되지 않은) 경매가 존재하는가
+        Integer fetchFirst = queryFactory
+                .selectOne()
+                .from(auction)
+                .where(
+                        auction.member.id.eq(memberId),
+                        auction.isEnd.isFalse()
+                )
+                .fetchFirst();
+        return fetchFirst != null;
+    }
+
+    @Override
+    public boolean existsBidOnActiveAuction(Long memberId) {
+        // 구매자로서 활성화된(종료되지 않은) 경매에 입찰한 내역이 있는지 확인
+        Integer fetchFirst = queryFactory
+                .selectOne()
+                .from(auctionBid)
+                .join(auctionBid.auction, auction)
+                .where(
+                        auctionBid.member.id.eq(memberId),
+                        auction.isEnd.isFalse()
+                )
+                .fetchFirst();
+        return fetchFirst != null;
+    }
+
+    @Override
+    public boolean existsUnsettledAuctionAsParty(Long memberId) {
+        // 판매자 또는 최종 낙찰자로서 거래가 완료되지 않은(settled_flag = false) 경매가 있는지 확인
+        Integer fetchFirst = queryFactory
+                .selectOne()
+                .from(auctionResult)
+                .join(auctionResult.auction, auction)
+                .where(
+                        auctionResult.settledFlag.isFalse(),
+                        auction.member.id.eq(memberId)
+                                .or(auction.winnerMemberId.eq(memberId))
+                )
+                .fetchFirst();
+        return fetchFirst != null;
     }
 }
