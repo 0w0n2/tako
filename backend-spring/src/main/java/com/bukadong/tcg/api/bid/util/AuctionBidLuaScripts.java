@@ -33,10 +33,11 @@ public class AuctionBidLuaScripts {
                     + "  return {'DUPLICATE', redis.call('HGET', KEYS[1], 'current_price') or ''} " + "end "
 
                     // 필드 일괄 조회(+ owner_id)
-                    + "local vals = redis.call('HMGET', KEYS[1], 'is_end','start_ts','end_ts','current_price','bid_unit','owner_id') "
+                    + "local vals = redis.call('HMGET', KEYS[1], 'is_end','start_ts','end_ts','current_price','bid_unit','owner_id','buy_now_flag','buy_now_price') "
                     + "local is_end   = vals[1] " + "local startts  = tonumber(vals[2] or '0') "
                     + "local endts    = tonumber(vals[3] or '0') " + "local curStr   = vals[4] "
-                    + "local unitStr  = vals[5] " + "local ownerStr = vals[6] "
+                    + "local unitStr  = vals[5] " + "local ownerStr = vals[6] " + "local bnFlag   = vals[7] "
+                    + "local bnStr    = vals[8] "
 
                     + "if (not curStr) or (not unitStr) or (startts==0) or (endts==0) or (not ownerStr) then "
                     + "  redis.call('RPUSH', KEYS[2], ARGV[5]); return {'MISSING', curStr or ''} " + "end "
@@ -63,6 +64,18 @@ public class AuctionBidLuaScripts {
                     + "local curI  = toInt(curStr) " + "local unitI = toInt(unitStr) " + "local bidI  = toInt(ARGV[1]) "
                     + "if (not curI) or (not unitI) or (not bidI) then "
                     + "  redis.call('RPUSH', KEYS[2], ARGV[7]); return {'LOW_PRICE', curStr} " + "end "
+
+                    // 즉시구매 처리: buy_now_flag==1이고, bid >= buy_now_price 이면 즉시 구매
+                    + "local function isBuyNow() " + "  if (bnFlag == '1') and (bnStr ~= nil) and (bnStr ~= '') then "
+                    + "    local bnI = toInt(bnStr) "
+                    + "    if (bnI ~= nil) and (bidI >= bnI) then return true, bnStr end " + "  end "
+                    + "  return false, nil " + "end "
+
+                    + "local bnOk, bnPriceStr = isBuyNow() " + "if bnOk then "
+                    + "  redis.call('HSET', KEYS[1], 'current_price', bnPriceStr) "
+                    + "  redis.call('HSET', KEYS[1], 'is_end', '1') " + "  redis.call('RPUSH', KEYS[2], ARGV[10]) "
+                    + "  redis.call('SET', KEYS[3], '1', 'EX', tonumber(ARGV[3]) or 1800) "
+                    + "  return {'OK', bnPriceStr} " + "end "
 
                     // 최소 증가
                     + "if bidI < (curI + unitI) then "

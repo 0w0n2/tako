@@ -60,6 +60,11 @@ public class BidQueueProducer {
                         + "\"auctionId\":%d,\"memberId\":%d,\"amount\":\"%s\",\"eventId\":\"%s\",\"ts\":%d}",
                 auctionId, memberId, priceStr, eventId, now);
 
+        // buy-now ACCEPT payload (Lua가 bid >= buy_now_price 시 이 페이로드를 push)
+        String payloadOkBuyNow = String.format("{\"event\":\"BID\",\"intended\":\"ACCEPT\",\"reason\":\"BUY_NOW\","
+                + "\"auctionId\":%d,\"memberId\":%d,\"amount\":\"%s\",\"eventId\":\"%s\",\"ts\":%d,\"buyNow\":true}",
+                auctionId, memberId, priceStr, eventId, now);
+
         String payloadMissing = String.format(
                 "{\"event\":\"BID\",\"intended\":\"REJECT\",\"reason\":\"MISSING\","
                         + "\"auctionId\":%d,\"memberId\":%d,\"amount\":\"%s\",\"eventId\":\"%s\",\"ts\":%d}",
@@ -91,7 +96,8 @@ public class BidQueueProducer {
                 payloadNotRunning, // ARGV[6]
                 payloadLowPrice, // ARGV[7]
                 String.valueOf(memberId), // ARGV[8] bidderId (문자열로 전달!)
-                payloadSelfBid // ARGV[9]
+                payloadSelfBid, // ARGV[9]
+                payloadOkBuyNow // ARGV[10]
         );
 
         String code;

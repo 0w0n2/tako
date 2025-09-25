@@ -165,6 +165,24 @@ public class NotificationCommandService {
         return create(memberId, NotificationTypeCode.AUCTION_CLOSED_SELLER, auctionId, title, message);
     }
 
+    /** 구매자에게: 즉시구매 완료 */
+    @Transactional
+    public Long notifyBuyNowBuyer(Long buyerId, Long auctionId, BigDecimal amount, Instant closedAt) {
+        String title = "즉시구매가 완료되었습니다";
+        String message = "즉시구매가 성공적으로 처리되었어요. 결제 금액: " + safeAmount(amount) + "\n배송지 등록/선택을 진행해 주세요.";
+        // 스키마 변경 없이 AUCTION_WON 타입 재사용
+        return create(buyerId, NotificationTypeCode.AUCTION_WON, auctionId, title, message);
+    }
+
+    /** 판매자에게: 즉시구매로 판매 완료 */
+    @Transactional
+    public Long notifyBuyNowSeller(Long sellerId, Long auctionId, BigDecimal amount, Instant closedAt) {
+        String title = "즉시구매로 판매가 완료되었어요";
+        String message = "해당 경매가 즉시구매로 즉시 종료되었습니다. 판매가: " + safeAmount(amount);
+        // 스키마 변경 없이 AUCTION_CLOSED_SELLER 타입 재사용
+        return create(sellerId, NotificationTypeCode.AUCTION_CLOSED_SELLER, auctionId, title, message);
+    }
+
     /** 판매자에게: 관리자 강제 종료 알림 */
     @Transactional
     public Long notifyAdminCanceled(Long memberId, Long auctionId) {
