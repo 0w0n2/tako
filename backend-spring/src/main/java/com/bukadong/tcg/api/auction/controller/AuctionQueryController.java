@@ -78,7 +78,7 @@ public class AuctionQueryController {
             @Parameter(description = "현재가 최대(원)") @RequestParam(name = "currentPriceMax", required = false) BigDecimal currentPriceMax,
             @Parameter(description = "등급 CSV(쉼표 구분). 예: \"PS,NM\"") @RequestParam(name = "grades", required = false) String grades,
             @Parameter(description = "정렬 기준: ENDTIME_ASC | ENDTIME_DESC | BIDCOUNT_DESC | BIDCOUNT_ASC (기본: ID_DESC)") @RequestParam(name = "sort", required = false) AuctionSort sort,
-            @Parameter(description = "종료된 경매 포함 여부 (기본: 포함하지 않음)") @RequestParam(name = "isEnded", required = true, defaultValue = "false") boolean isEnded,
+            @Parameter(description = "종료된 경매 포함 여부 (기본: 포함하지 않음)") @RequestParam(name = "isEnded", required = false, defaultValue = "true") boolean isEnded,
             @AuthenticationPrincipal CustomUserDetails user) {
         Set<String> gradeSet = (grades == null || grades.isBlank()) ? null
                 : Arrays.stream(grades.split(",")).map(String::trim).filter(s -> !s.isEmpty())
