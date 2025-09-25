@@ -8,14 +8,15 @@ import AddressBookModal from '@/components/modals/AddressBookModal';
 import { AlertTriangle } from 'lucide-react';
 
 type Props = {
+  auctionId?: number | null;
   trackingNumber?: string | null;
   onPay?: (defaultAddressId: number) => Promise<void> | void; // ← 여기로 결제 로직 주입
 };
 
-export default function PaySection({ trackingNumber, onPay }: Props) {
+export default function PaySection({ auctionId, trackingNumber, onPay }: Props) {
   const { defaultAddress, ensureDefaultAddress } = useAddress();
   const [open, setOpen] = useState(false);
-  const [paying, setPaying] = useState(false); // ★ 추가
+  const [paying, setPaying] = useState(false);
 
   const trackingMissing = useMemo(
     () => !((trackingNumber ?? '').trim().length > 0),
@@ -25,7 +26,7 @@ export default function PaySection({ trackingNumber, onPay }: Props) {
   const onClickPay = async () => {
     try {
       setPaying(true);
-      const def = await ensureDefaultAddress(); // 기본 주소 보장
+      const def = await ensureDefaultAddress(); // 기본 주소 보장(없으면 선택 유도/생성)
       await onPay?.(def.id);                    // 실제 결제 로직 실행(부모에서 제공)
     } finally {
       setPaying(false);
@@ -71,7 +72,12 @@ export default function PaySection({ trackingNumber, onPay }: Props) {
         </Button>
       </div>
 
-      <AddressBookModal open={open} onClose={() => setOpen(false)} />
+      {/* 모달: 여기서 auctionId를 내려 전달 */}
+      <AddressBookModal
+        open={open}
+        onClose={() => setOpen(false)}
+        auctionId={typeof auctionId === 'number' ? auctionId : undefined}
+      />
     </div>
   );
 }

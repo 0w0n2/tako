@@ -1,3 +1,4 @@
+// components/nft/BuyEndedAuction.tsx (위치는 프로젝트 구조에 맞게)
 "use client";
 
 import Image from "next/image";
@@ -7,7 +8,7 @@ import ConfirmReceiptButton from "@/components/nft/ConfirmReceiptButton";
 import { useDelivery } from "@/hooks/useDelivery";
 import { useEscrowAddress } from "@/hooks/useEscrowAddress";
 import { depositToEscrow } from "@/lib/bc/escrow";
-import PaySection from '@/components/nft/PaySection';
+import PaySection from '@/components/nft/PaySection'; // ← 경로 수정!
 import type { MyBidAuctions } from "@/types/auth";
 
 function DeliveryBadge({ auctionId }: { auctionId: number }) {
@@ -17,8 +18,8 @@ function DeliveryBadge({ auctionId }: { auctionId: number }) {
     if (!hasTracking) return "운송장 대기";
     switch (status) {
       case "WAITING": return "배송 준비중";
-      case "IN_TRANSIT": return "배송중";
-      case "DELIVERED": return "배송완료";
+      case "IN_PROGRESS": return "배송중";
+      case "COMPLETED": return "배송완료";
       case "CONFIRMED": return "구매확정됨";
       default: return status;
     }
@@ -38,7 +39,6 @@ function DeliveryBadge({ auctionId }: { auctionId: number }) {
 function PaySectionWrapper({ auctionId, priceEth }: { auctionId: number; priceEth: number }) {
   const { info } = useDelivery(auctionId);
   const trackingNumber = info?.trackingNumber ?? null;
-
   const { data: escrowAddress } = useEscrowAddress(auctionId);
 
   const onPay = async (defaultAddressId: number) => {
@@ -62,7 +62,7 @@ function PaySectionWrapper({ auctionId, priceEth }: { auctionId: number; priceEt
 
   return (
     <div className="px-6 pb-6">
-      <PaySection trackingNumber={trackingNumber} onPay={onPay} />
+      <PaySection auctionId={auctionId} trackingNumber={trackingNumber} onPay={onPay} />
     </div>
   );
 }
@@ -79,12 +79,13 @@ export default function BuyEndedAuction(){
   return (
     <div>
       {endedAuctions.map((item: MyBidAuctions) => {
-        const auctionIdRaw = item.auctionId ?? item.isEnd;
-        const auctionId = typeof auctionIdRaw === "number" ? auctionIdRaw : Number(auctionIdRaw);
+        const auctionId = Number(item.auctionId);
         if (!Number.isFinite(auctionId)) {
           console.warn("유효하지 않은 auctionId", item);
           return null;
         }
+
+        // NOTE: 백엔드 단위와 ETH 단위가 다르면 변환 필요
         const priceEth = Number(item.currentPrice) || 0;
 
         return (
@@ -103,7 +104,6 @@ export default function BuyEndedAuction(){
             <div className="py-4 px-6 flex justify-between">
               <div className="flex items-center gap-5">
                 <div className="rounded-lg overflow-hidden w-22 h-22">
-                  {/* 가능하면 item.imageUrl 사용 (next.config의 domains 설정 필요) */}
                   <Image
                     className="w-full h-full object-cover"
                     src={item.imageUrl || "/no-image.jpg"}
@@ -132,7 +132,7 @@ export default function BuyEndedAuction(){
               </div>
             </div>
 
-            {/* 여기서 각 경매 카드별 PaySection 붙이기 */}
+            {/* 각 경매 카드별 PaySection */}
             <PaySectionWrapper auctionId={auctionId} priceEth={priceEth} />
           </div>
         );
