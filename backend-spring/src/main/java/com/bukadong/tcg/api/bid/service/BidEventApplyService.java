@@ -7,6 +7,7 @@ import com.bukadong.tcg.api.bid.entity.AuctionBid;
 import com.bukadong.tcg.api.bid.entity.AuctionBidReason;
 import com.bukadong.tcg.api.bid.entity.AuctionBidStatus;
 import com.bukadong.tcg.api.bid.repository.AuctionBidRepository;
+import com.bukadong.tcg.api.notification.service.NotificationCommandService;
 import com.bukadong.tcg.api.bid.repository.AuctionLockRepository;
 import com.bukadong.tcg.api.member.entity.Member;
 import com.bukadong.tcg.api.member.repository.MemberRepository;
@@ -54,6 +55,7 @@ public class BidEventApplyService {
     private final ObjectMapper om;
     private final AuctionLiveSseService auctionLiveSseService;
     private final MemberRepository memberRepository;
+    private final NotificationCommandService notificationCommandService;
 
     private final AuctionDeadlineIndex deadlineIndex;
     /** 연장 기능 on/off */
@@ -127,6 +129,21 @@ public class BidEventApplyService {
                         .amount(bid).status(AuctionBidStatus.REJECTED).eventId(eventId)
                         .reasonCode(mapRejectReason(reasonIn)).build();
                 auctionBidRepository.save(ab);
+                final Long auctionIdFinal = auctionId;
+                final BigDecimal bidFinal = bid;
+                final String reasonFinal = mapRejectReason(reasonIn);
+                TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        try {
+                            notificationCommandService.notifyBidRejected(memberId, auctionIdFinal, bidFinal,
+                                    reasonFinal);
+                        } catch (Exception ex) {
+                            log.warn("[afterCommit] notifyBidRejected failed auctionId={}, eventId={}", auctionIdFinal,
+                                    eventId, ex);
+                        }
+                    }
+                });
                 return;
             }
 
@@ -180,6 +197,13 @@ public class BidEventApplyService {
                         auctionLiveSseService.publishPriceUpdate(auctionId, bidPlain, null);
                         String timeIso = java.time.Instant.ofEpochSecond(nowSec).toString();
                         auctionLiveSseService.publishBidAccepted(auctionId, nickname, bidPlain, timeIso);
+                        // 입찰 성공 알림
+                        try {
+                            notificationCommandService.notifyBidAccepted(memberId, auctionId, new BigDecimal(bidPlain));
+                        } catch (Exception notifyEx) {
+                            log.warn("[afterCommit] notifyBidAccepted failed auctionId={}, eventId={}", auctionId,
+                                    eventId, notifyEx);
+                        }
 
                         // 마감 연장/등록 처리
                         try {
@@ -250,6 +274,21 @@ public class BidEventApplyService {
 
             auctionBidRepository.save(AuctionBid.builder().auction(a).member(m).amount(bid)
                     .status(AuctionBidStatus.FAILED).reasonCode(code).eventId(eventId).build());
+            // 실패 레코드가 실제 커밋될 때 알림 (커밋 보장하려면 상위 트랜잭션이 롤백되지 않아야 함)
+            final Long auctionIdFinal = auctionId;
+            final BigDecimal bidFinal = bid;
+            final String codeFinal = code;
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    try {
+                        notificationCommandService.notifyBidFailed(memberId, auctionIdFinal, bidFinal, codeFinal);
+                    } catch (Exception ex) {
+                        log.warn("[afterCommit] notifyBidFailed failed auctionId={}, eventId={}", auctionIdFinal,
+                                eventId, ex);
+                    }
+                }
+            });
         } catch (Exception ignore) {
             // 기록 실패도 무시 (로그 노이즈/2차 실패 방지)
         }

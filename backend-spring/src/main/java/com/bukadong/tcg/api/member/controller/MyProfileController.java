@@ -6,6 +6,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.bukadong.tcg.api.member.dto.request.UpdateMyProfileRequest;
+import com.bukadong.tcg.api.member.dto.request.UpdateNotificationSettingRequest;
 import com.bukadong.tcg.api.member.dto.response.MyProfileResponse;
 import com.bukadong.tcg.api.member.service.MemberQueryService;
 import com.bukadong.tcg.api.member.service.MyProfileService;
@@ -43,6 +44,23 @@ public class MyProfileController {
                                        @Parameter(description = "배경 이미지(선택)") @RequestPart(name = "backgroundImage", required = false) MultipartFile backgroundImage) {
         var me = memberQueryService.getByUuid(user.getUuid());
         myProfileService.updateProfile(me, request, profileImage, backgroundImage);
+        return BaseResponse.onSuccess();
+    }
+
+    @Operation(summary = "내 알림(Push) 설정 조회", description = "각 NotificationTypeCode 별 0/1 상태 (값 없으면 기본 1) 반환")
+    @GetMapping("/me/notification-settings")
+    public BaseResponse<java.util.Map<String, Integer>> getMyNotificationSettings(
+            @AuthenticationPrincipal CustomUserDetails user) {
+        var me = memberQueryService.getByUuid(user.getUuid());
+        return BaseResponse.onSuccess(myProfileService.getNotificationSettings(me));
+    }
+
+    @Operation(summary = "내 알림(Push) 설정 수정", description = "코드별 0/1 값 upsert")
+    @PatchMapping("/me/notification-settings")
+    public BaseResponse<Void> updateMyNotificationSettings(@AuthenticationPrincipal CustomUserDetails user,
+            @RequestBody @Valid UpdateNotificationSettingRequest request) {
+        var me = memberQueryService.getByUuid(user.getUuid());
+        myProfileService.updateNotificationSettings(me, request.notificationSetting());
         return BaseResponse.onSuccess();
     }
 }

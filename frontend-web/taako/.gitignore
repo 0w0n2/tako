@@ -42,3 +42,6 @@ next-env.d.ts
 
 # accessToken refresh test page
 /app/test
+
+# service worker
+/public/firebase-messaging-sw.js
