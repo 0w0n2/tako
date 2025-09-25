@@ -5,6 +5,7 @@ import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Bean;
 
@@ -22,6 +23,7 @@ import java.util.Base64;
  * </p>
  */
 @Configuration
+@EnableConfigurationProperties(PushProperties.class)
 @Slf4j
 public class FirebaseConfig {
 
@@ -31,7 +33,8 @@ public class FirebaseConfig {
     // 기본 생성자 (Spring이 프록시/빈 생성 시 사용).
     // 필드 주입(@Value)만 필요하고 추가 초기화 로직이 없으므로 비어있음.
     public FirebaseConfig() {
-        /* no-op */ }
+        /* no-op */
+    }
 
     @Bean
     public FirebaseApp firebaseApp() throws IOException {

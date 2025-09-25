@@ -90,6 +90,13 @@ public enum BaseResponseStatus {
     PASSWORD_RESET_CODE_MISMATCH(HttpStatus.BAD_REQUEST, false, 691, "비밀번호 재설정 암호가 일치하지 않습니다."),
 
     /**
+     * 회원 탈퇴 불가 사유
+     */
+    CANNOT_WITHDRAW_AS_SELLER(HttpStatus.CONFLICT, false, 660, "판매자로서 진행 중인 경매가 있어 탈퇴할 수 없습니다."),
+    CANNOT_WITHDRAW_AS_BIDDER(HttpStatus.CONFLICT, false, 661, "입찰한 경매 중 종료되지 않은 건이 있어 탈퇴할 수 없습니다."),
+    CANNOT_WITHDRAW_UNSETTLED(HttpStatus.CONFLICT, false, 662, "거래가 완료되지 않은 경매 내역이 있어 탈퇴할 수 없습니다."),
+
+    /**
      * 700: AWS 에러
      */
     S3_FILE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, false, 700, "파일 업로드에 실패했습니다."),
