@@ -95,10 +95,12 @@ public class AuctionDetailRepositoryImpl implements AuctionDetailRepository {
                 .where(auctionBid.auction.id.eq(auctionId).and(auctionBid.status.eq(AuctionBidStatus.VALID)))
                 .orderBy(auctionBid.createdAt.desc()).limit(limit).fetch();
 
-        return tuples.stream()
-                .map(t -> BidHistoryItem.builder().createdAt(t.get(auctionBid.createdAt))
-                        .amount(t.get(auctionBid.amount)).bidderNickname(t.get(member.nickname)).build())
-                .collect(Collectors.toList());
+        return tuples.stream().map(t -> {
+            java.time.LocalDateTime ldt = t.get(auctionBid.createdAt);
+            String isoZ = ldt == null ? null : ldt.toInstant(java.time.ZoneOffset.UTC).toString(); // ISO_INSTANT => 'Z'
+            return BidHistoryItem.builder().createdAt(isoZ).amount(t.get(auctionBid.amount))
+                    .bidderNickname(t.get(member.nickname)).build();
+        }).toList();
     }
 
     /**
