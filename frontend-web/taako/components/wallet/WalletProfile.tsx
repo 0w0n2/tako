@@ -68,8 +68,6 @@ const WalletProfile: React.FC = () => {
     storedWallet,
   } = useMyInfo();
 
-  const myInfo = me;
-
   const hasStored = !!storedWallet;
   const hasConnected = !!connected;
   const isMismatch = hasStored && hasConnected && !sameAddr(storedWallet, connected);

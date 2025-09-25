@@ -19,6 +19,13 @@ export type UseMyInfoResult = {
   meLoading: boolean;
   meError: unknown;
 
+  /** @deprecated use `me` instead */
+  myInfo: MyInfo | undefined;
+  /** @deprecated use `meLoading` instead */
+  myInfoLoading: boolean;
+  /** @deprecated use `meError` instead */
+  myInfoError: unknown;
+
   /** 빈 문자열/공백 → undefined 로 정규화된 저장 지갑 주소 */
   storedWallet?: string;
 
@@ -101,6 +108,10 @@ export function useMyInfo(): UseMyInfoResult {
     me,
     meLoading,
     meError,
+
+    myInfo: me,
+    myInfoLoading: meLoading,
+    myInfoError: meError,
     storedWallet,
 
     // bids
