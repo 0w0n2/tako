@@ -19,7 +19,7 @@ export async function postRecipientAddress(auctionId: number, addressId: number)
   return data;
 }
 
-// (판매자 전용 API는 여기 말고 별도 파일에 두는 걸 추천하지만, 참고용으로 남김)
+// (판매자 전용 API는 참고용으로 남김)
 // export async function postTrackingNumber(auctionId: number, trackingNumber: string) {
 //   const { data } = await api.post<DeliveryApiResponse<DeliveryInfo>>(
 //     `/v1/deliveries/${auctionId}/tracking`,
