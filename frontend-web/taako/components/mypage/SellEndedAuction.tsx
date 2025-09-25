@@ -7,8 +7,8 @@ import {
   LabelList, ReferenceLine, ReferenceArea 
 } from "recharts";
 import { MySellAuctions, Bids } from "@/types/auth";
-import { useMyInfo } from "@/hooks/useMyInfo";
-import { useDelivery } from "@/hooks/useDelivery";
+import { useMyInfo } from "@/hooks/useMySellInfo";
+import { useDelivery } from "@/hooks/useSellDelivery";
 import AddTracking from "./delivery/AddTracking";
 import SellDeliveryForm from "./delivery/SellDeliveryForm";
 
