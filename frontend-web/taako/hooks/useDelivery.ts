@@ -1,4 +1,4 @@
-import { getAuctionDelivery, sellerDelivery } from "@/lib/delivery";
+import { addTrackingNumber, getAuctionDelivery, sellerDelivery } from "@/lib/delivery";
 import { GetAuctionDelivery } from "@/types/delivery";
 import { useState } from "react";
 
@@ -24,8 +24,18 @@ export function useDelivery() {
         }
     }
 
+    // 판매자: 운송장 등록
+    const handlerTrackingNumber = async(auctionId:number, trackingNumber:string) => {
+        try{
+            await addTrackingNumber(auctionId, trackingNumber);
+        }catch(err){
+            console.error(err);
+        }
+    }
+
     return {
         handlerGetAuctionDelivery, auctionDelivery,
         handlerSellerAddress,
+        handlerTrackingNumber,
     }
 }
