@@ -1,5 +1,5 @@
 import api from "@/lib/api";
-import type { MyBidAuctions } from "@/types/auth";
+import type { MyBidAuctions, MyInfo } from "@/types/auth";
 
 type Page<T> = { content: T[]; page: number; size: number; totalElements: number; totalPages: number };
 
@@ -32,3 +32,16 @@ export const getMySellAutcion = async () => {
     const res = await api.get("/v1/auctions/me");
     return res.data;
 };
+
+type ApiEnvelope<T> = {
+  httpStatus: Record<string, unknown>;
+  isSuccess: boolean;
+  message: string;
+  code: number;
+  result: T;
+};
+
+export async function getInfoMe(): Promise<MyInfo> {
+  const res = await api.get<ApiEnvelope<MyInfo>>("/v1/members/me");
+  return res.data.result;
+}

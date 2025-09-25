@@ -110,6 +110,7 @@ export default function BuyEndedAuction(){
                     alt="thumbnail"
                     width={80}
                     height={80}
+                    unoptimized
                   />
                 </div>
                 <div>
