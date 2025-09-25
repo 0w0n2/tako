@@ -6,12 +6,13 @@ import com.bukadong.tcg.api.auction.event.AuctionSoldEvent;
 import com.bukadong.tcg.api.auction.repository.AuctionRepository;
 import com.bukadong.tcg.api.auction.repository.AuctionResultRepository;
 import com.bukadong.tcg.api.auction.service.AuctionSettlementService;
-import com.bukadong.tcg.api.auction.util.AuctionDeadlineIndex;
 import com.bukadong.tcg.api.bid.repository.AuctionBidRepository;
 import com.bukadong.tcg.api.notification.service.NotificationCommandService;
+import com.bukadong.tcg.api.delivery.entity.Delivery;
+import com.bukadong.tcg.api.delivery.entity.DeliveryStatus;
+import com.bukadong.tcg.api.delivery.repository.DeliveryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,6 +39,7 @@ public class AuctionSoldListener {
     private final AuctionBidRepository bidRepository;
     private final NotificationCommandService notificationService; // 알림 도메인 서비스
     private final AuctionSettlementService auctionSettlementService;
+    private final DeliveryRepository deliveryRepository;
 
     /**
      * 결과 저장 및 알림 발송
@@ -46,28 +48,30 @@ public class AuctionSoldListener {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onClosed(AuctionSoldEvent e) {
 
-        // 이미 결과가 있으면 스킵
-        boolean exists = resultRepository.existsByAuction_Id(e.auctionId());
-        if (!exists) {
-            Auction auction = auctionRepository.findById(e.auctionId())
-                    .orElseThrow(() -> new IllegalStateException("Auction not found: " + e.auctionId()));
+        // 경매 로드 (결과/배송 멱등 처리를 위해 항상 조회)
+        Auction auction = auctionRepository.findById(e.auctionId())
+                .orElseThrow(() -> new IllegalStateException("Auction not found: " + e.auctionId()));
+
+        // 1) 결과 멱등 저장
+        if (!resultRepository.existsByAuction_Id(e.auctionId())) {
             var bid = bidRepository.findById(e.bidId())
                     .orElseThrow(() -> new IllegalStateException("Bid not found: " + e.bidId()));
-
-            // 종료 직후에는 미정산
             AuctionResult result = AuctionResult.builder().auction(auction).auctionBid(bid).settledFlag(false)
                     .settleTxHash(null).build();
             resultRepository.save(result);
         }
 
+        // 2) 배송 엔티티 자동 생성 (없을 때만) - 주소/운송장/상태 초기값: WAITING
+        if (auction.getDelivery() == null) {
+            Delivery delivery = Delivery.builder().senderAddress(null).recipientAddress(null).trackingNumber(null)
+                    .status(DeliveryStatus.WAITING).build();
+            deliveryRepository.save(delivery);
+            auctionRepository.save(auction.toBuilder().delivery(delivery).build());
+        }
+
         // 블록체인 에스크로 생성 시작
-        auctionSettlementService.createEscrowForAuction(
-                e.auctionId(),
-                e.amount(),
-                e.seller(),
-                e.buyer(),
-                e.physicalCard()
-        );
+        auctionSettlementService.createEscrowForAuction(e.auctionId(), e.amount(), e.seller(), e.buyer(),
+                e.physicalCard());
 
         // 알림 발송
         try {
