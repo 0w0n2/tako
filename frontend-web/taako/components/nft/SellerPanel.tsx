@@ -1,4 +1,4 @@
-// components/seller/SellerPayoutPanel.tsx
+// components/nft/SellerPanel.tsx
 "use client";
 
 import { useMemo, useState } from "react";
@@ -6,10 +6,11 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle, ShieldCheck, Wallet } from "lucide-react";
 import useWallet from "@/hooks/useWallet";
 import { useSellerSettlement } from "@/hooks/useSellerSettlement";
+import { ESCROW_STATE } from "@/lib/bc/escrowAbi";
 
 type Props = {
   auctionId: number;
-  nftAddress: `0x${string}`;
+  nftAddress: string;
   tokenId: number | string | bigint;
   sellerWallet?: `0x${string}`;
   preferForAll?: boolean;
@@ -22,20 +23,21 @@ export default function SellerPayoutPanel({
   tokenId,
   sellerWallet,
   preferForAll = true,
-  addressId,
 }: Props) {
   const { walletAddress, error: walletError, loading: walletLoading } = useWallet();
 
   const {
     escrowAddress,
-    status,
-    isConfirmed,
+    escrowState,
+    buyerConfirmed,
     escrowLoading,
-    deliveryLoading,
+    escrowError,
+
     alreadyApproved,
     approving,
     canApprove,
     approve,
+
     releasing,
     canRelease,
     release,
@@ -44,8 +46,7 @@ export default function SellerPayoutPanel({
     nftAddress,
     tokenId,
     sellerWallet,
-    preferForAll,
-    addressId,
+    preferForAll
   });
 
   const [msg, setMsg] = useState("");
@@ -67,29 +68,30 @@ export default function SellerPayoutPanel({
     setMsg(r.message);
   };
 
-  const statusBadge = (() => {
-    switch (status) {
-      case "WAITING": return <span className="text-xs px-2 py-1 rounded bg-[#2b2b3a]">배송준비중</span>;
-      case "IN_PROGRESS": return <span className="text-xs px-2 py-1 rounded bg-[#2b2b3a]">배송중</span>;
-      case "COMPLETED": return <span className="text-xs px-2 py-1 rounded bg-[#2b2b3a]">배송완료</span>;
-      case "CONFIRMED": return <span className="text-xs px-2 py-1 rounded bg-green-700/40">구매확정</span>;
-      default: return <span className="text-xs px-2 py-1 rounded bg-[#2b2b3a]">{status ?? "-"}</span>;
+  const escrowBadge = (() => {
+    switch (escrowState) {
+      case ESCROW_STATE.DEPOSIT_PENDING: return <span className="text-xs px-2 py-1 rounded bg-[#2b2b3a]">입금 대기</span>;
+      case ESCROW_STATE.CONFIRM_PENDING: return <span className="text-xs px-2 py-1 rounded bg-[#2b2b3a]">구매자 확인 대기</span>;
+      case ESCROW_STATE.COMPLETED: return <span className="text-xs px-2 py-1 rounded bg-green-700/40">구매확정됨</span>;
+      case ESCROW_STATE.CANCELED: return <span className="text-xs px-2 py-1 rounded bg-red-800/40">취소됨</span>;
+      default: return <span className="text-xs px-2 py-1 rounded bg-[#2b2b3a]">-</span>;
     }
   })();
 
+  // 버튼 비활성 조건(최종)
   const disabledApprove =
-    walletLoading || escrowLoading || approving || !canApprove || walletMismatch || alreadyApproved;
+    walletLoading || escrowLoading || approving || !canApprove || walletMismatch;
 
   const disabledRelease =
-    walletLoading || deliveryLoading || releasing || !canRelease || walletMismatch;
+    walletLoading || escrowLoading || releasing || !canRelease || walletMismatch;
 
   return (
     <div className="w-full rounded-xl bg-[#191924] border border-[#353535] p-5 space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-white text-lg font-semibold">판매자 정산</h3>
         <div className="flex items-center gap-2">
-          <span className="text-sm text-[#b5b5b5]">배송상태</span>
-          {statusBadge}
+          <span className="text-sm text-[#b5b5b5]">에스크로</span>
+          {escrowBadge}
         </div>
       </div>
 
@@ -99,6 +101,7 @@ export default function SellerPayoutPanel({
           <div className="text-xs break-all text-[#dedede]">
             {escrowAddress ?? "불러오는 중..."}
           </div>
+          {escrowError && <div className="text-xs text-red-400 mt-1">{String(escrowError)}</div>}
         </div>
 
         <div className="rounded-xl border border-[#353535] p-4">
@@ -115,7 +118,7 @@ export default function SellerPayoutPanel({
         <div className="rounded-xl border border-[#353535] p-4">
           <div className="text-sm text-[#b5b5b5] mb-1">NFT / Token</div>
           <div className="text-xs text-[#dedede]">
-            {nftAddress} / {String(tokenId)}
+            {nftAddress}
           </div>
           {alreadyApproved && (
             <div className="text-xs text-green-400 mt-1">이미 승인됨</div>
@@ -128,7 +131,11 @@ export default function SellerPayoutPanel({
           className="flex-1 bg-[#242433] hover:bg-[#2c2c3b] text-white disabled:opacity-60"
           disabled={disabledApprove}
           onClick={handleApprove}
-          title={alreadyApproved ? "이미 승인되었습니다." : ""}
+          title={
+            buyerConfirmed
+              ? (alreadyApproved ? "이미 승인되었습니다." : "")
+              : "구매자가 confirmReceipt를 해야 승인할 수 있습니다."
+          }
         >
           <ShieldCheck className="w-4 h-4 mr-2" />
           NFT 소유권 이전 승인 ({preferForAll ? "모든 토큰" : `토큰 #${String(tokenId)}`})
@@ -138,7 +145,11 @@ export default function SellerPayoutPanel({
           className="flex-1 bg-green-700 hover:bg-green-800 text-white disabled:bg-green-900/40"
           disabled={disabledRelease}
           onClick={handleRelease}
-          title={isConfirmed ? "" : "구매자가 '구매 확정'을 해야 정산 가능합니다."}
+          title={
+            buyerConfirmed
+              ? (alreadyApproved ? "" : "먼저 NFT 승인(approve)을 완료해주세요.")
+              : "구매자가 confirmReceipt를 해야 정산 가능합니다."
+          }
         >
           <Wallet className="w-4 h-4 mr-2" />
           대금 인출(Release Funds)

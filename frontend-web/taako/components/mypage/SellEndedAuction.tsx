@@ -11,6 +11,8 @@ import { useMyInfo } from "@/hooks/useMySellInfo";
 import { useDelivery } from "@/hooks/useSellDelivery";
 import AddTracking from "./delivery/AddTracking";
 import SellDeliveryForm from "./delivery/SellDeliveryForm";
+import SellerPayoutPanel from "@/components/nft/SellerPanel";
+import useWallet from "@/hooks/useWallet";
 
 const dummy: MySellAuctions[] = [
   {
@@ -106,12 +108,14 @@ const statusMap: Record<string, string> = {
   CONFIRMED: "구매확정",
 };
 
+const nftAddress = process.env.NEXT_PUBLIC_TAKO_NFT
+
 export default function SellOnGoingAuction() {
   const auction = dummy[0];
   const [isDeliveryOpen, setIsDeliveryOpen] = useState(false); // 배송지 모달
   const [isTrackingOpen, setIsTrackingOpen] = useState(false); // 송장 모달
 
-  const { endedSellAuctions } = useMyInfo();
+  const { endedSellAuctions, myInfo } = useMyInfo();
   // console.log(endedSellAuctions)
 
   const { handlerGetAuctionDelivery, auctionDelivery } = useDelivery();
@@ -121,6 +125,7 @@ export default function SellOnGoingAuction() {
   const todayTs = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
   const endDate = new Date(auction.endDatetime!.replace(/\//g, "-"));
   const endDateTs = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate()).getTime();
+  const { walletAddress } = useWallet();             // ⬅️ myInfo 없을 때 fallback
 
   return (
     <div>
@@ -131,6 +136,13 @@ export default function SellOnGoingAuction() {
           const chartData = getChartData(item);
           const endDate = new Date(item.endDatetime!.replace(/\//g, "-"));
           const endDateTs = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate()).getTime();
+
+          const _nftAddress = nftAddress
+
+          const _sellerWallet =
+            (myInfo as any)?.walletAddress?.startsWith("0x")
+              ? ((myInfo as any).walletAddress as `0x${string}`)
+              : (walletAddress?.startsWith("0x") ? (walletAddress as `0x${string}`) : undefined);
 
           return (
             <div key={index} className="grid grid-cols-2 gap-3 py-5 pt-8 border-b border-[#353535]">
@@ -211,6 +223,20 @@ export default function SellOnGoingAuction() {
                 />
                 <Line type="monotone" dataKey="price" name="입찰가" stroke="#ffffff" strokeWidth={2} dot />
               </LineChart>
+
+              <div className="col-span-2 mt-4 pt-4 border-t border-[#2b2b2b]">
+                {_nftAddress ? (
+                  <SellerPayoutPanel
+                    auctionId={item.auctionId}
+                    nftAddress={_nftAddress}
+                    tokenId=''
+                    sellerWallet={_sellerWallet}
+                    preferForAll={true}
+                  />
+                ) : (
+                  <div className="text-xs text-[#b5b5b5]">NFT 정보 없음</div>
+                )}
+              </div>
             </div>
           );
         })
