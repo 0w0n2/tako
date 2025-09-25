@@ -7,7 +7,7 @@ import {
 } from "recharts";
 import { MySellAuctions, Bids } from "@/types/auth";
 import { useState, useEffect, useMemo } from "react";
-import { useMyInfo } from "@/hooks/useMyInfo";
+import { useMyInfo } from "@/hooks/useMySellInfo";
 
 const dummy: MySellAuctions[] = [
   {

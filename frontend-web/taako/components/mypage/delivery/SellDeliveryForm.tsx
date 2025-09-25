@@ -3,7 +3,7 @@
 import { CircleCheck, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAddress } from "@/hooks/useAddress"
-import { useDelivery } from '@/hooks/useDelivery';
+import { useDelivery } from '@/hooks/useSellDelivery';
 import { useEffect, useState } from 'react';
 
 interface SellDeliveryFormProps {
