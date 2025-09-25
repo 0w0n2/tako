@@ -7,8 +7,8 @@ import { useMyInfo } from '@/hooks/useMyInfo';
 
 export default function CreateReviewPage(){
     const [activeTab, setActiveTab] = useState<'ongoing' | 'ended'>('ongoing');
-    const { myInfo } = useMyInfo();
-    // console.log(myInfo?.memberId)
+    const { me } = useMyInfo();
+    // console.log(me)
     return(
         <div>
             <h2>리뷰쓰기</h2>
@@ -41,11 +41,11 @@ export default function CreateReviewPage(){
             </div>
 
             <div className=''>
-            {activeTab==='ongoing' && myInfo && (
-                <AddReviews memberId={myInfo?.memberId} />
+            {activeTab==='ongoing' && me && (
+                <AddReviews memberId={me?.memberId} />
             )}
-            {activeTab==='ended' && myInfo && (
-                <MyReviews memberId={myInfo?.memberId} />
+            {activeTab==='ended' && me && (
+                <MyReviews memberId={me?.memberId} />
             )}
             </div>
         </div>
