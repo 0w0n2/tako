@@ -113,6 +113,16 @@ public class AuctionLiveSseService {
                 sendEvent(e, "bid", payload);
     }
 
+    /** 즉시구매 발생 (상세 전용) - 닉네임/시간/금액 */
+    public void publishBuyNow(long auctionId, String nickname, String amount, String timeIso) {
+        Map<String, Object> payload = Map.of(FIELD_AUCTION_ID, auctionId, "nickname", nickname, "amount", amount,
+                "time", timeIso);
+        Set<SseEmitter> dset = perAuctionDetailEmitters.get(auctionId);
+        if (dset != null)
+            for (SseEmitter e : dset)
+                sendEvent(e, "buy_now", payload);
+    }
+
     /** 주기적 하트비트 */
     @Scheduled(fixedRateString = "${auction.sse.heartbeat-ms:15000}")
     public void heartbeat() {

@@ -1,6 +1,7 @@
 package com.bukadong.tcg.api.bid.service;
 
 import com.bukadong.tcg.api.auction.entity.Auction;
+import com.bukadong.tcg.api.auction.entity.AuctionCloseReason;
 import com.bukadong.tcg.api.auction.sse.AuctionLiveSseService;
 import com.bukadong.tcg.api.auction.util.AuctionDeadlineIndex;
 import com.bukadong.tcg.api.bid.entity.AuctionBid;
@@ -30,6 +31,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 
@@ -56,6 +58,7 @@ public class BidEventApplyService {
     private final AuctionLiveSseService auctionLiveSseService;
     private final MemberRepository memberRepository;
     private final NotificationCommandService notificationCommandService;
+    private final com.bukadong.tcg.api.auction.service.AuctionEventPublisher eventPublisher;
 
     private final AuctionDeadlineIndex deadlineIndex;
     /** 연장 기능 on/off */
@@ -104,6 +107,8 @@ public class BidEventApplyService {
         String eventId = n.get("eventId").asText();
         String intended = n.hasNonNull("intended") ? n.get("intended").asText() : "ACCEPT";
         String reasonIn = n.hasNonNull("reason") ? n.get("reason").asText() : null;
+        boolean buyNowEvent = (n.hasNonNull("buyNow") && n.get("buyNow").asBoolean())
+                || ("BUY_NOW".equalsIgnoreCase(reasonIn));
 
         // 멱등 처리: 동일 eventId 재실행 방지
         if (auctionBidRepository.existsByEventId(eventId)) {
@@ -154,18 +159,31 @@ public class BidEventApplyService {
                 throw new NonRetryableException("AUCTION_NOT_FOUND:" + auctionId);
             }
 
-            // 4) 정상 ACCEPT 처리: 입찰 저장 + DB 엔티티 가격 갱신
+            // 4) 정상 ACCEPT 처리
+            BigDecimal finalBid = bid;
+            if (buyNowEvent && auction.getBuyNowPrice() != null) {
+                finalBid = auction.getBuyNowPrice();
+            }
             AuctionBid ab = AuctionBid.builder().auction(auction).member(em.getReference(Member.class, memberId))
-                    .amount(bid).status(AuctionBidStatus.VALID).eventId(eventId).build();
-            auctionBidRepository.save(ab);
+                    .amount(finalBid).status(AuctionBidStatus.VALID).eventId(eventId).build();
+            ab = auctionBidRepository.save(ab);
 
-            auction.changeCurrentPrice(bid); // 도메인 유효성 검사 포함
+            if (buyNowEvent) {
+                // 즉시구매: 낙찰 처리 (금액은 buy_now_price로 고정하도록 Lua가 amount를 buy_now_price로 반환)
+                auction.setWinner(memberId, ab.getId(), finalBid);
+                auction.markClosed(AuctionCloseReason.BUY_NOW, LocalDateTime.now(ZoneOffset.UTC));
+            } else {
+                // 일반 입찰: 현재가 갱신 및 연장 정책
+                auction.changeCurrentPrice(finalBid); // 도메인 유효성 검사 포함
+            }
 
             // 부작용(캐시/SSE/ZSET)은 커밋 성공 후 수행하도록 캡처
-            final String bidPlain = bid.toPlainString();
+            final String bidPlain = finalBid.toPlainString();
             final long nowSec = Instant.now().getEpochSecond();
             final String nickname = memberRepository.findById(memberId).map(Member::getNickname)
                     .orElse("member-" + memberId);
+            final Long winnerBidIdFinal = buyNowEvent ? ab.getId() : null;
+            final Long winnerMemberIdFinal = buyNowEvent ? memberId : null;
 
             // 연장 관련 사전 계산 (DB endDatetime 은 즉시 변경해도 JPA flush 시 반영)
             final Instant endAtBefore = auction.getEndDatetime() != null
@@ -173,7 +191,8 @@ public class BidEventApplyService {
                     : null;
             final boolean[] extendedHolder = { false };
             final Instant[] newEndAtHolder = { null };
-            if (extensionEnabled && auction.isExtensionFlag() && !auction.isEnd() && auction.getEndDatetime() != null) {
+            if (!buyNowEvent && extensionEnabled && auction.isExtensionFlag() && !auction.isEnd()
+                    && auction.getEndDatetime() != null) {
                 Instant now = Instant.now();
                 Instant endAt = endAtBefore;
                 if (endAt != null) {
@@ -196,30 +215,89 @@ public class BidEventApplyService {
                         auctionCacheService.overwritePrice(auctionId, bidPlain);
                         auctionLiveSseService.publishPriceUpdate(auctionId, bidPlain, null);
                         String timeIso = java.time.Instant.ofEpochSecond(nowSec).toString();
-                        auctionLiveSseService.publishBidAccepted(auctionId, nickname, bidPlain, timeIso);
+                        if (!buyNowEvent) {
+                            auctionLiveSseService.publishBidAccepted(auctionId, nickname, bidPlain, timeIso);
+                        }
                         // 입찰 성공 알림
-                        try {
-                            notificationCommandService.notifyBidAccepted(memberId, auctionId, new BigDecimal(bidPlain));
-                        } catch (Exception notifyEx) {
-                            log.warn("[afterCommit] notifyBidAccepted failed auctionId={}, eventId={}", auctionId,
-                                    eventId, notifyEx);
+                        if (!buyNowEvent) {
+                            try {
+                                notificationCommandService.notifyBidAccepted(memberId, auctionId,
+                                        new BigDecimal(bidPlain));
+                            } catch (Exception notifyEx) {
+                                log.warn("[afterCommit] notifyBidAccepted failed auctionId={}, eventId={}", auctionId,
+                                        eventId, notifyEx);
+                            }
                         }
 
-                        // 마감 연장/등록 처리
-                        try {
-                            if (extendedHolder[0] && newEndAtHolder[0] != null) {
-                                long newEndSec = newEndAtHolder[0].getEpochSecond();
-                                auctionCacheService.reopenUntil(auctionId, newEndSec);
-                                auctionLiveSseService.publishEndTsUpdate(auctionId, newEndSec);
-                                deadlineIndex.upsert(auctionId, newEndAtHolder[0].toEpochMilli());
-                                log.debug("[afterCommit] Auction end extended: auctionId={}, new={}", auctionId,
-                                        newEndAtHolder[0]);
-                            } else if (endAtBefore != null) {
-                                deadlineIndex.upsert(auctionId, endAtBefore.toEpochMilli());
+                        if (buyNowEvent) {
+                            // 즉시구매: 종료 처리 후속 작업 (캐시 마킹, SSE 종료, 데드라인 인덱스 제거)
+                            try {
+                                auctionCacheService.overwritePrice(auctionId, bidPlain);
+                                auctionCacheService.markEnded(auctionId);
+                                // 즉시구매 전용 이벤트 전파 (상세 구독자)
+                                try {
+                                    auctionLiveSseService.publishBuyNow(auctionId, nickname, bidPlain,
+                                            java.time.Instant.ofEpochSecond(nowSec).toString());
+                                } catch (Exception sseBuyNowEx) {
+                                    log.warn("[afterCommit] publishBuyNow failed auctionId={}, eventId={}", auctionId,
+                                            eventId, sseBuyNowEx);
+                                }
+                                auctionLiveSseService.publishEnded(auctionId);
+                                deadlineIndex.remove(auctionId);
+                                // SOLD 이벤트 발행
+                                try {
+                                    var seller = auction.getMember();
+                                    var buyer = memberRepository.findById(winnerMemberIdFinal).orElse(null);
+                                    if (buyer != null && winnerBidIdFinal != null) {
+                                        Instant closedAt = auction.getClosedAt() != null
+                                                ? auction.getClosedAt().atOffset(ZoneOffset.UTC).toInstant()
+                                                : Instant.ofEpochSecond(nowSec);
+                                        eventPublisher.publishAuctionSold(auctionId, winnerBidIdFinal.longValue(),
+                                                new BigDecimal(bidPlain), closedAt, seller, buyer,
+                                                auction.getPhysicalCard());
+                                        // 즉시구매 사용자/판매자 알림
+                                        try {
+                                            notificationCommandService.notifyBuyNowBuyer(buyer.getId(), auctionId,
+                                                    new BigDecimal(bidPlain), closedAt);
+                                        } catch (Exception notifyBuyerEx) {
+                                            log.warn("[afterCommit] notifyBuyNowBuyer failed auctionId={}, eventId={}",
+                                                    auctionId, eventId, notifyBuyerEx);
+                                        }
+                                        try {
+                                            if (seller != null) {
+                                                notificationCommandService.notifyBuyNowSeller(seller.getId(), auctionId,
+                                                        new BigDecimal(bidPlain), closedAt);
+                                            }
+                                        } catch (Exception notifySellerEx) {
+                                            log.warn("[afterCommit] notifyBuyNowSeller failed auctionId={}, eventId={}",
+                                                    auctionId, eventId, notifySellerEx);
+                                        }
+                                    }
+                                } catch (Exception pubEx) {
+                                    log.warn("[afterCommit] publishAuctionSold failed auctionId={}, eventId={}",
+                                            auctionId, eventId, pubEx);
+                                }
+                            } catch (Exception side2) {
+                                log.warn("[afterCommit] buy-now side effects failed auctionId={}, eventId={}",
+                                        auctionId, eventId, side2);
                             }
-                        } catch (Exception schedEx) {
-                            log.error("[afterCommit] Failed deadline scheduling update auctionId={}, eventId={}",
-                                    auctionId, eventId, schedEx);
+                        } else {
+                            // 마감 연장/등록 처리
+                            try {
+                                if (extendedHolder[0] && newEndAtHolder[0] != null) {
+                                    long newEndSec = newEndAtHolder[0].getEpochSecond();
+                                    auctionCacheService.reopenUntil(auctionId, newEndSec);
+                                    auctionLiveSseService.publishEndTsUpdate(auctionId, newEndSec);
+                                    deadlineIndex.upsert(auctionId, newEndAtHolder[0].toEpochMilli());
+                                    log.debug("[afterCommit] Auction end extended: auctionId={}, new={}", auctionId,
+                                            newEndAtHolder[0]);
+                                } else if (endAtBefore != null) {
+                                    deadlineIndex.upsert(auctionId, endAtBefore.toEpochMilli());
+                                }
+                            } catch (Exception schedEx) {
+                                log.error("[afterCommit] Failed deadline scheduling update auctionId={}, eventId={}",
+                                        auctionId, eventId, schedEx);
+                            }
                         }
                     } catch (Exception sideEx) {
                         // 커밋 후 부작용 실패는 워커/리컨실/주기적 보정으로 회복 (로그만 남김)

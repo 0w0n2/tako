@@ -50,13 +50,16 @@ public class AuctionCacheService {
 
         if (Boolean.FALSE.equals(redisTemplate.hasKey(key)) || h.entries(key).isEmpty()
                 || h.get(key, "current_price") == null || h.get(key, "bid_unit") == null
-                || h.get(key, "start_ts") == null || h.get(key, "end_ts") == null || h.get(key, "owner_id") == null) {
+                || h.get(key, "start_ts") == null || h.get(key, "end_ts") == null || h.get(key, "owner_id") == null
+                || h.get(key, "buy_now_flag") == null) {
+            String buyNowFlag = a.isBuyNowFlag() ? "1" : "0";
+            String buyNowPrice = (a.getBuyNowPrice() != null) ? a.getBuyNowPrice().toPlainString() : "";
             h.putAll(key, Map.of("is_end", a.isEnd() ? "1" : "0", "start_ts",
                     String.valueOf(a.getStartDatetime().toEpochSecond(ZoneOffset.UTC)), "end_ts",
                     String.valueOf(a.getEndDatetime().toEpochSecond(ZoneOffset.UTC)), "current_price",
                     a.getCurrentPrice().toPlainString(), "bid_unit", a.getBidUnit().toBigDecimal().toPlainString(),
-                    "owner_id", String.valueOf(a.getMember() != null ? a.getMember().getId() : 0L) // ⬅️ 추가
-            ));
+                    "owner_id", String.valueOf(a.getMember() != null ? a.getMember().getId() : 0L), "buy_now_flag",
+                    buyNowFlag, "buy_now_price", buyNowPrice));
         }
     }
 
