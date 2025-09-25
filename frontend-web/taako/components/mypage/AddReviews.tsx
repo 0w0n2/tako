@@ -15,7 +15,7 @@ export default function AddReviews({memberId}:{memberId:number}) {
     const { handleGetReview, reviews } = useReview();
     // 종료 경매(리뷰X) 조회
     const { endedAuctions } = useMyInfo();
-    const abc = endedAuctions.filter((item) => item.delivery.status === null)
+    const abc = endedAuctions.filter((item) => item.delivery.status === "CONFIRMED")
   
   useEffect(()=>{
     handleGetReview(memberId);
