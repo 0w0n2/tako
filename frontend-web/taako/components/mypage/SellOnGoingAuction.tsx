@@ -7,6 +7,7 @@ import {
 } from "recharts";
 import { MySellAuctions, Bids } from "@/types/auth";
 import { useState, useEffect, useMemo } from "react";
+import { useMyInfo } from "@/hooks/useMyInfo";
 
 const dummy: MySellAuctions[] = [
   {
@@ -200,54 +201,128 @@ export default function SellOnGoingAuction() {
     return () => clearInterval(interval);
   }, [auction.endDatetime]);
 
+  const { ongoingSellAuctions } = useMyInfo();
   return (
-    <div className="grid grid-cols-2 gap-3 py-5 pt-8 border-b border-[#353535]">
-      <div className="flex flex-col justify-between">
-        <div className="flex flex-col gap-1 px-4">
-          <p className="text-sm text-[#a5a5a5]">경매 번호: {auction.code}</p>
-          <h3 className="bid">{auction.title}</h3>
-        </div>
-        <div className="py-4 px-4 flex justify-between">
-          <div className="flex items-center gap-5">
-            <div className="rounded-lg overflow-hidden w-25 h-25">
-              <Image
-                className="w-full h-full object-cover"
-                src={auction.imageUrl || "/no-image.jpg"}
-                alt="thumbnail"
-                width={100}
-                height={100}
-              />
+    <div>
+      {ongoingSellAuctions.length === 0 ? (
+        <p className="text-center text-sm text-[#a5a5a5] py-20">판매 중인 경매가 없습니다.</p>
+      ) : (
+        ongoingSellAuctions.map((item, index) => {
+          const chartData = useMemo(() => getChartData(item), [item.bids, item.endDatetime]);
+          const remainingTime = getRemainingTime(item.endDatetime!);
+
+          const today = new Date();
+          const todayTs = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+          const endDate = new Date(item.endDatetime!.replace(/\//g, "-"));
+          const endDateTs = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate()).getTime();
+
+          return (
+            <div key={index} className="grid grid-cols-2 gap-3 py-5 pt-8 border-b border-[#353535]">
+              <div className="flex flex-col justify-between">
+                <div className="flex flex-col gap-1 px-4">
+                  <p className="text-sm text-[#a5a5a5]">경매 번호: {item.code}</p>
+                  <h3 className="bid">{item.title}</h3>
+                </div>
+                <div className="py-4 px-4 flex justify-between">
+                  <div className="flex items-center gap-5">
+                    <div className="rounded-lg overflow-hidden w-25 h-25">
+                      <Image
+                        className="w-full h-full object-cover"
+                        src={item.imageUrl || "/no-image.jpg"}
+                        alt="thumbnail"
+                        width={100}
+                        height={100}
+                      />
+                    </div>
+                    <div>
+                      <p className="text-xl mb-1">입찰가: {item.currentPrice} TKC</p>
+                      {mounted && (
+                        <p className="text-sm">
+                          남은 시간: {remainingTime.days}일 {remainingTime.hours}시간 {remainingTime.minutes}분
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <LineChart width={540} height={164} data={chartData} margin={{ top: 20, right: 40 }}>
+                <CartesianGrid stroke="#222" strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="date"
+                  type="number"
+                  domain={['dataMin', 'dataMax']}
+                  tickFormatter={formatDateForXAxis}
+                  tick={{ fill: "#a5a5a5", fontSize: 14, dy: 8 }}
+                  axisLine={false}
+                />
+                <YAxis tick={{ fill: "#aaa", fontSize: 12, dx: -4 }} axisLine={false} />
+                <Tooltip content={<CustomTooltip />} />
+                <ReferenceArea x1={todayTs} x2={endDateTs} fill="#353535" fillOpacity={0.3} />
+                <ReferenceLine
+                  x={todayTs}
+                  stroke="#00ff00"
+                  strokeWidth={2}
+                  label={{ position: "top", value: "오늘", fill: "#00ff00", dy: -2, fontSize: 12 }}
+                />
+                <Line type="monotone" dataKey="price" name="입찰가" stroke="#ffffff" strokeWidth={2} dot>
+                  <LabelList content={(props) => <CustomLabel {...props} data={chartData} />} />
+                </Line>
+              </LineChart>
             </div>
-            <div>
-              <p className="text-xl mb-1">입찰가: {auction.currentPrice} TKC</p>
-              {mounted && (
-                <p className="text-sm">
-                  남은 시간: {remaining.days}일 {remaining.hours}시간 {remaining.minutes}분
-                </p>
-              )}
+          );
+        })
+      )}
+
+      {/* 더미데이터 기반 */}
+      {/* <div className="grid grid-cols-2 gap-3 py-5 pt-8 border-b border-[#353535]">
+        <div className="flex flex-col justify-between">
+          <div className="flex flex-col gap-1 px-4">
+            <p className="text-sm text-[#a5a5a5]">경매 번호: {auction.code}</p>
+            <h3 className="bid">{auction.title}</h3>
+          </div>
+          <div className="py-4 px-4 flex justify-between">
+            <div className="flex items-center gap-5">
+              <div className="rounded-lg overflow-hidden w-25 h-25">
+                <Image
+                  className="w-full h-full object-cover"
+                  src={auction.imageUrl || "/no-image.jpg"}
+                  alt="thumbnail"
+                  width={100}
+                  height={100}
+                />
+              </div>
+              <div>
+                <p className="text-xl mb-1">입찰가: {auction.currentPrice} TKC</p>
+                {mounted && (
+                  <p className="text-sm">
+                    남은 시간: {remaining.days}일 {remaining.hours}시간 {remaining.minutes}분
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <LineChart width={540} height={164} data={chartData} margin={{ top: 20, right:40 }}>
-        <CartesianGrid stroke="#222" strokeDasharray="3 3" />
-        <XAxis
-          dataKey="date"
-          type="number"
-          domain={['dataMin', 'dataMax']}
-          tickFormatter={formatDateForXAxis}
-          tick={{ fill: "#a5a5a5", fontSize: 14, dy: 8 }}
-          axisLine={false}
-        />
-        <YAxis tick={{ fill: "#aaa", fontSize: 12, dx: -4}} axisLine={false} />
-        <Tooltip content={<CustomTooltip />} />
-        <ReferenceArea x1={todayTs} x2={endDateTs} fill="#353535" fillOpacity={0.3} />
-        <ReferenceLine x={todayTs} stroke="#00ff00" strokeWidth={2} label={{ position: "top", value: "오늘", fill: "#00ff00", dy:-2, fontSize: 12 }} />
-        <Line type="monotone" dataKey="price" name="입찰가" stroke="#ffffff" strokeWidth={2} dot>
-          <LabelList content={(props) => <CustomLabel {...props} data={chartData} />} />
-        </Line>
-      </LineChart>
+        <LineChart width={540} height={164} data={chartData} margin={{ top: 20, right:40 }}>
+          <CartesianGrid stroke="#222" strokeDasharray="3 3" />
+          <XAxis
+            dataKey="date"
+            type="number"
+            domain={['dataMin', 'dataMax']}
+            tickFormatter={formatDateForXAxis}
+            tick={{ fill: "#a5a5a5", fontSize: 14, dy: 8 }}
+            axisLine={false}
+          />
+          <YAxis tick={{ fill: "#aaa", fontSize: 12, dx: -4}} axisLine={false} />
+          <Tooltip content={<CustomTooltip />} />
+          <ReferenceArea x1={todayTs} x2={endDateTs} fill="#353535" fillOpacity={0.3} />
+          <ReferenceLine x={todayTs} stroke="#00ff00" strokeWidth={2} label={{ position: "top", value: "오늘", fill: "#00ff00", dy:-2, fontSize: 12 }} />
+          <Line type="monotone" dataKey="price" name="입찰가" stroke="#ffffff" strokeWidth={2} dot>
+            <LabelList content={(props) => <CustomLabel {...props} data={chartData} />} />
+          </Line>
+        </LineChart>
+      </div> */}
     </div>
   );
 }
