@@ -25,6 +25,7 @@ public class SignUpServiceImpl implements SignUpService {
 
     private final int DEFAULT_PROFILE_IMAGE_COUNT = 9;
     private final int DEFAULT_BACKGROUND_IMAGE_COUNT = 1;
+
     private final MediaDirResolver mediaDirResolver;
     private final MediaRepository mediaRepository;
 
