@@ -1,48 +1,41 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getDelivery, postRecipientAddress } from "@/lib/delivery";
-import type { DeliveryInfo } from "@/types/delivery";
+import { addTrackingNumber, getAuctionDelivery, sellerDelivery } from "@/lib/delivery";
+import { GetAuctionDelivery } from "@/types/delivery";
+import { useState } from "react";
 
-export function useDelivery(auctionId: number) {
-  const qc = useQueryClient();
+export function useDelivery() {
+    const [auctionDelivery, setAuctionDelivery] = useState<GetAuctionDelivery>();
 
-  const deliveryQuery = useQuery<{
-    result: DeliveryInfo;
-    isSuccess: boolean;
-  }>({
-    queryKey: ["delivery", auctionId],
-    queryFn: async () => {
-      const data = await getDelivery(auctionId);
-      return { result: data.result, isSuccess: data.isSuccess };
-    },
-    enabled: !!auctionId,
-    refetchInterval: 10_000, // 10초마다 배송상태 폴링
-  });
+    // 경매 배송 정보 조회
+    const handlerGetAuctionDelivery = async (auctionId:number) => {
+        try {
+        const res = await getAuctionDelivery(auctionId);
+        setAuctionDelivery(res.result);
+        } catch (err) {
+        console.error(err);
+        }
+    };
 
-  const setRecipientMutation = useMutation({
-    mutationFn: async (addressId: number) => {
-      const data = await postRecipientAddress(auctionId, addressId);
-      return data.result;
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["delivery", auctionId] });
-    },
-  });
+    // 판매자: 보내는 주소 설정
+    const handlerSellerAddress = async(auctionId:number, addressId:number) => {
+        try{
+            await sellerDelivery(auctionId, addressId);
+        }catch(err){
+            console.error(err);
+        }
+    }
 
-  const info = deliveryQuery.data?.result;
-  const hasRecipient = !!info?.recipientAddress?.id;
-  const hasTracking = !!info?.trackingNumber;
-  const needsRecipient = !hasRecipient;
-  const status = info?.status ?? "WAITING";
+    // 판매자: 운송장 등록
+    const handlerTrackingNumber = async(auctionId:number, trackingNumber:string) => {
+        try{
+            await addTrackingNumber(auctionId, trackingNumber);
+        }catch(err){
+            console.error(err);
+        }
+    }
 
-  return {
-    info,
-    status,
-    hasRecipient,
-    hasTracking,
-    needsRecipient,
-    loading: deliveryQuery.isLoading,
-    error: deliveryQuery.isError,
-    setRecipient: setRecipientMutation.mutateAsync,
-    settingRecipient: setRecipientMutation.isPending,
-  };
+    return {
+        handlerGetAuctionDelivery, auctionDelivery,
+        handlerSellerAddress,
+        handlerTrackingNumber,
+    }
 }
