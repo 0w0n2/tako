@@ -1,8 +1,7 @@
-import type { InterfaceAbi } from "ethers";
-
-// 최소 ABI: payable deposit(), confirmReceipt()
-export const ESCROW_ABI: InterfaceAbi = [
+// lib/bc/escrowAbi.ts
+export const ESCROW_ABI = [
+  // 입금/확정/정산
   "function deposit() external payable",
   "function confirmReceipt() external",
-  // 조회/이벤트가 있다면 여기에 추가
-];
+  "function releaseFunds() external",
+] as const;

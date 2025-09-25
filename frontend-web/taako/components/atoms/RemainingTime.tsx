@@ -1,69 +1,53 @@
-import { AuctionDetailProps } from "@/types/auction"
-import { useState, useEffect } from "react"
+import { useState, useEffect } from "react";
 
-interface Time{
-    props: AuctionDetailProps
+interface Props {
+	readonly start?: string; // ISO
+	readonly end?: string; // ISO
+	readonly endTsOverride?: number; // SSE로 갱신되는 epoch(ms) or seconds
+	readonly className?: string;
 }
 
-export default function RemainingTime({ props }: Time){
-    const [timeLeft, setTimeLeft] = useState({
-        days: 0,
-        hours: 0,
-        minutes: 0,
-        seconds: 0
-    });
+export default function RemainingTime({ start, end, endTsOverride, className }: Props) {
+	const [now, setNow] = useState<number>(Date.now());
 
-    useEffect(() => {
-        const calculateTimeLeft = () => {
-            const now = new Date().getTime();
-            const endTime = new Date(props.endTime).getTime();
-            const difference = endTime - now;
+	useEffect(() => {
+		const t = setInterval(() => setNow(Date.now()), 1000);
+		return () => clearInterval(t);
+	}, []);
 
-            if (difference > 0) {
-                const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-                const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-                const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+	// endTsOverride가 초 단위면 ms로 보정
+	const endMs = (() => {
+		if (typeof endTsOverride === "number") {
+			return endTsOverride > 1e12 ? endTsOverride : endTsOverride * 1000;
+		}
+		if (end) return new Date(end).getTime();
+		return undefined;
+	})();
 
-                setTimeLeft({ days, hours, minutes, seconds });
-            } else {
-                setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-            }
-        };
+	const startMs = start ? new Date(start).getTime() : undefined;
 
-        // 즉시 계산
-        calculateTimeLeft();
+	let phase: "before" | "running" | "ended" = "running";
+	if (startMs && now < startMs) phase = "before";
+	if (endMs && now >= endMs) phase = "ended";
 
-        // 1초마다 업데이트
-        const timer = setInterval(calculateTimeLeft, 1000);
+	const diff = endMs ? endMs - now : 0;
+	const remain = diff > 0 ? diff : 0;
+	const totalSeconds = Math.floor(remain / 1000);
+	const days = Math.floor(totalSeconds / 86400);
+	const hours = Math.floor((totalSeconds % 86400) / 3600);
+	const minutes = Math.floor((totalSeconds % 3600) / 60);
+	const seconds = totalSeconds % 60;
 
-        return () => clearInterval(timer);
-    }, [props.endTime]);
+	const segs: string[] = [];
+	if (days > 0) segs.push(`${days}일`);
+	if (hours > 0) segs.push(`${hours}시간`);
+	if (minutes > 0) segs.push(`${minutes}분`);
+	segs.push(`${seconds}초`);
 
-    const formatTime = (value: number, unit: string) => {
-        return `${value}${unit}`;
-    };
+	let text: string;
+	if (phase === "before") text = `시작 전 (${segs.join(" ")})`;
+	else if (phase === "ended") text = "종료됨";
+	else text = segs.join(" ");
 
-    return(
-        <div className="flex gap-2">
-            {timeLeft.days > 0 && (
-                <span className="text-[#7db7cd]">
-                    {formatTime(timeLeft.days, '일')}
-                </span>
-            )}
-            {timeLeft.hours > 0 && (
-                <span className="text-[#7db7cd]">
-                    {formatTime(timeLeft.hours, '시간')}
-                </span>
-            )}
-            {timeLeft.minutes > 0 && (
-                <span className="text-[#7db7cd]">
-                    {formatTime(timeLeft.minutes, '분')}
-                </span>
-            )}
-            <span className="text-[#7db7cd]">
-                {formatTime(timeLeft.seconds, '초')}
-            </span>
-        </div>
-    )
+	return <span className={className ?? "text-[#7db7cd]"}>{text}</span>;
 }
