@@ -14,8 +14,9 @@ export interface MyInfo {
   introduction: string|null;
   mumberId: number;
   nickname: number;
-  notificationsSetting: Object|null;
+  // notificationsSetting: Object|null;
   profileImageUrl: string|null;
+  walletAddress: string|null;
 }
 
 // 내 입찰 경매 목록 조회
