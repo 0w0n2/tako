@@ -29,22 +29,22 @@ public interface AuctionRepositoryCustom {
      * @param currentPriceMin  현재가 최소(옵션)
      * @param currentPriceMax  현재가 최대(옵션)
      * @param grades           등급 집합(옵션)
-     * @param sort             정렬 기준(필수)
+     * @param sort             정렬 기준(옵션, null이면 id DESC)
+     * @param includeEnded     종료된 경매 포함 여부 (true면 종료/진행 모두 포함, false면 진행중만)
      * @param pageable         페이지 정보(서비스에서 size=20 강제)
      * @return 내부 행 DTO 페이지
      */
+    @SuppressWarnings("java:S107")
     Page<AuctionListProjection> searchAuctions(Long categoryMajorId, Long categoryMediumId, String titlePart,
-                                               Long cardId, BigDecimal currentPriceMin, BigDecimal currentPriceMax, Set<String> grades, AuctionSort sort,
-                                               Pageable pageable);
+            Long cardId, BigDecimal currentPriceMin, BigDecimal currentPriceMax, Set<String> grades, AuctionSort sort,
+            boolean includeEnded, Pageable pageable);
 
     boolean isDuplicatedTokenId(Long tokenId);
 
     /**
-     * 회원 탈퇴 가능 여부를 확인
-     * 아래 조건 중 하나라도 해당되면 탈퇴할 수 없으므로 true를 반환
-     * 1. 판매자로서 종료되지 않은 경매가 있는 경우
-     * 2. 구매자로서 입찰한 경매 중 종료되지 않은 경매가 있는 경우
-     * 3. 판매자 또는 낙찰자로서 거래가 완료(구매 확정)되지 않은 경매가 있는 경우
+     * 회원 탈퇴 가능 여부를 확인 아래 조건 중 하나라도 해당되면 탈퇴할 수 없으므로 true를 반환 1. 판매자로서 종료되지 않은 경매가 있는
+     * 경우 2. 구매자로서 입찰한 경매 중 종료되지 않은 경매가 있는 경우 3. 판매자 또는 낙찰자로서 거래가 완료(구매 확정)되지 않은 경매가
+     * 있는 경우
      *
      * @param memberId 확인할 회원의 ID
      * @return 탈퇴 불가능한 경매 관련 이력이 있으면 true, 없으면 false
