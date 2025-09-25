@@ -23,7 +23,7 @@ export async function getMyBidAuction(opts: BidFilter = {}): Promise<Page<MyBidA
 }
 
 export async function getInfo() {
-	const res = await api.get("/v1/auctions/me");
+	const res = await api.get("/v1/members/me");
 	return res.data.result;
 }
 

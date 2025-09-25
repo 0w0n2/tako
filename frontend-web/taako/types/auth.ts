@@ -12,7 +12,7 @@ export interface MyInfo {
   backgroundImageUrl: string|null;
   email: string|null;
   introduction: string|null;
-  mumberId: number;
+  memberId: number;
   nickname: number;
   notificationsSetting: Object|null;
   profileImageUrl: string|null;
@@ -36,7 +36,14 @@ export interface MyBidAuctions {
       nickname: string|null;
       price: number|null;
     }
-  ]
+  ],
+  delivery: {
+    status: string|null;
+    existTrackingNumber: boolean;
+    existRecipientAddress: boolean;
+    existSenderAddress: boolean;
+  }
+
 }
 
 // 판매 경매 조회

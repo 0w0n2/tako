@@ -73,20 +73,15 @@ export default function MypageSideMenu() {
 							</Link>
 						</li>
 						<li>
-							<Link href="/mypage/payment" className={`text-sm transition-all duration-300 ${pathname === "/mypage/payment" ? "text-[#F2B90C]" : "text-[#A5A5A5] hover:text-[#F2B90C]"}`}>
-								결제 정보
-							</Link>
-						</li>
-						<li>
 							<Link href="/mypage/notifications" className={`text-sm transition-all duration-300 ${pathname === "/mypage/notifications" ? "text-[#F2B90C]" : "text-[#A5A5A5] hover:text-[#F2B90C]"}`}>
 								알림 설정
 							</Link>
 						</li>
-						<li>
+						{/* <li>
 							<button onClick={() => setOpenWithdraw(true)} className="text-[#A5A5A5] text-sm text-left w-full cursor-pointer hover:text-[#F2B90C] transition-all duration-300">
 								회원탈퇴
 							</button>
-						</li>
+						</li> */}
 					</ul>
 				</li>
 			</ul>
