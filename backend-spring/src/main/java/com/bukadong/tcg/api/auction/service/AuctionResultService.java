@@ -3,6 +3,7 @@ package com.bukadong.tcg.api.auction.service;
 import com.bukadong.tcg.api.auction.entity.Auction;
 import com.bukadong.tcg.api.auction.entity.AuctionResult;
 import com.bukadong.tcg.api.auction.repository.AuctionResultRepository;
+import com.bukadong.tcg.api.delivery.service.DeliveryService;
 import com.bukadong.tcg.global.common.base.BaseResponseStatus;
 import com.bukadong.tcg.global.common.exception.BaseException;
 import com.bukadong.tcg.api.card.entity.PhysicalCard;
@@ -24,6 +25,7 @@ public class AuctionResultService {
 
     private final AuctionResultRepository auctionResultRepository;
     private final TakoNftContractService takoNftContractService;
+    private final DeliveryService deliveryService;
 
     /* 에스크로 생성 성공 결과를 DB에 저장 */
     @Transactional
@@ -76,6 +78,7 @@ public class AuctionResultService {
             );
         }
 
+        deliveryService.confirmByBuyer(buyer, auction.getId());
         auctionResult.updateSettleFlag(true);
     }
 }
