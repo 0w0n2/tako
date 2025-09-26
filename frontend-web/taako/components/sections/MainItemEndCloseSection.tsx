@@ -13,7 +13,7 @@ import { Navigation } from 'swiper/modules';
 import { ChevronRight } from 'lucide-react';
 
 export default function MainItemEndCloseSection() {
-    const { data, isLoading, isError } = useAuctionsQuery({ sort: 'ENDTIME_ASC' });
+    const { data, isLoading, isError } = useAuctionsQuery({ sort: 'ENDTIME_ASC', isEnded:false });
     // console.log(data)
 
     const auctions: GetAuction[] = data?.result?.content?.filter(
