@@ -248,12 +248,6 @@ export default function AuctionDetailClient({ auctionId, historySize = 5 }: Read
 					<p className="mt-7">{auc.detail}</p>
 				</div>
 
-				{/* 배송 */}
-				<div className="py-15 border-b border-[#353535]">
-					<h2 className="text-[20px]">배송</h2>
-					<p className="mt-7">{auc.detail}</p>
-				</div>
-
 				{/* 문의 */}
 				<div className="pt-15">
 					<h2 className="text-[20px]">경매문의 ({inqTotal})</h2>
