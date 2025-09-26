@@ -42,7 +42,6 @@ export function useAuctionDetail(auctionId: number, historySize = 5) {
 
     try {
       const { detail, wished } = await getAuctionDetail(auctionId, { historySize, signal: ctrl.signal });
-
       // 마지막 요청만 반영
       if (mySeq === reqSeqRef.current) {
         setData(detail);

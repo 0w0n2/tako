@@ -38,7 +38,7 @@ export default function SearchClient() {
   const totalPages: number = (data?.result?.totalPages ?? 1) as number;
   const totalElement = data?.result?.totalElements;
 
-  console.log(auctions)
+  // console.log(auctions)
   return (
     <div>
       <div className="default-container">
@@ -53,7 +53,7 @@ export default function SearchClient() {
           {/* 첫 로딩 시 전체 화면 로딩 */}
           {isLoading && (
             <p className="flex justify-center items-center text-[#a5a5a5] h-40">
-              불러오는 중...
+              <img src="https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExejdwd2k3eGE3eXZoaWh3OHFyeTlmY2d6NDVwaDFpY2c5OW95NjNtdCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/KWXqZV8niKZRtGooKz/giphy.gif" alt="" />
             </p>
           )}
 
