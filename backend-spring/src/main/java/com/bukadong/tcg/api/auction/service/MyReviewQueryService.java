@@ -37,8 +37,9 @@ public class MyReviewQueryService {
         List<Auction> auctions = auctionRepository.findBuyerAwaitingReview(buyerId);
         List<MyReviewItemResponse> items = new ArrayList<>(auctions.size());
         for (Auction a : auctions) {
-            String primaryImageUrl = mediaUrlService.getPresignedImageUrls(MediaType.AUCTION_ITEM, a.getId(),
-                    Duration.ofMinutes(5)).stream().findFirst().orElse(null);
+            String primaryImageUrl = mediaUrlService
+                    .getPresignedImageUrls(MediaType.AUCTION_ITEM, a.getId(), Duration.ofMinutes(5)).stream()
+                    .findFirst().orElse(null);
             var delivery = a.getDelivery();
             var deliverySummary = new MyReviewItemResponse.DeliverySummary(
                     delivery == null ? null : delivery.getStatus().name(),
@@ -58,8 +59,9 @@ public class MyReviewQueryService {
         for (Object[] r : rows) {
             Auction a = (Auction) r[0];
             AuctionReview review = (AuctionReview) r[1];
-            String primaryImageUrl = mediaUrlService.getPresignedImageUrls(MediaType.AUCTION_ITEM, a.getId(),
-                    Duration.ofMinutes(5)).stream().findFirst().orElse(null);
+            String primaryImageUrl = mediaUrlService
+                    .getPresignedImageUrls(MediaType.AUCTION_ITEM, a.getId(), Duration.ofMinutes(5)).stream()
+                    .findFirst().orElse(null);
             var delivery = a.getDelivery();
             var deliverySummary = new MyReviewItemResponse.DeliverySummary(
                     delivery == null ? null : delivery.getStatus().name(),
@@ -81,8 +83,9 @@ public class MyReviewQueryService {
         List<Auction> auctions = auctionRepository.findSellerAwaitingReview(sellerId);
         List<MyReviewItemResponse> items = new ArrayList<>(auctions.size());
         for (Auction a : auctions) {
-            String primaryImageUrl = mediaUrlService.getPresignedImageUrls(MediaType.AUCTION_ITEM, a.getId(),
-                    Duration.ofMinutes(5)).stream().findFirst().orElse(null);
+            String primaryImageUrl = mediaUrlService
+                    .getPresignedImageUrls(MediaType.AUCTION_ITEM, a.getId(), Duration.ofMinutes(5)).stream()
+                    .findFirst().orElse(null);
             var delivery = a.getDelivery();
             var deliverySummary = new MyReviewItemResponse.DeliverySummary(
                     delivery == null ? null : delivery.getStatus().name(),
@@ -102,8 +105,9 @@ public class MyReviewQueryService {
         for (Object[] r : rows) {
             Auction a = (Auction) r[0];
             AuctionReview review = (AuctionReview) r[1];
-            String primaryImageUrl = mediaUrlService.getPresignedImageUrls(MediaType.AUCTION_ITEM, a.getId(),
-                    Duration.ofMinutes(5)).stream().findFirst().orElse(null);
+            String primaryImageUrl = mediaUrlService
+                    .getPresignedImageUrls(MediaType.AUCTION_ITEM, a.getId(), Duration.ofMinutes(5)).stream()
+                    .findFirst().orElse(null);
             var delivery = a.getDelivery();
             var deliverySummary = new MyReviewItemResponse.DeliverySummary(
                     delivery == null ? null : delivery.getStatus().name(),
@@ -122,7 +126,8 @@ public class MyReviewQueryService {
     }
 
     private String maskNickname(String nickname) {
-        if (nickname == null || nickname.isBlank()) return "";
+        if (nickname == null || nickname.isBlank())
+            return "";
         if (nickname.length() <= 2) {
             return nickname.charAt(0) + "*";
         }
