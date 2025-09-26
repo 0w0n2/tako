@@ -57,12 +57,14 @@ public class AuctionCreateRequest {
 
     @Schema(description = "시작가", example = "1.00000000")
     @NotNull(message = "시작가는 필수입니다.")
-    @DecimalMin("0.00000000")
+    // 최소 시작가를 최소 입찰 단위(0.0001)로 통일
+    @DecimalMin("0.0001")
     @Digits(integer = 12, fraction = 8)
     private BigDecimal startPrice;
 
     @Schema(description = "입찰가(최초 현재가로 세팅원하면 null/미전송)", example = "1.00000000")
-    @DecimalMin("0.00000000")
+    // 현재가 명시 입력 시에도 최소 단위 동일 적용
+    @DecimalMin("0.0001")
     @Digits(integer = 12, fraction = 8)
     private BigDecimal currentPrice;
 
@@ -78,7 +80,8 @@ public class AuctionCreateRequest {
     private boolean buyNowFlag;
 
     @Schema(description = "(옵션) 즉시구매가", example = "10.00000000")
-    @DecimalMin("0.00000000")
+    // 즉시구매가도 0은 비즈니스상 의미 없어 최소 단위를 맞춤
+    @DecimalMin("0.0001")
     @Digits(integer = 12, fraction = 8)
     private BigDecimal buyNowPrice;
 }
