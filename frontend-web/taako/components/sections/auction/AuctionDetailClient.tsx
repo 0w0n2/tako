@@ -14,6 +14,15 @@ import AuctionWeeklyChart from "@/components/charts/parts/AuctionWeeklyChart";
 import AuctionInquiry from "@/components/sections/auction/AuctionInquiry";
 import { useAuctionDetail } from "@/hooks/useAuctionDetail";
 import { useAuctionPrice } from "@/hooks/useAuctionPrice";
+import { BadgeCheckIcon } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import {
+	HoverCard,
+	HoverCardContent,
+	HoverCardTrigger,
+  } from "@/components/ui/hover-card"
+import { useNFThistory } from "@/hooks/useNFThistory";
+
 // 실시간 입찰 이벤트는 따로 컴포넌트 분리 대신 기존 history UI에 통합
 
 type Props = {
@@ -24,6 +33,12 @@ type Props = {
 export default function AuctionDetailClient({ auctionId, historySize = 5 }: Readonly<Props>) {
 	const { data, loading, error, wished, pendingWish, wishError, toggleWish } = useAuctionDetail(auctionId, historySize);
 
+	// nft history가져오기
+	const tokenId = Number(data?.tokenId);
+	const { history } = useNFThistory(tokenId);
+	console.log(history)
+	
+	
 	// 문의 개수
 	const [inqTotal, setInqTotal] = useState<number>(0);
 	const handleTotalChange = (n: number) => {
@@ -99,9 +114,9 @@ export default function AuctionDetailClient({ auctionId, historySize = 5 }: Read
 
 	// UTC -> KST full 포맷터 사용
 	const fmtDateTime = (iso?: string) => formatKSTFull(iso);
-
+	
 	return (
-		<div className="default-container pb-[80px] relative">
+		<div className="default-container relative">
 			<div>
 				<div className="pb-5 border-b border-[#353535]">
 					<div className="flex gap-1 text-[#a5a5a5] mb-3">
@@ -118,87 +133,136 @@ export default function AuctionDetailClient({ auctionId, historySize = 5 }: Read
 
 				<div className="flex py-[60px]">
 					{/* 이미지 */}
-					<div className="w-[50%] px-[40px] flex justify-center flex-1 border-r border-[#353535] sticky top-[160px] z-10 self-start">
+					<div className="w-[50%] px-[40px] flex justify-center flex-1 border-r border-[#353535] sticky top-[120px] z-10 self-start">
 						<AuctionDetailImages props={auc} />
 					</div>
 
 					{/* 내용 */}
-					<div className="w-[50%] px-[40px]">
+					<div className="w-[50%] pl-[40px] flex flex-col gap-8 relative">
+						<div className="absolute top-0 right-0">
+							<HoverCard>
+								<HoverCardTrigger>
+									{data && data.tokenId && (
+										<div>
+											<Badge
+												variant="secondary"
+												className="py-1 px-5 bg-gradient-to-b from-green-400 to-green-900
+												border-1 border-green-900
+												rounded-full text-[14px] flex gap-1 items-center font-weight hover:bg-green-600"
+												>
+												NFT 인증
+												<BadgeCheckIcon className="w-5 translate-x-1" />
+											</Badge>
+										</div>
+									)}
+								</HoverCardTrigger>
+								<HoverCardContent>
+									<div className="flex flex-col">
+										{history && history.length > 0 ? (
+											history.map((item, index) => (
+												<div key={index} className="bg-gray-800 rounded-lg p-3 mb-2">
+													<div className="flex gap-1 text-sm">
+														<p className="text-[#ddd]">판매자:</p>
+														<p>{item.seller.nickname}</p>
+													</div>
+													<div className="flex gap-1 text-sm">
+														<p className="text-[#ddd]">구매자:</p>
+														<p>{item.buyer.nickname}</p>
+													</div>
+													<div className="flex gap-1 text-sm">
+														<p className="text-[#ddd]">가격:</p>
+														<p>{item.priceInEth} ETH</p>
+													</div>
+													<div className="flex gap-1 text-sm">
+														<p className="text-[#ddd]">거래일:</p>
+														<p>{new Date(item.timestamp).toLocaleString()}</p>
+													</div>
+												</div>
+											))
+										) : (
+											<div className="text-sm text-[#a5a5a5] text-center py-5">NFT 거래 이력이 없습니다.</div>
+										)}
+									</div>
+								</HoverCardContent>
+							</HoverCard>
+						</div>
 						<div>
-							<p className="text-[#ddd]">현재 입찰가</p>
-							{/* 통화 표기는 Sepolia ETH */}
-							<p className="-mt-1 text-[40px]">{displayPrice} ETH</p>
-						</div>
+							<div>
+								<p className="text-[#ddd]">현재 입찰가</p>
+								{/* 통화 표기는 Sepolia ETH */}
+								<p className="-mt-1 text-[40px]">{displayPrice} ETH</p>
+							</div>
 
-						{/* 경매 속성 */}
-						<ul className="mt-6 mb-10 flex flex-col gap-4">
-							<li className="flex items-end">
-								<p className="w-[90px] text-[#aaaaaa]">컨디션</p>
-								<RankElement rank={auc.card.grade} />
-							</li>
-							<li className="flex items-end">
-								<p className="w-[90px] text-[#aaaaaa]">시작(KST)</p>
-								<p>{fmtDateTime(auc.startDatetime)}</p>
-							</li>
-							<li className="flex items-end">
-								<p className="w-[90px] text-[#aaaaaa]">종료(KST)</p>
-								<p>{fmtDateTime(auc.endDatetime)}</p>
-							</li>
-							<li className="flex items-end">
-								<p className="w-[90px] text-[#aaaaaa]">남은 시간</p>
-								<RemainingTime start={auc.startDatetime} end={auc.endDatetime || auc.endTime} />
-							</li>
-						</ul>
+							{/* 경매 속성 */}
+							<ul className="mt-6 mb-10 flex flex-col gap-4">
+								<li className="flex items-end">
+									<p className="w-[90px] text-[#aaaaaa]">컨디션</p>
+									<RankElement rank={auc.card.grade} />
+								</li>
+								<li className="flex items-end">
+									<p className="w-[90px] text-[#aaaaaa]">시작(KST)</p>
+									<p>{fmtDateTime(auc.startDatetime)}</p>
+								</li>
+								<li className="flex items-end">
+									<p className="w-[90px] text-[#aaaaaa]">종료(KST)</p>
+									<p>{fmtDateTime(auc.endDatetime)}</p>
+								</li>
+								<li className="flex items-end">
+									<p className="w-[90px] text-[#aaaaaa]">남은 시간</p>
+									<RemainingTime start={auc.startDatetime} end={auc.endDatetime || auc.endTime} />
+								</li>
+							</ul>
 
-						{/* 버튼 */}
-						<div className="flex gap-4 place-items-center">
-							{auc.buyNowFlag ? (
-								<button className="rounded-md flex-1 py-4 bg-[#7db7cd] text-[#000] hover:bg-[#5a9bb8] transition-colors duration-200 cursor-pointer">즉시구매</button>
-							) : (
-								<button className="rounded-md flex-1 py-4 bg-[#838383] text-[#D5D5D5] cursor-not-allowed" disabled>
-									즉시구매 불가
-								</button>
-							)}
-							<button
-								onClick={toggleWish}
-								disabled={pendingWish}
-								aria-pressed={wished}
-								className={`rounded-md border-1 border-[#353535] flex-1 py-4 flex gap-2 justify-center items-center transition
-                  ${wished ? "bg-[#2a2a2a] border-[#ff5a5a]" : "hover:bg-white/5"}`}
-								title={wished ? "관심경매에서 제거" : "관심경매에 추가"}
-							>
-								<svg
-									width="18"
-									height="18"
-									viewBox="0 0 24 24"
-									fill={wished ? "#ff5a5a" : "none"}
-									stroke={wished ? "#ff5a5a" : "#ffffff"}
-									strokeWidth="2"
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									aria-hidden="true"
+							{/* 버튼 */}
+							<div className="flex gap-4 place-items-center">
+								{auc.buyNowFlag ? (
+									<button className="rounded-md flex-1 py-4 bg-[#7db7cd] text-[#000] hover:bg-[#5a9bb8] transition-colors duration-200 cursor-pointer">즉시구매</button>
+								) : (
+									<button className="rounded-md flex-1 py-4 bg-[#838383] text-[#D5D5D5] cursor-not-allowed" disabled>
+										즉시구매 불가
+									</button>
+								)}
+								<button
+									onClick={toggleWish}
+									disabled={pendingWish}
+									aria-pressed={wished}
+									className={`rounded-md border-1 border-[#353535] flex-1 py-4 flex gap-2 justify-center items-center transition
+					${wished ? "bg-[#2a2a2a] border-[#ff5a5a]" : "hover:bg-white/5"}`}
+									title={wished ? "관심경매에서 제거" : "관심경매에 추가"}
 								>
-									<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-								</svg>
-								<p>
-									{(() => {
-										if (wished) return pendingWish ? "추가 중..." : "관심경매";
-										return pendingWish ? "해제 중..." : "관심경매";
-									})()}
-								</p>
-							</button>
-						</div>
+									<svg
+										width="18"
+										height="18"
+										viewBox="0 0 24 24"
+										fill={wished ? "#ff5a5a" : "none"}
+										stroke={wished ? "#ff5a5a" : "#ffffff"}
+										strokeWidth="2"
+										strokeLinecap="round"
+										strokeLinejoin="round"
+										aria-hidden="true"
+									>
+										<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+									</svg>
+									<p>
+										{(() => {
+											if (wished) return pendingWish ? "추가 중..." : "관심경매";
+											return pendingWish ? "해제 중..." : "관심경매";
+										})()}
+									</p>
+								</button>
+							</div>
 
-						{wishError && !wishError.canceled && <p className="mt-2 text-red-400 text-sm">{wishError.safeMessage || "관심상품 처리 중 오류가 발생했어요."}</p>}
+							{wishError && !wishError.canceled && <p className="mt-2 text-red-400 text-sm">{wishError.safeMessage || "관심상품 처리 중 오류가 발생했어요."}</p>}
 
-						{/* 입찰 */}
-						<div className="mt-4">
-							<BidInputForm
-								auctionId={auctionId}
-								currentPrice={displayPrice} // ← 로컬/서버 값 사용
-								minIncrement={auc.bidUnit || 0.01} // ← 숫자 타입으로 전달
-								onBidApplied={(nextPrice) => setCurrentPrice(nextPrice)} // 성공 시 즉시 반영
-							/>
+							{/* 입찰 */}
+							<div className="mt-4">
+								<BidInputForm
+									auctionId={auctionId}
+									currentPrice={displayPrice} // ← 로컬/서버 값 사용
+									minIncrement={auc.bidUnit || 0.01} // ← 숫자 타입으로 전달
+									onBidApplied={(nextPrice) => setCurrentPrice(nextPrice)} // 성공 시 즉시 반영
+								/>
+							</div>
 						</div>
 
 						{/* 입찰 기록 / 주간 차트 분리 */}

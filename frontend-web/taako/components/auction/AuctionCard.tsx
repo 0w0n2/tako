@@ -6,7 +6,8 @@ import Image from "next/image"
 import Link from "next/link";
 import { useState, useEffect, useRef, useCallback } from "react";
 import RankElement from "../atoms/RankElement";
-import { Heart, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { Heart, BadgeCheckIcon, CircleCheck   } from 'lucide-react';
+import { Badge } from "@/components/ui/badge"
 import { addWishAuction, removeWishAuction } from '@/lib/wish'
 import { normalizeAxiosError } from '@/lib/normalizeAxiosError'
 
@@ -116,7 +117,18 @@ export default function AuctionCard({ item, onWishChange }: Props){
                             unoptimized
                         />
                     </div>
-                    <div className="w-full p-4 relative flex flex-col gap-2 bg-white/30 backdrop-blur-lg text-black rounded-lg">
+                    {item.tokenId && (
+                        <Badge
+                            variant="secondary"
+                            className="absolute top-2 left-1 pl-2 pr-1 bg-gradient-to-b from-green-400 to-green-900
+                            rounded-full scale-80
+                            flex items-center gap-1 font-weight leading-tight"
+                            >
+                            NFT
+                            <CircleCheck  className="w-5 -translate-y-[0px]" />
+                        </Badge>
+                    )}
+                    <div className="w-full p-4 relative flex flex-col gap-2 bg-white/50 backdrop-blur-lg text-black rounded-lg">
                         <h3 className="h-13">{item.title.length > 18 ? item.title.slice(0, 18) + "..." : item.title}</h3>
                         <div className="text-[20px] font-semibold">{item.currentPrice} TKC</div>
                         <div className="text-sm text-[#242424]">
@@ -131,7 +143,7 @@ export default function AuctionCard({ item, onWishChange }: Props){
                             aria-pressed={wished}
                             aria-label={wished ? '관심경매 해제' : '관심경매 추가'}
                             disabled={pending}
-                            className={`absolute bottom-4 right-4 p-2 rounded-full bg-white/70 hover:bg-white transition
+                            className={`absolute bottom-4 right-4 rounded-full cursor-pointer
                                         ${pending ? 'opacity-60 cursor-wait' : ''}`}
                         >
                             <Heart

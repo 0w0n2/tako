@@ -3,7 +3,6 @@
 import Image from 'next/image';
 import { useState } from 'react';
 import { AuctionDetailProps } from '@/types/auction';
-// import RankElement from '../../atoms/RankElement';
 
 interface AuctionDetailImages {
   props: AuctionDetailProps
@@ -31,10 +30,6 @@ export default function AuctionDetailImages({ props }: AuctionDetailImages) {
             setMousePosition({ x, y });
           }}
         >
-          {/* 랭크 표시 */}
-          {/* <div className='absolute top-4 right-4 z-1'>
-                        <RankElement rank={props.card.grade} />
-                    </div> */}
           <Image
             src={props.imageUrls[selectedImageIndex] || '/no-image.jpg'}
             alt="상품 대표 이미지"
@@ -47,7 +42,7 @@ export default function AuctionDetailImages({ props }: AuctionDetailImages) {
             }}
           />
         </div>
-        <ul className="grid grid-cols-6 gap-4">
+        <ul className="grid grid-cols-5 gap-4">
           {props.imageUrls.map((url, index) => (
             <li
               key={index}
