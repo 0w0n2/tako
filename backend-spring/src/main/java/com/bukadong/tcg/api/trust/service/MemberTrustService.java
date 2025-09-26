@@ -1,4 +1,4 @@
-package com.bukadong.tcg.api.member.trust.service;
+package com.bukadong.tcg.api.trust.service;
 
 import com.bukadong.tcg.api.auction.entity.DescriptionMatch;
 

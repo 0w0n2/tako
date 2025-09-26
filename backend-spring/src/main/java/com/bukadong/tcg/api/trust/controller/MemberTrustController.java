@@ -1,11 +1,11 @@
-package com.bukadong.tcg.api.member.trust.controller;
+package com.bukadong.tcg.api.trust.controller;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.bukadong.tcg.api.member.trust.service.MemberTrustService;
+import com.bukadong.tcg.api.trust.service.MemberTrustService;
 import com.bukadong.tcg.global.common.base.BaseResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -16,7 +16,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/v1/members")
 @RequiredArgsConstructor
-@Tag(name = "MemberTrust", description = "회원 신뢰도 API")
+@Tag(name = "Member")
 public class MemberTrustController {
 
     private final MemberTrustService memberTrustService;

@@ -1,4 +1,4 @@
-package com.bukadong.tcg.api.member.trust.entity;
+package com.bukadong.tcg.api.trust.entity;
 
 import com.bukadong.tcg.api.member.entity.Member;
 import com.bukadong.tcg.global.common.base.BaseEntity;

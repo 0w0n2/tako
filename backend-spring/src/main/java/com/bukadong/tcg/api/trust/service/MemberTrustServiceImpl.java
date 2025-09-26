@@ -1,4 +1,4 @@
-package com.bukadong.tcg.api.member.trust.service;
+package com.bukadong.tcg.api.trust.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -6,8 +6,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.bukadong.tcg.api.auction.entity.DescriptionMatch;
 import com.bukadong.tcg.api.member.entity.Member;
 import com.bukadong.tcg.api.member.repository.MemberRepository;
-import com.bukadong.tcg.api.member.trust.entity.MemberTrust;
-import com.bukadong.tcg.api.member.trust.repository.MemberTrustRepository;
+import com.bukadong.tcg.api.trust.entity.MemberTrust;
+import com.bukadong.tcg.api.trust.repository.MemberTrustRepository;
 import com.bukadong.tcg.global.common.base.BaseResponseStatus;
 import com.bukadong.tcg.global.common.exception.BaseException;
 

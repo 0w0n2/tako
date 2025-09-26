@@ -13,8 +13,8 @@ import com.bukadong.tcg.api.auction.repository.AuctionReviewRepository;
 import com.bukadong.tcg.api.delivery.entity.Delivery;
 import com.bukadong.tcg.api.delivery.entity.DeliveryStatus;
 import com.bukadong.tcg.api.member.entity.Member;
-import com.bukadong.tcg.api.member.trust.service.MemberTrustService;
 import com.bukadong.tcg.api.member.repository.MemberRepository;
+import com.bukadong.tcg.api.trust.service.MemberTrustService;
 import com.bukadong.tcg.global.common.base.BaseResponseStatus;
 import com.bukadong.tcg.global.common.exception.BaseException;
 

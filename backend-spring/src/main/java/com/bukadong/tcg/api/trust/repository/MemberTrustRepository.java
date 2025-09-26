@@ -1,4 +1,4 @@
-package com.bukadong.tcg.api.member.trust.repository;
+package com.bukadong.tcg.api.trust.repository;
 
 import java.util.Optional;
 
@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import com.bukadong.tcg.api.member.trust.entity.MemberTrust;
+import com.bukadong.tcg.api.trust.entity.MemberTrust;
 
 import jakarta.persistence.LockModeType;
 
