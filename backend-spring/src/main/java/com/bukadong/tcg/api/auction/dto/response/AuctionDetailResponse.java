@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -43,6 +44,9 @@ public class AuctionDetailResponse {
 
     @Schema(description = "이 경매가 위시에 추가되었는지 여부", example = "true")
     private boolean wished;
+
+    @Schema(description = "NFT 카드의 토큰 ID", example = "123455555")
+    private BigInteger tokenId;
 
     @Getter
     @Builder

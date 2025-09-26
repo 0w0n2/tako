@@ -53,6 +53,6 @@ public final class AuctionListConverter {
             remainingSeconds = 0;
 
         return new AuctionListItemResponse(row.id(), row.grade(), row.title(), row.currentPrice(), row.bidCount(),
-                remainingSeconds, primaryUrl, wished);
+                remainingSeconds, primaryUrl, wished, row.tokenId());
     }
 }
