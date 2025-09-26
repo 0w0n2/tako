@@ -2,17 +2,25 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useMyInfo } from "@/hooks/useMyInfo";
 import ConfirmReceiptButton from "@/components/nft/ConfirmReceiptButton";
 import { useDelivery } from "@/hooks/useDelivery";
+import { useDelivery as useDelivery_2 } from "@/hooks/useSellDelivery";
 import { useEscrowAddress } from "@/hooks/useEscrowAddress";
 import { depositToEscrow } from "@/lib/bc/escrow";
 import PayButton from "@/components/nft/PayButton"; // ← 경로 수정 완료
 import SellDeliveryForm from "@/components/mypage/delivery/SellDeliveryForm";
 import type { MyBidAuctions } from "@/types/auth";
+
+const statusMap: Record<string, string> = {
+  WAITING: "배송준비중",
+  IN_PROGRESS: "배송중",
+  COMPLETED: "배송완료",
+  CONFIRMED: "구매확정",
+};
 
 function DeliveryBadge({ auctionId }: { auctionId: number }) {
   const { info, status, hasTracking } = useDelivery(auctionId);
@@ -50,6 +58,7 @@ function AuctionEndedRow({ item }: { item: MyBidAuctions }) {
   const auctionId = Number(item.auctionId);
   const [openAddressModal, setOpenAddressModal] = useState(false);
   const [addressRegistered, setAddressRegistered] = useState(false);
+  const { auctionDelivery, handlerGetAuctionDelivery } = useDelivery_2();
 
   const { info } = useDelivery(auctionId);
   const trackingNumber = info?.trackingNumber ?? null;
@@ -72,6 +81,10 @@ function AuctionEndedRow({ item }: { item: MyBidAuctions }) {
     console.warn("유효하지 않은 auctionId", item);
     return null;
   }
+
+  useEffect(()=> {
+      handlerGetAuctionDelivery(item.auctionId);
+    }, [])
 
   return (
     <div>
@@ -103,7 +116,13 @@ function AuctionEndedRow({ item }: { item: MyBidAuctions }) {
           </div>
           <div>
             <h3 className="bid">{item.title}</h3>
-            <p className="text-lg">입찰가 {item.currentPrice} ETH</p>
+            {auctionDelivery?.status ? (
+                <p className="text-sm text-green-500">
+                  {statusMap[auctionDelivery?.status ?? ""]}
+                </p>
+              ) : (
+                <p className="text-sm text-red-500">배송지 입력 대기</p>
+              )}
           </div>
         </div>
 
