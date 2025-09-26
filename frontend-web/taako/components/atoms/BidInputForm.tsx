@@ -11,7 +11,7 @@ import { useBidAmount } from "@/hooks/useBidAmount";
 type BidInputFormProps = {
 	auctionId: string | number;
 	currentPrice: number;
-	minIncrement?: number; // 기본 0.01
+	minIncrement: number;
 	maxBid?: number;
 	token?: string;
 	onBidApplied?: (nextPrice: number, resp: BidQueueResponse) => void;
@@ -20,7 +20,7 @@ type BidInputFormProps = {
 	className?: string;
 };
 
-export default function BidInputForm({ auctionId, currentPrice, minIncrement = 0.01, maxBid, token, onBidApplied, placeholder, disabled, className }: Readonly<BidInputFormProps>) {
+export default function BidInputForm({ auctionId, currentPrice, minIncrement, maxBid, token, onBidApplied, placeholder, disabled, className }: Readonly<BidInputFormProps>) {
 	// 상태 & 유효성: 금액
 	const { amount, setAmount, bump, minAllowed, canSubmit } = useBidAmount(currentPrice, minIncrement, maxBid);
 

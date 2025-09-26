@@ -46,7 +46,6 @@ const questions = [
 export default function AddReviewsModal({ auctionId, star, onClose }: AddReviewsModalProps) {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const { handleAddReview } = useReview();
-  const ddd = 1
   const handleChange = (title: string, value: string) => {
     setAnswers(prev => ({ ...prev, [title]: value }));
   };
@@ -57,7 +56,7 @@ export default function AddReviewsModal({ auctionId, star, onClose }: AddReviews
     if (!answers.condition || !answers.price || !answers.description) return;
   
     const payload: ReviewRequest = {
-      auctionId: ddd,
+      auctionId: auctionId,
       cardCondition: answers.condition,
       priceSatisfaction: answers.price,
       descriptionMatch: answers.description,
