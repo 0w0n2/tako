@@ -93,12 +93,12 @@ const WalletProfile: React.FC = () => {
     updateWallet(connected);
   }, [connected, updateWallet]);
 
-  // 최초 연결(등록 없음) 시: MetaMask 연결만 실행 (useWallet이 서버 저장까지 처리)
+  // 최초 연결(등록 없음) 시: MetaMask 연결만 실행 (서버 저장은 버튼에서만)
   const onConnectThenSave = useCallback(async () => {
     await connectWallet();
   }, [connectWallet]);
 
-  // 상단 우측 "지갑 바꾸기" 작은 버튼 → 경고 후 진행
+  // 상단 우측 "지갑 바꾸기" 작은 버튼 → 경고 후 진행(연결만)
   const onConfirmChangeWallet = useCallback(async () => {
     const ok = typeof window !== 'undefined' && window.confirm(
       [
@@ -109,11 +109,14 @@ const WalletProfile: React.FC = () => {
       ].join('\n')
     );
     if (!ok) return;
-    // 확인 시 MetaMask 연결 플로우 진입 (useWallet 내부에서 주소 저장 시도)
     await connectWallet();
   }, [connectWallet]);
 
   const loadingAny = loading || meLoading || isUpdating;
+
+  // ✅ 잔액은 "DB 저장 지갑"과 "브라우저 연결 지갑"이 일치할 때만 노출
+  const showBalance = hasStored && hasConnected && sameAddr(storedWallet, connected);
+  const safeBalance = showBalance ? (balance || '-') : '-';
 
   return (
     <div className="relative flex-1 p-8 border border-[#353535] bg-[#191924] rounded-xl flex justify-between">
@@ -168,11 +171,11 @@ const WalletProfile: React.FC = () => {
           </div>
           <div className="flex gap-3">
             <span className="text-[#D2D2D2]">잔액</span>
-            <span className="text-lg text-green-400 font-medium">{hasConnected ? (balance || '-') : '-'}</span>
+            <span className="text-lg text-green-400 font-medium">{safeBalance}</span>
           </div>
         </div>
 
-        {/* 네트워크 전환 & (기존 큰 "지갑 바꾸기" 버튼 삭제됨) */}
+        {/* 네트워크 전환 */}
         <div className="flex items-center gap-2 mt-4 flex-wrap">
           <select
             className="bg-[#101018] text-white border border-[#353535] rounded-lg px-3 py-2"
@@ -201,6 +204,7 @@ const WalletProfile: React.FC = () => {
                 <div>연결된 주소(브라우저): <span className="font-mono">{connected}</span></div>
               </div>
             </div>
+
             <div className="flex gap-2 flex-wrap">
               <button
                 onClick={onAdoptConnected}
@@ -209,6 +213,12 @@ const WalletProfile: React.FC = () => {
               >
                 {isUpdating ? '갱신 중...' : '연결된 지갑으로 변경(저장)'}
               </button>
+            </div>
+
+            {/* ✅ 안내 문구: 프로그램으로 메타마스크 계정 전환은 불가 */}
+            <div className="text-xs text-[#cfcfcf]">
+              메타마스크 확장에서 <span className="font-mono">{short(storedWallet!)}</span> 계정으로 직접 전환해 주세요.
+              (브라우저에서 지갑 계정은 앱이 임의로 변경할 수 없습니다)
             </div>
           </div>
         )}
