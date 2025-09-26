@@ -9,6 +9,8 @@ import com.bukadong.tcg.api.auction.dto.response.MyBidAuctionListItemResponse;
 import com.bukadong.tcg.api.auction.repository.AuctionRepository;
 import com.bukadong.tcg.api.auction.repository.AuctionRepositoryCustom;
 import com.bukadong.tcg.api.auction.repository.AuctionSort;
+import com.bukadong.tcg.api.card.entity.PhysicalCard;
+import com.bukadong.tcg.api.card.repository.PhysicalCardRepository;
 import com.bukadong.tcg.api.media.entity.MediaType;
 import com.bukadong.tcg.api.media.service.MediaUrlService;
 import com.bukadong.tcg.api.wish.repository.auction.WishAuctionRepository;
@@ -28,11 +30,12 @@ import java.util.List;
 import java.util.Set;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+
 import static com.bukadong.tcg.api.auction.entity.QAuction.auction;
 
 /**
  * 경매 목록 조회 서비스
- * <P>
+ * <p>
  * 파라미터 검증/페이지 강제/남은시간 계산을 담당한다.
  * </P>
  */
@@ -54,11 +57,11 @@ public class AuctionQueryService {
 
     /**
      * 경매 목록 조회 서비스(컨트롤러 편의 오버로드)
-     * <P>
+     * <p>
      * 컨트롤러가 page(int)만 넘겨도 되도록 내부에서 Pageable(size=20)을 구성하고, PageResponse로 변환해
      * 반환합니다. 동일 클래스 내 트랜잭션 메서드 호출을 피하여 Sonar 규칙(java:S6809)도 만족합니다.
      * </P>
-     * 
+     *
      * @PARAM categoryMajorId 카테고리 대분류 ID
      * @PARAM categoryMediumId 카테고리 중분류 ID
      * @PARAM titlePart 타이틀 부분검색어
@@ -73,8 +76,8 @@ public class AuctionQueryService {
      */
     @SuppressWarnings("java:S107")
     public PageResponse<AuctionListItemResponse> getAuctionList(Long categoryMajorId, Long categoryMediumId,
-            String titlePart, Long cardId, BigDecimal currentPriceMin, BigDecimal currentPriceMax, Set<String> grades,
-            AuctionSort sort, boolean isEnded, int page, Long memberId) {
+                                                                String titlePart, Long cardId, BigDecimal currentPriceMin, BigDecimal currentPriceMax, Set<String> grades,
+                                                                AuctionSort sort, boolean isEnded, int page, Long memberId) {
         Pageable pageable = PageRequest.of(page, 20);
         var rows = auctionRepositoryCustom.searchAuctions(categoryMajorId, categoryMediumId, titlePart, cardId,
                 currentPriceMin, currentPriceMax, grades, sort, isEnded, pageable);
@@ -99,10 +102,10 @@ public class AuctionQueryService {
 
     /**
      * 경매 상세 조회
-     * <P>
+     * <p>
      * 히스토리는 기본 5개이며, 요청 파라미터로 개수 조절 가능.
      * </P>
-     * 
+     *
      * @PARAM auctionId 경매 ID
      * @PARAM historySize 히스토리 개수
      * @RETURN AuctionDetailResponse
@@ -123,16 +126,18 @@ public class AuctionQueryService {
         if (memberId != null) {
             wished = wishAuctionRepository.existsByMemberIdAndAuctionIdAndWishFlagTrue(memberId, auctionId);
         }
+        PhysicalCard physicalCard = auction.getPhysicalCard();
+
         return AuctionDetailResponse.builder().auction(auctionInfo).card(cardInfo).weeklyPrices(weeklyPrices)
-                .history(history).imageUrls(imageUrls).seller(sellerInfo).wished(wished).build();
+                .history(history).imageUrls(imageUrls).seller(sellerInfo).wished(wished).tokenId(physicalCard == null ? null : physicalCard.getTokenId()).build();
     }
 
     /**
      * 마감 도달 + 미종료 경매 ID 조회
-     * <P>
+     * <p>
      * 엔티티 필드명(isEnd, endDatetime)에 맞춰 QueryDSL 경로 수정.
      * </P>
-     * 
+     *
      * @PARAM limit 최대 반환 개수
      * @RETURN 경매 ID 리스트
      */
@@ -147,7 +152,7 @@ public class AuctionQueryService {
      * 내 경매 목록(최근 입찰 N개 포함)
      */
     public PageResponse<MyAuctionListItemResponse> getMyAuctions(Long memberId, int page, int size,
-            int recentBidCount) {
+                                                                 int recentBidCount) {
         var pageable = PageRequest.of(page, size);
         var pageAuc = auctionRepo.findByMember_IdOrderByIdDesc(memberId, pageable);
 
@@ -187,7 +192,7 @@ public class AuctionQueryService {
      */
     @SuppressWarnings("java:S3776")
     public PageResponse<MyBidAuctionListItemResponse> getMyBidAuctions(Long memberId, int page, int size,
-            int recentBidCount, boolean ended) {
+                                                                       int recentBidCount, boolean ended) {
         var pageable = PageRequest.of(page, size);
         var pageAuc = ended ? auctionRepo.findEndedByMemberBids(memberId, pageable)
                 : auctionRepo.findOngoingByMemberBids(memberId, pageable);
