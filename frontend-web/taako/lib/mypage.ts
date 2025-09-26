@@ -1,6 +1,76 @@
 import api from "@/lib/api";
 import type { MyBidAuctions, MyInfo } from "@/types/auth";
 
+// ================= 새 프로필 관련 타입 =================
+export interface MyProfileResult {
+	memberId: number;
+	email: string;
+	nickname: string;
+	introduction: string;
+	profileImageUrl: string | null;
+	backgroundImageUrl: string | null;
+	walletAddress: string | null;
+}
+
+interface ApiBase<T> {
+	httpStatus: any; // 백엔드에서 쓰는 스키마 그대로 두되 사용 안함
+	isSuccess: boolean;
+	message: string;
+	code: number;
+	result: T;
+}
+
+// GET /v1/members/me (내 프로필 조회)
+export async function fetchMyProfile(): Promise<MyProfileResult> {
+	const res = await api.get<ApiBase<MyProfileResult>>("/v1/members/me");
+	return res.data.result;
+}
+
+// GET /v1/auth/availability/nickname?nickname=xxx
+export async function checkNicknameAvailable(nickname: string) {
+	if (!nickname) throw new Error("닉네임을 입력하세요.");
+	const res = await api.get<ApiBase<{ field: string; value: string; available: boolean }>>("/v1/auth/availability/nickname", { params: { nickname } });
+	return res.data.result;
+}
+
+// PATCH /v1/members/me - form-data (nickname, introduction, profileImage, backgroundImage)
+export interface PatchProfilePayload {
+	nickname?: string;
+	introduction?: string;
+	profileImageFile?: File | null;
+	backgroundImageFile?: File | null;
+}
+
+export async function patchMyProfile(payload: PatchProfilePayload) {
+	/*
+		백엔드 시그니처(@RequestPart("request") UpdateMyProfileRequest, @RequestPart("profileImage"), @RequestPart("backgroundImage"))에 맞춰
+		반드시 multipart/form-data 내에 "request" 라는 JSON 파트를 넣어야 함.
+		이전 구현은 nickname / introduction 을 개별 text 파트로 보내 400 (잘못된 매개변수) 발생.
+	*/
+	const { nickname, introduction, profileImageFile, backgroundImageFile } = payload;
+
+	// 변경 요청 JSON (null 이면 변경하지 않음 정책 -> undefined 는 key 자체 누락 vs null 은 명시적 무변경 여부는 백엔드 구현에 따라 다를 수 있으니
+	// 안전하게 존재하는 필드만 보냄. 값이 빈 문자열이면 사용자 의도에 따라 그대로 전달.)
+	const requestBody: Record<string, any> = {};
+	if (nickname !== undefined) requestBody.nickname = nickname || null; // 빈 문자열은 null 로 치환하여 "변경 없음" 선택 가능하게 (필요시 조정)
+	if (introduction !== undefined) requestBody.introduction = introduction || null;
+	// notificationSetting 필드 필요 시 여기에 추가
+
+	if (Object.keys(requestBody).length === 0 && !profileImageFile && !backgroundImageFile) {
+		throw new Error("변경된 내용이 없습니다.");
+	}
+
+	const form = new FormData();
+	form.append("request", new Blob([JSON.stringify(requestBody)], { type: "application/json" }));
+	if (profileImageFile) form.append("profileImage", profileImageFile);
+	if (backgroundImageFile) form.append("backgroundImage", backgroundImageFile);
+
+	const res = await api.patch<ApiBase<Record<string, never>>>("/v1/members/me", form, {
+		headers: { "Content-Type": "multipart/form-data" },
+	});
+	return res.data;
+}
+
 type Page<T> = { content: T[]; page: number; size: number; totalElements: number; totalPages: number };
 
 type BidFilter =
@@ -29,19 +99,19 @@ export async function getInfo() {
 
 // 내 판매 경매 조회
 export const getMySellAutcion = async () => {
-    const res = await api.get("/v1/auctions/me");
-    return res.data;
+	const res = await api.get("/v1/auctions/me");
+	return res.data;
 };
 
 type ApiEnvelope<T> = {
-  httpStatus: Record<string, unknown>;
-  isSuccess: boolean;
-  message: string;
-  code: number;
-  result: T;
+	httpStatus: Record<string, unknown>;
+	isSuccess: boolean;
+	message: string;
+	code: number;
+	result: T;
 };
 
 export async function getInfoMe(): Promise<MyInfo> {
-  const res = await api.get<ApiEnvelope<MyInfo>>("/v1/members/me");
-  return res.data.result;
+	const res = await api.get<ApiEnvelope<MyInfo>>("/v1/members/me");
+	return res.data.result;
 }
