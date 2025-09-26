@@ -46,7 +46,7 @@ export default function ConfirmReceiptButton({
   };
 
   // 예: 배송완료 상태일 때만 활성화하고 싶다면 여기에서 제어
-  const shouldDisableByStatus = !["DELIVERED", "CONFIRMED"].includes(status);
+  const shouldDisableByStatus = !["COMPLETED"].includes(status);
 
   return (
     <Button

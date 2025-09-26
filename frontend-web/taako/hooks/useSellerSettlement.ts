@@ -5,22 +5,25 @@ import { useMemo } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useEscrowAddress } from "@/hooks/useEscrowAddress";
 import { useEscrowState } from "@/hooks/useEscrowState";
+import { useEscrowNftInfo } from "@/hooks/useEscrowNftInfo";
 import { useERC721Approval } from "@/hooks/useERC721Approval";
 import { releaseFunds } from "@/lib/bc/escrow";
 import { ESCROW_STATE } from "@/lib/bc/escrowAbi";
+import { ZeroAddress } from "ethers";
 
 type Params = {
   auctionId: number;
-  nftAddress: string;
-  tokenId: number | string | bigint;
   sellerWallet?: `0x${string}`;
   preferForAll?: boolean;
 };
 
+const isZeroLike = (addr?: string) =>
+  !addr || addr.toLowerCase() === ZeroAddress.toLowerCase();
+
+const ZERO_BI = BigInt(0);
+
 export function useSellerSettlement({
   auctionId,
-  nftAddress,
-  tokenId,
   sellerWallet,
   preferForAll = true,
 }: Params) {
@@ -28,39 +31,49 @@ export function useSellerSettlement({
   const { data: escrowAddress, isLoading: escrowLoading, error: escrowError } =
     useEscrowAddress(auctionId);
 
-  // 2) 에스크로 상태
+  // 2) 에스크로 상태 폴링
   const { state: escrowState, loading: stateLoading, error: stateError, refetch: refetchState } =
     useEscrowState(auctionId, true, 10_000);
 
-  const buyerConfirmed = escrowState === ESCROW_STATE.COMPLETED; // = 2
+  const buyerConfirmed = Number(escrowState) === ESCROW_STATE.Complete;
 
-  // hooks/useSellerSettlement.ts
+  // 3) 에스크로에서 NFT/TokenId 조회
+  const {
+    data: escrowNftInfo,
+    isLoading: nftLoading,
+    error: nftError,
+  } = useEscrowNftInfo(escrowAddress);
+
+  const nftAddress = escrowNftInfo?.nftAddress ?? ZeroAddress;
+  const tokenId: bigint = escrowNftInfo?.tokenId ?? ZERO_BI;
+
+  const nftNotMinted = isZeroLike(nftAddress) || tokenId === ZERO_BI;
+
+  // 4) NFT 승인 상태
   const approval = useERC721Approval({
     nftAddress,
-    tokenId:
-      tokenId !== undefined
-        ? (typeof tokenId === "bigint" ? tokenId : BigInt(tokenId))
-        : BigInt(0), // ← 0n 대신 BigInt(0)
-    spender: (escrowAddress ?? "0x0000000000000000000000000000000000000000") as string,
+    tokenId,
+    spender: (escrowAddress ?? ZeroAddress) as string,
   });
 
   // 버튼 활성 조건
-  // - approve: buyerConfirmed && !alreadyApproved
-  // - release: buyerConfirmed && alreadyApproved
+  // - approve: buyerConfirmed && !alreadyApproved && !nftNotMinted
+  // - release: buyerConfirmed && (alreadyApproved || nftNotMinted)
   const canApprove = useMemo(
-    () => Boolean(escrowAddress) && buyerConfirmed && !approval.isAlreadyApproved,
-    [escrowAddress, buyerConfirmed, approval.isAlreadyApproved]
+    () => Boolean(escrowAddress) && buyerConfirmed && !approval.isAlreadyApproved && !nftNotMinted,
+    [escrowAddress, buyerConfirmed, approval.isAlreadyApproved, nftNotMinted]
   );
 
   const canRelease = useMemo(
-    () => Boolean(escrowAddress) && buyerConfirmed && approval.isAlreadyApproved,
-    [escrowAddress, buyerConfirmed, approval.isAlreadyApproved]
+    () => Boolean(escrowAddress) && buyerConfirmed && (approval.isAlreadyApproved || nftNotMinted),
+    [escrowAddress, buyerConfirmed, approval.isAlreadyApproved, nftNotMinted]
   );
 
   // 승인 실행
   const approveMutation = useMutation({
     mutationFn: async () => {
       if (!escrowAddress) throw new Error("에스크로 주소를 불러오지 못했습니다.");
+      if (nftNotMinted) throw new Error("NFT가 아직 발급되지 않아 승인할 필요가 없습니다.");
       if (preferForAll) return await approval.setApprovalForAll(true);
       return await approval.approveToken();
     },
@@ -73,36 +86,58 @@ export function useSellerSettlement({
   const releaseMutation = useMutation({
     mutationFn: async () => {
       if (!escrowAddress) throw new Error("에스크로 주소를 불러오지 못했습니다.");
-      if (!approval.isAlreadyApproved) throw new Error("먼저 NFT 승인(approve)을 완료해주세요.");
+      if (!buyerConfirmed) throw new Error("구매자가 아직 구매확정을 완료하지 않았습니다.");
+      if (!nftNotMinted && !approval.isAlreadyApproved) {
+        throw new Error("먼저 NFT 승인(approve)을 완료해주세요.");
+      }
       const receipt = await releaseFunds(escrowAddress as `0x${string}`);
-      // 상태 변화가 있으면 갱신
       void refetchState();
       return receipt;
     },
   });
 
+  const extractReason = (e: any): string | undefined => {
+    const msg = e?.reason || e?.shortMessage || e?.message;
+    if (msg && /execution reverted/i.test(msg)) {
+      return "스마트컨트랙트 조건이 충족되지 않아 실행이 거부되었습니다.";
+    }
+    return undefined;
+  };
+
   const humanize = (e: unknown) => {
-    const msg = (e as Error)?.message ?? String(e);
+    const raw = e as any;
+    const msg = raw?.message ?? String(e);
+
     if (/user rejected|rejected by user/i.test(msg)) return "사용자가 서명을 거부했습니다.";
     if (/insufficient funds/i.test(msg)) return "가스비(ETH)가 부족합니다.";
-    if (/MetaMask|ethereum/i.test(msg)) return "MetaMask 연결이 필요합니다.";
-    if (/confirmReceipt|구매자가 아직/.test(msg)) return msg;
-    if (/approve/.test(msg)) return "먼저 NFT 승인(approve)을 완료해주세요.";
+    if (/unauthorized|only\s*seller|not\s*seller/i.test(msg)) return "판매자 지갑만 수행할 수 있습니다.";
+    if (/already\s*released|already\s*paid|already\s*completed/i.test(msg)) return "이미 정산이 완료되었습니다.";
+    if (/not\s*confirmed|AwaitingConfirmation|confirmReceipt/i.test(msg)) return "구매자 구매확정 이후에만 가능합니다.";
+    if (/approve/i.test(msg) && /먼저|first/i.test(msg)) return "먼저 NFT 승인(approve)을 완료해주세요.";
+
+    const reason = extractReason(raw);
+    if (reason) return reason;
+
     return `오류가 발생했습니다: ${msg}`;
   };
 
   return {
     // 상태
     escrowAddress,
-    escrowState,               // 0/1/2/3
-    buyerConfirmed,            // currentState === 2
-    escrowLoading: escrowLoading || stateLoading,
-    escrowError: escrowError || stateError || "",
+    escrowState,
+    buyerConfirmed,
+    escrowLoading: escrowLoading || stateLoading || nftLoading,
+    escrowError: escrowError || stateError || nftError || "",
+
+    // 에스크로에서 읽은 NFT/토큰 (UI 표시용)
+    nftAddress,
+    tokenId,
 
     // 승인 관련
     alreadyApproved: approval.isAlreadyApproved,
     approving: approveMutation.isPending,
     canApprove,
+    nftNotMinted,
 
     // 정산 관련
     releasing: releaseMutation.isPending,

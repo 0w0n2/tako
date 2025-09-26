@@ -83,8 +83,6 @@ const getChartData = (auction: MySellAuctions) => {
     .map(([dayKey, { bids, price }]) => ({ date: dayKey, bids, price }));
 };
 
-const nftAddress = process.env.NEXT_PUBLIC_TAKO_NFT;
-
 export default function SellEndedAuctionDetail({ item, modalType, onOpenModal, onCloseModal }: Props) {
   const { myInfo } = useMyInfo();
   const { auctionDelivery, handlerGetAuctionDelivery } = useDelivery();
@@ -99,7 +97,6 @@ export default function SellEndedAuctionDetail({ item, modalType, onOpenModal, o
 
   const safeChartData = chartData.length > 0 ? chartData : [{ date: endDateTs, price: 0, bids: [] }];
 
-  const _nftAddress = nftAddress;
   const _sellerWallet =
     (myInfo as any)?.walletAddress?.startsWith("0x")
       ? ((myInfo as any).walletAddress as `0x${string}`)
@@ -208,17 +205,11 @@ export default function SellEndedAuctionDetail({ item, modalType, onOpenModal, o
       </div>
 
       <div className="col-span-2 mt-4 pt-4 border-t border-[#2b2b2b]">
-        {_nftAddress ? (
           <SellerPayoutPanel
             auctionId={item.auctionId}
-            nftAddress={_nftAddress}
-            tokenId=""
             sellerWallet={_sellerWallet}
             preferForAll={true}
           />
-        ) : (
-          <div className="text-xs text-[#b5b5b5]">NFT 정보 없음</div>
-        )}
       </div>
 
       {/* 모달 */}
