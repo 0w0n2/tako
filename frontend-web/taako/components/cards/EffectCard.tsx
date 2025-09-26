@@ -6,7 +6,7 @@ import { useEffect, useState, useRef, useMemo } from "react"
 import './all-cards.css'
 
 type EffectCardTestProps = {
-  type : 'pokemon' | 'yugioh' | 'cookierun' | 'SSAFY',
+  type : 'pokemon' | 'yugioh' | 'cookierun' | 'ssafy',
   attribute : 'fire' | 'water' | 'grass' | 'lightning' | 'psychic' | 'fighting' | 'darkness' | 'metal' | 'dragon' | 'fairy', 
   rarity : 'amazing rare' | 'rare holo cosmos' | 'radiant rare' | 'rare rainbow alt' | 'rare rainbow' | 'rare holo' | 'reverse holo' | 'rare secret' | 'rare holo vstar' | 'rare shiny v' | 'rare shiny vmax' | 'trainer full art' | 'trainer gallery holo' | 'rare secret pikachu' | 'rare secret trainer' | 'rare holo vmax' | 'rare holo vstar' | 'rare shiny'| 'common' | 'uncommon' | 'rare holo v',
   subRarity? : 'stage' | 'item' | 'supporter' | 'trainer' | 'pokémon' ,
@@ -15,11 +15,12 @@ type EffectCardTestProps = {
   mask? : string,
 }
 
-function getCardBackImage(type : 'pokemon' | 'yugioh' | 'cookierun' | 'SSAFY') {
+function getCardBackImage(type : 'pokemon' | 'yugioh' | 'cookierun' | 'ssafy') {
   const backMapping: { [key: string]: string } = {
     'pokemon': '/card-back/pokemon-back.jpg',
     'yugioh': '/card-back/yugioh-back.jpg',
-    'cookierun': '/card-back/cookierun-back.png'
+    'cookierun': '/card-back/cookierun-back.png',
+    'ssafy': '/card-back/ssafy-back.jpg'
   }
   return backMapping[type] || '/card-back/pokemon-back.jpg'
 }

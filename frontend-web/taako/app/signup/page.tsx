@@ -5,15 +5,19 @@ import { Button } from "@/components/ui/button"
 
 import Image from 'next/image';
 import { useSignupForm } from "@/hooks/useSignupForm";
+import { useLoginRedirect } from "@/hooks/useAuthRedirect";
 
 export default function Signup(){
+  // 로그인한 사용자의 접근 차단
+  useLoginRedirect(true, true);
+  
   const {
-    isSocial, providerName, handleSignup,
-    email, setEmail, isEmailAvailable, emailError, emailLoading,
+    isSocial: _isSocial, providerName: _providerName, handleSignup,
+    email, setEmail, isEmailAvailable, emailError, emailLoading: _emailLoading,
     handleVerificationEmail, expiredAt, formatted, timeLeft,
     handleCheckEmail, handleVerificationEmailConfirm, emailConfirm, emailExpired, code, setCode,
     password, passwordErrorMessage, setPassword, confirmPassword, setConfirmPassword,
-    nickname, setNickname, isNicknameAvailable, nicknameError, nicknameLoading, handleCheckNickname,
+    nickname, setNickname, isNicknameAvailable, nicknameError, nicknameLoading: _nicknameLoading, handleCheckNickname,
   } = useSignupForm();
 
     return (
