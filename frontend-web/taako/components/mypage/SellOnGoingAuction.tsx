@@ -208,7 +208,7 @@ export default function SellOnGoingAuction() {
         <p className="text-center text-sm text-[#a5a5a5] py-20">판매 중인 경매가 없습니다.</p>
       ) : (
         ongoingSellAuctions.map((item, index) => {
-          const chartData = useMemo(() => getChartData(item), [item.bids, item.endDatetime]);
+          // const chartData = useMemo(() => getChartData(item), [item.bids, item.endDatetime]);
           const remainingTime = getRemainingTime(item.endDatetime!);
 
           const today = new Date();
