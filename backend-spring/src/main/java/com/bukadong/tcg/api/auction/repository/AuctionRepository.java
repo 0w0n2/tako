@@ -215,4 +215,58 @@ public interface AuctionRepository extends JpaRepository<Auction, Long> {
      */
     @Query("select a.id from Auction a where a.isEnd = false")
     List<Long> findAllOpenIds();
+
+                /**
+                 * 구매자 기준: 내가 리뷰를 아직 작성하지 않은(대상) 경매 목록
+                 * 조건: winnerMemberId = :buyerId, delivery.status = CONFIRMED, 해당 경매/회원 조합의 리뷰가 없음
+                 */
+                @Query("""
+                                                select a from Auction a
+                                                 left join a.delivery d
+                                                where a.winnerMemberId = :buyerId
+                                                        and d.status = com.bukadong.tcg.api.delivery.entity.DeliveryStatus.CONFIRMED
+                                                        and not exists (select 1 from AuctionReview r where r.auction = a and r.member.id = :buyerId)
+                                                order by a.endDatetime desc, a.id desc
+                                                """)
+                List<Auction> findBuyerAwaitingReview(@Param("buyerId") Long buyerId);
+
+                /**
+                 * 구매자 기준: 내가 작성 완료한 리뷰 포함 경매 목록 (경매 + 리뷰 함께 반환)
+                 */
+                @Query("""
+                                                select a, r from Auction a
+                                                 join a.delivery d
+                                                 join AuctionReview r on r.auction = a and r.member.id = :buyerId
+                                                where a.winnerMemberId = :buyerId
+                                                        and d.status = com.bukadong.tcg.api.delivery.entity.DeliveryStatus.CONFIRMED
+                                                order by r.createdAt desc, a.id desc
+                                                """)
+                List<Object[]> findBuyerDoneWithReview(@Param("buyerId") Long buyerId);
+
+                /**
+                 * 판매자 기준: 내가 리뷰를 받을 예정인 경매 목록 (아직 구매자 리뷰 없음)
+                 */
+                @Query("""
+                                                select a from Auction a
+                                                 join a.delivery d
+                                                where a.member.id = :sellerId
+                                                        and a.winnerMemberId is not null
+                                                        and d.status = com.bukadong.tcg.api.delivery.entity.DeliveryStatus.CONFIRMED
+                                                        and not exists (select 1 from AuctionReview r where r.auction = a and r.member.id = a.winnerMemberId)
+                                                order by a.endDatetime desc, a.id desc
+                                                """)
+                List<Auction> findSellerAwaitingReview(@Param("sellerId") Long sellerId);
+
+                /**
+                 * 판매자 기준: 내가 받은 리뷰 포함 경매 목록 (경매 + 리뷰 함께 반환)
+                 */
+                @Query("""
+                                                select a, r from Auction a
+                                                 join a.delivery d
+                                                 join AuctionReview r on r.auction = a and r.member.id = a.winnerMemberId
+                                                where a.member.id = :sellerId
+                                                        and d.status = com.bukadong.tcg.api.delivery.entity.DeliveryStatus.CONFIRMED
+                                                order by r.createdAt desc, a.id desc
+                                                """)
+                List<Object[]> findSellerDoneWithReview(@Param("sellerId") Long sellerId);
 }
