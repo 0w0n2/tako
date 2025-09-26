@@ -1,7 +1,6 @@
 'use client'
 
 import AuctionCard from "@/components/auction/AuctionCard"
-import { useMemo } from "react";
 import { useAuctionsQuery } from "@/hooks/useAuctionsQuery";
 import { GetAuction } from "@/types/auction";
 
@@ -11,7 +10,7 @@ import 'swiper/css/navigation';
 import { Navigation } from 'swiper/modules';
 
 export default function MainItemListSection({id}:{id:number}) {
-    const { data, isLoading, isError } = useAuctionsQuery({ categoryMajorId: id }, { enabled: !!id });
+    const { data, isLoading, isError } = useAuctionsQuery({ categoryMajorId: id, isEnded:false }, { enabled: !!id });
     const auctions: GetAuction[] = (data?.result?.content ?? []) as GetAuction[];
 
     return (
