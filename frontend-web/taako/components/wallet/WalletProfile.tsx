@@ -209,13 +209,6 @@ const WalletProfile: React.FC = () => {
               >
                 {isUpdating ? '갱신 중...' : '연결된 지갑으로 변경(저장)'}
               </button>
-              <button
-                onClick={onConfirmChangeWallet}
-                className="bg-neutral-700 hover:bg-neutral-600 text-white font-semibold py-2 px-4 rounded-lg"
-                disabled={loadingAny}
-              >
-                다른 지갑에 연결
-              </button>
             </div>
           </div>
         )}
