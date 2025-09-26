@@ -46,6 +46,7 @@ export interface GetHotCards {
 	currentPriceMax: number | null;
 	grades: string | null;
 	sort: string | null;
+	isEnded: boolean|null;
 }
 // 경매 목록 조회(response)
 export interface GetAuction {

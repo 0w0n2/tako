@@ -21,13 +21,16 @@ export default function SearchClient() {
       currentPriceMin: Number(searchParams.get("currentPriceMin")) || undefined,
       currentPriceMax: Number(searchParams.get("currentPriceMax")) || undefined,
       sort: searchParams.get("sort") || "",
+      isEnded: searchParams.get("isEnded")
+        ? searchParams.get("isEnded") === "true"
+        : true,
     };
   }, [searchParams]);
 
   // 쿼리가 바뀔 때 페이지 초기화
   useEffect(() => {
     setCurrentPage(0);
-  }, [params.categoryMajorId, params.categoryMediumId, params.title, params.currentPriceMin, params.currentPriceMax]);
+  }, [params.categoryMajorId, params.categoryMediumId, params.title, params.currentPriceMin, params.currentPriceMax, params.isEnded]);
 
   const { data, isLoading, isFetching, isError } = useAuctionsQuery({ ...params, page: currentPage });
 
@@ -35,9 +38,10 @@ export default function SearchClient() {
   const totalPages: number = (data?.result?.totalPages ?? 1) as number;
   const totalElement = data?.result?.totalElements;
 
+  console.log(auctions)
   return (
     <div>
-      <div className="default-container pb-[60px]">
+      <div className="default-container">
         <div className="flex items-center gap-2 mb-4">
           <h2>{params.title ? `${params.title}` : ""} 검색결과</h2>
           <span className="text-sm text-[#a5a5a5]">총 {totalElement}개</span>
