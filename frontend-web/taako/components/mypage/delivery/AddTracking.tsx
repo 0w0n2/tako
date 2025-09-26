@@ -3,7 +3,7 @@
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useDelivery } from '@/hooks/useSellDelivery';
 import { GetAuctionDelivery } from "@/types/delivery";
 
@@ -21,7 +21,7 @@ const statusMap: Record<string, string> = {
 };
 
 export default function AddTracking({ auctionId, item, onClose }: AddTrackingProps) {
-  const { auctionDelivery, handlerTrackingNumber } = useDelivery();
+  const { auctionDelivery, handlerGetAuctionDelivery, handlerTrackingNumber } = useDelivery();
   const [trackingNumber, setTrackingNumber] = useState<string>("");
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -33,6 +33,11 @@ export default function AddTracking({ auctionId, item, onClose }: AddTrackingPro
     handlerTrackingNumber(auctionId, trackingNumber);
   };
 
+  useEffect(()=>{
+    const res = handlerGetAuctionDelivery(auctionId);
+    console.log(res)
+  },[])
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" >
       <div className="w-[450px] bg-gray-800 p-5 rounded-xl relative flex flex-col gap-6 justify-center">
@@ -41,17 +46,17 @@ export default function AddTracking({ auctionId, item, onClose }: AddTrackingPro
         <h3 className='text-center'>송장번호 등록</h3>
         {auctionDelivery?.recipientAddress ? (
             <div className='flex flex-col gap-2'>
-            <p>판매자 정보</p>
+            <p>구매자 정보</p>
             <div className='bg-gray-700 rounded-lg p-4 flex flex-col gap-2'>
-                <div className='flex items-center text-sm'><p className='w-20 text-[#ddd]'>이름</p><p>{auctionDelivery?.recipientAddress.name}</p></div>
-                <div className='flex items-center text-sm'><p className='w-20 text-[#ddd]'>연락처</p><p>{auctionDelivery?.recipientAddress.phone}</p></div>
-                <div className='flex items-center text-sm'><p className='w-20 text-[#ddd]'>우편번호</p><p>{auctionDelivery?.recipientAddress.zipcode}</p></div>
-                <div className='flex items-center text-sm'><p className='w-20 text-[#ddd]'>기본주소</p><p>{auctionDelivery?.recipientAddress.baseAddress}</p></div>
-                <div className='flex items-center text-sm'><p className='w-20 text-[#ddd]'>상세주소</p><p>{auctionDelivery?.recipientAddress.addressDetail}</p></div>
+                <div className='flex items-center text-sm'><p className='flex-1 text-[#ddd]'>이름</p><p className='flex-4'>{auctionDelivery?.recipientAddress.name}</p></div>
+                <div className='flex items-center text-sm'><p className='flex-1 text-[#ddd]'>연락처</p><p className='flex-4'>{auctionDelivery?.recipientAddress.phone}</p></div>
+                <div className='flex items-center text-sm'><p className='flex-1 text-[#ddd]'>우편번호</p><p className='flex-4'>{auctionDelivery?.recipientAddress.zipcode}</p></div>
+                <div className='flex items-center text-sm'><p className='flex-1 text-[#ddd]'>기본주소</p><p className='flex-4'>{auctionDelivery?.recipientAddress.baseAddress}</p></div>
+                <div className='flex items-center text-sm'><p className='flex-1 text-[#ddd]'>상세주소</p><p className='flex-4'>{auctionDelivery?.recipientAddress.addressDetail}</p></div>
             </div>
             </div>
         ) : (
-            <div className='bg-gray-700 rounded-lg text-center py-10 text-sm text-[#a5a5a5]'>판매자 정보가 없습니다.</div>
+            <div className='bg-gray-700 rounded-lg text-center py-10 text-sm text-[#a5a5a5]'>구매자 배송지 정보가 없습니다.</div>
         )}
 
         {!auctionDelivery?.trackingNumber ? (

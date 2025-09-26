@@ -11,8 +11,10 @@ const reviews = [
 export default function MyReviews({memberId}:{memberId:number}){
     // 종료 경매(리뷰) 조회
     const { endedAuctions } = useMyInfo();
-    const onReviewAuctions = endedAuctions.filter((item) => item.delivery.status !== null)
-
+    const onReviewAuctions = endedAuctions.filter(
+        (item) => item.delivery?.status != null
+      );
+      
     return(
         <div className="flex flex-col gap-6 border-b border-[#353535] px-5 py-6">
             <div className="flex justify-between items-center">

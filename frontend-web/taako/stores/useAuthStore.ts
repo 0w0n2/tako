@@ -73,7 +73,7 @@ export const useAuthStore = create<AuthState>()(
 					return token;
 				} catch (err: any) {
 					console.error("재요청 실패: ", err);
-					// set({ token: null });
+					set({ token: null });
 					return null;
 				}
 			},

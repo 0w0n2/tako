@@ -1,21 +1,14 @@
-'use client'
-
 import Link from "next/link";
 import Image from "next/image";
 
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Button } from "@/components/ui/button"
+import { LoginForm } from "./LoginForm";
 
-import { useLogin } from "@/hooks/useLogin";
+interface LoginPageProps {
+    searchParams: { [key: string]: string | string[] | undefined };
+}
 
-export default function LoginPage() {
-    const { email, setEmail, password, setPassword, handleLogin } = useLogin();
-
-    const onSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        await handleLogin();
-    };
+export default function LoginPage({ searchParams }: LoginPageProps) {
+    const redirectPath = typeof searchParams.redirect === 'string' ? searchParams.redirect : '/';
 
     return (
         <div className="small-container !px-30">
@@ -23,32 +16,7 @@ export default function LoginPage() {
                 <Image src="/logo.png" alt="logo" width={100} height={60}/>
             </Link></h1>
             
-            <form onSubmit={onSubmit} className="flex flex-col items-center gap-10">
-                <div className="w-full flex flex-col gap-4">
-                    <div className="">
-                        <Label className="text-sm text-[#a5a5a5] mb-2" htmlFor="email">이메일 주소</Label>
-                        <Input type="email" id="email" placeholder="예) tako@tako.co.kr"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)} />
-                    </div>
-                    <div className="">
-                        <Label className="text-sm text-[#a5a5a5] mb-2" htmlFor="password">비밀번호</Label>
-                        <Input type="password" id="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)} />
-                    </div>
-                </div>
-
-                <div className="flex flex-col gap-4 w-full">
-                    <Button type="submit" className="h-12" 
-                        disabled={!email || !password}>로그인</Button>
-                    <div className="flex justify-center gap-2 text-sm text-[#a5a5a5]">
-                        <Link href="/signup" className="hover:text-blue-500">회원가입</Link>
-                        <div>|</div>
-                        <Link href="/signup" className="hover:text-blue-500">비밀번호 찾기</Link>
-                    </div>
-                </div>
-            </form>
+            <LoginForm redirectPath={redirectPath} />
 
             {/* 구분선 */}
             <div className="relative my-6">

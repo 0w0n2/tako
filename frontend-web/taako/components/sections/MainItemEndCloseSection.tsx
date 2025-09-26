@@ -13,9 +13,13 @@ import { Navigation } from 'swiper/modules';
 import { ChevronRight } from 'lucide-react';
 
 export default function MainItemEndCloseSection() {
-    const { data, isLoading, isError } = useAuctionsQuery({ sort: 'ENDTIME_ASC' });
-    const auctions: GetAuction[] = (data?.result?.content ?? []) as GetAuction[];
+    const { data, isLoading, isError } = useAuctionsQuery({ sort: 'ENDTIME_ASC', isEnded:false });
+    // console.log(data)
 
+    const auctions: GetAuction[] = data?.result?.content?.filter(
+        (item: GetAuction) => item.remainingSeconds > 0
+      ) ?? [];
+      
     return (
         <div className="default-container">
             <Link href={`/search?sort=ENDTIME_ASC`}>

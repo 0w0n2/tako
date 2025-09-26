@@ -14,6 +14,7 @@ import com.bukadong.tcg.api.delivery.entity.Delivery;
 import com.bukadong.tcg.api.delivery.entity.DeliveryStatus;
 import com.bukadong.tcg.api.member.entity.Member;
 import com.bukadong.tcg.api.member.repository.MemberRepository;
+import com.bukadong.tcg.api.trust.service.MemberTrustService;
 import com.bukadong.tcg.global.common.base.BaseResponseStatus;
 import com.bukadong.tcg.global.common.exception.BaseException;
 
@@ -26,6 +27,7 @@ public class ReviewCommandService {
     private final AuctionRepository auctionRepository;
     private final AuctionReviewRepository auctionReviewRepository;
     private final MemberRepository memberRepository;
+    private final MemberTrustService memberTrustService;
 
     /**
      * 구매자가 구매확정한 경매에 대해 1회 리뷰 작성
@@ -59,6 +61,11 @@ public class ReviewCommandService {
                 .save(AuctionReview.builder().member(writer).auction(auction).cardCondition(req.getCardCondition())
                         .priceSatisfaction(req.getPriceSatisfaction()).descriptionMatch(req.getDescriptionMatch())
                         .star(req.getStar()).reviewText(req.getReviewText()).build());
+
+        // 판매자(경매 등록자)의 신뢰도 업데이트 (카드 상태, 가격 만족도는 제외 규칙)
+        Long sellerId = auction.getMember().getId();
+        memberTrustService.updateOnReview(sellerId, req.getDescriptionMatch(), req.getStar());
+
         return saved.getId();
     }
 }

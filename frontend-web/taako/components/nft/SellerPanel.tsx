@@ -10,8 +10,6 @@ import { ESCROW_STATE } from "@/lib/bc/escrowAbi";
 
 type Props = {
   auctionId: number;
-  nftAddress: string;
-  tokenId: number | string | bigint;
   sellerWallet?: `0x${string}`;
   preferForAll?: boolean;
   addressId?: number;
@@ -19,8 +17,6 @@ type Props = {
 
 export default function SellerPayoutPanel({
   auctionId,
-  nftAddress,
-  tokenId,
   sellerWallet,
   preferForAll = true,
 }: Props) {
@@ -33,20 +29,22 @@ export default function SellerPayoutPanel({
     escrowLoading,
     escrowError,
 
+    nftAddress,
+    tokenId,
+    nftNotMinted,
+
     alreadyApproved,
     approving,
     canApprove,
-    approve,
 
     releasing,
     canRelease,
+    approve,
     release,
   } = useSellerSettlement({
     auctionId,
-    nftAddress,
-    tokenId,
     sellerWallet,
-    preferForAll
+    preferForAll,
   });
 
   const [msg, setMsg] = useState("");
@@ -70,10 +68,10 @@ export default function SellerPayoutPanel({
 
   const escrowBadge = (() => {
     switch (escrowState) {
-      case ESCROW_STATE.DEPOSIT_PENDING: return <span className="text-xs px-2 py-1 rounded bg-[#2b2b3a]">입금 대기</span>;
-      case ESCROW_STATE.CONFIRM_PENDING: return <span className="text-xs px-2 py-1 rounded bg-[#2b2b3a]">구매자 확인 대기</span>;
-      case ESCROW_STATE.COMPLETED: return <span className="text-xs px-2 py-1 rounded bg-green-700/40">구매확정됨</span>;
-      case ESCROW_STATE.CANCELED: return <span className="text-xs px-2 py-1 rounded bg-red-800/40">취소됨</span>;
+      case ESCROW_STATE.AwaitingPayment: return <span className="text-xs px-2 py-1 rounded bg-[#2b2b3a]">입금 대기</span>;
+      case ESCROW_STATE.AwaitingConfirmation: return <span className="text-xs px-2 py-1 rounded bg-[#2b2b3a]">구매자 확인 대기</span>;
+      case ESCROW_STATE.Complete: return <span className="text-xs px-2 py-1 rounded bg-green-700/40">구매확정됨</span>;
+      case ESCROW_STATE.Canceled: return <span className="text-xs px-2 py-1 rounded bg-red-800/40">취소됨</span>;
       default: return <span className="text-xs px-2 py-1 rounded bg-[#2b2b3a]">-</span>;
     }
   })();
@@ -117,10 +115,14 @@ export default function SellerPayoutPanel({
 
         <div className="rounded-xl border border-[#353535] p-4">
           <div className="text-sm text-[#b5b5b5] mb-1">NFT / Token</div>
-          <div className="text-xs text-[#dedede]">
-            {nftAddress}
-          </div>
-          {alreadyApproved && (
+          <div className="text-xs text-[#dedede] break-all">{nftAddress}</div>
+          <div className="text-xs text-[#b5b5b5]">Token #{String(tokenId ?? 0)}</div>
+          {nftNotMinted && (
+            <div className="text-xs text-amber-300 mt-1">
+              이 경매의 NFT가 아직 발급되지 않았습니다. 승인 없이 바로 정산할 수 있습니다.
+            </div>
+          )}
+          {!nftNotMinted && alreadyApproved && (
             <div className="text-xs text-green-400 mt-1">이미 승인됨</div>
           )}
         </div>
@@ -132,13 +134,15 @@ export default function SellerPayoutPanel({
           disabled={disabledApprove}
           onClick={handleApprove}
           title={
-            buyerConfirmed
-              ? (alreadyApproved ? "이미 승인되었습니다." : "")
-              : "구매자가 confirmReceipt를 해야 승인할 수 있습니다."
+            nftNotMinted
+              ? "NFT가 아직 발급되지 않아 승인할 필요가 없습니다."
+              : buyerConfirmed
+                ? (alreadyApproved ? "이미 승인되었습니다." : "")
+                : "구매자가 confirmReceipt를 해야 승인할 수 있습니다."
           }
         >
           <ShieldCheck className="w-4 h-4 mr-2" />
-          NFT 소유권 이전 승인 ({preferForAll ? "모든 토큰" : `토큰 #${String(tokenId)}`})
+          NFT 소유권 이전 승인 ({preferForAll ? "모든 토큰" : `토큰 #${String(tokenId ?? 0)}`})
         </Button>
 
         <Button
@@ -147,7 +151,7 @@ export default function SellerPayoutPanel({
           onClick={handleRelease}
           title={
             buyerConfirmed
-              ? (alreadyApproved ? "" : "먼저 NFT 승인(approve)을 완료해주세요.")
+              ? (nftNotMinted ? "" : (alreadyApproved ? "" : "먼저 NFT 승인(approve)을 완료해주세요."))
               : "구매자가 confirmReceipt를 해야 정산 가능합니다."
           }
         >

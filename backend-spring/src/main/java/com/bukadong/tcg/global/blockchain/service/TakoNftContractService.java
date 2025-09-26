@@ -3,8 +3,11 @@ package com.bukadong.tcg.global.blockchain.service;
 import com.bukadong.tcg.api.auction.entity.Auction;
 import com.bukadong.tcg.api.auction.entity.AuctionResult;
 import com.bukadong.tcg.api.card.dto.response.NftAuctionHistoryResponseDto;
+import com.bukadong.tcg.api.card.entity.CardAiGrade;
 import com.bukadong.tcg.api.card.entity.PhysicalCard;
+import com.bukadong.tcg.api.card.repository.CardAiGradeRepository;
 import com.bukadong.tcg.api.member.entity.Member;
+import com.bukadong.tcg.api.member.repository.MemberRepository;
 import com.bukadong.tcg.global.blockchain.contracts.AuctionEscrow;
 import com.bukadong.tcg.global.blockchain.contracts.TakoCardNFT;
 import com.bukadong.tcg.global.blockchain.util.ContractExceptionHelper;
@@ -16,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.web3j.crypto.Hash;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.exceptions.TransactionException;
@@ -34,6 +38,8 @@ public class TakoNftContractService {
     private final ContractLoader contractLoader;
     private final ContractExceptionHelper contractExceptionHelper;
     private final BlockChainProperties blockChainProperties;
+    private final MemberRepository memberRepository;
+    private final CardAiGradeRepository cardAiGradeRepository;
 
     /**
      * NFT를 민팅하고(safeMint) 시크릿을 등록(registerSecret)
@@ -55,12 +61,20 @@ public class TakoNftContractService {
     /**
      * 특정 토큰의 경매 기록을 블록체인에서 조회
      */
+    @Transactional(readOnly = true)
     public List<NftAuctionHistoryResponseDto> getAuctionHistories(Long tokenId) {
         try {
             TakoCardNFT contract = contractLoader.loadTakoCardNft();
             List<TakoCardNFT.AuctionHistory> histories = contract.getAuctionHistories(BigInteger.valueOf(tokenId)).send();
+
             return histories.stream()
-                    .map(NftAuctionHistoryResponseDto::toDto)
+                    .map((history) -> {
+                        Member seller = memberRepository.findByWalletAddress(history.seller).orElse(null);
+                        Member buyer = memberRepository.findByWalletAddress(history.buyer).orElse(null);
+                        CardAiGrade cardAiGrade = cardAiGradeRepository.findById(history.gradeId.longValue()).orElse(null);
+
+                        return NftAuctionHistoryResponseDto.toDto(history, seller, buyer, cardAiGrade);
+                    })
                     .collect(Collectors.toList());
         } catch (TransactionException e) {
             throw contractExceptionHelper.handleTransactionException(e);
