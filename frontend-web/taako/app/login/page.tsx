@@ -1,7 +1,10 @@
+'use client';
+
 import Link from "next/link";
 import Image from "next/image";
 
 import { LoginForm } from "./LoginForm";
+import { useLoginRedirect } from "@/hooks/useAuthRedirect";
 
 interface LoginPageProps {
     searchParams: { [key: string]: string | string[] | undefined };
@@ -9,6 +12,9 @@ interface LoginPageProps {
 
 export default function LoginPage({ searchParams }: LoginPageProps) {
     const redirectPath = typeof searchParams.redirect === 'string' ? searchParams.redirect : '/';
+    
+    // 로그인한 사용자의 접근 차단
+    useLoginRedirect(true, true);
 
     return (
         <div className="small-container !px-30">

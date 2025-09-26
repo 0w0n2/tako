@@ -24,6 +24,8 @@ import {
 } from "@/components/ui/select";
 import { createAuction } from "@/lib/auction";
 import RankElement from "@/components/atoms/RankElement";
+import { useLoginRedirect, useWalletRedirect } from "@/hooks/useAuthRedirect";
+
 
 export default function NewAuctionPage() {
   const router = useRouter();
@@ -32,6 +34,11 @@ export default function NewAuctionPage() {
     React.useState<string>("");
   const [grade, setGrade] = useState<string>("");
   const [gradeHash, setGradeHash] = useState<string>("");
+  
+  // 로그인 상태 확인
+  useLoginRedirect();
+  // 지갑 주소 연동 확인
+  useWalletRedirect();
 
   const {
     register,
@@ -448,8 +455,8 @@ export default function NewAuctionPage() {
                   required: "시작 입찰가를 입력해주세요.",
                   setValueAs: (value) => (value === "" ? 0 : parseFloat(value)),
                   min: {
-                    value: 0.01,
-                    message: "0.01 이상의 값을 입력해주세요.",
+                    value: 0.0001,
+                    message: "0.0001 이상의 값을 입력해주세요.",
                   },
                 })}
                 placeholder="0.00000000"

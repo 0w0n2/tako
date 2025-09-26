@@ -23,9 +23,10 @@ export default function CategoryItemPage({ params }: { params: { categoryId: str
     1 : "YuGiOh", 
     2 : "Pokémon", 
     3 : "Cookierun", 
+    4 : "SSAFY"
   }
 
-  const cardType = cardTypes[Number(params.categoryId) as 1 | 2 | 3]
+  const cardType = cardTypes[Number(params.categoryId) as 1 | 2 | 3 | 4]
 
   // 속성 매핑 함수
   const mapAttribute = (originalAttribute: string, cardType: string): string => {
@@ -142,7 +143,7 @@ export default function CategoryItemPage({ params }: { params: { categoryId: str
           {/* 이미지 */}
           <div className='w-[40%] px-[40px] flex justify-center flex-1 border-r border-[#353535] self-start'>
             <EffectCard
-              type={cardType as 'pokemon' | 'yugioh' | 'cookierun' | 'SSAFY'}
+              type={cardType as 'pokemon' | 'yugioh' | 'cookierun' | 'ssafy'}
               attribute={description.mappedAttribute as 'fire' | 'water' | 'grass' | 'lightning' | 'psychic' | 'fighting' | 'darkness' | 'metal' | 'dragon' | 'fairy'}
               rarity={formatRarity(cardData.rarity) as any}
               img={cardData.imageUrls[0]}

@@ -29,5 +29,10 @@
         "yellow": "lightning",
         "purple": "psychic",
         "mix": "dragon"
+    },
+    "SSAFY": {
+        "가위": "fire",
+        "바위": "water",
+        "보": "grass"
     }
 }
