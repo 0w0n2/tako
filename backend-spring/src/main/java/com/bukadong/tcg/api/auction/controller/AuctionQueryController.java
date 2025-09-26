@@ -69,7 +69,7 @@ public class AuctionQueryController {
     @Operation(summary = "경매 목록 조회", description = "카테고리/제목/카드/가격/등급 조건으로 페이지네이션된 경매 목록을 반환합니다. 페이지 당 20개로 고정되며, page는 0-base 입니다.")
     @GetMapping
     public BaseResponse<PageResponse<AuctionListItemResponse>> getList(
-            @Parameter(description = "페이지(0-base)") @RequestParam(name = "page") @Min(0) int page,
+            @Parameter(description = "페이지(0-base)") @RequestParam(name = "page", defaultValue = "0") @Min(0) int page,
             @Parameter(description = "대분류 ID") @RequestParam(name = "categoryMajorId", required = false) Long categoryMajorId,
             @Parameter(description = "중분류 ID") @RequestParam(name = "categoryMediumId", required = false) Long categoryMediumId,
             @Parameter(description = "타이틀 부분검색(키워드)") @RequestParam(name = "title", required = false) String title,
