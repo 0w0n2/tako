@@ -13,13 +13,18 @@ const dotenvPath = path.resolve(process.cwd(), ".env");
 // .env 존재 시 로드 (dotenv 패키지 없이 간단 파서)
 if (fs.existsSync(dotenvPath)) {
 	const lines = fs.readFileSync(dotenvPath, "utf8").split(/\r?\n/);
+	const isEmpty = (v) => v === undefined || v === null || v === "";
 	for (const line of lines) {
-		if (!line || line.startsWith("#")) continue;
+		if (!line || line.trim().startsWith("#")) continue;
 		const eq = line.indexOf("=");
 		if (eq === -1) continue;
 		const key = line.slice(0, eq).trim();
-		const value = line.slice(eq + 1).trim();
-		if (!(key in process.env)) process.env[key] = value;
+		const rawVal = line.slice(eq + 1).trim();
+		// strip surrounding quotes if present
+		const value = rawVal.replace(/^"(.*)"$/, "$1").replace(/^'(.*)'$/, "$1");
+		if (!(key in process.env) || isEmpty(process.env[key])) {
+			process.env[key] = value;
+		}
 	}
 }
 
