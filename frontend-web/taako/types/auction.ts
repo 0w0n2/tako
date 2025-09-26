@@ -33,6 +33,7 @@ export interface AuctionDetailProps {
 	weeklyAuctions: WeeklyAuctions[];
 	history: History[];
 	seller: Seller;
+	tokenId: number|null;
 }
 
 // 경매 목록 조회(request)
@@ -58,6 +59,7 @@ export interface GetAuction {
 	remainingSeconds: number;
 	primaryImageUrl: string;
 	wished: boolean;
+	tokenId: boolean|null;
 }
 
 // 경매 조회 - 페이지

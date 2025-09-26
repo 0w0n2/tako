@@ -44,6 +44,7 @@ type RawResponse = {
 		weeklyPrices: any[];
 		seller: any;
 		wished: boolean;
+		tokenId: number|null;
 	};
 };
 
@@ -91,7 +92,7 @@ function normalizeWeekly(list: any[]): WeeklyAuctions[] {
 function normalizeAuctionDetail(result: RawResponse["result"]): AuctionDetailProps {
 	const a = result.auction ?? {};
 	const c = result.card ?? {};
-
+	const token = result.tokenId
 	const card = normalizeCard(c);
 	// auction.grade 가 진짜 카드 등급이면 카드에 반영
 	if (a?.grade && typeof a.grade === "string") {
@@ -123,6 +124,7 @@ function normalizeAuctionDetail(result: RawResponse["result"]): AuctionDetailPro
 		weeklyAuctions: normalizeWeekly(result?.weeklyPrices),
 		history: normalizeHistory(result?.history),
 		seller: normalizeSeller(result?.seller),
+		tokenId: token,
 	} as AuctionDetailProps;
 }
 
@@ -137,7 +139,7 @@ export async function getAuctionDetail(auctionId: number | string, opts?: { hist
 		params: { historySize },
 		signal,
 	});
-
+	
 	const payload = res.data;
 	if (!payload?.isSuccess) throw new Error(payload?.message || "요청 실패");
 

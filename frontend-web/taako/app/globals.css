@@ -346,3 +346,38 @@ h2.main{
 .animate-badgePop {
   animation: badgePop 220ms ease-in forwards;
 }
+
+
+/* RankElement 별효과 */
+@keyframes shine {
+  0% {
+    transform: translateX(230%) skewX(-6deg);
+    opacity: 0;
+  }
+  30% { /* 0.5초 / 2.5초 = 약 20%인데 조금 더 빠르게 */
+    opacity: 0.6;
+    transform: translateX(-150%) skewX(-6deg);
+  }
+  40% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.shine-effect {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 70%;
+  height: 100%;
+  background: linear-gradient(
+    120deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.6) 50%,
+    transparent 100%
+  );
+  animation: shine 2s ease-in-out infinite; /* 전체 주기 2.5초 */
+  pointer-events: none;
+}
