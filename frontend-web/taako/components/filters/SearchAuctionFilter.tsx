@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react"
+import * as React from "react";
 import {
   Select,
   SelectContent,
@@ -8,9 +8,9 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Label } from "@/components/ui/label"
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 import { useEffect, useState } from "react";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
@@ -23,7 +23,6 @@ export default function SearchAuctionFilter() {
     handleGetMinorCategories,
     minorCategories,
     setMinorCategoryId,
-    minorLoading,
   } = useMinorCategories();
 
   const searchParams = useSearchParams();
@@ -34,7 +33,12 @@ export default function SearchAuctionFilter() {
   const selectedMinorId = Number(searchParams.get("categoryMediumId")) || null;
   const currentSort = searchParams.get("sort") || "";
 
-  // 🔹 SelectValue 상태 관리
+  // 기본값 true (쿼리에 없으면 true)
+  const isEnded = searchParams.get("isEnded")
+    ? searchParams.get("isEnded") === "true"
+    : true;
+
+  // SelectValue 상태 관리
   const [majorValue, setMajorValue] = useState<string>("");
   const [minorValue, setMinorValue] = useState<string>("");
 
@@ -62,9 +66,11 @@ export default function SearchAuctionFilter() {
   const updateQuery = (
     majorId?: number | null,
     minorId?: number | null,
-    sort?: string | null
+    sort?: string | null,
+    ended?: boolean | null
   ) => {
     const newParams = new URLSearchParams(searchParams.toString());
+
     if (majorId !== undefined) {
       majorId === null
         ? newParams.delete("categoryMajorId")
@@ -80,22 +86,29 @@ export default function SearchAuctionFilter() {
         ? newParams.delete("sort")
         : newParams.set("sort", sort);
     }
+    if (ended !== undefined) {
+      ended === null
+        ? newParams.delete("isEnded")
+        : newParams.set("isEnded", String(ended));
+    }
+
     newParams.set("page", "0");
 
     router.push(`${pathname}?${newParams.toString()}`);
+    // 🔹 getAuctions 호출 제거
   };
 
   // 대분류 선택
   const handleMajorClick = (majorId: number) => {
     setMinorCategoryId(null);
     handleGetMinorCategories(majorId);
-    updateQuery(majorId, null);
+    updateQuery(majorId, null, currentSort, isEnded);
   };
 
   // 중분류 선택
   const handleMinorClick = (minorId: number) => {
     setMinorCategoryId(minorId);
-    updateQuery(selectedMajorId, minorId);
+    updateQuery(selectedMajorId, minorId, currentSort, isEnded);
   };
 
   // 페이지 로딩 시 대분류가 있으면 중분류 불러오기
@@ -160,7 +173,8 @@ export default function SearchAuctionFilter() {
             updateQuery(
               selectedMajorId,
               selectedMinorId,
-              checked ? "ENDTIME_ASC" : null
+              checked ? "ENDTIME_ASC" : null,
+              isEnded
             );
           }}
         />
@@ -178,12 +192,33 @@ export default function SearchAuctionFilter() {
             updateQuery(
               selectedMajorId,
               selectedMinorId,
-              checked ? "BIDCOUNT_DESC" : null
+              checked ? "BIDCOUNT_DESC" : null,
+              isEnded
             );
           }}
         />
         <Label htmlFor="bidcount" className="text-md text-[#a5a5a5]">
           입찰많은순
+        </Label>
+      </div>
+
+      <p className="bg-[#a5a5a5] mt-2 w-[1px] h-5"></p>
+
+      {/* 마감 경매 제외 */}
+      <div className="flex items-center space-x-1.5">
+        <Checkbox
+          id="endauction"
+          className="border-[#353535] rounded-[4px]"
+          checked={!isEnded}
+          onCheckedChange={(checked) => {
+            const newParams = new URLSearchParams(searchParams.toString());
+            newParams.set("isEnded", String(!checked));
+            newParams.set("page", "0");
+            router.push(`${pathname}?${newParams.toString()}`);
+          }}
+        />
+        <Label htmlFor="endauction" className="text-md text-[#a5a5a5]">
+          마감경매제외
         </Label>
       </div>
     </div>

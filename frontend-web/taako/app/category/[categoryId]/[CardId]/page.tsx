@@ -8,7 +8,7 @@ import EffectCard from "@/components/cards/EffectCard"
 import CardInfo from "@/components/cards/CardInfo"
 import Loading from '@/components/Loading';
 import AuctionCard from "@/components/auction/AuctionCard";
-import Pagination from "@/components/atoms/PaginationComponent";
+  import CategoryPagination from "@/components/categories/categoryPagination";
 import { useAuctionsQuery } from "@/hooks/useAuctionsQuery";
 import { GetAuction } from "@/types/auction";
 import attributeMap from './attribute_map.json';
@@ -191,7 +191,7 @@ export default function CategoryItemPage({ params }: { params: { categoryId: str
               
               {totalPages > 1 && (
                 <div className="mt-8">
-                  <Pagination 
+                  <CategoryPagination 
                     currentPage={currentPage} 
                     totalPages={totalPages} 
                     onPageChange={setCurrentPage} 

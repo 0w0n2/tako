@@ -2,6 +2,7 @@ package com.bukadong.tcg.api.auction.repository;
 
 import com.bukadong.tcg.api.auction.dto.projection.AuctionListProjection;
 import com.bukadong.tcg.api.bid.entity.AuctionBidStatus;
+import com.bukadong.tcg.api.card.entity.QPhysicalCard;
 import com.bukadong.tcg.api.media.entity.MediaType;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
@@ -71,16 +72,21 @@ public class AuctionRepositoryImpl implements AuctionRepositoryCustom {
 
         OrderSpecifier<?>[] orderSpecifiers = buildOrder(sort, bidCountExpr);
 
+        QPhysicalCard physicalCard = QPhysicalCard.physicalCard;
+
         // 콘텐츠 쿼리
         List<AuctionListProjection> content = queryFactory.select(Projections.constructor(AuctionListProjection.class,
                 auction.id, auction.grade.gradeCode, auction.title, auction.currentPrice, bidCountExpr, // 집계된 입찰수
                 auction.endDatetime, media.s3keyOrUrl // 대표 이미지 key (seq_no=1)
-        )).from(auction).leftJoin(auctionBid)
+                , physicalCard.tokenId
+        )).from(auction)
+                .leftJoin(auction.physicalCard, physicalCard)
+                .leftJoin(auctionBid)
                 .on(auctionBid.auction.eq(auction).and(auctionBid.status.eq(AuctionBidStatus.VALID))).leftJoin(media)
                 .on(media.ownerId.eq(auction.id).and(media.type.eq(MediaType.AUCTION_ITEM)).and(media.seqNo.eq(1)))
                 .where(where)
                 .groupBy(auction.id, auction.grade.gradeCode, auction.title, auction.currentPrice, auction.endDatetime,
-                        media.s3keyOrUrl)
+                        media.s3keyOrUrl, physicalCard.tokenId)
                 .orderBy(orderSpecifiers).offset(pageable.getOffset()).limit(pageable.getPageSize()).fetch();
 
         // 카운트 쿼리(조인/그룹 없이 where만)

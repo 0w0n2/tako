@@ -39,7 +39,7 @@ export default function MainHotCardSection(){
             console.log(err.message);
         }
     }
-    console.log(hotCards)
+    // console.log(hotCards)
 
     return(
         <div className="py-30">
@@ -61,13 +61,15 @@ export default function MainHotCardSection(){
             </div>
                 {hotCards && hotCards.length>0 ? (
                     <Marquee>
+                        <div className="flex gap-8">
                         {hotCards.map((item, index)=>(
                             <div key={index} className="mt-10">
                                 <Link href={`/category/${selectedCategoryId}/${item.cardId}`}>
-                                    <Image src={`${item.url}`} alt={`hotCard-${item.cardId}`} width={230} height={100} unoptimized />
+                                    <Image src={`${item.url}`} alt={`hotCard-${item.cardId}`} width={250} height={100} unoptimized />
                                 </Link>
                             </div>
                         ))}
+                        </div>
                     </Marquee>
                     
                 ): (
