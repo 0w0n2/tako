@@ -1,5 +1,5 @@
 import api from "@/lib/api";
-import type { MyBidAuctions } from "@/types/auth";
+import type { MyBidAuctions, MyInfo } from "@/types/auth";
 
 // ================= 새 프로필 관련 타입 =================
 export interface MyProfileResult {
@@ -76,7 +76,7 @@ export async function getMyBidAuction(opts: BidFilter = {}): Promise<Page<MyBidA
 }
 
 export async function getInfo() {
-	const res = await api.get("/v1/auctions/me");
+	const res = await api.get("/v1/members/me");
 	return res.data.result;
 }
 
@@ -85,3 +85,16 @@ export const getMySellAutcion = async () => {
 	const res = await api.get("/v1/auctions/me");
 	return res.data;
 };
+
+type ApiEnvelope<T> = {
+  httpStatus: Record<string, unknown>;
+  isSuccess: boolean;
+  message: string;
+  code: number;
+  result: T;
+};
+
+export async function getInfoMe(): Promise<MyInfo> {
+  const res = await api.get<ApiEnvelope<MyInfo>>("/v1/members/me");
+  return res.data.result;
+}

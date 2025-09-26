@@ -16,13 +16,15 @@
 
 */
 
-.card[data-rarity="rare holo v"]:not(.masked) .card__shine {
+.card[data-rarity="rare holo v-union"]:not(.masked) .card__shine {
+
   filter: brightness(.7) contrast(2) saturate(.5);
 
 }
 
-.card[data-rarity="rare holo v"] .card__shine,
-.card[data-rarity="rare holo v"] .card__shine::after {
+.card[data-rarity="rare holo v-union"] .card__shine,
+.card[data-rarity="rare holo v-union"] .card__shine:after {
+
   --space: 5%;
   --angle: 133deg;
   --imgsize: 500px;
@@ -39,26 +41,31 @@
       var(--sunpillar-clr-1) calc(var(--space)*7)),
     repeating-linear-gradient(var(--angle),
       #0e152e 0%,
-      hsl(180deg 10% 60%) 3.8%,
-      hsl(180deg 29% 66%) 4.5%,
-      hsl(180deg 10% 60%) 5.2%,
+      hsl(180, 10%, 60%) 3.8%,
+      hsl(180, 29%, 66%) 4.5%,
+      hsl(180, 10%, 60%) 5.2%,
       #0e152e 10%,
       #0e152e 12%),
     radial-gradient(farthest-corner circle at var(--pointer-x) var(--pointer-y),
-      hsl(0deg 0% 0% / 10%) 12%,
-      hsl(0deg 0% 0% / 15%) 20%,
-      hsl(0deg 0% 0% / 25%) 120%);
+      hsla(0, 0%, 0%, 0.1) 12%,
+      hsla(0, 0%, 0%, 0.15) 20%,
+      hsla(0, 0%, 0%, 0.25) 120%);
+
   background-blend-mode: screen, hue, hard-light;
   background-size: var(--imgsize) 100%, 200% 700%, 300% 100%, 200% 100%;
   background-position: center, 0% var(--background-y), var(--background-x) var(--background-y), var(--background-x) var(--background-y);
+
   filter: brightness(.8) contrast(2.95) saturate(.65);
 
 }
 
-.card[data-rarity="rare holo v"] .card__shine::after {
+.card[data-rarity="rare holo v-union"] .card__shine:after {
+
   content: "";
+
   background-position: center, 0% var(--background-y), calc(var(--background-x) * -1) calc(var(--background-y) * -1), var(--background-x) var(--background-y);
   background-size: var(--imgsize) 100%, 200% 400%, 195% 100%, 200% 100%;
+
   filter: brightness(1) contrast(2.5) saturate(1.75);
   mix-blend-mode: soft-light;
 
@@ -81,13 +88,16 @@
 
 */
 
-.card[data-rarity="rare holo v"] .card__glare {
+.card[data-rarity="rare holo v-union"] .card__glare {
+
   background-image:
     radial-gradient(farthest-corner circle at var(--pointer-x) var(--pointer-y),
-      hsl(0deg 0% 100%) 0%,
-      hsl(210deg 3% 54% / 33%) 45%,
-      hsl(0deg 0% 20% / 90%) 130%);
+      hsl(0, 0%, 100%) 0%,
+      hsla(210, 3%, 54%, 0.33) 45%,
+      hsla(0, 0%, 20%, 0.9) 130%);
+
   opacity: calc(var(--card-opacity)*.5);
+
   mix-blend-mode: hard-light;
   filter: brightness(.9) contrast(1.75);
 

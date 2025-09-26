@@ -141,7 +141,7 @@ export default function CardInfo({ cardData, description, cardType }: CardInfoPr
         </div>
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 gap-8">
         {/* 기본 정보 */}
         <div className="space-y-6">
           <div className="border border-[#353535] rounded-lg p-4">

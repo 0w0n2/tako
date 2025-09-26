@@ -2,14 +2,16 @@
 
 import AddReviews from '@/components/mypage/AddReviews';
 import MyReviews from '@/components/mypage/MyReviews';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useMyInfo } from '@/hooks/useMyInfo';
 
 export default function CreateReviewPage(){
     const [activeTab, setActiveTab] = useState<'ongoing' | 'ended'>('ongoing');
+    const { me } = useMyInfo();
+    // console.log(me)
     return(
         <div>
             <h2>리뷰쓰기</h2>
-
             <div className="border-b border-[#a5a5a5] flex relative py-2 mt-3">
                 <button
                 onClick={() => setActiveTab('ongoing')}
@@ -39,11 +41,11 @@ export default function CreateReviewPage(){
             </div>
 
             <div className=''>
-            {activeTab==='ongoing' && (
-                <AddReviews />
+            {activeTab==='ongoing' && me && (
+                <AddReviews memberId={me?.memberId} />
             )}
-            {activeTab==='ended' && (
-                <MyReviews />
+            {activeTab==='ended' && me && (
+                <MyReviews memberId={me?.memberId} />
             )}
             </div>
         </div>
