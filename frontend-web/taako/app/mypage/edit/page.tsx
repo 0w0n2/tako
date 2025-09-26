@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import React from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMyInfo } from "@/hooks/useMyInfo";
@@ -9,6 +10,7 @@ import { fetchMyProfile, patchMyProfile, checkNicknameAvailable, type MyProfileR
 const NICKNAME_REGEX = /^[0-9A-Za-z가-힣]{2,10}$/;
 
 export default function EditPage() {
+	const router = useRouter();
 	// 기존 훅 호출 (다른 영역에서도 사용하는 캐시 유지)
 	useMyInfo();
 	const qc = useQueryClient();
@@ -119,6 +121,8 @@ export default function EditPage() {
 			});
 			alert("프로필이 수정되었습니다.");
 			await qc.invalidateQueries({ queryKey: ["myInfo"] });
+			// 성공 시 마이페이지로 이동
+			router.push("/mypage");
 		} catch (err: any) {
 			console.error(err);
 			alert(err.message || "수정 실패");

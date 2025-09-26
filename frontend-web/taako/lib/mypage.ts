@@ -42,11 +42,28 @@ export interface PatchProfilePayload {
 }
 
 export async function patchMyProfile(payload: PatchProfilePayload) {
+	/*
+		백엔드 시그니처(@RequestPart("request") UpdateMyProfileRequest, @RequestPart("profileImage"), @RequestPart("backgroundImage"))에 맞춰
+		반드시 multipart/form-data 내에 "request" 라는 JSON 파트를 넣어야 함.
+		이전 구현은 nickname / introduction 을 개별 text 파트로 보내 400 (잘못된 매개변수) 발생.
+	*/
+	const { nickname, introduction, profileImageFile, backgroundImageFile } = payload;
+
+	// 변경 요청 JSON (null 이면 변경하지 않음 정책 -> undefined 는 key 자체 누락 vs null 은 명시적 무변경 여부는 백엔드 구현에 따라 다를 수 있으니
+	// 안전하게 존재하는 필드만 보냄. 값이 빈 문자열이면 사용자 의도에 따라 그대로 전달.)
+	const requestBody: Record<string, any> = {};
+	if (nickname !== undefined) requestBody.nickname = nickname || null; // 빈 문자열은 null 로 치환하여 "변경 없음" 선택 가능하게 (필요시 조정)
+	if (introduction !== undefined) requestBody.introduction = introduction || null;
+	// notificationSetting 필드 필요 시 여기에 추가
+
+	if (Object.keys(requestBody).length === 0 && !profileImageFile && !backgroundImageFile) {
+		throw new Error("변경된 내용이 없습니다.");
+	}
+
 	const form = new FormData();
-	if (payload.nickname !== undefined) form.append("nickname", payload.nickname);
-	if (payload.introduction !== undefined) form.append("introduction", payload.introduction);
-	if (payload.profileImageFile) form.append("profileImage", payload.profileImageFile);
-	if (payload.backgroundImageFile) form.append("backgroundImage", payload.backgroundImageFile);
+	form.append("request", new Blob([JSON.stringify(requestBody)], { type: "application/json" }));
+	if (profileImageFile) form.append("profileImage", profileImageFile);
+	if (backgroundImageFile) form.append("backgroundImage", backgroundImageFile);
 
 	const res = await api.patch<ApiBase<Record<string, never>>>("/v1/members/me", form, {
 		headers: { "Content-Type": "multipart/form-data" },
@@ -87,14 +104,14 @@ export const getMySellAutcion = async () => {
 };
 
 type ApiEnvelope<T> = {
-  httpStatus: Record<string, unknown>;
-  isSuccess: boolean;
-  message: string;
-  code: number;
-  result: T;
+	httpStatus: Record<string, unknown>;
+	isSuccess: boolean;
+	message: string;
+	code: number;
+	result: T;
 };
 
 export async function getInfoMe(): Promise<MyInfo> {
-  const res = await api.get<ApiEnvelope<MyInfo>>("/v1/members/me");
-  return res.data.result;
+	const res = await api.get<ApiEnvelope<MyInfo>>("/v1/members/me");
+	return res.data.result;
 }
