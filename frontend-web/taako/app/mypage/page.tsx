@@ -4,14 +4,18 @@ import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMyInfo } from "@/hooks/useMyInfo";
+import { fetchTrustScore, formatTrustScore, trustScoreImagePath, trustScoreColor } from "@/lib/mypage";
 import WalletProfile from "@/components/wallet/WalletProfile";
 // import ClaimButton from "@/components/nft/ClaimButton"
 import HomeBidAuctions from "@/components/mypage/HomeBidAuctions";
 
 export default function Mypage() {
 	const { me, meLoading, meError } = useMyInfo();
+	const [trustRaw, setTrustRaw] = useState<number | null>(null);
+	const [trustLoading, setTrustLoading] = useState(false);
+	const [trustError, setTrustError] = useState<string | null>(null);
 	const tabs = [
 		{ id: "myProfile", label: "기본정보" },
 		{ id: "myBidAuction", label: "입찰중경매" },
@@ -20,6 +24,25 @@ export default function Mypage() {
 	];
 	const [status, setStatus] = useState(tabs[0].id);
 	const activeIndex = tabs.findIndex((tab) => tab.id === status);
+
+	useEffect(() => {
+		if (!me?.memberId) return;
+		let cancelled = false;
+		(async () => {
+			try {
+				setTrustLoading(true);
+				const raw = await fetchTrustScore(me.memberId);
+				if (!cancelled) setTrustRaw(raw);
+			} catch (e: any) {
+				if (!cancelled) setTrustError(e.message || "신뢰도 로드 실패");
+			} finally {
+				if (!cancelled) setTrustLoading(false);
+			}
+		})();
+		return () => {
+			cancelled = true;
+		};
+	}, [me?.memberId]);
 
 	// NOTE: 2개의 탭으로 테스트하려면 아래와 같이 tabs 배열을 수정하세요.
 	// const tabs = [
@@ -86,6 +109,31 @@ export default function Mypage() {
 						Edit Profile
 					</Button>
 				</Link>
+				{/* 신뢰도 표시: Edit Profile 버튼 바로 아래 */}
+				<div className="absolute right-10 top-32 z-20 flex items-center gap-4">
+					{/* 밝기 개선: 더 밝은 글라스 + 얇은 경계 + 내부 그라데이션 */}
+					<div className="flex items-center gap-4 px-5 py-2.5 rounded-xl bg-white/10 backdrop-blur-md border border-white/25 shadow-[0_4px_12px_-2px_rgba(0,0,0,0.30)] relative overflow-hidden">
+						{/* subtle gradient overlay (더 투명하게 조정) */}
+						<div className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-br from-white/20 via-white/5 to-transparent" />
+						<div className="relative flex flex-col items-center leading-tight min-w-[70px]">
+							<span className="text-[14px] tracking-wide text-white/70 font-medium mb-0.5 select-none">신뢰온도</span>
+							<span
+								className="text-xl font-semibold tracking-tight drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)] tabular-nums transition-colors duration-300"
+								style={{ color: trustScoreColor(trustRaw ?? undefined) }}
+							>
+								{(() => {
+									if (trustLoading) return "…";
+									if (trustError) return "ERR";
+									return `${formatTrustScore(trustRaw)}ºC`;
+								})()}
+							</span>
+						</div>
+						{!trustLoading && !trustError && (
+							// eslint-disable-next-line @next/next/no-img-element
+							<img alt="trust-level" src={trustScoreImagePath(trustRaw)} className="relative h-16 w-auto object-contain drop-shadow-[0_4px_10px_rgba(0,0,0,0.55)] contrast-125" />
+						)}
+					</div>
+				</div>
 				<div className="pl-8 flex gap-10 w-full bg-[#3D3D4D] absolute bottom-0 left-0 rounded-bl-xl rounded-br-xl overflow-hidden">
 					<div className="flex-2"></div>
 					<div className="flex-7 relative">

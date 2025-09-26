@@ -115,3 +115,42 @@ export async function getInfoMe(): Promise<MyInfo> {
 	const res = await api.get<ApiEnvelope<MyInfo>>("/v1/members/me");
 	return res.data.result;
 }
+
+// ================= 신뢰도 (Trust Score) =================
+export async function fetchTrustScore(memberId: number): Promise<number> {
+	if (!memberId && memberId !== 0) throw new Error("memberId 누락");
+	const res = await api.get<ApiBase<number>>(`/v1/members/${memberId}/trust`);
+	return res.data.result;
+}
+
+export function formatTrustScore(raw: number | undefined | null): string {
+	if (raw === undefined || raw === null || isNaN(raw as any)) return "0.0";
+	// 정수 → 10으로 나눠 1자리 소수처럼 (365 -> 36.5)
+	const scaled = raw / 10;
+	return scaled.toFixed(1);
+}
+
+export function trustScoreImagePath(raw: number | undefined | null): string {
+	if (raw === undefined || raw === null || isNaN(raw as any)) return "/icon/temperature/0.png";
+	const v = raw;
+	if (v < 200) return "/icon/temperature/0.png";
+	if (v < 300) return "/icon/temperature/200.png";
+	if (v < 500) return "/icon/temperature/300.png";
+	if (v < 700) return "/icon/temperature/500.png";
+	if (v < 900) return "/icon/temperature/700.png";
+	return "/icon/temperature/900.png"; // 900 이상
+}
+
+// 신뢰온도 색상 매핑 (낮은 점수 -> Neutral, 높은 점수 -> Warm)
+// 제공된 순서: 898881, 2c72aa, 86c7ed, ffc339, ff980f, f53301
+// 점수 구간: <200, <300, <500, <700, <900, >=900
+export function trustScoreColor(raw: number | undefined | null): string {
+	if (raw === undefined || raw === null || isNaN(raw as any)) return "#898881";
+	const v = raw;
+	if (v < 200) return "#898881"; // 아주 낮음
+	if (v < 300) return "#2c72aa"; // 낮음
+	if (v < 500) return "#86c7ed"; // 보통
+	if (v < 700) return "#ffc339"; // 양호
+	if (v < 900) return "#ff980f"; // 좋음
+	return "#f53301"; // 매우 좋음 (900 이상)
+}
