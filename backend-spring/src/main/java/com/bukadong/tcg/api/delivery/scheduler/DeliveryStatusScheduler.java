@@ -14,6 +14,7 @@ public class DeliveryStatusScheduler {
     private static final Logger log = LoggerFactory.getLogger(DeliveryStatusScheduler.class);
     private final DeliveryService deliveryService;
 
+    // TODO: 시연시 1분 주기로 변경
     // 2분 주기 실행 (매 2분마다 0초에)
     @Scheduled(cron = "0 */2 * * * *")
     public void advanceStatuses() {
