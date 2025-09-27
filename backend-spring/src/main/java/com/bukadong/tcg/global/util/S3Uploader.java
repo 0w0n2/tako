@@ -64,16 +64,17 @@ public class S3Uploader {
         String uniqueFileKey;
 
         try {
+            processedBytes = multipartFile.getBytes();
+
             if (isConvertibleImage) {
                 /* Webp 로 변환 */
                 log.debug("[S3-WEBP] Start WebP image conversion: originalFileName={}", originalFileName);
-                processedBytes = convertToWebInMemory(multipartFile.getBytes());
+                processedBytes = convertToWebInMemory(processedBytes);
                 processedContentType = "image/webp";
 
                 uniqueFileKey = dirName + "/" + UUID.randomUUID() + ".webp";
                 log.debug("[S3-WEBP] Image WebP conversion complete: newKey={}", uniqueFileKey);
             } else { /* 원본 데이터 사용 */
-                processedBytes = multipartFile.getBytes();
                 processedContentType = multipartFile.getContentType();
                 String extension = "";
                 if (originalFileName != null && originalFileName.contains(".")) {
