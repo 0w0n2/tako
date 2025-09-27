@@ -26,7 +26,7 @@ export default function SellerPayoutPanel({
     escrowAddress,
     escrowState,
     buyerConfirmed,
-    released,        // ✅ 추가: 인출 완료 플래그
+    released,        // 추가: 인출 완료 플래그
     escrowLoading,
     escrowError,
 

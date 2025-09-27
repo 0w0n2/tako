@@ -66,7 +66,7 @@ export default function PayButton({
       const code = e?.code ?? e?.data?.code;
       if (code === 4001) setErrMsg('사용자가 결제를 취소했습니다.');
       else if (code === -32002) setErrMsg('이전 요청이 진행 중입니다. MetaMask 창을 확인해주세요.');
-      else setErrMsg(e?.message ?? '결제 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+      else setErrMsg('결제 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
     } finally {
       setPaying(false);
     }

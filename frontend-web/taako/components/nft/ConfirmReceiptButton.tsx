@@ -40,7 +40,7 @@ export default function ConfirmReceiptButton({
       if (e?.code === 4001) {
         alert("사용자가 트랜잭션을 취소했습니다.");
       } else {
-        alert(e?.message ?? "구매확정 처리 중 오류가 발생했습니다.");
+        alert("구매확정 처리 중 오류가 발생했습니다.");
       }
     } finally {
       setWorking(false);
