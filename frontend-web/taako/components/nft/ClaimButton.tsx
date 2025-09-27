@@ -13,7 +13,7 @@ export default function ClaimButton({ contract }: { contract: `0x${string}` }) {
     try {
       if (!tokenId || !secret) return alert("tokenId와 secret을 모두 입력하세요.");
       setLoading(true);
-      const txHash = await claimTakoNft({ contract, tokenId, secret });
+      await claimTakoNft({ contract, tokenId, secret });
       alert("Claim 성공!");
     } catch (e: any) {
       console.error(e);

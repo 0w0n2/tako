@@ -149,9 +149,10 @@ export async function getAuctionDetail(auctionId: number | string, opts?: { hist
 	};
 }
 
-function genRequestId() {
-	if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
-	return "req_" + Math.random().toString(36).slice(2) + Date.now().toString(36);
+// ↓ 이렇게 export 하세요
+export function genRequestId() {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
+  return "req_" + Math.random().toString(36).slice(2) + Date.now().toString(36);
 }
 
 /**

@@ -2,9 +2,9 @@
 "use client";
 
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { queueBid } from "@/lib/auction";
+import { queueBid, genRequestId } from "@/lib/auction";
 import type { BidQueueResponse } from "@/types/bid";
-import { getOrCreateUserUuid, onUuidReset } from "@/lib/auth/uuid";
+
 import { Button } from "@/components/ui/button";
 import { useBidLock } from "@/hooks/useBidLock";
 
@@ -123,17 +123,7 @@ export default function BidInputForm({
     }
   }, [iAmTop]);
 
-  // UUID 리셋 시 초기화
-  useEffect(() => {
-    const unsubscribe = onUuidReset(() => {
-      resetLock();
-      setError("");
-      setOkMsg("");
-      myTopPriceRef.current = 0;
-      setBlocked(false);
-    });
-    return unsubscribe;
-  }, [resetLock]);
+  const requestId = genRequestId();
 
   // 현재가 변동 시(실시간) 상태 보정
   useEffect(() => {
@@ -201,7 +191,7 @@ export default function BidInputForm({
     setSubmitting(true);
 
     try {
-      const requestId = getOrCreateUserUuid();
+      const requestId = genRequestId();
       const res = await queueBid(auctionId, roundTo(amount, precision), { token, requestId });
 
       const serverPrice = res.result?.currentPrice ?? amount;
