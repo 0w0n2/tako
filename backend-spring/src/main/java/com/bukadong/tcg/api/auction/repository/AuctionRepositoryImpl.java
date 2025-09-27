@@ -7,9 +7,7 @@ import com.bukadong.tcg.api.media.entity.MediaType;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
-import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.NumberExpression;
-import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
@@ -75,18 +73,17 @@ public class AuctionRepositoryImpl implements AuctionRepositoryCustom {
         QPhysicalCard physicalCard = QPhysicalCard.physicalCard;
 
         // 콘텐츠 쿼리
-        List<AuctionListProjection> content = queryFactory.select(Projections.constructor(AuctionListProjection.class,
-                auction.id, auction.grade.gradeCode, auction.title, auction.currentPrice, bidCountExpr, // 집계된 입찰수
-                auction.endDatetime, media.s3keyOrUrl // 대표 이미지 key (seq_no=1)
-                , physicalCard.tokenId
-        )).from(auction)
-                .leftJoin(auction.physicalCard, physicalCard)
-                .leftJoin(auctionBid)
+        List<AuctionListProjection> content = queryFactory
+                .select(Projections.constructor(AuctionListProjection.class, auction.id, auction.grade.gradeCode,
+                        auction.title, auction.currentPrice, bidCountExpr, // 집계된 입찰수
+                        auction.endDatetime, media.s3keyOrUrl, // 대표 이미지 key (seq_no=1)
+                        physicalCard.tokenId, auction.startDatetime))
+                .from(auction).leftJoin(auction.physicalCard, physicalCard).leftJoin(auctionBid)
                 .on(auctionBid.auction.eq(auction).and(auctionBid.status.eq(AuctionBidStatus.VALID))).leftJoin(media)
                 .on(media.ownerId.eq(auction.id).and(media.type.eq(MediaType.AUCTION_ITEM)).and(media.seqNo.eq(1)))
                 .where(where)
                 .groupBy(auction.id, auction.grade.gradeCode, auction.title, auction.currentPrice, auction.endDatetime,
-                        media.s3keyOrUrl, physicalCard.tokenId)
+                        media.s3keyOrUrl, physicalCard.tokenId, auction.startDatetime)
                 .orderBy(orderSpecifiers).offset(pageable.getOffset()).limit(pageable.getPageSize()).fetch();
 
         // 카운트 쿼리(조인/그룹 없이 where만)
@@ -165,44 +162,25 @@ public class AuctionRepositoryImpl implements AuctionRepositoryCustom {
     @Override
     public boolean existsActiveAuctionAsSeller(Long memberId) {
         // 판매자 역할로 활성화된(종료되지 않은) 경매가 존재하는가
-        Integer fetchFirst = queryFactory
-                .selectOne()
-                .from(auction)
-                .where(
-                        auction.member.id.eq(memberId),
-                        auction.isEnd.isFalse()
-                )
-                .fetchFirst();
+        Integer fetchFirst = queryFactory.selectOne().from(auction)
+                .where(auction.member.id.eq(memberId), auction.isEnd.isFalse()).fetchFirst();
         return fetchFirst != null;
     }
 
     @Override
     public boolean existsBidOnActiveAuction(Long memberId) {
         // 구매자로서 활성화된(종료되지 않은) 경매에 입찰한 내역이 있는지 확인
-        Integer fetchFirst = queryFactory
-                .selectOne()
-                .from(auctionBid)
-                .join(auctionBid.auction, auction)
-                .where(
-                        auctionBid.member.id.eq(memberId),
-                        auction.isEnd.isFalse()
-                )
-                .fetchFirst();
+        Integer fetchFirst = queryFactory.selectOne().from(auctionBid).join(auctionBid.auction, auction)
+                .where(auctionBid.member.id.eq(memberId), auction.isEnd.isFalse()).fetchFirst();
         return fetchFirst != null;
     }
 
     @Override
     public boolean existsUnsettledAuctionAsParty(Long memberId) {
         // 판매자 또는 최종 낙찰자로서 거래가 완료되지 않은(settled_flag = false) 경매가 있는지 확인
-        Integer fetchFirst = queryFactory
-                .selectOne()
-                .from(auctionResult)
-                .join(auctionResult.auction, auction)
-                .where(
-                        auctionResult.settledFlag.isFalse(),
-                        auction.member.id.eq(memberId)
-                                .or(auction.winnerMemberId.eq(memberId))
-                )
+        Integer fetchFirst = queryFactory.selectOne().from(auctionResult).join(auctionResult.auction, auction)
+                .where(auctionResult.settledFlag.isFalse(),
+                        auction.member.id.eq(memberId).or(auction.winnerMemberId.eq(memberId)))
                 .fetchFirst();
         return fetchFirst != null;
     }
