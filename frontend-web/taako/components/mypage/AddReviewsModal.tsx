@@ -73,12 +73,12 @@ export default function AddReviewsModal({ auctionId, star, onClose }: Readonly<A
 
 	return (
 		<div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-			<div className="relative p-5 w-[500px] h-[650px] bg-gray-800 rounded-lg flex flex-col">
+			<div className="relative p-5 w-[500px] h-[740px] max-h-[85vh] bg-gray-800 rounded-lg flex flex-col">
 				<X onClick={onClose} className="absolute top-5 right-5 cursor-pointer text-gray-400 hover:text-white" />
-				<h3 className="text-center mb-4">리뷰 작성</h3>
-				<form id="review-form" className="scrollbar-hide flex flex-col gap-12 overflow-y-auto flex-1 pr-1" onSubmit={handleSubmit}>
+				<h3 className="text-center mb-2">리뷰 작성</h3>
+				<form id="review-form" className="scrollbar-hide flex flex-col gap-8 overflow-y-auto flex-1 pr-1" onSubmit={handleSubmit}>
 					{/* 별점 표시 */}
-					<div className="flex flex-col gap-4">
+					<div className="flex flex-col gap-3">
 						<p className="text-sm">상품은 마음에 드셨나요?</p>
 						<div className="flex gap-2">
 							{Array.from({ length: star }, (_, i) => (
@@ -89,9 +89,9 @@ export default function AddReviewsModal({ auctionId, star, onClose }: Readonly<A
 
 					{/* 질문 리스트 */}
 					{questions.map((q) => (
-						<div key={q.title} className="flex flex-col gap-4">
+						<div key={q.title} className="flex flex-col gap-3">
 							<p className="text-sm">{q.label}</p>
-							<div className="flex gap-3">
+							<div className="flex gap-2">
 								{q.options.map((opt, i) => (
 									<label key={`${q.title}-${q.query[i]}`} className="cursor-pointer">
 										<input
@@ -134,7 +134,7 @@ export default function AddReviewsModal({ auctionId, star, onClose }: Readonly<A
 					</div>
 				</form>
 				{/* 버튼 (스크롤 영역 밖, 레이아웃 내 하단 고정) */}
-				<div className="mt-3 pt-3 border-t border-gray-600 bg-gray-800/0 shrink-0">
+				<div className="mt-2 pt-2 border-t border-gray-600 bg-gray-800/0 shrink-0">
 					<Button type="submit" form="review-form" className="h-12 w-full text-md" disabled={isSubmitDisabled}>
 						리뷰 제출하기
 					</Button>
