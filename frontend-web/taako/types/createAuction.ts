@@ -1,8 +1,10 @@
-export interface AuctionNewCalendarProps {
-  onChange?: (data: {
-    startDate?: Date
-    startTime?: string
-    endDate?: Date
-    endTime?: string
-  }) => void
-}
+export interface AuctionNewCalendarChange  {
+    startDate?: Date;
+    startTime?: string;
+    endDate?: Date;
+    endTime?: string;
+};
+
+export type AuctionNewCalendarProps = {
+  onChange: (v: AuctionNewCalendarChange) => void;
+};
