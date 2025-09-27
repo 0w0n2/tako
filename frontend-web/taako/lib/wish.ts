@@ -30,3 +30,8 @@ export async function getAllWishCards(page: number = 0, size: number = 20, signa
   const res = await api.get(`/v1/wishes/cards?page=${page}&size=${size}`, { signal });
   return res.data;
 }
+
+export async function getAllWishAuctions(page: number = 0, size: number = 20, signal?: AbortSignal) {
+  const res = await api.get(`/v1/wishes/auctions?page=${page}&size=${size}`, { signal });
+  return res.data;
+}
