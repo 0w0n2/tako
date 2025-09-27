@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useMyInfo } from "@/hooks/useMyInfo";
@@ -36,8 +36,23 @@ export const useLoginRedirect = (redirect: boolean = true, reversed: boolean = f
   const router = useRouter();
   const { token } = useAuthStore();
   const hasRedirected = useRef(false);
+  const initialToken = useRef(token);
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  // Zustand persist 미들웨어의 hydration 완료를 기다림
+  useEffect(() => {
+    // 약간의 지연을 두어 localStorage에서 토큰이 로드될 시간을 제공
+    const timer = setTimeout(() => {
+      setIsHydrated(true);
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
+    // hydration이 완료된 후에만 인증 체크 실행
+    if (!isHydrated) return;
+
     if (redirect && !hasRedirected.current) {
       if (!reversed && !token) {
         // 일반적인 경우: 로그인하지 않은 사용자를 로그인 페이지로 리다이렉트
@@ -46,8 +61,9 @@ export const useLoginRedirect = (redirect: boolean = true, reversed: boolean = f
           alert("로그인 후 이용해주세요.");
           router.push("/login");
         });
-      } else if (reversed && token) {
+      } else if (reversed && token && initialToken.current !== null) {
         // reversed 모드: 로그인한 사용자를 루트로 리다이렉트
+        // 단, 페이지 로드 시 토큰이 없었던 경우는 제외 (로그인 성공으로 인한 토큰 변경 방지)
         hasRedirected.current = true;
         executeRedirect(() => {
           alert("잘못된 접근입니다.");
@@ -55,7 +71,7 @@ export const useLoginRedirect = (redirect: boolean = true, reversed: boolean = f
         });
       }
     }
-  }, [router, redirect, token, reversed]);
+  }, [router, redirect, token, reversed, isHydrated]);
 
   return {
     isAuthenticated: !!token,
