@@ -10,20 +10,25 @@ import com.bukadong.tcg.api.member.dto.response.PublicMemberProfileResponse;
 import com.bukadong.tcg.api.member.service.PublicMemberProfileService;
 import com.bukadong.tcg.global.common.base.BaseResponse;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/v1/public/members")
+@Tag(name = "Member")
+@RequestMapping("/v1/members")
 @RequiredArgsConstructor
 @Validated
 public class PublicMemberProfileController {
 
     private final PublicMemberProfileService publicMemberProfileService;
 
-    @GetMapping("/{userId}")
+    @Operation(summary = "회원 공개 프로필 조회", description = "회원의 공개 프로필 정보를 조회합니다.")
+    @GetMapping("/{userId}/public-profile")
     public BaseResponse<PublicMemberProfileResponse> getPublicProfile(
-            @PathVariable("userId") @Min(1) Long memberId) {
+            @Parameter(description = "회원 ID", required = true) @PathVariable("userId") @Min(1) Long memberId) {
         return BaseResponse.onSuccess(publicMemberProfileService.getPublicProfile(memberId));
     }
 }
