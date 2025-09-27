@@ -33,7 +33,7 @@ export interface AuctionDetailProps {
 	weeklyAuctions: WeeklyAuctions[];
 	history: History[];
 	seller: Seller;
-	tokenId: number|null;
+	tokenId: number | null;
 }
 
 // 경매 목록 조회(request)
@@ -47,7 +47,7 @@ export interface GetHotCards {
 	currentPriceMax: number | null;
 	grades: string | null;
 	sort: string | null;
-	isEnded: boolean|null;
+	isEnded: boolean | null;
 }
 // 경매 목록 조회(response)
 export interface GetAuction {
@@ -59,15 +59,15 @@ export interface GetAuction {
 	remainingSeconds: number;
 	primaryImageUrl: string;
 	wished: boolean;
-	tokenId: boolean|null;
+	tokenId: boolean | null;
 }
 
 // 경매 조회 - 페이지
 export interface PageProps {
-  page:number;
-  size:number;
-  totalElements:number;
-  totalPages:number;
+	page: number;
+	size: number;
+	totalElements: number;
+	totalPages: number;
 }
 
 export interface WeeklyAuctions {
@@ -129,6 +129,25 @@ export interface AuctionDetailApiResponse {
 }
 
 export interface AuctionDetailContent {
+	auctionId: number;
+	code: string;
+	title: string;
+	startDatetime: string;
+	endDatetime: string;
+	isEnd: boolean;
+	closeReason: string | null;
+	currentPrice: number;
+	myTopBidAmount: number;
+	imageUrl: string;
+	bids: {
+		time: string;
+		nickname: string;
+		price: number;
+	}[];
+}
+
+// 내 입찰 경매 목록 응답
+export interface MyBidAuctionResponse {
 	auctionId: number;
 	code: string;
 	title: string;

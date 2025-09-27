@@ -20,8 +20,8 @@ export default function Mypage() {
 	const [trustError, setTrustError] = useState<string | null>(null);
 	const tabs = [
 		{ id: "myProfile", label: "기본정보" },
-		{ id: "myBidAuction", label: "입찰중경매" },
-		{ id: "mySellAuction", label: "판매경매" },
+		{ id: "myBidAuction", label: "입찰 중 경매" },
+		{ id: "mySellAuction", label: "등록 경매" },
 		{ id: "myReview", label: "리뷰" },
 	];
 	const [status, setStatus] = useState(tabs[0].id);
@@ -47,12 +47,6 @@ export default function Mypage() {
 			cancelled = true;
 		};
 	}, [me?.memberId]);
-
-	// NOTE: 2개의 탭으로 테스트하려면 아래와 같이 tabs 배열을 수정하세요.
-	// const tabs = [
-	//   { id: 'mySellAuction', label: '판매경매' },
-	//   { id: 'myReview', label: '리뷰' },
-	// ];
 
 	return (
 		<div className="flex flex-col gap-10">
@@ -181,13 +175,12 @@ export default function Mypage() {
 			)}
 			{status === "myBidAuction" && (
 				<div>
-					<h2>입찰 중인 경매</h2>
-					<HomeBidAuctions />
+					<HomeBidAuctions type="bid" />
 				</div>
 			)}
 			{status === "mySellAuction" && (
 				<div>
-					<h2>판매경매</h2>
+					<HomeBidAuctions type="sell" />
 				</div>
 			)}
 			{status === "myReview" && (
