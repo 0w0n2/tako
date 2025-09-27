@@ -25,6 +25,7 @@ public class PublicMemberProfileController {
 
     private final PublicMemberProfileService publicMemberProfileService;
 
+    // TODO : 페이징
     @Operation(summary = "회원 공개 프로필 조회", description = "회원의 공개 프로필 정보를 조회합니다.")
     @GetMapping("/{userId}/public-profile")
     public BaseResponse<PublicMemberProfileResponse> getPublicProfile(
