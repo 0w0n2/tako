@@ -19,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import com.bukadong.tcg.api.popularity.aop.AutoPopularityBid;
+import lombok.extern.slf4j.Slf4j;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -33,6 +34,7 @@ import java.time.ZoneOffset;
 @RestController
 @RequestMapping("/v1/auctions")
 @RequiredArgsConstructor
+@Slf4j
 public class BidQueueController {
 
     private final MemberQueryService memberQueryService;
@@ -65,6 +67,30 @@ public class BidQueueController {
         Long memberId = member.getId();
         var r = bidQueueProducer.enqueue(auctionId, memberId, request.getAmount(), request.getRequestId());
         String code = r.get("code");
+
+        // 1회 리로드 후 재시도: NOT_RUNNING 또는 MISSING 이면서 DB 기준 진행중일 수 있는 경우 캐시 싱크 후 재시도
+        if (AuctionBidReason.NOT_RUNNING.name().equals(code) || AuctionBidReason.MISSING.name().equals(code)) {
+            var db = auctionRepository.findById(auctionId)
+                    .orElseThrow(() -> new BaseException(BaseResponseStatus.NOT_FOUND));
+            boolean dbRunning = db.isRunningAt(LocalDateTime.now(UTC));
+            if (dbRunning) {
+                auctionCacheService.reloadFromDb(auctionId);
+                var retry = bidQueueProducer.enqueue(auctionId, memberId, request.getAmount(), request.getRequestId());
+                String rcode = retry.get("code");
+                if (!AuctionBidReason.NOT_RUNNING.name().equals(rcode)
+                        && !AuctionBidReason.MISSING.name().equals(rcode)) {
+                    r = retry; // 재시도 성공 경로 계속 진행
+                    code = rcode;
+                } else {
+                    // 여전히 실패면 상태 로깅
+                    var snap = auctionCacheService.getSnapshot(auctionId);
+                    log.warn(
+                            "Bid NOT_RUNNING after reload: auctionId={}, redisSnap={}, db.isEnd={}, db.start={}, db.end={}, nowUTC={}",
+                            auctionId, snap, db.isEnd(), db.getStartDatetime(), db.getEndDatetime(),
+                            LocalDateTime.now(UTC));
+                }
+            }
+        }
 
         if (AuctionBidReason.DUPLICATE.name().equals(code)) {
             return BaseResponse.onFailure(BaseResponseStatus.AUCTION_DUPLICATE_REQUEST);
@@ -116,6 +142,28 @@ public class BidQueueController {
 
         var r = bidQueueProducer.enqueue(auctionId, me.getId(), auction.getBuyNowPrice(), request.getRequestId());
         String code = r.get("code");
+
+        // 즉시구매도 동일한 재시도 전략 적용
+        if (AuctionBidReason.NOT_RUNNING.name().equals(code) || AuctionBidReason.MISSING.name().equals(code)) {
+            boolean dbRunning = !auction.isEnd() && auction.isRunningAt(LocalDateTime.now(UTC));
+            if (dbRunning) {
+                auctionCacheService.reloadFromDb(auctionId);
+                var retry = bidQueueProducer.enqueue(auctionId, me.getId(), auction.getBuyNowPrice(),
+                        request.getRequestId());
+                String rcode = retry.get("code");
+                if (!AuctionBidReason.NOT_RUNNING.name().equals(rcode)
+                        && !AuctionBidReason.MISSING.name().equals(rcode)) {
+                    r = retry;
+                    code = rcode;
+                } else {
+                    var snap = auctionCacheService.getSnapshot(auctionId);
+                    log.warn(
+                            "BuyNow NOT_RUNNING after reload: auctionId={}, redisSnap={}, db.isEnd={}, db.start={}, db.end={}, nowUTC={}",
+                            auctionId, snap, auction.isEnd(), auction.getStartDatetime(), auction.getEndDatetime(),
+                            LocalDateTime.now(UTC));
+                }
+            }
+        }
 
         if (AuctionBidReason.DUPLICATE.name().equals(code)) {
             return BaseResponse.onFailure(BaseResponseStatus.AUCTION_DUPLICATE_REQUEST);
