@@ -43,6 +43,10 @@ function parseAmountStrict(input: string, maxPrecision: number): number {
   return roundTo(n, maxPrecision);
 }
 
+// --- 추가: precision 기반 숫자 포맷터 ---
+const fmt = (n: number, p: number) =>
+  n.toLocaleString(undefined, { minimumFractionDigits: p, maximumFractionDigits: p });
+
 type Guards = {
   isMyAuction?: boolean; // 내 경매면 비활성화
   isActive?: boolean;    // 진행 중이 아니면 비활성화
@@ -205,7 +209,7 @@ export default function BidInputForm({
       } else if (status === "QUEUED") {
         myTopPriceRef.current = serverPrice;
         lockAsTop(serverPrice);
-        setOkMsg(`입찰 요청중! 요청 가격: ${serverPrice.toLocaleString()}`);
+        setOkMsg(`입찰 요청중! 요청 가격: ${fmt(serverPrice, precision)}`);
         setBlocked(true);
       } 
     } catch (err: any) {
@@ -242,7 +246,7 @@ export default function BidInputForm({
           disabled={!!hardBlockReason || disabled || submitting || iAmTop}
           className="flex-1 px-3 py-2 rounded-md bg-[#1a1a1a] border border-[#333] focus:outline-none"
           placeholder={
-            placeholder ?? `${minAllowed.toLocaleString()} 이상 (증분 ${minIncrement})`
+            placeholder ?? `${fmt(minAllowed, precision)} 이상 (증분 ${fmt(minIncrement, precision)})`
           }
           id={`bid-input-${auctionId}`}
         />
@@ -259,7 +263,7 @@ export default function BidInputForm({
           disabled={!!hardBlockReason || disabled || submitting || iAmTop}
           className="px-3 py-1 rounded-md bg-[#1f1f2a] border border-[#333]"
         >
-          +{minIncrement.toLocaleString()}
+          +{fmt(minIncrement, precision)}
         </button>
         <button
           type="button"
@@ -267,7 +271,7 @@ export default function BidInputForm({
           disabled={!!hardBlockReason || disabled || submitting || iAmTop}
           className="px-3 py-1 rounded-md bg-[#1f1f2a] border border-[#333]"
         >
-          +{(minIncrement * 5).toLocaleString()}
+          +{fmt(minIncrement * 5, precision)}
         </button>
         <button
           type="button"
@@ -275,7 +279,7 @@ export default function BidInputForm({
           disabled={!!hardBlockReason || disabled || submitting || iAmTop}
           className="px-3 py-1 rounded-md bg-[#1f1f2a] border border-[#333]"
         >
-          +{(minIncrement * 10).toLocaleString()}
+          +{fmt(minIncrement * 10, precision)}
         </button>
         <button
           type="button"
@@ -286,7 +290,7 @@ export default function BidInputForm({
           최소입찰
         </button>
         {maxBid != null && (
-          <span className="ml-auto text-xs opacity-60 self-center">최대 {maxBid.toLocaleString()}</span>
+          <span className="ml-auto text-xs opacity-60 self-center">최대 {fmt(maxBid, precision)}</span>
         )}
       </div>
 
@@ -295,7 +299,7 @@ export default function BidInputForm({
 
       {!iAmTop && !submitting && Number.isFinite(amount) && amount < minAllowed && (
         <p className="text-xs text-red-400">
-          입찰가는 {minAllowed.toLocaleString()} 이상이어야 합니다.
+          입찰가는 {fmt(minAllowed, precision)} 이상이어야 합니다.
         </p>
       )}
 
