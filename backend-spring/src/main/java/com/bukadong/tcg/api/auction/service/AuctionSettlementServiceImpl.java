@@ -9,10 +9,11 @@ import com.bukadong.tcg.api.member.entity.Member;
 import com.bukadong.tcg.global.blockchain.service.AuctionContractService;
 import com.bukadong.tcg.global.properties.blockchain.BlockChainProperties;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
 import org.web3j.utils.Convert;
 
@@ -27,10 +28,10 @@ import org.web3j.utils.Convert;
  * @PARAM amount 낙찰 금액
  * @RETURN 없음
  */
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuctionSettlementServiceImpl implements AuctionSettlementService {
+    private static final Logger log = LoggerFactory.getLogger(AuctionSettlementServiceImpl.class);
     private final BlockChainProperties blockChainProperties;
     private final AuctionContractService auctionContractService;
     private final AuctionResultService auctionResultService;
@@ -46,7 +47,8 @@ public class AuctionSettlementServiceImpl implements AuctionSettlementService {
      * 경매 종료 후 에스크로 생성 및 결과 저장 처리
      */
     @Override
-    public void createEscrowForAuction(Long auctionId, BigDecimal amount, Member seller, Member buyer, PhysicalCard physicalCard) {
+    public void createEscrowForAuction(Long auctionId, BigDecimal amount, Member seller, Member buyer,
+            PhysicalCard physicalCard) {
         /* 지갑 정보 유효성 검사 */
         if (!StringUtils.hasText(seller.getWalletAddress()) || !StringUtils.hasText(buyer.getWalletAddress())) {
             log.error("판매자 또는 구매자의 지갑 주소가 등록되지 않아 에스크로 생성을 중단합니다. Auction ID: {}", auctionId);

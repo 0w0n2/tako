@@ -2,7 +2,8 @@ package com.bukadong.tcg.global.common.exception;
 
 import com.bukadong.tcg.global.common.base.BaseResponse;
 import com.bukadong.tcg.global.common.base.BaseResponseStatus;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -16,8 +17,9 @@ import org.springframework.http.HttpStatus;
  * @RestControllerAdvice 어노테이션을 통해 프로젝트 전역의 Controller 단에서 발생하는 예외를 처리하는 클래스
  */
 @RestControllerAdvice
-@Slf4j
 public class BaseExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(BaseExceptionHandler.class);
 
     @ExceptionHandler(BaseException.class)
     protected BaseResponse<Void> baseError(BaseException e) {

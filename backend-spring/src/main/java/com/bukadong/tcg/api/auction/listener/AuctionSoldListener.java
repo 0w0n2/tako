@@ -12,7 +12,8 @@ import com.bukadong.tcg.api.delivery.entity.Delivery;
 import com.bukadong.tcg.api.delivery.entity.DeliveryStatus;
 import com.bukadong.tcg.api.delivery.repository.DeliveryRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,10 +30,11 @@ import org.springframework.transaction.event.TransactionalEventListener;
  * @PARAM AuctionClosedEvent 종료 이벤트
  * @RETURN 없음
  */
-@Slf4j
 @Component
 @RequiredArgsConstructor
 public class AuctionSoldListener {
+
+    private static final Logger log = LoggerFactory.getLogger(AuctionSoldListener.class);
 
     private final AuctionResultRepository resultRepository;
     private final AuctionRepository auctionRepository;

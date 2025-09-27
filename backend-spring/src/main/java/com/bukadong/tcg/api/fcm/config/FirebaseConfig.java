@@ -3,7 +3,8 @@ package com.bukadong.tcg.api.fcm.config;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
@@ -24,8 +25,9 @@ import java.util.Base64;
  */
 @Configuration
 @EnableConfigurationProperties(PushProperties.class)
-@Slf4j
 public class FirebaseConfig {
+
+    private static final Logger log = LoggerFactory.getLogger(FirebaseConfig.class);
 
     @Value("${fcm.service-account.base64:}")
     private String serviceAccountBase64;

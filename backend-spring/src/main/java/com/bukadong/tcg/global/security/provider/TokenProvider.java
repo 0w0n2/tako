@@ -10,7 +10,8 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -28,11 +29,11 @@ import javax.crypto.SecretKey;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
-import java.util.stream.Collectors;
 
-@Slf4j
 @Component
 public class TokenProvider {
+
+    private static final Logger log = LoggerFactory.getLogger(TokenProvider.class);
 
     private final SecretKey secretKey;
     private final MemberRepository memberRepository;
@@ -110,9 +111,10 @@ public class TokenProvider {
             throw new BaseException(INVALID_TOKEN_CLAIM);
         }
 
-        Collection<? extends GrantedAuthority> authorities = Arrays.stream(claims.get(AUTHORITIES_CLAIM).toString().split(","))
+        Collection<? extends GrantedAuthority> authorities = Arrays
+                .stream(claims.get(AUTHORITIES_CLAIM).toString().split(","))
                 .map(SimpleGrantedAuthority::new)
-                .collect(Collectors.toList());
+                .toList();
 
         String memberUuid = claims.getSubject();
 
@@ -131,7 +133,7 @@ public class TokenProvider {
             }
             return parseClaims(token).getSubject();
         } catch (ExpiredJwtException e) {
-            return e.getClaims().getSubject();  // 만료된 토큰에서도 claims 정보 파싱
+            return e.getClaims().getSubject(); // 만료된 토큰에서도 claims 정보 파싱
         }
     }
 }

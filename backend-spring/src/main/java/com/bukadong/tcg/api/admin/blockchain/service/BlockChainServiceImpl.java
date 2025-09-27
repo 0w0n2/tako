@@ -3,7 +3,8 @@ package com.bukadong.tcg.api.admin.blockchain.service;
 import com.bukadong.tcg.global.common.base.BaseResponseStatus;
 import com.bukadong.tcg.global.common.exception.BaseException;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.Web3j;
 
@@ -13,10 +14,11 @@ import java.math.BigInteger;
 /**
  * 블록체인 헬스체크 서비스
  */
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class BlockChainServiceImpl implements BlockChainService {
+
+    private static final Logger log = LoggerFactory.getLogger(BlockChainServiceImpl.class);
 
     private final Web3j web3j;
 

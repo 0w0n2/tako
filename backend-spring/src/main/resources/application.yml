@@ -157,6 +157,8 @@ logging:
     console: EUC-KR
     file: EUC-KR
   level:
+    com.bukadong.tcg.api.notification: DEBUG
+    com.bukadong.tcg.api.bid.service.BidEventApplyService: DEBUG
     com.bukadong.tcg.api.media.service.MediaPresignQueryService: DEBUG
     com.bukadong.tcg.api.inquiry.service.InquiryQueryService: DEBUG
     com.bukadong.tcg.api.inquiry.service.InquiryCommandService: DEBUG

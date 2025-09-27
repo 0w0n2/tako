@@ -20,7 +20,8 @@ import com.bukadong.tcg.api.auction.util.AuctionDeadlineIndex;
 import com.bukadong.tcg.api.bid.service.AuctionCacheService;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 경매 종료 서비스
@@ -31,10 +32,11 @@ import lombok.extern.slf4j.Slf4j;
  * @PARAM auctionId 경매 ID
  * @RETURN 없음
  */
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuctionFinalizeService {
+
+    private static final Logger log = LoggerFactory.getLogger(AuctionFinalizeService.class);
 
     private final AuctionRepository auctionRepository;
     private final AuctionWinnerQuery auctionWinnerQuery;

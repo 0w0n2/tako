@@ -7,7 +7,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
@@ -15,9 +16,10 @@ import java.io.IOException;
 /**
  * Spring Security 필터 체인에서 발생하는 BaseException 담당 처리 필터
  */
-@Slf4j
 @Component
 public class BaseExceptionHandlerFilter extends OncePerRequestFilter { // 매 요청마다 한 번만 실행되는 필터 클래스 상속
+
+    private static final Logger log = LoggerFactory.getLogger(BaseExceptionHandlerFilter.class);
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response,

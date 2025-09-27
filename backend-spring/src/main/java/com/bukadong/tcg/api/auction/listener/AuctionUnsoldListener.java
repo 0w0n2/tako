@@ -1,17 +1,11 @@
 package com.bukadong.tcg.api.auction.listener;
 
-import com.bukadong.tcg.api.auction.entity.Auction;
-import com.bukadong.tcg.api.auction.entity.AuctionResult;
-import com.bukadong.tcg.api.auction.event.AuctionSoldEvent;
 import com.bukadong.tcg.api.auction.event.AuctionUnsoldEvent;
 import com.bukadong.tcg.api.auction.repository.AuctionRepository;
-import com.bukadong.tcg.api.auction.repository.AuctionResultRepository;
-import com.bukadong.tcg.api.auction.util.AuctionDeadlineIndex;
-import com.bukadong.tcg.api.bid.repository.AuctionBidRepository;
 import com.bukadong.tcg.api.notification.service.NotificationCommandService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.event.EventListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,10 +22,11 @@ import org.springframework.transaction.event.TransactionalEventListener;
  * @PARAM AuctionClosedEvent 종료 이벤트
  * @RETURN 없음
  */
-@Slf4j
 @Component
 @RequiredArgsConstructor
 public class AuctionUnsoldListener {
+
+    private static final Logger log = LoggerFactory.getLogger(AuctionUnsoldListener.class);
 
     private final AuctionRepository auctionRepository;
     private final NotificationCommandService notificationService; // 알림 도메인 서비스

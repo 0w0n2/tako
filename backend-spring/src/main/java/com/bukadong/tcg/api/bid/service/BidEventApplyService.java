@@ -19,7 +19,8 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.PersistenceException;
 import jakarta.persistence.PessimisticLockException;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.hibernate.exception.LockAcquisitionException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -46,10 +47,11 @@ import java.time.temporal.ChronoUnit;
  * @PARAM json Redis 큐에서 팝한 이벤트 JSON
  * @RETURN 없음
  */
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class BidEventApplyService {
+
+    private static final Logger log = LoggerFactory.getLogger(BidEventApplyService.class);
 
     private final AuctionLockRepository auctionLockRepository;
     private final AuctionBidRepository auctionBidRepository;
@@ -206,6 +208,20 @@ public class BidEventApplyService {
                 }
             }
 
+            // 알림은 트랜잭션 내에서 생성하여 DB 기록을 보장하고, 푸시는 AFTER_COMMIT 리스너가 처리
+            final Long createdNotificationId;
+            if (!buyNowEvent) {
+                Long nid = null;
+                try {
+                    nid = notificationCommandService.notifyBidAccepted(memberId, auctionId, new BigDecimal(bidPlain));
+                } catch (Exception notifyEx) {
+                    log.warn("notifyBidAccepted (in-tx) failed auctionId={}, eventId={}", auctionId, eventId, notifyEx);
+                }
+                createdNotificationId = nid;
+            } else {
+                createdNotificationId = null;
+            }
+
             // 커밋 이후 실행 등록
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
@@ -218,15 +234,11 @@ public class BidEventApplyService {
                         if (!buyNowEvent) {
                             auctionLiveSseService.publishBidAccepted(auctionId, nickname, bidPlain, timeIso);
                         }
-                        // 입찰 성공 알림
+                        // 트랜잭션 내 생성된 알림 ID 로그 (푸시는 AFTER_COMMIT 리스너에서 전송)
                         if (!buyNowEvent) {
-                            try {
-                                notificationCommandService.notifyBidAccepted(memberId, auctionId,
-                                        new BigDecimal(bidPlain));
-                            } catch (Exception notifyEx) {
-                                log.warn("[afterCommit] notifyBidAccepted failed auctionId={}, eventId={}", auctionId,
-                                        eventId, notifyEx);
-                            }
+                            log.debug(
+                                    "[afterCommit] bid-accepted side effects done notificationId={} auctionId={} memberId={} amount={}",
+                                    createdNotificationId, auctionId, memberId, bidPlain);
                         }
 
                         if (buyNowEvent) {
@@ -385,18 +397,18 @@ public class BidEventApplyService {
         if (r == null)
             return AuctionBidReason.REJECTED.name();
         switch (r) {
-        case "LOW_PRICE":
-            return AuctionBidReason.LOW_PRICE.name();
-        case "NOT_RUNNING":
-            return AuctionBidReason.NOT_RUNNING.name();
-        case "MISSING":
-            return AuctionBidReason.MISSING.name();
-        case "PRECHECK":
-            return AuctionBidReason.PRECHECK.name();
-        case "SELF_BID":
-            return AuctionBidReason.SELF_BID.name();
-        default:
-            return r;
+            case "LOW_PRICE":
+                return AuctionBidReason.LOW_PRICE.name();
+            case "NOT_RUNNING":
+                return AuctionBidReason.NOT_RUNNING.name();
+            case "MISSING":
+                return AuctionBidReason.MISSING.name();
+            case "PRECHECK":
+                return AuctionBidReason.PRECHECK.name();
+            case "SELF_BID":
+                return AuctionBidReason.SELF_BID.name();
+            default:
+                return r;
         }
     }
 }
