@@ -3,8 +3,11 @@ package com.bukadong.tcg.global.util;
 import com.bukadong.tcg.global.common.base.BaseResponseStatus;
 import com.bukadong.tcg.global.common.dto.S3UploadResult;
 import com.bukadong.tcg.global.common.exception.BaseException;
+import com.sksamuel.scrimage.ImmutableImage;
+import com.sksamuel.scrimage.webp.WebpWriter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -20,6 +23,8 @@ import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignReques
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -36,9 +41,13 @@ public class S3Uploader {
     @Value("${spring.cloud.aws.s3.bucket}")
     private String bucket;
 
+    // WebP로 변환할 이미지 콘텐츠 타입 목록
+    private static final List<String> CONVERTIBLE_IMAGE_TYPES = Arrays.asList(MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE);
+
     /**
      * S3에 파일을 업로드하고, 키와 URL을 함께 반환
-     * 
+     * JPG, PNG 파일은 WebP로 변환하여 업로드
+     *
      * @PARAM multipartFile 업로드 파일
      * @PARAM dirName 디렉토리 명(예: "inquiries", "profiles")
      * @RETURN S3UploadResult (key, url, originalFilename, contentType, size)
@@ -48,33 +57,78 @@ public class S3Uploader {
             return null;
 
         String originalFileName = multipartFile.getOriginalFilename();
-        String extension = "";
-        if (originalFileName != null && originalFileName.contains(".")) {
-            extension = originalFileName.substring(originalFileName.lastIndexOf("."));
+        boolean isConvertibleImage = isConvertibleImage(multipartFile.getContentType());
+
+        byte[] processedBytes;
+        String processedContentType;
+        String uniqueFileKey;
+
+        try {
+            processedBytes = multipartFile.getBytes();
+
+            if (isConvertibleImage) {
+                /* Webp 로 변환 */
+                log.debug("[S3-WEBP] Start WebP image conversion: originalFileName={}", originalFileName);
+                processedBytes = convertToWebInMemory(processedBytes);
+                processedContentType = "image/webp";
+
+                uniqueFileKey = dirName + "/" + UUID.randomUUID() + ".webp";
+                log.debug("[S3-WEBP] Image WebP conversion complete: newKey={}", uniqueFileKey);
+            } else { /* 원본 데이터 사용 */
+                processedContentType = multipartFile.getContentType();
+                String extension = "";
+                if (originalFileName != null && originalFileName.contains(".")) {
+                    extension = originalFileName.substring(originalFileName.lastIndexOf("."));
+                }
+                uniqueFileKey = dirName + "/" + UUID.randomUUID() + extension;
+            }
+        } catch (IOException e) {
+            log.error("[S3] File processing failed (getBytes): dirName={} originalFileName={} -> {}", dirName, originalFileName, e.getMessage(), e);
+            throw new BaseException(BaseResponseStatus.S3_FILE_UPLOAD_FAILED);
         }
-        String uniqueFileKey = dirName + "/" + UUID.randomUUID() + extension;
 
         if (log.isDebugEnabled()) {
-            log.debug("[S3] 업로드 준비: dirName={} originalFileName={} size={} contentType={}", dirName, originalFileName,
+            log.debug("[S3] Preparing for upload: dirName={} originalFileName={} size={} contentType={}", dirName, originalFileName,
                     multipartFile.getSize(), multipartFile.getContentType());
         }
 
-        PutObjectRequest putObjectRequest = PutObjectRequest.builder().bucket(bucket).key(uniqueFileKey)
-                .contentType(multipartFile.getContentType()).contentLength(multipartFile.getSize()).build();
+        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                .bucket(bucket)
+                .key(uniqueFileKey)
+                .contentType(processedContentType)
+                .contentLength((long) processedBytes.length)
+                .build();
+
+        /* S3 업로드 */
         try {
-            s3Client.putObject(putObjectRequest, RequestBody.fromBytes(multipartFile.getBytes()));
+            s3Client.putObject(putObjectRequest, RequestBody.fromBytes(processedBytes));
             if (log.isDebugEnabled()) {
-                log.debug("[S3] 업로드 완료: key={}", uniqueFileKey);
+                log.debug("[S3] Upload complete: key={}", uniqueFileKey);
             }
-        } catch (IOException e) {
-            log.error("[S3] 업로드 실패: dirName={} originalFileName={} -> {}", dirName, originalFileName, e.getMessage(),
+        } catch (Exception e) { // AWS SDK v2 Exception 처리
+            log.error("[S3] Upload failed: dirName={} originalFileName={} -> {}", dirName, originalFileName, e.getMessage(),
                     e);
             throw new BaseException(BaseResponseStatus.S3_FILE_UPLOAD_FAILED);
         }
 
-        // key포함 정보 반환 (url은 presign으로 추후 요청시 별도 발급)
-        return S3UploadResult.builder().key(uniqueFileKey).originalFilename(originalFileName)
-                .contentType(multipartFile.getContentType()).size(multipartFile.getSize()).build();
+        // key 포함 정보 반환 (url은 presign 으로 추후 요청시 별도 발급)
+        return S3UploadResult.builder()
+                .key(uniqueFileKey)
+                .originalFilename(originalFileName)
+                .contentType(processedContentType)
+                .size((long) processedBytes.length)
+                .build();
+    }
+
+    private byte[] convertToWebInMemory(byte[] originalFileBytes) throws IOException {
+        return ImmutableImage.loader().fromBytes(originalFileBytes).bytes(WebpWriter.DEFAULT);
+    }
+
+    private boolean isConvertibleImage(String contentType) {
+        if (!StringUtils.hasText(contentType)) {
+            return false;
+        }
+        return CONVERTIBLE_IMAGE_TYPES.contains(contentType.toLowerCase());
     }
 
     /**
@@ -152,10 +206,10 @@ public class S3Uploader {
 
     /**
      * S3 연결 확인
-     * <P>
+     * <p>
      * 버킷에서 객체 리스트 호출로 연결 검증
      * </P>
-     * 
+     *
      * @RETURN true=정상 연결, false=실패
      */
     public boolean healthCheck() {

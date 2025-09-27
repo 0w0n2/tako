@@ -17,9 +17,10 @@ import java.time.LocalDateTime;
  * @PARAM currentPrice 현재가
  * @PARAM bidCount 유효 입찰 수(VALID)
  * @PARAM endDatetime 마감 일시
+ * @PARAM startDatetime 시작 일시
  * @PARAM primaryImageKey 대표 이미지 S3 key(후처리에서 presign)
  * @RETURN 내부 프로젝션 DTO
  */
 public record AuctionListProjection(Long id, String grade, String title, BigDecimal currentPrice, long bidCount,
-                                    LocalDateTime endDatetime, String primaryImageKey, BigInteger tokenId) {
+        LocalDateTime endDatetime, String primaryImageKey, BigInteger tokenId, LocalDateTime startDatetime) {
 }
