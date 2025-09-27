@@ -1,4 +1,5 @@
 import api from "@/lib/api";
+import { compressToUnder500KB } from "@/lib/imageCompression";
 import type { MyBidAuctions, MyInfo } from "@/types/auth";
 
 // ================= 새 프로필 관련 타입 =================
@@ -62,8 +63,14 @@ export async function patchMyProfile(payload: PatchProfilePayload) {
 
 	const form = new FormData();
 	form.append("request", new Blob([JSON.stringify(requestBody)], { type: "application/json" }));
-	if (profileImageFile) form.append("profileImage", profileImageFile);
-	if (backgroundImageFile) form.append("backgroundImage", backgroundImageFile);
+	if (profileImageFile) {
+		const compressed = await compressToUnder500KB(profileImageFile);
+		form.append("profileImage", compressed);
+	}
+	if (backgroundImageFile) {
+		const compressed = await compressToUnder500KB(backgroundImageFile);
+		form.append("backgroundImage", compressed);
+	}
 
 	const res = await api.patch<ApiBase<Record<string, never>>>("/v1/members/me", form, {
 		headers: { "Content-Type": "multipart/form-data" },

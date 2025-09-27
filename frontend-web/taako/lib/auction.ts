@@ -1,5 +1,6 @@
 import api from "./api";
 import { GetHotCards, AuctionDetailProps, WeeklyAuctions } from "@/types/auction";
+import { compressToUnder500KB } from "@/lib/imageCompression";
 import type { Card } from "@/types/card";
 import type { Seller } from "@/types/seller";
 import type { History } from "@/types/history";
@@ -10,9 +11,10 @@ export const createAuction = async (requestDto: any, files: File[]) => {
 	const formData = new FormData();
 	// requestDto는 JSON형식, files는 파일형식으로 request
 	formData.append("requestDto", JSON.stringify(requestDto));
-	files.forEach((file) => {
-		formData.append("files", file);
-	});
+	for (const file of files) {
+		const compressed = await compressToUnder500KB(file);
+		formData.append("files", compressed);
+	}
 
 	const res = await api.post("/v1/auctions", formData, {
 		headers: {
