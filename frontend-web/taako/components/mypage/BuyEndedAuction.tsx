@@ -2,17 +2,16 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useMyInfo } from "@/hooks/useMyInfo";
 import ConfirmReceiptButton from "@/components/nft/ConfirmReceiptButton";
 import { useDelivery } from "@/hooks/useDelivery";
-import { useDelivery as useDelivery_2 } from "@/hooks/useSellDelivery";
+import BuyDeliveryForm from "@/components/mypage/delivery/BuyDeliveryForm";
 import { useEscrowAddress } from "@/hooks/useEscrowAddress";
 import { depositToEscrow } from "@/lib/bc/escrow";
-import PayButton from "@/components/nft/PayButton"; // ← 경로 수정 완료
-import SellDeliveryForm from "@/components/mypage/delivery/SellDeliveryForm";
+import PayButton from "@/components/nft/PayButton";
 import type { MyBidAuctions } from "@/types/auth";
 
 const statusMap: Record<string, string> = {
@@ -56,35 +55,26 @@ function DeliveryBadge({ auctionId }: { auctionId: number }) {
 /** 경매 카드 1개 렌더링 */
 function AuctionEndedRow({ item }: { item: MyBidAuctions }) {
   const auctionId = Number(item.auctionId);
-  const [openAddressModal, setOpenAddressModal] = useState(false);
-  const [addressRegistered, setAddressRegistered] = useState(false);
-  const { auctionDelivery, handlerGetAuctionDelivery } = useDelivery_2();
-
-  const { info } = useDelivery(auctionId);
-  const trackingNumber = info?.trackingNumber ?? null;
-  const trackingMissing = !((trackingNumber ?? "").trim().length > 0);
-  const { data: escrowAddress } = useEscrowAddress(auctionId);
-
-  // NOTE: 백엔드 금액 단위와 ETH 단위가 다르면 변환 필요
-  const priceEth = useMemo(() => Number(item.currentPrice) || 0, [item.currentPrice]);
-
-  const onPay = useCallback(async () => {
-    if (!escrowAddress) {
-      throw new Error("에스크로 주소를 가져오지 못했습니다.");
-    }
-    // PayButton 내부에서 에러 메시지를 보여주므로 여기서는 throw만 해도 됨.
-    await depositToEscrow(escrowAddress, priceEth);
-    // 결제 성공 후 서버 리포팅(API)이 필요하다면 여기에서 호출
-  }, [escrowAddress, priceEth]);
-
   if (!Number.isFinite(auctionId)) {
     console.warn("유효하지 않은 auctionId", item);
     return null;
   }
 
-  useEffect(()=> {
-      handlerGetAuctionDelivery(item.auctionId);
-    }, [])
+  const [openAddressModal, setOpenAddressModal] = useState(false);
+
+  // 배송 관련 상태
+  const { info, hasRecipient } = useDelivery(auctionId);
+  const trackingNumber = info?.trackingNumber ?? null;
+  const trackingMissing = !((trackingNumber ?? "").trim().length > 0);
+
+  // 에스크로/결제
+  const { data: escrowAddress } = useEscrowAddress(auctionId);
+  const priceEth = useMemo(() => Number(item.currentPrice) || 0, [item.currentPrice]);
+
+  const onPay = useCallback(async () => {
+    if (!escrowAddress) throw new Error("에스크로 주소를 가져오지 못했습니다.");
+    await depositToEscrow(escrowAddress, priceEth);
+  }, [escrowAddress, priceEth]);
 
   return (
     <div>
@@ -116,13 +106,13 @@ function AuctionEndedRow({ item }: { item: MyBidAuctions }) {
           </div>
           <div>
             <h3 className="bid">{item.title}</h3>
-            {auctionDelivery?.status ? (
-                <p className="text-sm text-green-500">
-                  {statusMap[auctionDelivery?.status ?? ""]}
-                </p>
-              ) : (
-                <p className="text-sm text-red-500">배송지 입력 대기</p>
-              )}
+            {info?.status ? (
+              <p className="text-sm text-green-500">
+                {statusMap[info.status] ?? info.status}
+              </p>
+            ) : (
+              <p className="text-sm text-red-500">배송지 입력 대기</p>
+            )}
           </div>
         </div>
 
@@ -139,26 +129,26 @@ function AuctionEndedRow({ item }: { item: MyBidAuctions }) {
 
             {/* 버튼들: 오른쪽부터 [배송지 선택, 결제, 구매확정] */}
             <div className="flex justify-end items-center gap-3">
-              {/* 1) 배송지 선택 버튼 (오른쪽) */}
+              {/* 1) 배송지 선택 버튼 */}
               <Button
                 variant="outline"
                 className="min-w-[104px]"
                 onClick={() => setOpenAddressModal(true)}
-                disabled={addressRegistered}
+                disabled={hasRecipient}
               >
-                {addressRegistered ? "배송지 선택 완료" : "배송지 선택"}
+                {hasRecipient ? "배송지 선택 완료" : "배송지 선택"}
               </Button>
 
-              {/* 2) 결제 버튼 (가운데) */}
+              {/* 2) 결제 버튼 */}
               <PayButton
                 auctionId={auctionId}
                 trackingMissing={trackingMissing}
-                disabledReason={trackingMissing ? '운송장 발급 후 결제 가능합니다.' : undefined}
+                disabledReason={trackingMissing ? "운송장 발급 후 결제 가능합니다." : undefined}
                 onPay={onPay}
                 className="min-w-[104px]"
               />
 
-              {/* 3) 구매확정 버튼 (왼쪽) */}
+              {/* 3) 구매확정 버튼 */}
               <ConfirmReceiptButton auctionId={auctionId} />
             </div>
           </div>
@@ -167,9 +157,10 @@ function AuctionEndedRow({ item }: { item: MyBidAuctions }) {
 
       {/* 배송지 선택 모달 */}
       {openAddressModal && (
-        <SellDeliveryForm
+        <BuyDeliveryForm
           auctionId={auctionId}
           onClose={() => setOpenAddressModal(false)}
+          onRegistered={() => setOpenAddressModal(false)} // 등록 후 닫기
         />
       )}
     </div>
