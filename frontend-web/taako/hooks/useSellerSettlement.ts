@@ -2,7 +2,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEscrowAddress } from "@/hooks/useEscrowAddress";
 import { useEscrowState } from "@/hooks/useEscrowState";
 import { useEscrowNftInfo } from "@/hooks/useEscrowNftInfo";
@@ -10,6 +10,7 @@ import { useERC721Approval } from "@/hooks/useERC721Approval";
 import { releaseFunds } from "@/lib/bc/escrow";
 import { ESCROW_STATE } from "@/lib/bc/escrowAbi";
 import { ZeroAddress } from "ethers";
+import { getProvider } from "@/lib/bc/provider";
 
 type Params = {
   auctionId: number;
@@ -32,8 +33,12 @@ export function useSellerSettlement({
     useEscrowAddress(auctionId);
 
   // 2) 에스크로 상태 폴링
-  const { state: escrowState, loading: stateLoading, error: stateError, refetch: refetchState } =
-    useEscrowState(auctionId, true, 10_000);
+  const {
+    state: escrowState,
+    loading: stateLoading,
+    error: stateError,
+    refetch: refetchState,
+  } = useEscrowState(auctionId, true, 10_000);
 
   const buyerConfirmed = Number(escrowState) === ESCROW_STATE.Complete;
 
@@ -56,18 +61,49 @@ export function useSellerSettlement({
     spender: (escrowAddress ?? ZeroAddress) as string,
   });
 
+  // 5) 대금 인출 완료 감지 (에스크로 잔액 0)
+  const releasedQuery = useQuery({
+    queryKey: ["escrowReleased", escrowAddress],
+    enabled: !!escrowAddress,
+    queryFn: async () => {
+      if (!escrowAddress) throw new Error("에스크로 주소가 없습니다.");
+      const provider = await getProvider();
+      const bal = await provider.getBalance(escrowAddress as string);
+      return { balanceIsZero: bal === BigInt(0) };
+    },
+    refetchInterval: (q) => {
+      const d = q.state.data as { balanceIsZero?: boolean } | undefined;
+      // 잔액이 0이면 폴링 중단
+      if (d?.balanceIsZero) return false;
+      return 10_000;
+    },
+    staleTime: 5_000,
+    gcTime: 5 * 60 * 1000,
+  });
+
+  const released = !!releasedQuery.data?.balanceIsZero;
+
   // 버튼 활성 조건
   // - approve: buyerConfirmed && !alreadyApproved && !nftNotMinted
-  // - release: buyerConfirmed && (alreadyApproved || nftNotMinted)
+  // - release: buyerConfirmed && (alreadyApproved || nftNotMinted) && !released
   const canApprove = useMemo(
-    () => Boolean(escrowAddress) && buyerConfirmed && !approval.isAlreadyApproved && !nftNotMinted,
+    () =>
+      Boolean(escrowAddress) &&
+      buyerConfirmed &&
+      !approval.isAlreadyApproved &&
+      !nftNotMinted,
     [escrowAddress, buyerConfirmed, approval.isAlreadyApproved, nftNotMinted]
   );
 
-  const canRelease = useMemo(
-    () => Boolean(escrowAddress) && buyerConfirmed && (approval.isAlreadyApproved || nftNotMinted),
+  const canReleaseBase = useMemo(
+    () =>
+      Boolean(escrowAddress) &&
+      buyerConfirmed &&
+      (approval.isAlreadyApproved || nftNotMinted),
     [escrowAddress, buyerConfirmed, approval.isAlreadyApproved, nftNotMinted]
   );
+
+  const canRelease = canReleaseBase && !released;
 
   // 승인 실행
   const approveMutation = useMutation({
@@ -90,44 +126,21 @@ export function useSellerSettlement({
       if (!nftNotMinted && !approval.isAlreadyApproved) {
         throw new Error("먼저 NFT 승인(approve)을 완료해주세요.");
       }
-      const receipt = await releaseFunds(escrowAddress as `0x${string}`);
-      void refetchState();
+      const receipt = await releaseFunds(escrowAddress as `0x${string}`); // tx
+      void refetchState();          // 에스크로 상태 즉시 갱신 시도
+      void releasedQuery.refetch(); // 잔액 0 반영 즉시 시도
       return receipt;
     },
   });
-
-  const extractReason = (e: any): string | undefined => {
-    const msg = e?.reason || e?.shortMessage || e?.message;
-    if (msg && /execution reverted/i.test(msg)) {
-      return "스마트컨트랙트 조건이 충족되지 않아 실행이 거부되었습니다.";
-    }
-    return undefined;
-  };
-
-  const humanize = (e: unknown) => {
-    const raw = e as any;
-    const msg = raw?.message ?? String(e);
-
-    if (/user rejected|rejected by user/i.test(msg)) return "사용자가 서명을 거부했습니다.";
-    if (/insufficient funds/i.test(msg)) return "가스비(ETH)가 부족합니다.";
-    if (/unauthorized|only\s*seller|not\s*seller/i.test(msg)) return "판매자 지갑만 수행할 수 있습니다.";
-    if (/already\s*released|already\s*paid|already\s*completed/i.test(msg)) return "이미 정산이 완료되었습니다.";
-    if (/not\s*confirmed|AwaitingConfirmation|confirmReceipt/i.test(msg)) return "구매자 구매확정 이후에만 가능합니다.";
-    if (/approve/i.test(msg) && /먼저|first/i.test(msg)) return "먼저 NFT 승인(approve)을 완료해주세요.";
-
-    const reason = extractReason(raw);
-    if (reason) return reason;
-
-    return `오류가 발생했습니다: ${msg}`;
-  };
 
   return {
     // 상태
     escrowAddress,
     escrowState,
     buyerConfirmed,
-    escrowLoading: escrowLoading || stateLoading || nftLoading,
-    escrowError: escrowError || stateError || nftError || "",
+    released, // 인출 완료 여부
+    escrowLoading: escrowLoading || stateLoading || nftLoading || releasedQuery.isLoading,
+    escrowError: escrowError || stateError || nftError || (releasedQuery.isError ? (releasedQuery.error instanceof Error ? releasedQuery.error.message : "정산 상태 확인 오류") : ""),
 
     // 에스크로에서 읽은 NFT/토큰 (UI 표시용)
     nftAddress,
@@ -149,7 +162,7 @@ export function useSellerSettlement({
         await approveMutation.mutateAsync();
         return { ok: true, message: "승인이 완료되었습니다." };
       } catch (e) {
-        return { ok: false, message: humanize(e) };
+        return { ok: false, message: "NFT 소유권 이전 권한 승인 중 오류가 발생하였습니다." };
       }
     },
     release: async () => {
@@ -157,8 +170,12 @@ export function useSellerSettlement({
         await releaseMutation.mutateAsync();
         return { ok: true, message: "대금 인출이 완료되었습니다." };
       } catch (e) {
-        return { ok: false, message: humanize(e) };
+        return { ok: false, message: "대금 인출 과정 중 오류가 발생하였습니다." };
       }
     },
+
+    // 외부에서 필요 시 수동 새로고침
+    refetchReleased: releasedQuery.refetch,
+    refetchState,
   };
 }

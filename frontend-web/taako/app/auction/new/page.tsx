@@ -501,6 +501,10 @@ export default function NewAuctionPage() {
                     </SelectTrigger>
                     <SelectContent className="bg-[#191924] border-[#353535] text-white">
                       {[
+                        "0.0001",
+                        "0.0005",
+                        "0.001",
+                        "0.005",
                         "0.01",
                         "0.05",
                         "0.1",

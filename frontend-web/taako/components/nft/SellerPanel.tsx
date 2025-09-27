@@ -26,6 +26,7 @@ export default function SellerPayoutPanel({
     escrowAddress,
     escrowState,
     buyerConfirmed,
+    released,        // 추가: 인출 완료 플래그
     escrowLoading,
     escrowError,
 
@@ -81,7 +82,19 @@ export default function SellerPayoutPanel({
     walletLoading || escrowLoading || approving || !canApprove || walletMismatch;
 
   const disabledRelease =
-    walletLoading || escrowLoading || releasing || !canRelease || walletMismatch;
+    walletLoading || escrowLoading || releasing || !canRelease || walletMismatch || released; // ✅ released 반영
+
+  const releaseLabel = releasing
+    ? "인출 중..."
+    : released
+    ? "대금 인출 완료"
+    : "대금 인출(Release Funds)";
+
+  const releaseTitle = released
+    ? "이미 대금 인출이 완료되었습니다."
+    : buyerConfirmed
+      ? (nftNotMinted ? "" : (alreadyApproved ? "" : "먼저 NFT 승인(approve)을 완료해주세요."))
+      : "구매자가 confirmReceipt를 해야 정산 가능합니다.";
 
   return (
     <div className="w-full rounded-xl bg-[#191924] border border-[#353535] p-5 space-y-4">
@@ -99,7 +112,7 @@ export default function SellerPayoutPanel({
           <div className="text-xs break-all text-[#dedede]">
             {escrowAddress ?? "불러오는 중..."}
           </div>
-          {escrowError && <div className="text-xs text-red-400 mt-1">{String(escrowError)}</div>}
+          {escrowError && <div className="text-xs text-red-400 mt-1">에스크로 탐색 불가</div>}
         </div>
 
         <div className="rounded-xl border border-[#353535] p-4">
@@ -114,7 +127,7 @@ export default function SellerPayoutPanel({
         </div>
 
         <div className="rounded-xl border border-[#353535] p-4">
-          <div className="text-sm text-[#b5b5b5] mb-1">NFT / Token</div>
+          <div className="text-sm text-[#b5b5b5] mb-1">NFT</div>
           <div className="text-xs text-[#dedede] break-all">{nftAddress}</div>
           <div className="text-xs text-[#b5b5b5]">Token #{String(tokenId ?? 0)}</div>
           {nftNotMinted && (
@@ -149,14 +162,10 @@ export default function SellerPayoutPanel({
           className="flex-1 bg-green-700 hover:bg-green-800 text-white disabled:bg-green-900/40"
           disabled={disabledRelease}
           onClick={handleRelease}
-          title={
-            buyerConfirmed
-              ? (nftNotMinted ? "" : (alreadyApproved ? "" : "먼저 NFT 승인(approve)을 완료해주세요."))
-              : "구매자가 confirmReceipt를 해야 정산 가능합니다."
-          }
+          title={releaseTitle}
         >
           <Wallet className="w-4 h-4 mr-2" />
-          대금 인출(Release Funds)
+          {releaseLabel}
         </Button>
       </div>
 

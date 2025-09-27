@@ -17,7 +17,7 @@ function toUiError(err: any): UiError {
   const status = err?.response?.status ?? err?.status;
   const serverMsg = err?.response?.data?.message ?? err?.data?.message ?? err?.message;
 
-  if (status === 409) return { title: '다른 계정에서 사용 중인 지갑 주소입니다.' };
+  if (status === 409) return { title: '이미 사용 중인 지갑 주소입니다.' };
   if (status === 400) return { title: '요청이 올바르지 않아요.', detail: serverMsg };
   if (status === 401) return { title: '로그인이 필요해요.' };
   if (status === 403) return { title: '권한이 없어요.' };
@@ -61,12 +61,7 @@ const WalletProfile: React.FC = () => {
     isInstalling,
   } = useWallet();
 
-  const {
-    me,
-    meLoading,
-    meError,
-    storedWallet,
-  } = useMyInfo();
+  const { me, meLoading, meError, storedWallet } = useMyInfo();
 
   const hasStored = !!storedWallet;
   const hasConnected = !!connected;
@@ -92,28 +87,58 @@ const WalletProfile: React.FC = () => {
 
   const [target, setTarget] = useState<NetworkTarget>('sepolia');
 
-  const onReloadAndAuto = useCallback(() => {
-    reloadAndAutoConnect();
-  }, [reloadAndAutoConnect]);
-
+  // 연결된 지갑을 내 계정에 저장
   const onAdoptConnected = useCallback(() => {
     if (!connected) return;
     updateWallet(connected);
   }, [connected, updateWallet]);
 
+  // 최초 연결(등록 없음) 시: MetaMask 연결만 실행 (서버 저장은 버튼에서만)
   const onConnectThenSave = useCallback(async () => {
+    await connectWallet();
+  }, [connectWallet]);
+
+  // 상단 우측 "지갑 바꾸기" 작은 버튼 → 경고 후 진행(연결만)
+  const onConfirmChangeWallet = useCallback(async () => {
+    const ok = typeof window !== 'undefined' && window.confirm(
+      [
+        '지갑을 변경하면 진행 중인 경매와 정산에 영향이 있을 수 있어요.',
+        '진행 중인 경매를 모두 완료한 뒤 변경하는 것을 권장합니다.',
+        '',
+        '지갑을 변경하시겠습니까?',
+      ].join('\n')
+    );
+    if (!ok) return;
     await connectWallet();
   }, [connectWallet]);
 
   const loadingAny = loading || meLoading || isUpdating;
 
+  // ✅ 잔액은 "DB 저장 지갑"과 "브라우저 연결 지갑"이 일치할 때만 노출
+  const showBalance = hasStored && hasConnected && sameAddr(storedWallet, connected);
+  const safeBalance = showBalance ? (balance || '-') : '-';
+
   return (
-    <div className="flex-1 p-8 border border-[#353535] bg-[#191924] rounded-xl flex justify-between">
+    <div className="relative flex-1 p-8 border border-[#353535] bg-[#191924] rounded-xl flex justify-between">
+      {/* 상단 우측 작은 "지갑 바꾸기" 버튼: 저장된 지갑이 있을 때만 노출 */}
+      {hasStored && (
+        <button
+          onClick={onConfirmChangeWallet}
+          className="absolute top-4 right-4 text-xs px-2 py-1 rounded-md border border-[#444] text-[#dcdcdc] hover:bg-[#242433]"
+          disabled={loadingAny}
+          aria-label="지갑 바꾸기"
+          title="지갑 바꾸기"
+        >
+          지갑 바꾸기
+        </button>
+      )}
+
       <div className="flex flex-col gap-4">
         <h3 className="text-white text-xl font-semibold">내 지갑 정보</h3>
 
         <ErrorBanner error={uiError} />
 
+        {/* 메타마스크 미설치 & 미연결 & 미등록 */}
         {needsMetaMask && !hasConnected && !hasStored && (
           <div className="flex flex-col gap-3">
             <p className="text-[#D2D2D2]">메타마스크가 설치되어 있지 않습니다.</p>
@@ -124,7 +149,7 @@ const WalletProfile: React.FC = () => {
               <button onClick={connectWallet} disabled={loadingAny} className="bg-blue-500 hover:bg-blue-600 disabled:bg-blue-400 text-white font-semibold py-2 px-4 rounded-lg">
                 {isInstalling ? '설치 감지 중...' : loadingAny ? '확인 중...' : '설치 완료 — 자동 연결'}
               </button>
-              <button onClick={onReloadAndAuto} className="bg-neutral-700 hover:bg-neutral-600 text-white font-semibold py-2 px-4 rounded-lg">
+              <button onClick={reloadAndAutoConnect} className="bg-neutral-700 hover:bg-neutral-600 text-white font-semibold py-2 px-4 rounded-lg">
                 새로고침 후 자동 연결
               </button>
             </div>
@@ -132,40 +157,44 @@ const WalletProfile: React.FC = () => {
           </div>
         )}
 
-        {hasStored && (!hasConnected || sameAddr(storedWallet, connected)) && (
-          <div>
-            <div className="flex flex-col gap-2">
-              <div className="flex gap-3">
-                <span className="text-[#D2D2D2]">지갑</span>
-                <span className="text-2xl text-[#A4B2FF] font-semibold">{short(storedWallet!)}</span>
-              </div>
-              <div className="flex gap-3">
-                <span className="text-[#D2D2D2]">네트워크</span>
-                <span className="text-lg text-yellow-400 font-medium">{chainName || '-'}</span>
-              </div>
-              <div className="flex gap-3">
-                <span className="text-[#D2D2D2]">잔액</span>
-                <span className="text-lg text-green-400 font-medium">{balance || '-'}</span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 mt-4 flex-wrap">
-              <select className="bg-[#101018] text-white border border-[#353535] rounded-lg px-3 py-2" value={target} onChange={(e) => setTarget(e.target.value as NetworkTarget)}>
-                <option value="sepolia">Sepolia</option>
-                <option value="mainnet">Mainnet</option>
-              </select>
-
-              <button onClick={() => switchNetwork(target)} disabled={loadingAny} className="bg-purple-600 hover:bg-purple-500 disabled:bg-purple-400 text-white font-semibold py-2 px-4 rounded-lg">
-                {loadingAny ? '전환 중...' : '네트워크 전환'}
-              </button>
-
-              <button onClick={connectWallet} className="bg-neutral-700 hover:bg-neutral-600 text-white font-semibold py-2 px-4 rounded-lg">
-                지갑 바꾸기
-              </button>
-            </div>
+        {/* 정보 영역: 지갑/네트워크/잔액 */}
+        <div className="flex flex-col gap-2">
+          <div className="flex gap-3">
+            <span className="text-[#D2D2D2]">지갑</span>
+            <span className="text-2xl text-[#A4B2FF] font-semibold">
+              {hasStored ? short(storedWallet!) : '-'}
+            </span>
           </div>
-        )}
+          <div className="flex gap-3">
+            <span className="text-[#D2D2D2]">네트워크</span>
+            <span className="text-lg text-yellow-400 font-medium">{hasConnected ? (chainName || '-') : '-'}</span>
+          </div>
+          <div className="flex gap-3">
+            <span className="text-[#D2D2D2]">잔액</span>
+            <span className="text-lg text-green-400 font-medium">{safeBalance}</span>
+          </div>
+        </div>
 
+        {/* 네트워크 전환 */}
+        <div className="flex items-center gap-2 mt-4 flex-wrap">
+          <select
+            className="bg-[#101018] text-white border border-[#353535] rounded-lg px-3 py-2"
+            value={target}
+            onChange={(e) => setTarget(e.target.value as NetworkTarget)}
+          >
+            <option value="sepolia">Sepolia</option>
+            <option value="mainnet">Mainnet</option>
+          </select>
+          <button
+            onClick={() => switchNetwork(target)}
+            disabled={loadingAny}
+            className="bg-purple-600 hover:bg-purple-500 disabled:bg-purple-400 text-white font-semibold py-2 px-4 rounded-lg"
+          >
+            {loadingAny ? '전환 중...' : '네트워크 전환'}
+          </button>
+        </div>
+
+        {/* 저장된 지갑과 연결된 지갑이 다른 경우(불일치 안내 + 액션) */}
         {isMismatch && (
           <div className="flex flex-col gap-3">
             <div className="rounded-lg border border-[#5c2c2c] bg-[#2a1616] p-3 text-sm text-[#ffb4b4]">
@@ -177,33 +206,55 @@ const WalletProfile: React.FC = () => {
             </div>
 
             <div className="flex gap-2 flex-wrap">
-              <button onClick={onAdoptConnected} disabled={isUpdating || !connected} className="bg-blue-600 hover:bg-blue-500 disabled:bg-blue-400 text-white font-semibold py-2 px-4 rounded-lg">
+              <button
+                onClick={onAdoptConnected}
+                disabled={isUpdating || !connected}
+                className="bg-blue-600 hover:bg-blue-500 disabled:bg-blue-400 text-white font-semibold py-2 px-4 rounded-lg"
+              >
                 {isUpdating ? '갱신 중...' : '연결된 지갑으로 변경(저장)'}
               </button>
-              <button onClick={connectWallet} className="bg-neutral-700 hover:bg-neutral-600 text-white font-semibold py-2 px-4 rounded-lg">
-                다른 지갑에 연결
-              </button>
+            </div>
+
+            {/* ✅ 안내 문구: 프로그램으로 메타마스크 계정 전환은 불가 */}
+            <div className="text-xs text-[#cfcfcf]">
+              메타마스크 확장에서 <span className="font-mono">{short(storedWallet!)}</span> 계정으로 직접 전환해 주세요.
+              (브라우저에서 지갑 계정은 앱이 임의로 변경할 수 없습니다)
             </div>
           </div>
         )}
 
+        {/* DB 저장된 지갑이 없고, 아직 브라우저도 미연결 */}
         {!hasStored && !hasConnected && !needsMetaMask && (
-          <button onClick={onConnectThenSave} disabled={loadingAny} className="bg-blue-500 hover:bg-blue-600 disabled:bg-blue-400 text-white font-bold py-3 px-6 rounded-lg">
+          <button
+            onClick={onConnectThenSave}
+            disabled={loadingAny}
+            className="bg-blue-500 hover:bg-blue-600 disabled:bg-blue-400 text-white font-bold py-3 px-6 rounded-lg"
+          >
             {loadingAny ? '연결중...' : '지갑 연동하기'}
           </button>
         )}
 
+        {/* DB 저장된 지갑이 없고, 브라우저 지갑은 연결됨 → 등록 버튼만 제공
+            (상단 정보 영역의 "지갑" 값은 여전히 '-' 로 유지됨) */}
         {!hasStored && hasConnected && (
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-2">
-              <span className="text-[#D2D2D2]">연결된 지갑</span>
+              <span className="text-[#D2D2D2]">브라우저 연결</span>
               <span className="text-2xl text-[#A4B2FF] font-semibold">{short(connected!)}</span>
             </div>
             <div className="flex gap-2 flex-wrap">
-              <button onClick={onAdoptConnected} disabled={isUpdating} className="bg-green-600 hover:bg-green-500 disabled:bg-green-400 text-white font-semibold py-2 px-4 rounded-lg">
+              <button
+                onClick={onAdoptConnected}
+                disabled={isUpdating}
+                className="bg-green-600 hover:bg-green-500 disabled:bg-green-400 text-white font-semibold py-2 px-4 rounded-lg"
+              >
                 {isUpdating ? '저장 중...' : '내 계정에 등록'}
               </button>
-              <button onClick={connectWallet} className="bg-neutral-700 hover:bg-neutral-600 text-white font-semibold py-2 px-4 rounded-lg">
+              <button
+                onClick={onConfirmChangeWallet}
+                className="bg-neutral-700 hover:bg-neutral-600 text-white font-semibold py-2 px-4 rounded-lg"
+                disabled={loadingAny}
+              >
                 다른 지갑 연결
               </button>
             </div>

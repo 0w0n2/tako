@@ -1,8 +1,8 @@
+// hooks/useWallet.ts
 'use client';
 
 import { useRef, useState, useCallback, useEffect } from 'react';
 import { formatEther } from 'ethers';
-import { sendWalletAddress } from '@/lib/bc/wallet';
 import {
   getBrowserProvider,
   getMetaMaskProvider,
@@ -66,17 +66,6 @@ const useWallet = (): UseWalletReturn => {
     }
   }, []);
 
-  const upsertAddress = useCallback(async (addr: string) => {
-    try {
-      await sendWalletAddress(addr);
-    } catch (e: any) {
-      const msg = e?.response?.data?.message || e?.message || '지갑 주소 저장 실패';
-      setError(msg);
-      console.error('[wallet] upsert error:', e);
-      throw e;
-    }
-  }, []);
-
   // 새로고침 + 자동연결 플로우
   const reloadAndAutoConnect = useCallback(() => {
     try {
@@ -87,6 +76,7 @@ const useWallet = (): UseWalletReturn => {
     }
   }, []);
 
+  // ⚠️ 서버 저장 없음: 연결만 수행하고 로컬 상태/잔액만 갱신
   const connectWallet = useCallback(async () => {
     if (connectingRef.current) return;
     connectingRef.current = true;
@@ -120,41 +110,32 @@ const useWallet = (): UseWalletReturn => {
 
       // 계정 요청
       const signerAccounts = await provider.send('eth_requestAccounts', []);
-      const signer = await provider.getSigner();
-      const addr = (signerAccounts?.[0] ?? (await signer.getAddress())) as string;
+      const addr = (signerAccounts?.[0] as string) ?? '';
 
-      if (walletAddress && addr.toLowerCase() === walletAddress.toLowerCase()) {
-        await fetchChainAndBalance(addr);
+      if (!addr) {
+        setError('지갑 계정을 찾을 수 없어요. MetaMask를 확인해주세요.');
         return;
       }
 
+      // 로컬 상태만 갱신 (DB 저장은 컴포넌트에서 버튼으로!)
       setWalletAddress(addr);
-      await upsertAddress(addr);
       await fetchChainAndBalance(addr);
     } catch (err: any) {
-      // -32002: 요청 진행 중 (MetaMask Pending)
       if (isUserRejected(err)) {
         setError('연결이 취소됐어요. 다시 연결해주세요.');
       } else if (err?.code === -32002) {
         setError('MetaMask에서 이전 요청이 진행 중입니다. 확장창을 확인해주세요.');
       } else {
-        // 그 외: 짧은 일반 문구
         setError('지갑 연결 중 오류가 발생했어요. 잠시 후 다시 시도해주세요.');
-      }
-
-      if (!needsMetaMask) {
-        setWalletAddress('');
-        setChainName('');
-        setBalance('');
       }
       console.error('[wallet] connect error:', err);
     } finally {
       setLoading(false);
       connectingRef.current = false;
-      // 연결 성공/실패와 무관하게 자동연결 플래그 제거(루프 방지)
+      // 자동연결 플래그 제거(루프 방지)
       try { localStorage.removeItem(AUTO_CONNECT_KEY); } catch {}
     }
-  }, [walletAddress, upsertAddress, fetchChainAndBalance, needsMetaMask]);
+  }, [fetchChainAndBalance]);
 
   const disconnect = useCallback(() => {
     setWalletAddress('');
@@ -171,7 +152,6 @@ const useWallet = (): UseWalletReturn => {
     if (typeof window !== 'undefined') {
       window.open(url, '_blank', 'noopener,noreferrer');
     }
-    // 이 탭에서 사용자가 돌아오면 폴링/가시성 이벤트가 감지함
   }, []);
 
   const switchNetwork = useCallback(async (key: NetworkKey) => {
@@ -197,7 +177,6 @@ const useWallet = (): UseWalletReturn => {
   const waitForMetaMask = (timeoutMs = 180000, intervalMs = 1000): Promise<boolean> =>
     new Promise((resolve) => {
       if (typeof window === 'undefined') return resolve(false);
-
       if ((window as any).ethereum) return resolve(true);
 
       let elapsed = 0;
@@ -231,6 +210,7 @@ const useWallet = (): UseWalletReturn => {
       setNeedsMetaMask(true);
     }
 
+    // ⚠️ 서버 저장 금지: 계정 바뀌면 로컬 상태/잔액만 업데이트
     const onAccountsChanged = async (...args: unknown[]) => {
       const accounts = Array.isArray(args[0]) ? (args[0] as string[]) : [];
       const next = accounts[0] ?? '';
@@ -239,15 +219,8 @@ const useWallet = (): UseWalletReturn => {
         disconnect();
         return;
       }
-      if (walletAddress && next.toLowerCase() === walletAddress.toLowerCase()) {
-        try { await fetchChainAndBalance(next); } catch {}
-        return;
-      }
       setWalletAddress(next);
-      try {
-        await upsertAddress(next);
-        await fetchChainAndBalance(next);
-      } catch {}
+      try { await fetchChainAndBalance(next); } catch {}
     };
 
     const onChainChanged = async () => {
@@ -274,20 +247,18 @@ const useWallet = (): UseWalletReturn => {
         if (accounts?.[0]) {
           setNeedsMetaMask(false);
           setWalletAddress(accounts[0]);
-          await fetchChainAndBalance(accounts[0]);
+          await fetchChainAndBalance(accounts[0]); // 서버 저장 없음
           return;
         }
 
-        // 초기 자동 연결 트리거
+        // 설치 후 복귀 자동연결
         const shouldAuto = (() => {
           try { return !!localStorage.getItem(AUTO_CONNECT_KEY); } catch { return false; }
         })();
-
         if (shouldAuto) {
-          // 사용자가 설치를 마치고 돌아온 케이스: 자동으로 연결 시도
-          await connectWallet();
+          await connectWallet(); // 서버 저장 없음
         }
-      } catch {/* noop */}
+      } catch { /* noop */ }
     })();
 
     return () => {
@@ -295,7 +266,7 @@ const useWallet = (): UseWalletReturn => {
       mm?.removeListener?.('chainChanged', onChainChanged as any);
       mm?.removeListener?.('disconnect', onDisconnect as any);
     };
-  }, [walletAddress, fetchChainAndBalance, upsertAddress, disconnect, connectWallet]);
+  }, [walletAddress, fetchChainAndBalance, disconnect, connectWallet]);
 
   return {
     walletAddress,

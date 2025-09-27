@@ -1,142 +1,211 @@
-// components/nft/BuyEndedAuction.tsx (위치는 프로젝트 구조에 맞게)
+// components/nft/BuyEndedAuction.tsx
 "use client";
 
 import Image from "next/image";
-import { ChevronRight } from 'lucide-react';
+import { useState, useMemo, useCallback, useEffect } from "react";
+import { ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useMyInfo } from "@/hooks/useMyInfo";
 import ConfirmReceiptButton from "@/components/nft/ConfirmReceiptButton";
 import { useDelivery } from "@/hooks/useDelivery";
+import { useDelivery as useDelivery_2 } from "@/hooks/useSellDelivery";
 import { useEscrowAddress } from "@/hooks/useEscrowAddress";
 import { depositToEscrow } from "@/lib/bc/escrow";
-import PaySection from '@/components/nft/PaySection'; // ← 경로 수정!
+import PayButton from "@/components/nft/PayButton"; // ← 경로 수정 완료
+import SellDeliveryForm from "@/components/mypage/delivery/SellDeliveryForm";
 import type { MyBidAuctions } from "@/types/auth";
+
+const statusMap: Record<string, string> = {
+  WAITING: "배송준비중",
+  IN_PROGRESS: "배송중",
+  COMPLETED: "배송완료",
+  CONFIRMED: "구매확정",
+};
 
 function DeliveryBadge({ auctionId }: { auctionId: number }) {
   const { info, status, hasTracking } = useDelivery(auctionId);
 
-  const label = (() => {
+  const label = useMemo(() => {
     if (!hasTracking) return "운송장 대기";
     switch (status) {
-      case "WAITING": return "배송 준비중";
-      case "IN_PROGRESS": return "배송중";
-      case "COMPLETED": return "배송완료";
-      case "CONFIRMED": return "구매확정됨";
-      default: return status;
+      case "WAITING":
+        return "배송 준비중";
+      case "IN_PROGRESS":
+        return "배송중";
+      case "COMPLETED":
+        return "배송완료";
+      case "CONFIRMED":
+        return "구매확정됨";
+      default:
+        return status;
     }
-  })();
+  }, [hasTracking, status]);
 
   return (
     <div className="px-6 py-2 bg-[#171725] border-b border-[#353535] flex items-center justify-between">
       <p className="text-xs text-[#a5a5a5]">
         배송상태: <span className="text-[#e1e1e1]">{label}</span>
-        {info?.trackingNumber ? <span className="ml-2 text-[#8bb4ff]">#{info.trackingNumber}</span> : null}
+        {info?.trackingNumber ? (
+          <span className="ml-2 text-[#8bb4ff]">#{info.trackingNumber}</span>
+        ) : null}
       </p>
     </div>
   );
 }
 
-/** PaySection을 훅 규칙 지키며 경매별로 붙이는 래퍼 */
-function PaySectionWrapper({ auctionId, priceEth }: { auctionId: number; priceEth: number }) {
+/** 경매 카드 1개 렌더링 */
+function AuctionEndedRow({ item }: { item: MyBidAuctions }) {
+  const auctionId = Number(item.auctionId);
+  const [openAddressModal, setOpenAddressModal] = useState(false);
+  const [addressRegistered, setAddressRegistered] = useState(false);
+  const { auctionDelivery, handlerGetAuctionDelivery } = useDelivery_2();
+
   const { info } = useDelivery(auctionId);
   const trackingNumber = info?.trackingNumber ?? null;
+  const trackingMissing = !((trackingNumber ?? "").trim().length > 0);
   const { data: escrowAddress } = useEscrowAddress(auctionId);
 
-  const onPay = async (defaultAddressId: number) => {
+  // NOTE: 백엔드 금액 단위와 ETH 단위가 다르면 변환 필요
+  const priceEth = useMemo(() => Number(item.currentPrice) || 0, [item.currentPrice]);
+
+  const onPay = useCallback(async () => {
     if (!escrowAddress) {
-      alert("에스크로 주소를 가져오지 못했습니다.");
-      return;
+      throw new Error("에스크로 주소를 가져오지 못했습니다.");
     }
-    try {
-      const receipt = await depositToEscrow(escrowAddress, priceEth);
-      console.log("Deposit tx receipt:", receipt, { auctionId, defaultAddressId });
-      alert("결제가 완료되었습니다. 트랜잭션이 확인되었습니다.");
-      // TODO: 결제 성공 후 서버 리포팅(API) 필요 시 호출
-    } catch (e: any) {
-      if (e?.code === 4001) {
-        alert("사용자가 결제를 취소했습니다.");
-      } else {
-        alert(e?.message ?? "결제에 실패했습니다.");
-      }
-    }
-  };
+    // PayButton 내부에서 에러 메시지를 보여주므로 여기서는 throw만 해도 됨.
+    await depositToEscrow(escrowAddress, priceEth);
+    // 결제 성공 후 서버 리포팅(API)이 필요하다면 여기에서 호출
+  }, [escrowAddress, priceEth]);
+
+  if (!Number.isFinite(auctionId)) {
+    console.warn("유효하지 않은 auctionId", item);
+    return null;
+  }
+
+  useEffect(()=> {
+      handlerGetAuctionDelivery(item.auctionId);
+    }, [])
 
   return (
-    <div className="px-6 pb-6">
-      <PaySection auctionId={auctionId} trackingNumber={trackingNumber} onPay={onPay} />
+    <div>
+      <div className="h-3 bg-[#1F1F2D]" />
+
+      {/* 배송 상태 */}
+      <DeliveryBadge auctionId={auctionId} />
+
+      {/* 상단 바 */}
+      <div className="flex justify-between border-b border-[#353535] px-6 py-4">
+        <p className="text-sm">경매 번호 {item.code}</p>
+        <p className="text-sm flex gap-1 items-center">
+          경매종료 {item.endDatetime} <ChevronRight className="w-4" />
+        </p>
+      </div>
+
+      {/* 본문 */}
+      <div className="py-4 px-6 flex justify-between">
+        <div className="flex items-center gap-5">
+          <div className="rounded-lg overflow-hidden w-22 h-22">
+            <Image
+              className="w-full h-full object-cover"
+              src={item.imageUrl || "/no-image.jpg"}
+              alt="thumbnail"
+              width={80}
+              height={80}
+              unoptimized
+            />
+          </div>
+          <div>
+            <h3 className="bid">{item.title}</h3>
+            {auctionDelivery?.status ? (
+                <p className="text-sm text-green-500">
+                  {statusMap[auctionDelivery?.status ?? ""]}
+                </p>
+              ) : (
+                <p className="text-sm text-red-500">배송지 입력 대기</p>
+              )}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <div className="flex flex-col gap-3 items-end">
+            <p className="text-sm">
+              현재 입찰가{" "}
+              <span className="text-green-500 ml-1">{item.currentPrice} ETH</span>
+            </p>
+            <p className="text-sm">
+              내 입찰가{" "}
+              <span className="text-green-500 ml-1">{item.myTopBidAmount} ETH</span>
+            </p>
+
+            {/* 버튼들: 오른쪽부터 [배송지 선택, 결제, 구매확정] */}
+            <div className="flex justify-end items-center gap-3">
+              {/* 1) 배송지 선택 버튼 (오른쪽) */}
+              <Button
+                variant="outline"
+                className="min-w-[104px]"
+                onClick={() => setOpenAddressModal(true)}
+                disabled={addressRegistered}
+              >
+                {addressRegistered ? "배송지 선택 완료" : "배송지 선택"}
+              </Button>
+
+              {/* 2) 결제 버튼 (가운데) */}
+              <PayButton
+                auctionId={auctionId}
+                trackingMissing={trackingMissing}
+                disabledReason={trackingMissing ? '운송장 발급 후 결제 가능합니다.' : undefined}
+                onPay={onPay}
+                className="min-w-[104px]"
+              />
+
+              {/* 3) 구매확정 버튼 (왼쪽) */}
+              <ConfirmReceiptButton auctionId={auctionId} />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 배송지 선택 모달 */}
+      {openAddressModal && (
+        <SellDeliveryForm
+          auctionId={auctionId}
+          onClose={() => setOpenAddressModal(false)}
+        />
+      )}
     </div>
   );
 }
 
-export default function BuyEndedAuction(){
+export default function BuyEndedAuction() {
   const { endedAuctions, myBidLoading, myBidError } = useMyInfo();
 
-  if (myBidLoading) return <div className="text-center text-[#a5a5a5] text-sm py-20">불러오는 중...</div>;
-  if (myBidError) return <div className="text-center text-[#a5a5a5] text-sm py-20">에러가 발생했습니다 😢</div>;
+  if (myBidLoading)
+    return (
+      <div className="text-center text-[#a5a5a5] text-sm py-20">
+        불러오는 중...
+      </div>
+    );
+
+  if (myBidError)
+    return (
+      <div className="text-center text-[#a5a5a5] text-sm py-20">
+        에러가 발생했습니다 😢
+      </div>
+    );
+
   if (!endedAuctions || endedAuctions.length === 0) {
-    return <div className="text-center text-[#a5a5a5] text-sm py-20">종료된 경매가 없습니다.</div>;
+    return (
+      <div className="text-center text-[#a5a5a5] text-sm py-20">
+        종료된 경매가 없습니다.
+      </div>
+    );
   }
 
   return (
     <div>
-      {endedAuctions.map((item: MyBidAuctions) => {
-        const auctionId = Number(item.auctionId);
-        if (!Number.isFinite(auctionId)) {
-          console.warn("유효하지 않은 auctionId", item);
-          return null;
-        }
-
-        // NOTE: 백엔드 단위와 ETH 단위가 다르면 변환 필요
-        const priceEth = Number(item.currentPrice) || 0;
-
-        return (
-          <div key={auctionId}>
-            <div className="h-3 bg-[#1F1F2D]" />
-            {/* 상단: 배송상태 표시 */}
-            <DeliveryBadge auctionId={auctionId} />
-
-            <div className="flex justify-between border-b border-[#353535] px-6 py-4">
-              <p className="text-sm">경매 번호 {item.code}</p>
-              <p className="text-sm flex gap-1 items-center">
-                경매종료 {item.endDatetime} <ChevronRight className="w-4" />
-              </p>
-            </div>
-
-            <div className="py-4 px-6 flex justify-between">
-              <div className="flex items-center gap-5">
-                <div className="rounded-lg overflow-hidden w-22 h-22">
-                  <Image
-                    className="w-full h-full object-cover"
-                    src={item.imageUrl || "/no-image.jpg"}
-                    alt="thumbnail"
-                    width={80}
-                    height={80}
-                    unoptimized
-                  />
-                </div>
-                <div>
-                  <h3 className="bid">{item.title}</h3>
-                  <p className="text-lg">입찰가 {item.currentPrice} ETH</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4">
-                <div className="flex flex-col gap-3 items-end">
-                  <p className="text-sm">현재 입찰가 <span className="text-green-500 ml-1">{item.currentPrice} ETH</span></p>
-                  <p className="text-sm">내 입찰가 <span className="text-green-500 ml-1">{item.myTopBidAmount} ETH</span></p>
-
-                  <div className="grid grid-cols-1 gap-3">
-                    {/* 구매확정 버튼 (배송 완료 상태에서만 활성) */}
-                    <ConfirmReceiptButton auctionId={auctionId} />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* 각 경매 카드별 PaySection */}
-            <PaySectionWrapper auctionId={auctionId} priceEth={priceEth} />
-          </div>
-        );
-      })}
+      {endedAuctions.map((item) => (
+        <AuctionEndedRow key={String(item.auctionId)} item={item} />
+      ))}
     </div>
   );
 }

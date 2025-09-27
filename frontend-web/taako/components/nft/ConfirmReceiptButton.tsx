@@ -22,10 +22,11 @@ export default function ConfirmReceiptButton({
   label?: string;
 }) {
   const [working, setWorking] = useState(false);
+  const [done, setDone] = useState(false);
   const { data: escrowAddress } = useEscrowAddress(auctionId);
   const { status } = useDelivery(auctionId);
 
-  const enabled = !!escrowAddress && !working;
+  const enabled = !!escrowAddress && !working && !done;
 
   const onClick = async () => {
     if (!escrowAddress) return alert("에스크로 주소를 가져오지 못했습니다.");
@@ -34,28 +35,40 @@ export default function ConfirmReceiptButton({
       const receipt = await confirmReceipt(escrowAddress);
       console.log("ConfirmReceipt receipt:", receipt);
       alert("구매확정 완료! 판매자에게 대금 출금 가능 상태로 변경됩니다.");
+      setDone(true); // 완료 상태로 전환
     } catch (e: any) {
       if (e?.code === 4001) {
         alert("사용자가 트랜잭션을 취소했습니다.");
       } else {
-        alert(e?.message ?? "구매확정 처리 중 오류가 발생했습니다.");
+        alert("구매확정 처리 중 오류가 발생했습니다.");
       }
     } finally {
       setWorking(false);
     }
   };
 
-  // 예: 배송완료 상태일 때만 활성화하고 싶다면 여기에서 제어
+  // 예: 배송완료 상태일 때만 활성화
   const shouldDisableByStatus = !["COMPLETED"].includes(status);
+
+  let buttonText = label;
+  if (working) buttonText = "구매확정중...";
+  else if (done) buttonText = "구매확정 완료";
 
   return (
     <Button
-      className={className ?? "text-sm text-[#dedede] h-10 w-[120px] !rounded-md bg-[#191924] border-1 border-[#353535] hover:bg-[#242433]"}
+      className={
+        className ??
+        "text-sm text-[#dedede] h-10 w-[120px] !rounded-md bg-[#191924] border-1 border-[#353535] hover:bg-[#242433]"
+      }
       onClick={onClick}
-      disabled={working || !enabled || shouldDisableByStatus}
-      title={shouldDisableByStatus ? (disabledReason ?? "배송 완료 후에 구매확정 가능합니다.") : undefined}
+      disabled={working || done || !enabled || shouldDisableByStatus}
+      title={
+        shouldDisableByStatus
+          ? disabledReason ?? "배송 완료 후에 구매확정 가능합니다."
+          : undefined
+      }
     >
-      {working ? "처리 중..." : label}
+      {buttonText}
     </Button>
   );
 }

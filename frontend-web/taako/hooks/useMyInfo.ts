@@ -46,7 +46,7 @@ export type UseMyInfoResult = {
 };
 
 export function useMyInfo(): UseMyInfoResult {
-  // ✅ 내 정보(지갑 주소 포함): 표준 소스는 getInfoMe
+  // 내 정보(지갑 주소 포함): 표준 소스는 getInfoMe
   const meQuery = useQuery<MyInfo>({
     queryKey: ["myInfo"],
     queryFn: getInfoMe,
