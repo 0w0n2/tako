@@ -80,7 +80,7 @@ export default function Mypage() {
 						if (meError) {
 							return <div className="w-full h-full flex items-center justify-center text-xs text-red-400 bg-[#222]">Error</div>;
 						}
-						return <Image src={me?.profileImageUrl || "/basic-profile.png"} alt="profile" fill style={{ objectFit: "cover" }} />;
+						return <Image src={me?.profileImageUrl || "/basic-profile.png"} alt="profile" unoptimized fill style={{ objectFit: "cover" }} />;
 					})()}
 				</div>
 				<div className="flex-7 pt-8 relative z-10">
