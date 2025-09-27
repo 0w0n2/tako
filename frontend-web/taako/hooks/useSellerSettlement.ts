@@ -133,31 +133,6 @@ export function useSellerSettlement({
     },
   });
 
-  const extractReason = (e: any): string | undefined => {
-    const msg = e?.reason || e?.shortMessage || e?.message;
-    if (msg && /execution reverted/i.test(msg)) {
-      return "스마트컨트랙트 조건이 충족되지 않아 실행이 거부되었습니다.";
-    }
-    return undefined;
-  };
-
-  const humanize = (e: unknown) => {
-    const raw = e as any;
-    const msg = raw?.message ?? String(e);
-
-    if (/user rejected|rejected by user/i.test(msg)) return "사용자가 서명을 거부했습니다.";
-    if (/insufficient funds/i.test(msg)) return "가스비(ETH)가 부족합니다.";
-    if (/unauthorized|only\s*seller|not\s*seller/i.test(msg)) return "판매자 지갑만 수행할 수 있습니다.";
-    if (/already\s*released|already\s*paid|already\s*completed/i.test(msg)) return "이미 정산이 완료되었습니다.";
-    if (/not\s*confirmed|AwaitingConfirmation|confirmReceipt/i.test(msg)) return "구매자 구매확정 이후에만 가능합니다.";
-    if (/approve/i.test(msg) && /먼저|first/i.test(msg)) return "먼저 NFT 승인(approve)을 완료해주세요.";
-
-    const reason = extractReason(raw);
-    if (reason) return reason;
-
-    return `오류가 발생했습니다: ${msg}`;
-  };
-
   return {
     // 상태
     escrowAddress,
@@ -187,7 +162,7 @@ export function useSellerSettlement({
         await approveMutation.mutateAsync();
         return { ok: true, message: "승인이 완료되었습니다." };
       } catch (e) {
-        return { ok: false, message: humanize(e) };
+        return { ok: false, message: "NFT 소유권 이전 권한 승인 중 오류가 발생하였습니다." };
       }
     },
     release: async () => {
@@ -195,7 +170,7 @@ export function useSellerSettlement({
         await releaseMutation.mutateAsync();
         return { ok: true, message: "대금 인출이 완료되었습니다." };
       } catch (e) {
-        return { ok: false, message: humanize(e) };
+        return { ok: false, message: "대금 인출 과정 중 오류가 발생하였습니다." };
       }
     },
 
