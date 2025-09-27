@@ -106,40 +106,15 @@ export default function SellerPayoutPanel({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <div className="rounded-xl border border-[#353535] p-4">
-          <div className="text-sm text-[#b5b5b5] mb-1">에스크로 주소</div>
-          <div className="text-xs break-all text-[#dedede]">
-            {escrowAddress ?? "불러오는 중..."}
-          </div>
-          {escrowError && <div className="text-xs text-red-400 mt-1">에스크로 탐색 불가</div>}
+      {nftNotMinted && (
+        <div className="text-xs text-amber-300 mt-1">
+          이 경매의 NFT가 아직 발급되지 않았습니다. 승인 없이 바로 정산할 수 있습니다.
         </div>
+      )}
 
-        <div className="rounded-xl border border-[#353535] p-4">
-          <div className="text-sm text-[#b5b5b5] mb-1">내 지갑</div>
-          <div className="text-xs break-all text-[#dedede]">
-            {walletAddress ?? "연결 필요"}
-          </div>
-          {walletMismatch && (
-            <div className="text-xs text-red-400 mt-1">판매자 등록 지갑과 일치하지 않습니다.</div>
-          )}
-          {walletError && <div className="text-xs text-red-400 mt-1">{walletError}</div>}
-        </div>
-
-        <div className="rounded-xl border border-[#353535] p-4">
-          <div className="text-sm text-[#b5b5b5] mb-1">NFT</div>
-          <div className="text-xs text-[#dedede] break-all">{nftAddress}</div>
-          <div className="text-xs text-[#b5b5b5]">Token #{String(tokenId ?? 0)}</div>
-          {nftNotMinted && (
-            <div className="text-xs text-amber-300 mt-1">
-              이 경매의 NFT가 아직 발급되지 않았습니다. 승인 없이 바로 정산할 수 있습니다.
-            </div>
-          )}
-          {!nftNotMinted && alreadyApproved && (
-            <div className="text-xs text-green-400 mt-1">이미 승인됨</div>
-          )}
-        </div>
-      </div>
+      {!nftNotMinted && alreadyApproved && (
+        <div className="text-xs text-green-400 mt-1">이미 승인됨</div>
+      )}
 
       <div className="flex flex-col md:flex-row gap-3">
         <Button
