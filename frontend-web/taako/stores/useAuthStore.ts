@@ -82,6 +82,12 @@ export const useAuthStore = create<AuthState>()(
 			name: "authStorage",
 			storage: createJSONStorage(() => localStorage),
 			partialize: (state) => ({ token: state.token }),
+			onRehydrateStorage: () => (state) => {
+				// hydration 완료 후 콜백
+				if (state) {
+					state.loading = false;
+				}
+			},
 		}
 	)
 );
