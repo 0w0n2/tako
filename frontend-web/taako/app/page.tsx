@@ -22,7 +22,7 @@ export default function Home() {
 			const ch = e.key.length === 1 ? e.key : "";
 			if (!ch) return;
 			buf = (buf + ch).slice(-target.length);
-					if (buf === target) triggerOverlay("/notice");
+			if (buf === target) triggerOverlay("/notice");
 		};
 		window.addEventListener("keydown", onKey);
 		return () => window.removeEventListener("keydown", onKey);
