@@ -71,6 +71,14 @@ function AuctionEndedRow({ item }: { item: MyBidAuctions }) {
   const { data: escrowAddress } = useEscrowAddress(auctionId);
   const priceEth = useMemo(() => Number(item.currentPrice) || 0, [item.currentPrice]);
 
+  // 버튼 표시 여부: 내 입찰가가 현재가보다 크거나 같아야 버튼 노출
+  const canAct = useMemo(() => {
+    const current = Number(item.currentPrice);
+    const mine = Number(item.myTopBidAmount);
+    if (!Number.isFinite(current) || !Number.isFinite(mine)) return false;
+    return mine >= current;
+  }, [item.currentPrice, item.myTopBidAmount]);
+
   const onPay = useCallback(async () => {
     if (!escrowAddress) throw new Error("에스크로 주소를 가져오지 못했습니다.");
     await depositToEscrow(escrowAddress, priceEth);
@@ -106,12 +114,16 @@ function AuctionEndedRow({ item }: { item: MyBidAuctions }) {
           </div>
           <div>
             <h3 className="bid">{item.title}</h3>
-            {info?.status ? (
-              <p className="text-sm text-green-500">
-                {statusMap[info.status] ?? info.status}
-              </p>
-            ) : (
-              <p className="text-sm text-red-500">배송지 입력 대기</p>
+            {canAct && (
+              <div>
+                {info?.status ? (
+                  <p className="text-sm text-green-500">
+                    {statusMap[info.status] ?? info.status}
+                  </p>
+                ) : (
+                  <p className="text-sm text-red-500">배송지 입력 대기</p>
+                )}
+              </div>
             )}
           </div>
         </div>
@@ -127,30 +139,32 @@ function AuctionEndedRow({ item }: { item: MyBidAuctions }) {
               <span className="text-green-500 ml-1">{item.myTopBidAmount} ETH</span>
             </p>
 
-            {/* 버튼들: 오른쪽부터 [배송지 선택, 결제, 구매확정] */}
-            <div className="flex justify-end items-center gap-3">
-              {/* 1) 배송지 선택 버튼 */}
-              <Button
-                variant="outline"
-                className="min-w-[104px]"
-                onClick={() => setOpenAddressModal(true)}
-                disabled={hasRecipient}
-              >
-                {hasRecipient ? "배송지 선택 완료" : "배송지 선택"}
-              </Button>
+            {/* 버튼들: 내 입찰가 < 현재가면 버튼 숨김 */}
+            {canAct && (
+              <div className="flex justify-end items-center gap-3">
+                {/* 1) 배송지 선택 버튼 */}
+                <Button
+                  variant="outline"
+                  className="min-w-[104px]"
+                  onClick={() => setOpenAddressModal(true)}
+                  disabled={hasRecipient}
+                >
+                  {hasRecipient ? "배송지 선택 완료" : "배송지 선택"}
+                </Button>
 
-              {/* 2) 결제 버튼 */}
-              <PayButton
-                auctionId={auctionId}
-                trackingMissing={trackingMissing}
-                disabledReason={trackingMissing ? "운송장 발급 후 결제 가능합니다." : undefined}
-                onPay={onPay}
-                className="min-w-[104px]"
-              />
+                {/* 2) 결제 버튼 */}
+                <PayButton
+                  auctionId={auctionId}
+                  trackingMissing={trackingMissing}
+                  disabledReason={trackingMissing ? "운송장 발급 후 결제 가능합니다." : undefined}
+                  onPay={onPay}
+                  className="min-w-[104px]"
+                />
 
-              {/* 3) 구매확정 버튼 */}
-              <ConfirmReceiptButton auctionId={auctionId} />
-            </div>
+                {/* 3) 구매확정 버튼 */}
+                <ConfirmReceiptButton auctionId={auctionId} />
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -160,7 +174,7 @@ function AuctionEndedRow({ item }: { item: MyBidAuctions }) {
         <BuyDeliveryForm
           auctionId={auctionId}
           onClose={() => setOpenAddressModal(false)}
-          onRegistered={() => setOpenAddressModal(false)} // 등록 후 닫기
+          onRegistered={() => setOpenAddressModal(false)}
         />
       )}
     </div>
