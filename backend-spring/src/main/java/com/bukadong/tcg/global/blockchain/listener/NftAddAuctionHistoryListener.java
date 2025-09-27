@@ -1,12 +1,8 @@
 package com.bukadong.tcg.global.blockchain.listener;
 
 import com.bukadong.tcg.api.auction.service.AuctionResultService;
-import com.bukadong.tcg.api.auction.service.AuctionSettlementService;
 import com.bukadong.tcg.global.blockchain.constants.BlockChainConstant;
 import com.bukadong.tcg.global.blockchain.contracts.AuctionEscrow;
-import com.bukadong.tcg.global.blockchain.contracts.AuctionFactory;
-import com.bukadong.tcg.global.blockchain.util.ContractLoader;
-import com.bukadong.tcg.global.properties.blockchain.BlockChainProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -14,7 +10,6 @@ import org.springframework.stereotype.Component;
 import org.web3j.abi.EventEncoder;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
-import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.request.EthFilter;
 import org.web3j.protocol.core.methods.response.EthLog;
 import org.web3j.protocol.core.methods.response.Log;
@@ -30,11 +25,7 @@ import java.util.List;
 public class NftAddAuctionHistoryListener {
 
     private final Web3j web3j;
-    private final BlockChainProperties blockChainProperties;
-    private final AuctionSettlementService auctionSettlementService;
     private final AuctionResultService auctionResultService;
-    private AuctionFactory auctionFactory;
-    private final ContractLoader contractLoader;
 
     private BigInteger lastCheckedBlock = null;
 
