@@ -4,6 +4,7 @@ import com.bukadong.tcg.api.card.repository.PhysicalCardRepository;
 import com.bukadong.tcg.api.card.service.PhysicalCardService;
 import com.bukadong.tcg.api.member.entity.Member;
 import com.bukadong.tcg.api.member.repository.MemberRepository;
+import com.bukadong.tcg.global.blockchain.constants.BlockChainConstant;
 import com.bukadong.tcg.global.blockchain.contracts.TakoCardNFT;
 import com.bukadong.tcg.global.properties.blockchain.BlockChainProperties;
 import lombok.RequiredArgsConstructor;
@@ -43,37 +44,56 @@ public class NftTransferEventListener {
     @Scheduled(fixedRate = 15000)
     public void checkForTransferEvents() {
         try {
-            String contractAddress = blockChainProperties.contractAddress().takoCardNft();
             BigInteger latestBlock = web3j.ethBlockNumber().send().getBlockNumber();
 
             if (lastCheckedBlock == null) {
                 lastCheckedBlock = latestBlock.subtract(BigInteger.ONE);
             }
 
-            if (latestBlock.compareTo(lastCheckedBlock) > 0) {
-                log.debug("Checking for Transfer events from block #{} to #{}", lastCheckedBlock.add(BigInteger.ONE), latestBlock);
-                EthFilter filter = new EthFilter(
-                        DefaultBlockParameter.valueOf(lastCheckedBlock.add(BigInteger.ONE)),
-                        DefaultBlockParameterName.LATEST,    // 항상 최신 블록까지 조회
-                        contractAddress
-                );
-                String transferEventTopic = EventEncoder.encode(TakoCardNFT.TRANSFER_EVENT);
-                filter.addSingleTopic(transferEventTopic);
+            BigInteger fromBlock = lastCheckedBlock.add(BigInteger.ONE);
+            if (latestBlock.compareTo(fromBlock) >= 0) {
+                log.debug("Checking for Transfer events from block #{} to #{}", fromBlock, latestBlock);
 
-                List<EthLog.LogResult> logResults = web3j.ethGetLogs(filter).send().getLogs();
-
-                if (!logResults.isEmpty()) {
-                    log.debug("{} new Transfer event(s) found.", logResults.size());
-                    for (EthLog.LogResult<?> logResult : logResults) {
-                        Log logEntry = (Log) logResult.get();
-                        TakoCardNFT.TransferEventResponse response = TakoCardNFT.getTransferEventFromLog(logEntry);
-                        handleClaimEvent(response.from, response.to, response.tokenId);
+                BigInteger currentFromBlock = fromBlock;
+                while (currentFromBlock.compareTo(latestBlock) <= 0) {
+                    BigInteger currentToBlock = currentFromBlock.add(BlockChainConstant.BLOCK_RANGE_LIMIT);
+                    if (currentToBlock.compareTo(latestBlock) > 0) {
+                        currentToBlock = latestBlock;
                     }
+
+                    // 현재 청크(chunk)에 대한 로그 조회
+                    processEventsInRange(currentFromBlock, currentToBlock);
+                    // 다음 조회 시작 블록 설정
+                    currentFromBlock = currentToBlock.add(BigInteger.ONE);
                 }
                 lastCheckedBlock = latestBlock;
             }
         } catch (IOException e) {
             log.error("Failed to check for new blocks or process events.", e);
+        }
+    }
+    
+    /* 지정된 블록 범위 내의 이벤트만 처리 */
+    private void processEventsInRange(BigInteger fromBlock, BigInteger toBlock) throws IOException {
+        String contractAddress = blockChainProperties.contractAddress().takoCardNft();
+
+        EthFilter filter = new EthFilter(
+                DefaultBlockParameter.valueOf(fromBlock),
+                DefaultBlockParameter.valueOf(toBlock),    // 항상 최신 블록까지 조회
+                contractAddress
+        );
+        String transferEventTopic = EventEncoder.encode(TakoCardNFT.TRANSFER_EVENT);
+        filter.addSingleTopic(transferEventTopic);
+
+        List<EthLog.LogResult> logResults = web3j.ethGetLogs(filter).send().getLogs();
+
+        if (!logResults.isEmpty()) {
+            log.debug("{} new Transfer event(s) found.", logResults.size());
+            for (EthLog.LogResult<?> logResult : logResults) {
+                Log logEntry = (Log) logResult.get();
+                TakoCardNFT.TransferEventResponse response = TakoCardNFT.getTransferEventFromLog(logEntry);
+                handleClaimEvent(response.from, response.to, response.tokenId);
+            }
         }
     }
 

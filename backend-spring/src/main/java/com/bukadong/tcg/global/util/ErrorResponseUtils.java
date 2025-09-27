@@ -4,13 +4,14 @@ import com.bukadong.tcg.global.common.base.BaseResponse;
 import com.bukadong.tcg.global.common.base.BaseResponseStatus;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 
 import java.io.IOException;
 
-@Slf4j
 public final class ErrorResponseUtils {
+    private static final Logger log = LoggerFactory.getLogger(ErrorResponseUtils.class);
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     private ErrorResponseUtils() {

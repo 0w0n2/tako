@@ -11,6 +11,8 @@ import com.bukadong.tcg.global.common.base.BaseResponseStatus;
 import com.bukadong.tcg.global.common.exception.BaseException;
 
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -33,6 +35,8 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class NotificationCommandService {
+
+    private static final Logger log = LoggerFactory.getLogger(NotificationCommandService.class);
 
     private final NotificationRepository notificationRepository;
     private final NotificationTypeRepository notificationTypeRepository;
@@ -58,6 +62,7 @@ public class NotificationCommandService {
         // FK 보호: 수신자 없으면 기록 스킵 (경고만)
         if (memberId == null || !memberRepository.existsById(memberId)) {
             // 로컬/개발 데이터 불일치 방지용 가드
+            log.warn("Skip notification create: invalid memberId={} type={} causeId={}", memberId, typeCode, causeId);
             return null;
         }
 
@@ -69,7 +74,17 @@ public class NotificationCommandService {
         Notification n = Notification.builder().memberId(memberId).type(type).causeId(causeId).title(title)
                 .message(message).targetUrl(targetUrl).build();
 
-        Long id = notificationRepository.save(n).getId();
+        // IDENTITY 전략에서 지연 식별자 할당으로 인한 null 방지
+        Long id = notificationRepository.saveAndFlush(n).getId();
+        if (id == null) {
+            log.warn("Notification saved but id is null. Skip event publish. memberId={} type={} causeId={}",
+                    memberId, typeCode, causeId);
+            return null;
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Notification created: id={} memberId={} type={} causeId={} title={}", id, memberId, typeCode,
+                    causeId, title);
+        }
 
         // 트랜잭션 커밋 후 FCM 발송을 위해 이벤트 발행
         eventPublisher.publishEvent(new com.bukadong.tcg.api.notification.event.NotificationCreatedEvent(id, memberId,
@@ -211,11 +226,14 @@ public class NotificationCommandService {
 
     private String buildTargetUrl(NotificationTypeCode typeCode, Long causeId) {
         return switch (typeCode) {
-        case WISH_AUCTION_STARTED, WISH_AUCTION_DUE_SOON, WISH_AUCTION_ENDED, AUCTION_NEW_INQUIRY, AUCTION_WON, AUCTION_CLOSED_SELLER, AUCTION_CANCELED, DELIVERY_STARTED, DELIVERY_STATUS_CHANGED, DELIVERY_CONFIRM_REQUEST, DELIVERY_CONFIRMED_SELLER, BID_ACCEPTED, BID_REJECTED, BID_FAILED -> targetUrlBuilder
-                .buildForAuction(causeId);
-        case WISH_CARD_LISTED -> targetUrlBuilder.buildForCard(causeId);
-        case INQUIRY_ANSWERED -> targetUrlBuilder.buildForInquiry(causeId);
-        case NOTICE_NEW -> "/notice/" + (causeId == null ? "" : causeId);
+            case WISH_AUCTION_STARTED, WISH_AUCTION_DUE_SOON, WISH_AUCTION_ENDED, AUCTION_NEW_INQUIRY, AUCTION_WON,
+                    AUCTION_CLOSED_SELLER, AUCTION_CANCELED, DELIVERY_STARTED, DELIVERY_STATUS_CHANGED,
+                    DELIVERY_CONFIRM_REQUEST, DELIVERY_CONFIRMED_SELLER, BID_ACCEPTED, BID_REJECTED, BID_FAILED ->
+                targetUrlBuilder
+                        .buildForAuction(causeId);
+            case WISH_CARD_LISTED -> targetUrlBuilder.buildForCard(causeId);
+            case INQUIRY_ANSWERED -> targetUrlBuilder.buildForInquiry(causeId);
+            case NOTICE_NEW -> "/notice/" + (causeId == null ? "" : causeId);
         };
     }
 

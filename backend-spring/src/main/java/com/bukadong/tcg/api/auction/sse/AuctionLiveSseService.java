@@ -1,7 +1,8 @@
 package com.bukadong.tcg.api.auction.sse;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -22,10 +23,11 @@ import org.springframework.data.redis.core.RedisTemplate;
  * 경매 라이브 SSE 서비스 - 목록: 선택 구독(ids) → price만 - 상세: 단일 경매 구독 → price, end_ts, end,
  * bid(닉네임/시간)
  */
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuctionLiveSseService {
+
+    private static final Logger log = LoggerFactory.getLogger(AuctionLiveSseService.class);
 
     private final RedisTemplate<String, String> redisTemplate;
     private static final String FIELD_AUCTION_ID = "auctionId";

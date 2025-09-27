@@ -1,7 +1,8 @@
 package com.bukadong.tcg.api.bid.service;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.data.redis.core.Cursor;
@@ -24,10 +25,11 @@ import java.util.List;
  * @PARAM 없음
  * @RETURN 없음
  */
-@Slf4j
 @Component
 @RequiredArgsConstructor
 public class BidEventConsumer {
+
+    private static final Logger log = LoggerFactory.getLogger(BidEventConsumer.class);
 
     private final RedisTemplate<String, String> redisTemplate;
     private final BidEventApplyService bidEventApplyService;

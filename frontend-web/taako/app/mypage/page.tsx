@@ -18,10 +18,12 @@ export default function Mypage() {
 	const [trustRaw, setTrustRaw] = useState<number | null>(null);
 	const [trustLoading, setTrustLoading] = useState(false);
 	const [trustError, setTrustError] = useState<string | null>(null);
+	const [totalBidAuction, setTotalBidAuction] = useState<number>(0);
+	const [totalSellAuction, setTotalSellAuction] = useState<number>(0);
 	const tabs = [
 		{ id: "myProfile", label: "기본정보" },
-		{ id: "myBidAuction", label: "입찰중경매" },
-		{ id: "mySellAuction", label: "판매경매" },
+		{ id: "myBidAuction", label: "입찰 중 경매" },
+		{ id: "mySellAuction", label: "등록 경매" },
 		{ id: "myReview", label: "리뷰" },
 	];
 	const [status, setStatus] = useState(tabs[0].id);
@@ -47,12 +49,6 @@ export default function Mypage() {
 			cancelled = true;
 		};
 	}, [me?.memberId]);
-
-	// NOTE: 2개의 탭으로 테스트하려면 아래와 같이 tabs 배열을 수정하세요.
-	// const tabs = [
-	//   { id: 'mySellAuction', label: '판매경매' },
-	//   { id: 'myReview', label: '리뷰' },
-	// ];
 
 	return (
 		<div className="flex flex-col gap-10">
@@ -80,7 +76,7 @@ export default function Mypage() {
 						if (meError) {
 							return <div className="w-full h-full flex items-center justify-center text-xs text-red-400 bg-[#222]">Error</div>;
 						}
-						return <Image src={me?.profileImageUrl || "/basic-profile.png"} alt="profile" fill style={{ objectFit: "cover" }} />;
+						return <Image src={me?.profileImageUrl || "/basic-profile.png"} alt="profile" unoptimized fill style={{ objectFit: "cover" }} />;
 					})()}
 				</div>
 				<div className="flex-7 pt-8 relative z-10">
@@ -180,15 +176,14 @@ export default function Mypage() {
 				</div>
 			)}
 			{status === "myBidAuction" && (
-				<div>
-					<h2>입찰 중인 경매</h2>
-					<HomeBidAuctions />
-				</div>
+				<><h2>총 입찰 경매: {totalBidAuction}개</h2><div>
+					<HomeBidAuctions type="bid" setTotalBidAuction={setTotalBidAuction} setTotalSellAuction={setTotalSellAuction} />
+				</div></>
 			)}
 			{status === "mySellAuction" && (
-				<div>
-					<h2>판매경매</h2>
-				</div>
+				<><h2>총 등록 경매: {totalSellAuction}개</h2><div>
+					<HomeBidAuctions type="sell" setTotalBidAuction={setTotalBidAuction} setTotalSellAuction={setTotalSellAuction} />
+				</div></>
 			)}
 			{status === "myReview" && (
 				<div>

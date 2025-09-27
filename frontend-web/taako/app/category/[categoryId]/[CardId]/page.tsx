@@ -10,6 +10,7 @@ import Loading from '@/components/Loading';
 import AuctionCard from "@/components/auction/AuctionCard";
   import CategoryPagination from "@/components/categories/categoryPagination";
 import { useAuctionsQuery } from "@/hooks/useAuctionsQuery";
+import { useCardWish } from "@/hooks/useCardWish";
 import { GetAuction } from "@/types/auction";
 import attributeMap from './attribute_map.json';
 
@@ -85,6 +86,9 @@ export default function CategoryItemPage({ params }: { params: { categoryId: str
   const auctions: GetAuction[] = (auctionsData?.result?.content ?? []) as GetAuction[];
   const totalPages: number = (auctionsData?.result?.totalPages ?? 1) as number;
 
+  // 카드 wish 기능
+  const { wished, pendingWish, wishError, toggleWish } = useCardWish(Number(params.CardId), cardData?.wished || false);
+
   useEffect(() => {
     const fetchCardData = async () => {
       try {
@@ -129,25 +133,54 @@ export default function CategoryItemPage({ params }: { params: { categoryId: str
   return (
     <div className="default-container pb-[80px] relative">
       <div>
-        <div className='pb-5 border-b border-[#353535]'>
-          <div className='flex gap-1 text-[#a5a5a5] mb-3'>
-            <Link href={`/search?categoryMajorId=${params.categoryId}`}>{cardType}</Link>
-            {`>`}
-            <Link href={`/category/${params.categoryId}`}>{cardData.name}</Link>
-          </div>
-          {/* 제목 */}
-          <h2>{cardData.name}</h2>
-        </div>
 
         <div className='flex py-[60px]'>
           {/* 이미지 */}
-          <div className='w-[40%] px-[40px] flex justify-center flex-1 border-r border-[#353535] self-start'>
+          <div className='w-[40%] px-[40px] flex flex-col items-center flex-1 border-r border-[#353535] self-start'>
             <EffectCard
               type={cardType as 'pokemon' | 'yugioh' | 'cookierun' | 'ssafy'}
               attribute={description.mappedAttribute as 'fire' | 'water' | 'grass' | 'lightning' | 'psychic' | 'fighting' | 'darkness' | 'metal' | 'dragon' | 'fairy'}
               rarity={formatRarity(cardData.rarity) as any}
               img={cardData.imageUrls[0]}
             />
+            
+            {/* 관심 카드 버튼 */}
+            <div className="mt-8 w-full max-w-[300px]">
+              <button
+                onClick={toggleWish}
+                disabled={pendingWish}
+                aria-pressed={wished}
+                className={`rounded-md border-1 border-[#353535] w-full py-4 flex gap-2 justify-center items-center transition
+        ${wished ? "bg-[#2a2a2a] border-[#ff5a5a]" : "hover:bg-white/5"}`}
+                title={wished ? "관심카드에서 제거" : "관심카드에 추가"}
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill={wished ? "#ff5a5a" : "none"}
+                  stroke={wished ? "#ff5a5a" : "#ffffff"}
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                </svg>
+                <p>
+                  {(() => {
+                    if (wished) return pendingWish ? "해제 중..." : "관심카드";
+                    return pendingWish ? "추가 중..." : "관심카드";
+                  })()}
+                </p>
+              </button>
+              
+              {wishError && !wishError.canceled && (
+                <p className="mt-2 text-red-400 text-sm text-center">
+                  {wishError.safeMessage || "관심카드 처리 중 오류가 발생했어요."}
+                </p>
+              )}
+            </div>
           </div>
 
           {/* 내용 */}

@@ -20,6 +20,13 @@ export default function HeaderNavigationMenu() {
 	return (
 		<NavigationMenu className="gap-7">
 			<NavigationMenuItem className="list-none">
+				<NavigationMenuLink asChild>
+					<Link href="/notice" className="hover:text-[#f2b90c]">
+						공지사항
+					</Link>
+				</NavigationMenuLink>
+			</NavigationMenuItem>
+			<NavigationMenuItem className="list-none">
 				<NavigationMenuTrigger className="hover:text-[#f2b90c] cursor-pointer flex items-center">
 					TCG카드
 					<ChevronDown className="w-4 transition-transform duration-300 group-hover:rotate-180" />

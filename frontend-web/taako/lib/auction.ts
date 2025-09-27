@@ -1,5 +1,6 @@
 import api from "./api";
 import { GetHotCards, AuctionDetailProps, WeeklyAuctions } from "@/types/auction";
+import { compressToUnder500KB } from "@/lib/imageCompression";
 import type { Card } from "@/types/card";
 import type { Seller } from "@/types/seller";
 import type { History } from "@/types/history";
@@ -44,7 +45,7 @@ type RawResponse = {
 		weeklyPrices: any[];
 		seller: any;
 		wished: boolean;
-		tokenId: number|null;
+		tokenId: number | null;
 	};
 };
 
@@ -92,7 +93,7 @@ function normalizeWeekly(list: any[]): WeeklyAuctions[] {
 function normalizeAuctionDetail(result: RawResponse["result"]): AuctionDetailProps {
 	const a = result.auction ?? {};
 	const c = result.card ?? {};
-	const token = result.tokenId
+	const token = result.tokenId;
 	const card = normalizeCard(c);
 	// auction.grade 가 진짜 카드 등급이면 카드에 반영
 	if (a?.grade && typeof a.grade === "string") {
@@ -139,7 +140,7 @@ export async function getAuctionDetail(auctionId: number | string, opts?: { hist
 		params: { historySize },
 		signal,
 	});
-	
+
 	const payload = res.data;
 	if (!payload?.isSuccess) throw new Error(payload?.message || "요청 실패");
 
@@ -151,8 +152,8 @@ export async function getAuctionDetail(auctionId: number | string, opts?: { hist
 
 // ↓ 이렇게 export 하세요
 export function genRequestId() {
-  if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
-  return "req_" + Math.random().toString(36).slice(2) + Date.now().toString(36);
+	if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
+	return "req_" + Math.random().toString(36).slice(2) + Date.now().toString(36);
 }
 
 /**

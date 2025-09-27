@@ -12,10 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
-// import org.slf4j.Logger;
-// import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -28,17 +25,16 @@ import java.io.IOException;
 /**
  * JWT 토큰을 검증하여 사용자를 인증하는 Spring Security 필터
  */
-@Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+    // logger not used intentionally to keep filter lean
 
     private final TokenProvider tokenProvider;
     private final TokenBlackListService tokenBlackListService;
     private final SecurityWhitelistProperties securityWhitelistProperties;
     private final AntPathMatcher antPathMatcher = new AntPathMatcher();
-    // private final Logger logger =
-    // LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response,

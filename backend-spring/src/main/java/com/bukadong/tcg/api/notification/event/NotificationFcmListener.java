@@ -9,7 +9,8 @@ import com.bukadong.tcg.api.notification.entity.NotificationTypeCode;
 import com.bukadong.tcg.api.notification.repository.NotificationSettingRepository;
 import com.bukadong.tcg.api.notification.repository.NotificationTypeRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.transaction.event.TransactionPhase;
@@ -22,8 +23,9 @@ import com.bukadong.tcg.api.notification.util.NotificationPushPayloadMapper;
  */
 @Component
 @RequiredArgsConstructor
-@Slf4j
 public class NotificationFcmListener {
+
+    private static final Logger log = LoggerFactory.getLogger(NotificationFcmListener.class);
 
     private final FcmPushService fcmPushService;
     private final NotificationTypeRepository notificationTypeRepository;
@@ -32,6 +34,11 @@ public class NotificationFcmListener {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onCreated(NotificationCreatedEvent event) {
+        // 알림 레코드 없이 푸시만 나가는 것을 방지
+        if (event.notificationId() == null) {
+            log.warn("Skip push - notificationId is null memberId={} type={}", event.memberId(), event.typeCode());
+            return;
+        }
         if (event.memberId() == null) {
             return; // 수신자 없는 경우 스킵
         }
