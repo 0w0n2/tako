@@ -4,9 +4,9 @@
 import { GetAuction } from "@/types/auction"
 import Image from "next/image"
 import Link from "next/link";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo   } from "react";
 import RankElement from "../atoms/RankElement";
-import { Heart, BadgeCheckIcon, CircleCheck   } from 'lucide-react';
+import { Heart, CircleCheck } from 'lucide-react';
 import { Badge } from "@/components/ui/badge"
 import { addWishAuction, removeWishAuction } from '@/lib/wish'
 import { normalizeAxiosError } from '@/lib/normalizeAxiosError'
@@ -19,11 +19,27 @@ type Props = {
 
 export default function AuctionCard({ item, onWishChange }: Props){
     const [remainingTime, setRemainingTime] = useState(item.remainingSeconds);
+
+    const startAtMs = useMemo<number | undefined>(() => {
+        const s =
+        (item as any).startsAt ??
+        (item as any).startAt ??
+        (item as any).startTime ??
+        (item as any).openAt;
+        if (!s) return undefined;
+        const t = new Date(s).getTime();
+        return Number.isFinite(t) ? t : undefined;
+    }, [item]);
+
+    const [startLeft, setStartLeft] = useState<number | undefined>(() => {
+        if (!startAtMs) return undefined;
+        const delta = Math.max(0, Math.floor((startAtMs - Date.now()) / 1000));
+        return delta;
+    });
+
     const [wished, setWished] = useState<boolean>(item.wished)
     const [pending, setPending] = useState(false)
     const abortRef = useRef<AbortController | null>(null)
-    const [likeCount, setLikeCount] = useState(0);
-    const [dislikeCount, setDislikeCount] = useState(0);
 
     useEffect(() => {
         if (remainingTime <= 0) return;
@@ -35,6 +51,11 @@ export default function AuctionCard({ item, onWishChange }: Props){
                 }
                 return prev - 1;
             });
+
+            if (startAtMs) {
+                const left = Math.max(0, Math.floor((startAtMs - Date.now()) / 1000));
+                setStartLeft(left);
+            }
         }, 1000);
 
         return () => clearInterval(timer);
@@ -100,6 +121,34 @@ export default function AuctionCard({ item, onWishChange }: Props){
         return parts.slice(0, 2).join(' ');
     };
 
+    const formatStartSoon = (seconds: number) => {
+        if (seconds <= 0) return '시작';
+        if (seconds < 3600) {
+        // 1시간 미만이면 분 단위 올림
+        const mins = Math.ceil(seconds / 60);
+        return `시작 ${mins}분 전`;
+        }
+        // 1시간 이상이면 "시작 H시간 M분 전"
+        const h = Math.floor(seconds / 3600);
+        const m = Math.ceil((seconds % 3600) / 60);
+        return `시작 ${h}시간 ${m}분 전`;
+    };
+
+    const phase: 'before' | 'running' | 'ended' = useMemo(() => {
+        // 시작 시간이 주어졌고 아직 시작 전
+        if (typeof startLeft === 'number' && startLeft > 0) return 'before';
+        // 시작 이후 진행 중(남은 종료 시간이 있음)
+        if (remainingTime > 0) return 'running';
+        // 종료됨
+        return 'ended';
+    }, [startLeft, remainingTime]);
+
+    const timeText = useMemo(() => {
+        if (phase === 'before') return formatStartSoon(startLeft ?? 0);
+        if (phase === 'running') return formatTime(remainingTime);
+        return '마감';
+    }, [phase, startLeft, remainingTime]);
+
     return(
         <>
             <Link href={`/auction/${item.id}`}>
@@ -133,8 +182,8 @@ export default function AuctionCard({ item, onWishChange }: Props){
                         <div className="text-[20px] font-semibold">{item.currentPrice} TKC</div>
                         <div className="text-sm text-[#242424]">
                             <span>입찰 {item.bidCount}회 | </span>
-                            <span className={remainingTime <= 0 ? "text-red-500 font-semibold" : ""}>
-                                {formatTime(remainingTime)}
+                            <span className={phase === "ended" ? "text-red-500 font-semibold" : ""}>
+                                {timeText}
                             </span>
                         </div>
                         <button
