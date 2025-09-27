@@ -10,7 +10,8 @@ import com.bukadong.tcg.api.card.entity.PhysicalCard;
 import com.bukadong.tcg.api.member.entity.Member;
 import com.bukadong.tcg.global.blockchain.service.TakoNftContractService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -18,10 +19,11 @@ import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
 import java.math.BigInteger;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuctionResultService {
+
+    private static final Logger log = LoggerFactory.getLogger(AuctionResultService.class);
 
     private final AuctionResultRepository auctionResultRepository;
     private final TakoNftContractService takoNftContractService;
@@ -59,7 +61,7 @@ public class AuctionResultService {
         }
 
         if (auctionResult.isSettledFlag()) {
-            log.warn("AuctionResult #{} has already been updated about settled Flag.",  auctionResult.getId());
+            log.warn("AuctionResult #{} has already been updated about settled Flag.", auctionResult.getId());
             return;
         }
 
@@ -74,8 +76,7 @@ public class AuctionResultService {
                     seller.getWalletAddress(),
                     buyer.getWalletAddress(),
                     auctionResult.getAuctionBid().getAmount(),
-                    BigInteger.valueOf(auction.getGrade().getId())
-            );
+                    BigInteger.valueOf(auction.getGrade().getId()));
         }
 
         deliveryService.confirmByBuyer(buyer, auction.getId());

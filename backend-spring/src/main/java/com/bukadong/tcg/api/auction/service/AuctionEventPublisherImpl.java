@@ -12,7 +12,8 @@ import com.bukadong.tcg.api.auction.event.AuctionSoldEvent;
 import com.bukadong.tcg.api.auction.event.AuctionUnsoldEvent;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 경매 이벤트 퍼블리셔 기본 구현
@@ -23,17 +24,20 @@ import lombok.extern.slf4j.Slf4j;
  * @PARAM 없음
  * @RETURN 없음
  */
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuctionEventPublisherImpl implements AuctionEventPublisher {
 
+    private static final Logger log = LoggerFactory.getLogger(AuctionEventPublisherImpl.class);
+
     private final ApplicationEventPublisher publisher;
 
     @Override
-    public void publishAuctionSold(long auctionId, long bidId, BigDecimal amount, Instant closedAt, Member seller, Member buyer, PhysicalCard physicalCard) {
+    public void publishAuctionSold(long auctionId, long bidId, BigDecimal amount, Instant closedAt, Member seller,
+            Member buyer, PhysicalCard physicalCard) {
         publisher.publishEvent(new AuctionSoldEvent(auctionId, bidId, amount, closedAt, seller, buyer, physicalCard));
-        log.info("[Event] SOLD auctionId={}, winnerId={}, bidId={}, amount={}", auctionId, buyer.getId(), bidId, amount);
+        log.info("[Event] SOLD auctionId={}, winnerId={}, bidId={}, amount={}", auctionId, buyer.getId(), bidId,
+                amount);
     }
 
     @Override

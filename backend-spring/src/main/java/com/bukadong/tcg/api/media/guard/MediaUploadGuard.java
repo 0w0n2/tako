@@ -6,7 +6,8 @@ import com.bukadong.tcg.api.media.entity.MediaType;
 import com.bukadong.tcg.global.common.base.BaseResponseStatus;
 import com.bukadong.tcg.global.common.exception.BaseException;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.util.unit.DataSize;
@@ -20,10 +21,11 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
-@Slf4j
 @Component
 @RequiredArgsConstructor
 public class MediaUploadGuard {
+
+    private static final Logger log = LoggerFactory.getLogger(MediaUploadGuard.class);
 
     private final UploadProperties uploadProperties;
 

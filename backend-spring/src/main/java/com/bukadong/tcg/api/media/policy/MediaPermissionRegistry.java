@@ -10,14 +10,16 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import jakarta.annotation.PostConstruct;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * MediaType → Policy 매핑/조회
  */
-@Slf4j
 @Component
 public class MediaPermissionRegistry {
+
+    private static final Logger log = LoggerFactory.getLogger(MediaPermissionRegistry.class);
 
     private final Map<MediaType, MediaPermissionPolicy> policies = new EnumMap<>(MediaType.class);
     private final List<MediaPermissionPolicy> beans;

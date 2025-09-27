@@ -1,7 +1,8 @@
 package com.bukadong.tcg.global.config;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -20,11 +21,12 @@ import org.springframework.stereotype.Component;
  * @PARAM 없음
  * @RETURN 없음
  */
-@Slf4j
 @Component
 @RequiredArgsConstructor
 @ConditionalOnProperty(name = "db.init.fulltext", havingValue = "true")
 public class FullTextIndexInitializer implements ApplicationRunner {
+
+    private static final Logger log = LoggerFactory.getLogger(FullTextIndexInitializer.class);
 
     private final JdbcTemplate jdbcTemplate;
 

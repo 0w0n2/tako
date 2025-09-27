@@ -6,7 +6,8 @@ import com.bukadong.tcg.api.media.repository.MediaRepository;
 import com.bukadong.tcg.global.util.RedisUtils;
 import com.bukadong.tcg.global.util.S3Uploader;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -23,10 +24,11 @@ import java.util.List;
  * @PARAM 없음
  * @RETURN 없음
  */
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MediaPresignQueryService {
+
+    private static final Logger log = LoggerFactory.getLogger(MediaPresignQueryService.class);
 
     private static final String PRESIGN_CACHE_PREFIX = "MEDIA:PRESIGN:";
 

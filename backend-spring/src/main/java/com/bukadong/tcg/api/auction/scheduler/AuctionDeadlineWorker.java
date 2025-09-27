@@ -9,12 +9,14 @@ import com.bukadong.tcg.api.auction.service.AuctionFinalizeService;
 import com.bukadong.tcg.api.auction.service.AuctionQueryService;
 import com.bukadong.tcg.global.common.exception.BaseException;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 @Component
 @RequiredArgsConstructor
 public class AuctionDeadlineWorker {
+
+    private static final Logger log = LoggerFactory.getLogger(AuctionDeadlineWorker.class);
 
     private final AuctionQueryService auctionQueryService;
     private final AuctionFinalizeService auctionFinalizeService;

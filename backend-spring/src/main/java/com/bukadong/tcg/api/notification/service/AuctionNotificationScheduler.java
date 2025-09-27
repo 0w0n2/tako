@@ -6,7 +6,8 @@ import com.bukadong.tcg.api.notification.repository.NotificationRepository;
 import com.bukadong.tcg.api.notification.repository.NotificationTypeRepository;
 import com.bukadong.tcg.api.wish.repository.WishQueryPort;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -24,11 +25,12 @@ import java.util.List;
  * NotificationRepository.existsBy... 검사 - 운영에서는 배치 윈도우/락/오프셋 관리 권장
  * </P>
  */
-@Slf4j
 @Component
 @RequiredArgsConstructor
 @ConditionalOnProperty(prefix = "auction.notify", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class AuctionNotificationScheduler {
+
+    private static final Logger log = LoggerFactory.getLogger(AuctionNotificationScheduler.class);
 
     private final JdbcTemplate jdbcTemplate; // 경매 테이블 직접 조회용 (간단 쿼리)
     private final WishQueryPort wishQueryPort;

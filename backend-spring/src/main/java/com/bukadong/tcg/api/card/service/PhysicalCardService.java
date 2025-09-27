@@ -13,7 +13,8 @@ import com.bukadong.tcg.api.member.entity.Member;
 import com.bukadong.tcg.global.common.base.BaseResponseStatus;
 import com.bukadong.tcg.global.common.exception.BaseException;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,10 +28,11 @@ import java.util.UUID;
 /**
  * PhysicalCard의 생성, 상태 변경, 조회
  */
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PhysicalCardService {
+
+    private static final Logger log = LoggerFactory.getLogger(PhysicalCardService.class);
 
     private final PhysicalCardRepository physicalCardRepository;
     private final CardRepository cardRepository;

@@ -2,16 +2,18 @@ package com.bukadong.tcg.global.blockchain.util;
 
 import com.bukadong.tcg.global.common.base.BaseResponseStatus;
 import com.bukadong.tcg.global.common.exception.BaseException;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.exceptions.TransactionException;
 
 import java.util.Optional;
 
-@Slf4j
 @Component
 public class ContractExceptionHelper {
+
+    private static final Logger log = LoggerFactory.getLogger(ContractExceptionHelper.class);
 
     public BaseException handleTransactionException(TransactionException e) {
         String revertReason = e.getTransactionReceipt()

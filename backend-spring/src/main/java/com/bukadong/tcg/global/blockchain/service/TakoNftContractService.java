@@ -1,14 +1,10 @@
 package com.bukadong.tcg.global.blockchain.service;
 
-import com.bukadong.tcg.api.auction.entity.Auction;
-import com.bukadong.tcg.api.auction.entity.AuctionResult;
 import com.bukadong.tcg.api.card.dto.response.NftAuctionHistoryResponseDto;
 import com.bukadong.tcg.api.card.entity.CardAiGrade;
-import com.bukadong.tcg.api.card.entity.PhysicalCard;
 import com.bukadong.tcg.api.card.repository.CardAiGradeRepository;
 import com.bukadong.tcg.api.member.entity.Member;
 import com.bukadong.tcg.api.member.repository.MemberRepository;
-import com.bukadong.tcg.global.blockchain.contracts.AuctionEscrow;
 import com.bukadong.tcg.global.blockchain.contracts.TakoCardNFT;
 import com.bukadong.tcg.global.blockchain.util.ContractExceptionHelper;
 import com.bukadong.tcg.global.blockchain.util.ContractLoader;
@@ -16,8 +12,8 @@ import com.bukadong.tcg.global.common.base.BaseResponseStatus;
 import com.bukadong.tcg.global.common.exception.BaseException;
 import com.bukadong.tcg.global.properties.blockchain.BlockChainProperties;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.parameters.P;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.web3j.crypto.Hash;
@@ -28,12 +24,12 @@ import org.web3j.utils.Convert;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
-import java.util.stream.Collectors;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TakoNftContractService {
+
+    private static final Logger log = LoggerFactory.getLogger(TakoNftContractService.class);
 
     private final ContractLoader contractLoader;
     private final ContractExceptionHelper contractExceptionHelper;
@@ -65,17 +61,19 @@ public class TakoNftContractService {
     public List<NftAuctionHistoryResponseDto> getAuctionHistories(Long tokenId) {
         try {
             TakoCardNFT contract = contractLoader.loadTakoCardNft();
-            List<TakoCardNFT.AuctionHistory> histories = contract.getAuctionHistories(BigInteger.valueOf(tokenId)).send();
+            List<TakoCardNFT.AuctionHistory> histories = contract.getAuctionHistories(BigInteger.valueOf(tokenId))
+                    .send();
 
             return histories.stream()
-                    .map((history) -> {
+                    .map(history -> {
                         Member seller = memberRepository.findByWalletAddress(history.seller).orElse(null);
                         Member buyer = memberRepository.findByWalletAddress(history.buyer).orElse(null);
-                        CardAiGrade cardAiGrade = cardAiGradeRepository.findById(history.gradeId.longValue()).orElse(null);
+                        CardAiGrade cardAiGrade = cardAiGradeRepository.findById(history.gradeId.longValue())
+                                .orElse(null);
 
                         return NftAuctionHistoryResponseDto.toDto(history, seller, buyer, cardAiGrade);
                     })
-                    .collect(Collectors.toList());
+                    .toList();
         } catch (TransactionException e) {
             throw contractExceptionHelper.handleTransactionException(e);
         } catch (Exception e) {
@@ -102,7 +100,8 @@ public class TakoNftContractService {
     /**
      * 경매 내역을 NFT 카드에 등록
      */
-    public TransactionReceipt addAuctionHistory(BigInteger tokenId, String sellerAddress, String buyerAddress, BigDecimal amount, BigInteger gradeId) {
+    public TransactionReceipt addAuctionHistory(BigInteger tokenId, String sellerAddress, String buyerAddress,
+            BigDecimal amount, BigInteger gradeId) {
         try {
             /* NFT 에 등록 */
             TakoCardNFT nftContract = contractLoader.loadTakoCardNft();
@@ -113,8 +112,7 @@ public class TakoNftContractService {
                     sellerAddress,
                     buyerAddress,
                     amountInWei,
-                    gradeId
-            ).send();
+                    gradeId).send();
         } catch (TransactionException e) {
             throw contractExceptionHelper.handleTransactionException(e);
         } catch (Exception e) {
