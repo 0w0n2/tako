@@ -147,7 +147,6 @@ function AuctionEndedRow({ item }: { item: MyBidAuctions }) {
                   variant="outline"
                   className="min-w-[104px]"
                   onClick={() => setOpenAddressModal(true)}
-                  disabled={hasRecipient}
                 >
                   {hasRecipient ? "배송지 선택 완료" : "배송지 선택"}
                 </Button>
