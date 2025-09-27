@@ -85,6 +85,10 @@ dependencies {
 
 	// FCM
 	implementation 'com.google.firebase:firebase-admin:9.1.1'
+
+	// Image Processing
+	implementation "com.sksamuel.scrimage:scrimage-core:4.0.32"
+	implementation "com.sksamuel.scrimage:scrimage-webp:4.0.32"
 }
 
 tasks.named('test') {
