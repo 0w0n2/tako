@@ -4,7 +4,7 @@ export type BidQueueRequest = {
   requestId: string;
 };
 
-export type BidStatus = "VALID" | "REJECTED" | "FAILED" | string;
+export type BidStatus = "VALID" | "QUEUED" | "FAILED" | string;
 
 // types/bid.ts
 export type BidQueueResponse = {
