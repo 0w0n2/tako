@@ -1,12 +1,13 @@
 'use client'
 
-import { MyAuctionResponse } from "@/types/auction"
+import { MyBidAuctionResponse } from "@/types/auction"
 import Image from "next/image"
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { Clock, Users, DollarSign } from 'lucide-react';
+import { Clock, Users, DollarSign, Trophy } from 'lucide-react';
+import { Badge } from "@/components/ui/badge"
 
-export default function MyAuctionCard({ item }: { item: MyAuctionResponse }){
+export default function MyAuctionCard({ item }: { item: MyBidAuctionResponse }){
     const [remainingTime, setRemainingTime] = useState(0);
 
     useEffect(() => {
@@ -47,16 +48,10 @@ export default function MyAuctionCard({ item }: { item: MyAuctionResponse }){
         return parts.slice(0, 2).join(' ');
     };
 
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('ko-KR', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    };
 
+    // 내 최고 입찰가가 현재가와 같은지 확인 (낙찰 여부)
+    const isWinning = item.myTopBidAmount === item.currentPrice && item.bids.length > 0;
+    
     return(
         <Link href={`/auction/${item.auctionId}`}>
             <div className="relative border rounded-lg h-80 flex items-end overflow-hidden hover:shadow-lg transition-shadow">
@@ -70,28 +65,25 @@ export default function MyAuctionCard({ item }: { item: MyAuctionResponse }){
                         unoptimized
                     />
                 </div>
-                
-                {/* 상태 표시 */}
-                <div className="absolute top-2 left-2 z-10">
-                    {item.isEnd ? (
-                        <span className="bg-red-500 text-white px-2 py-1 rounded text-xs font-semibold">
-                            {item.closeReason || '마감'}
-                        </span>
-                    ) : (
-                        <span className="bg-green-500 text-white px-2 py-1 rounded text-xs font-semibold">
-                            진행중
-                        </span>
-                    )}
-                </div>
 
-                <div className="w-full p-4 relative flex flex-col gap-2 bg-white/30 backdrop-blur-lg text-black rounded-lg">
+                {/* 낙찰 표시 */}
+                {isWinning && item.isEnd && (
+                    <div className="absolute top-2 right-2 z-10">
+                        <Badge variant="secondary" className="bg-yellow-500 text-white text-xs font-semibold flex items-center gap-1">
+                            <Trophy className="w-3 h-3" />
+                            낙찰
+                        </Badge>
+                    </div>
+                )}
+
+                <div className="w-full h-[45%] p-4 relative flex flex-col gap-2 bg-white/50 backdrop-blur-lg text-black rounded-lg">
                     <h3 className="h-13 font-semibold">
                         {item.title.length > 18 ? item.title.slice(0, 18) + "..." : item.title}
                     </h3>
                     
                     <div className="flex items-center gap-1 text-[20px] font-semibold">
                         <DollarSign className="w-5 h-5" />
-                        {item.currentPrice.toLocaleString()} TKC
+                        {item.currentPrice} TKC
                     </div>
                     
                     <div className="flex items-center gap-1 text-sm text-[#242424]">
@@ -106,8 +98,9 @@ export default function MyAuctionCard({ item }: { item: MyAuctionResponse }){
                         </span>
                     </div>
                     
-                    <div className="text-xs text-gray-600">
-                        시작: {formatDate(item.startDatetime)}
+                    {/* 내 입찰 정보 */}
+                    <div className="text-xs text-blue-600 font-medium">
+                        내 입찰: {item.myTopBidAmount} TKC
                     </div>
                     
                     {item.bids.length > 0 && (
