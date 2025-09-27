@@ -60,6 +60,7 @@ export interface GetAuction {
 	primaryImageUrl: string;
 	wished: boolean;
 	tokenId: boolean | null;
+	startDatetime?: string;
 }
 
 // 경매 조회 - 페이지
