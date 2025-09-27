@@ -11,6 +11,7 @@ import WalletProfile from "@/components/wallet/WalletProfile";
 // import ClaimButton from "@/components/nft/ClaimButton"
 import HomeBidAuctions from "@/components/mypage/HomeBidAuctions";
 import { useAuthRedirect } from "@/hooks/useAuthRedirect";
+import SellerReviews from "@/components/mypage/SellerReviews";
 
 export default function Mypage() {
 	const { me, meLoading, meError } = useMyInfo();
@@ -190,7 +191,7 @@ export default function Mypage() {
 			)}
 			{status === "myReview" && (
 				<div>
-					<h2>리뷰</h2>
+					<SellerReviews />
 				</div>
 			)}
 		</div>

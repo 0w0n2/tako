@@ -105,15 +105,14 @@ public class Auction extends BaseEntity {
 
     /** 시작 가격 (코인 단위, 소수점 8자리) */
     @NotNull(message = "시작 가격은 필수입니다.")
-    // 최소 시작가 = 최소 입찰 단위 0.0001
-    @DecimalMin(value = "0.0001")
+    @DecimalMin(value = "0.00000000")
     @Digits(integer = 12, fraction = 8)
     @Column(name = "start_price", nullable = false, precision = 20, scale = 8)
     private BigDecimal startPrice;
 
     /** 현재가 (코인 단위, 소수점 8자리) */
     @NotNull(message = "현재가는 필수입니다.")
-    @DecimalMin(value = "0.0001")
+    @DecimalMin(value = "0.00000000")
     @Digits(integer = 12, fraction = 8)
     @Column(name = "current_price", nullable = false, precision = 20, scale = 8)
     private BigDecimal currentPrice;
@@ -149,7 +148,7 @@ public class Auction extends BaseEntity {
     private boolean buyNowFlag;
 
     /** 즉시 구매 가격 (옵션) */
-    @DecimalMin(value = "0.0001")
+    @DecimalMin(value = "0.00000000")
     @Digits(integer = 12, fraction = 8)
     @Column(name = "buy_now_price", precision = 20, scale = 8)
     private BigDecimal buyNowPrice;

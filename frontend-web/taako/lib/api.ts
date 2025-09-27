@@ -19,7 +19,7 @@ api.interceptors.request.use(
 		return config;
 	},
 	(error) => {
-		return Promise.reject(error);
+		return Promise.reject(error instanceof Error ? error : new Error(String(error)));
 	}
 );
 
@@ -29,7 +29,7 @@ api.interceptors.response.use(
 		const originalRequest = error.config;
 
 		if (originalRequest.url.includes("/v1/auth/token/refresh")) {
-			return Promise.reject(error);
+			return Promise.reject(error instanceof Error ? error : new Error(String(error)));
 		}
 
 		if (error.response?.status === 401 && !originalRequest._retry) {
@@ -46,7 +46,7 @@ api.interceptors.response.use(
 				useAuthStore.getState().logout();
 			}
 		}
-		return Promise.reject(error);
+		return Promise.reject(error instanceof Error ? error : new Error(String(error)));
 	}
 );
 export default api;
