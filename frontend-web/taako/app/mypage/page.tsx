@@ -11,6 +11,7 @@ import WalletProfile from "@/components/wallet/WalletProfile";
 // import ClaimButton from "@/components/nft/ClaimButton"
 import HomeBidAuctions from "@/components/mypage/HomeBidAuctions";
 import { useLoginRedirect } from "@/hooks/useAuthRedirect";
+import SellerReviews from "@/components/mypage/SellerReviews";
 
 export default function Mypage() {
 	const { me, meLoading, meError } = useMyInfo();
