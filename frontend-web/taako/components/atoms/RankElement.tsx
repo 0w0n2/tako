@@ -11,6 +11,8 @@ export default function RankElement({ rank }: Rank) {
         return 'text-[#837BFF] text-[40px] shadow-lg shadow-[#837BFF]';
       case 'A1':
         return 'text-[#FF5DA3] shadow-lg shadow-[#FF5DA3]';
+      case 'A':
+        return 'text-[#FF5DA3] shadow-lg shadow-[#FF5DA3]';
       case 'B':
         return 'shadow-lg shadow-[#BCBCBC]';
       default:

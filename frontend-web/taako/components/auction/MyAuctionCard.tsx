@@ -83,7 +83,7 @@ export default function MyAuctionCard({ item }: { item: MyBidAuctionResponse }){
                     
                     <div className="flex items-center gap-1 text-[20px] font-semibold">
                         <DollarSign className="w-5 h-5" />
-                        {item.currentPrice} TKC
+                        {item.currentPrice} ETH
                     </div>
                     
                     <div className="flex items-center gap-1 text-sm text-[#242424]">
@@ -100,12 +100,12 @@ export default function MyAuctionCard({ item }: { item: MyBidAuctionResponse }){
                     
                     {/* 내 입찰 정보 */}
                     <div className="text-xs text-blue-600 font-medium">
-                        내 입찰: {item.myTopBidAmount} TKC
+                        내 입찰: {item.myTopBidAmount} ETH
                     </div>
                     
                     {item.bids.length > 0 && (
                         <div className="text-xs text-gray-600">
-                            최고입찰: {item.bids[0].nickname} ({item.bids[0].price.toLocaleString()} TKC)
+                            최고입찰: {item.bids[0].nickname} ({item.bids[0].price.toLocaleString()} ETH)
                         </div>
                     )}
                 </div>

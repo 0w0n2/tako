@@ -8,9 +8,11 @@ import { MyBidAuctionResponse } from "@/types/auction"
 
 type HomeBidAuctionsProps = {
   type: "bid" | "sell";
+  setTotalBidAuction: (count: number) => void;
+  setTotalSellAuction: (count: number) => void;
 }
 
-export default function HomeBidAuctions({ type }: HomeBidAuctionsProps){
+export default function HomeBidAuctions({ type, setTotalBidAuction, setTotalSellAuction }: HomeBidAuctionsProps){
   const [data, setData] = useState<{ result: { content: MyBidAuctionResponse[] } } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,6 +30,14 @@ export default function HomeBidAuctions({ type }: HomeBidAuctionsProps){
           res = await api.get("/v1/auctions/me", {})
         }
         setData(res.data);
+        
+        // 갯수 설정
+        const count = res.data.result.content.length;
+        if (type === "bid") {
+          setTotalBidAuction(count);
+        } else {
+          setTotalSellAuction(count);
+        }
       } catch (err: any) {
         setError(err.message || "데이터를 불러오는데 실패했습니다.");
       } finally {
@@ -63,7 +73,7 @@ export default function HomeBidAuctions({ type }: HomeBidAuctionsProps){
   }
 
   return(
-    <div className="grid grid-cols-5 gap-8">
+    <div className="grid grid-cols-4 gap-8">
       {data.result.content.map((item: MyBidAuctionResponse) => (
         <MyAuctionCard key={item.auctionId} item={item} />
       ))}

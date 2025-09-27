@@ -18,6 +18,8 @@ export default function Mypage() {
 	const [trustRaw, setTrustRaw] = useState<number | null>(null);
 	const [trustLoading, setTrustLoading] = useState(false);
 	const [trustError, setTrustError] = useState<string | null>(null);
+	const [totalBidAuction, setTotalBidAuction] = useState<number>(0);
+	const [totalSellAuction, setTotalSellAuction] = useState<number>(0);
 	const tabs = [
 		{ id: "myProfile", label: "기본정보" },
 		{ id: "myBidAuction", label: "입찰 중 경매" },
@@ -174,14 +176,14 @@ export default function Mypage() {
 				</div>
 			)}
 			{status === "myBidAuction" && (
-				<div>
-					<HomeBidAuctions type="bid" />
-				</div>
+				<><h2>총 입찰 경매: {totalBidAuction}개</h2><div>
+					<HomeBidAuctions type="bid" setTotalBidAuction={setTotalBidAuction} setTotalSellAuction={setTotalSellAuction} />
+				</div></>
 			)}
 			{status === "mySellAuction" && (
-				<div>
-					<HomeBidAuctions type="sell" />
-				</div>
+				<><h2>총 등록 경매: {totalSellAuction}개</h2><div>
+					<HomeBidAuctions type="sell" setTotalBidAuction={setTotalBidAuction} setTotalSellAuction={setTotalSellAuction} />
+				</div></>
 			)}
 			{status === "myReview" && (
 				<div>
