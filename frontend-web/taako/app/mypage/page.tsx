@@ -10,7 +10,7 @@ import { fetchTrustScore, formatTrustScore, trustScoreImagePath, trustScoreColor
 import WalletProfile from "@/components/wallet/WalletProfile";
 // import ClaimButton from "@/components/nft/ClaimButton"
 import HomeBidAuctions from "@/components/mypage/HomeBidAuctions";
-import { useAuthRedirect } from "@/hooks/useAuthRedirect";
+import { useLoginRedirect } from "@/hooks/useAuthRedirect";
 
 export default function Mypage() {
 	const { me, meLoading, meError } = useMyInfo();
@@ -26,7 +26,7 @@ export default function Mypage() {
 	const [status, setStatus] = useState(tabs[0].id);
 	const activeIndex = tabs.findIndex((tab) => tab.id === status);
 
-	useAuthRedirect();
+	useLoginRedirect(true, false);
 
 	useEffect(() => {
 		if (!me?.memberId) return;
@@ -180,6 +180,7 @@ export default function Mypage() {
 			)}
 			{status === "myBidAuction" && (
 				<div>
+					<h2>입찰 중인 경매</h2>
 					<HomeBidAuctions />
 				</div>
 			)}
