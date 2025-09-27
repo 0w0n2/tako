@@ -4,6 +4,7 @@ import com.bukadong.tcg.api.card.repository.PhysicalCardRepository;
 import com.bukadong.tcg.api.card.service.PhysicalCardService;
 import com.bukadong.tcg.api.member.entity.Member;
 import com.bukadong.tcg.api.member.repository.MemberRepository;
+import com.bukadong.tcg.global.blockchain.constants.BlockChainConstant;
 import com.bukadong.tcg.global.blockchain.contracts.TakoCardNFT;
 import com.bukadong.tcg.global.properties.blockchain.BlockChainProperties;
 import lombok.RequiredArgsConstructor;
@@ -39,8 +40,6 @@ public class NftTransferEventListener {
 
     private BigInteger lastCheckedBlock = null;
 
-    private static final BigInteger BLOCK_RANGE_LIMIT = BigInteger.valueOf(9);
-
     /* 15초마다 새로운 블록의 Transfer 이벤트를 확인 */
     @Scheduled(fixedRate = 15000)
     public void checkForTransferEvents() {
@@ -57,7 +56,7 @@ public class NftTransferEventListener {
 
                 BigInteger currentFromBlock = fromBlock;
                 while (currentFromBlock.compareTo(latestBlock) <= 0) {
-                    BigInteger currentToBlock = currentFromBlock.add(BLOCK_RANGE_LIMIT);
+                    BigInteger currentToBlock = currentFromBlock.add(BlockChainConstant.BLOCK_RANGE_LIMIT);
                     if (currentToBlock.compareTo(latestBlock) > 0) {
                         currentToBlock = latestBlock;
                     }
