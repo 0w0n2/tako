@@ -44,7 +44,7 @@ public class AuctionBidLuaScripts {
 
                     // 시간 상태
                     + "local now = tonumber(ARGV[2] or '0') "
-                    + "if (is_end=='1') or (now < startts) or (now > endts) then "
+                    + "if (is_end=='1') or (now < startts) or (now >= endts) then "
                     + "  redis.call('RPUSH', KEYS[2], ARGV[6]); return {'NOT_RUNNING', curStr} " + "end "
 
                     // 본인 입찰 금지

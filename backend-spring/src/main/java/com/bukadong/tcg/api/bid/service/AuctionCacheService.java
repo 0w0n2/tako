@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.ZoneOffset;
 import java.util.Map;
 import java.math.BigDecimal;
-import java.util.HashMap;
 
 /**
  * 경매 캐시 서비스
@@ -70,47 +69,6 @@ public class AuctionCacheService {
                     F_OWNER_ID, String.valueOf(a.getMember() != null ? a.getMember().getId() : 0L), F_BUY_NOW_FLAG,
                     buyNowFlag, F_BUY_NOW_PRICE, buyNowPrice));
         }
-    }
-
-    /**
-     * 강제 새로고침: DB 스냅샷으로 Redis 해시 전 필드를 덮어쓴다.
-     * <p>
-     * 캐시가 존재하지만 오래되어 잘못된 상태(예: end_ts, is_end)가 남아 있을 때 사용.
-     * </p>
-     */
-    public void reloadFromDb(Long auctionId) {
-        Auction a = auctionRepository.findById(auctionId).orElse(null);
-        if (a == null)
-            return;
-        String key = AUCTION_KEY_PREFIX + auctionId;
-        HashOperations<String, String, String> h = redisTemplate.opsForHash();
-        String buyNowFlag = a.isBuyNowFlag() ? "1" : "0";
-        String buyNowPrice = (a.getBuyNowPrice() != null) ? a.getBuyNowPrice().toPlainString() : "";
-        h.putAll(key,
-                Map.of(F_IS_END, a.isEnd() ? "1" : "0", F_START_TS,
-                        String.valueOf(a.getStartDatetime().toEpochSecond(ZoneOffset.UTC)), F_END_TS,
-                        String.valueOf(a.getEndDatetime().toEpochSecond(ZoneOffset.UTC)), F_CURRENT_PRICE,
-                        a.getCurrentPrice().toPlainString(), F_BID_UNIT, a.getBidUnit().toBigDecimal().toPlainString(),
-                        F_OWNER_ID, String.valueOf(a.getMember() != null ? a.getMember().getId() : 0L), F_BUY_NOW_FLAG,
-                        buyNowFlag, F_BUY_NOW_PRICE, buyNowPrice));
-    }
-
-    /**
-     * 디버그용: Redis 해시 스냅샷을 반환한다(존재하지 않는 필드는 null).
-     */
-    public Map<String, String> getSnapshot(Long auctionId) {
-        String key = AUCTION_KEY_PREFIX + auctionId;
-        HashOperations<String, String, String> h = redisTemplate.opsForHash();
-        Map<String, String> snap = new HashMap<>();
-        snap.put(F_IS_END, h.get(key, F_IS_END));
-        snap.put(F_START_TS, h.get(key, F_START_TS));
-        snap.put(F_END_TS, h.get(key, F_END_TS));
-        snap.put(F_CURRENT_PRICE, h.get(key, F_CURRENT_PRICE));
-        snap.put(F_BID_UNIT, h.get(key, F_BID_UNIT));
-        snap.put(F_OWNER_ID, h.get(key, F_OWNER_ID));
-        snap.put(F_BUY_NOW_FLAG, h.get(key, F_BUY_NOW_FLAG));
-        snap.put(F_BUY_NOW_PRICE, h.get(key, F_BUY_NOW_PRICE));
-        return snap;
     }
 
     /**
