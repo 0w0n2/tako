@@ -58,6 +58,7 @@ export function useDelivery(auctionId: number, opts: Options = {}) {
   const status: DeliveryStatus = info?.status ?? "WAITING";
 
   const hasRecipient = !!info?.recipientAddress?.id;
+  const hasSeller = !!info?.senderAddress?.id;
   const hasTracking = !!info?.trackingNumber;
   const needsRecipient = !hasRecipient;
   const isTerminal = isTerminalStatus(status);
@@ -79,6 +80,7 @@ export function useDelivery(auctionId: number, opts: Options = {}) {
     // 파생 상태
     hasRecipient,
     hasTracking,
+    hasSeller,
     needsRecipient,
     isTerminal,
 
