@@ -117,7 +117,10 @@ export default function ShopPage({ params }: { params: { id: number } }) {
   //         "primaryImageUrl": "https://bukadong-bucket.s3.ap-northeast-2.amazonaws.com/media/auction/item/be174ce0-2905-48c4-8457-d80281e91eae.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20250927T105512Z&X-Amz-SignedHeaders=host&X-Amz-Credential=AKIA5FCD6IRKIHWOTRVH%2F20250927%2Fap-northeast-2%2Fs3%2Faws4_request&X-Amz-Expires=300&X-Amz-Signature=c0ce7906ed00fb265518ecfc3cb77823da69946265e507bfe8e6fef6dd5b28d1",
   //         "wished": false,
   //         "tokenId": null
-
+  //       }
+  //     ]
+  //   }
+  // }
   return (
     <div className="default-container">
       <div className="flex flex-col gap-10">
