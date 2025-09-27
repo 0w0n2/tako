@@ -381,3 +381,9 @@ h2.main{
   animation: shine 2s ease-in-out infinite; /* 전체 주기 2.5초 */
   pointer-events: none;
 }
+
+/* overlay shrink reverse spin */
+@keyframes spinReverse {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(-360deg); }
+}
