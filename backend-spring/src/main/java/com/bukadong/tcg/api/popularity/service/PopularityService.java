@@ -85,6 +85,34 @@ public class PopularityService {
     }
 
     /**
+     * 카드 상세 조회 시 조회 이벤트 기록
+     * <p>
+     * auctionId가 없는 카드 상세 화면에서도 인기도를 반영하기 위해 cardId 기준으로 카운팅한다.
+     * 카드의 대분류(categoryMajor) 기준 분 버킷에 해당 cardId 멤버의 점수를 증가시킨다.
+     * </p>
+     *
+     * @param cardId 카드 ID
+     */
+    public void recordCardDetailView(long cardId) {
+        // 카드 → 대분류 ID 조회
+        Optional<Card> cardOpt = cardRepository.findById(cardId);
+        if (cardOpt.isEmpty()) {
+            return;
+        }
+        Card c = cardOpt.get();
+        if (c.getCategoryMajor() == null || c.getCategoryMajor().getId() == null) {
+            return;
+        }
+        long categoryMajorId = c.getCategoryMajor().getId();
+
+        // 분 버킷 키 계산(UTC) 후 cardId 멤버 점수 증가
+        LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
+        String key = PopularityKeyUtil.minuteKey(categoryMajorId, now);
+        stringRedisTemplate.opsForZSet().incrementScore(key, String.valueOf(cardId), viewWeight);
+        stringRedisTemplate.expire(key, Duration.ofMinutes(bucketTtlMinutes));
+    }
+
+    /**
      * 최근 1시간 인기 카드 조회
      * <P>
      * 현재 분 포함 과거 59분까지의 분 버킷을 합산하여 랭킹을 계산한다.
