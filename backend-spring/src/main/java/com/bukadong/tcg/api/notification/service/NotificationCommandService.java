@@ -77,8 +77,8 @@ public class NotificationCommandService {
         // IDENTITY 전략에서 지연 식별자 할당으로 인한 null 방지
         Long id = notificationRepository.saveAndFlush(n).getId();
         if (id == null) {
-            log.warn("Notification saved but id is null. Skip event publish. memberId={} type={} causeId={}",
-                    memberId, typeCode, causeId);
+            log.warn("Notification saved but id is null. Skip event publish. memberId={} type={} causeId={}", memberId,
+                    typeCode, causeId);
             return null;
         }
         if (log.isDebugEnabled()) {
@@ -226,14 +226,12 @@ public class NotificationCommandService {
 
     private String buildTargetUrl(NotificationTypeCode typeCode, Long causeId) {
         return switch (typeCode) {
-            case WISH_AUCTION_STARTED, WISH_AUCTION_DUE_SOON, WISH_AUCTION_ENDED, AUCTION_NEW_INQUIRY, AUCTION_WON,
-                    AUCTION_CLOSED_SELLER, AUCTION_CANCELED, DELIVERY_STARTED, DELIVERY_STATUS_CHANGED,
-                    DELIVERY_CONFIRM_REQUEST, DELIVERY_CONFIRMED_SELLER, BID_ACCEPTED, BID_REJECTED, BID_FAILED ->
-                targetUrlBuilder
-                        .buildForAuction(causeId);
-            case WISH_CARD_LISTED -> targetUrlBuilder.buildForCard(causeId);
-            case INQUIRY_ANSWERED -> targetUrlBuilder.buildForInquiry(causeId);
-            case NOTICE_NEW -> "/notice/" + (causeId == null ? "" : causeId);
+        case WISH_AUCTION_STARTED, WISH_AUCTION_DUE_SOON, WISH_AUCTION_ENDED, AUCTION_NEW_INQUIRY, AUCTION_WON, AUCTION_CLOSED_SELLER, AUCTION_CANCELED, DELIVERY_STARTED, DELIVERY_STATUS_CHANGED, DELIVERY_CONFIRM_REQUEST, DELIVERY_CONFIRMED_SELLER, BID_ACCEPTED, BID_REJECTED, BID_FAILED -> targetUrlBuilder
+                .buildForAuction(causeId);
+        case WISH_CARD_LISTED -> targetUrlBuilder.buildForCard(causeId);
+        case INQUIRY_ANSWERED -> targetUrlBuilder.buildForInquiry(causeId);
+        case NOTICE_NEW -> "/notice/" + (causeId == null ? "" : causeId);
+        case BID_OUTBID -> targetUrlBuilder.buildForAuction(causeId);
         };
     }
 
@@ -312,5 +310,13 @@ public class NotificationCommandService {
         String code = (reasonCode == null ? "SYSTEM" : reasonCode);
         String message = "시스템 오류로 입찰 반영에 실패했습니다. 금액: " + safeAmount(amount) + " (코드: " + code + ")";
         return create(memberId, NotificationTypeCode.BID_FAILED, auctionId, title, message);
+    }
+
+    /** 상위 입찰 발생으로 최고가 지위 상실 */
+    @Transactional
+    public Long notifyBidOutbid(Long memberId, Long auctionId, BigDecimal newTopAmount) {
+        String title = "상위 입찰이 발생했습니다";
+        String message = "내 입찰이 최고가가 아닙니다. 현재가: " + safeAmount(newTopAmount);
+        return create(memberId, NotificationTypeCode.BID_OUTBID, auctionId, title, message);
     }
 }

@@ -244,6 +244,12 @@ public class AuctionLiveSseService {
             }
             failureCounts.merge(emitter, 1, Integer::sum);
             removeEmitter(emitter, null);
+            // 연결이 이미 끊겼을 수 있으므로 complete 시도 (에러 로그 빈도 완화)
+            try {
+                emitter.complete();
+            } catch (Exception ignore) {
+                // no-op
+            }
         }
     }
 

@@ -170,6 +170,24 @@ public class BidEventApplyService {
                     .amount(finalBid).status(AuctionBidStatus.VALID).eventId(eventId).build();
             ab = auctionBidRepository.save(ab);
 
+            // 이전 최고 입찰자/금액 캡처(일반 입찰일 때만 사용)
+            Long prevTopBidderId = null;
+            BigDecimal prevTopAmount = null;
+            if (!buyNowEvent) {
+                var prevOpt = auctionBidRepository.findTopByAuctionIdOrderByAmountDescCreatedAtDesc(auctionId);
+                if (prevOpt.isPresent()) {
+                    var prev = prevOpt.get();
+                    if (prev.getMember() != null) {
+                        Long pid = prev.getMember().getId();
+                        // 본인 재입찰이면 outbid 알림은 생략
+                        if (pid != null && !pid.equals(memberId)) {
+                            prevTopBidderId = pid;
+                            prevTopAmount = prev.getAmount();
+                        }
+                    }
+                }
+            }
+
             if (buyNowEvent) {
                 // 즉시구매: 낙찰 처리 (금액은 buy_now_price로 고정하도록 Lua가 amount를 buy_now_price로 반환)
                 auction.setWinner(memberId, ab.getId(), finalBid);
@@ -223,6 +241,8 @@ public class BidEventApplyService {
             }
 
             // 커밋 이후 실행 등록
+            final Long prevTopBidderIdFinal = prevTopBidderId;
+            final BigDecimal prevTopAmountFinal = prevTopAmount; // may be null
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {
@@ -233,6 +253,17 @@ public class BidEventApplyService {
                         String timeIso = java.time.Instant.ofEpochSecond(nowSec).toString();
                         if (!buyNowEvent) {
                             auctionLiveSseService.publishBidAccepted(auctionId, nickname, bidPlain, timeIso);
+                        }
+                        // 방금 전에 1위였던 사용자가 있고, 새 입찰 금액이 이전 1위 금액을 초과하면 OUTBID 알림
+                        if (!buyNowEvent && prevTopBidderIdFinal != null && prevTopAmountFinal != null
+                                && new BigDecimal(bidPlain).compareTo(prevTopAmountFinal) > 0) {
+                            try {
+                                notificationCommandService.notifyBidOutbid(prevTopBidderIdFinal, auctionId,
+                                        new BigDecimal(bidPlain));
+                            } catch (Exception outbidEx) {
+                                log.warn("[afterCommit] notifyBidOutbid failed auctionId={}, prevTopBidderId={}",
+                                        auctionId, prevTopBidderIdFinal, outbidEx);
+                            }
                         }
                         // 트랜잭션 내 생성된 알림 ID 로그 (푸시는 AFTER_COMMIT 리스너에서 전송)
                         if (!buyNowEvent) {
@@ -397,18 +428,18 @@ public class BidEventApplyService {
         if (r == null)
             return AuctionBidReason.REJECTED.name();
         switch (r) {
-            case "LOW_PRICE":
-                return AuctionBidReason.LOW_PRICE.name();
-            case "NOT_RUNNING":
-                return AuctionBidReason.NOT_RUNNING.name();
-            case "MISSING":
-                return AuctionBidReason.MISSING.name();
-            case "PRECHECK":
-                return AuctionBidReason.PRECHECK.name();
-            case "SELF_BID":
-                return AuctionBidReason.SELF_BID.name();
-            default:
-                return r;
+        case "LOW_PRICE":
+            return AuctionBidReason.LOW_PRICE.name();
+        case "NOT_RUNNING":
+            return AuctionBidReason.NOT_RUNNING.name();
+        case "MISSING":
+            return AuctionBidReason.MISSING.name();
+        case "PRECHECK":
+            return AuctionBidReason.PRECHECK.name();
+        case "SELF_BID":
+            return AuctionBidReason.SELF_BID.name();
+        default:
+            return r;
         }
     }
 }
