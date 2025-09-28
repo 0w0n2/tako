@@ -61,7 +61,7 @@ export default function MainHotCardSection(){
             </div>
                 {hotCards && hotCards.length>0 ? (
                     <Marquee>
-                        <div className="flex gap-8">
+                        <div className="flex gap-8 mr-8">
                         {hotCards.map((item, index)=>(
                             <div key={index} className="mt-10">
                                 <Link href={`/category/${selectedCategoryId}/${item.cardId}`}>
