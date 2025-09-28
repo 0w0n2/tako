@@ -265,7 +265,7 @@ export default function AuctionDetailClient({ auctionId, historySize = 5 }: Read
                   disabled={pendingWish}
                   aria-pressed={wished}
                   className={`rounded-md border-1 border-[#353535] flex-1 py-4 flex gap-2 justify-center items-center transition
-          ${wished ? "bg-[#2a2a2a] border-[#ff5a5a]" : "hover:bg-white/5"}`}
+                  ${wished ? "bg-[#2a2a2a] border-[#ff5a5a]" : "hover:bg-white/5"}`}
                   title={wished ? "관심경매에서 제거" : "관심경매에 추가"}
                 >
                   <svg
