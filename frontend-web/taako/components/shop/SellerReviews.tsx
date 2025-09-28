@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Star } from "lucide-react";
 import { useSellerReviews } from "@/hooks/useSellerReviews";
 import { formatKSTCompact } from "@/lib/formatKST";
@@ -8,23 +9,21 @@ interface SellerReviewsProps {
 	sellerId: number;
 }
 
-export default function SellerReviews({ sellerId }: SellerReviewsProps) {
+export default function SellerReviews({ sellerId }: Readonly<SellerReviewsProps>) {
 	const { loading, error, items } = useSellerReviews(sellerId);
 
 	return (
 		<div className="flex flex-col gap-4">
 			{loading && <p className="text-center text-gray-400 py-10">불러오는 중…</p>}
 			{error && <p className="text-center text-red-400 py-10">{error}</p>}
-			{!loading && !error && items.length === 0 && (
-				<p className="text-center text-gray-400 py-10">아직 받은 리뷰가 없습니다.</p>
-			)}
+			{!loading && !error && items.length === 0 && <p className="text-center text-gray-400 py-10">아직 받은 리뷰가 없습니다.</p>}
 
 			<div className="flex flex-col">
 				{items.map((review) => (
 					<div key={review.id} className="flex flex-col gap-6 border-b border-[#353535] px-5 py-6">
 						<div className="flex items-center gap-4">
-							<div className="w-18 h-18 rounded-sm overflow-hidden bg-gray-600 flex items-center justify-center">
-								<span className="text-gray-400 text-sm">경매 {review.auctionId}</span>
+							<div className="w-18 h-18 rounded-sm overflow-hidden bg-gray-600 flex items-center justify-center relative">
+								<Image alt={`auction-${review.auctionId}`} src={review.imageUrl || "/no-image.jpg"} fill unoptimized style={{ objectFit: "cover" }} />
 							</div>
 							<div>
 								<h3>경매 #{review.auctionId}</h3>
