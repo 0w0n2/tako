@@ -32,7 +32,8 @@ spring:
       maximum-pool-size: 40 # 최대 커넥션 수
       minimum-idle: 10 # 최소 유휴 커넥션 수
       idle-timeout: 300000 # 5분
-      max-lifetime: 1800000 # 30분
+      max-lifetime: 540000 # 9분
+      keepalive-time: 240000 # 4분 (idle 커넥션 주기적 ping)
       connection-timeout: 10000 # 10초
       leak-detection-threshold: 20000 # 20초
 
