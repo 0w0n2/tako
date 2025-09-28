@@ -28,9 +28,9 @@ public class UserNotificationController {
     private final UserNotificationSseService sseService;
 
     /**
-     * 유저별 SSE 구독. Authorization 헤더 또는 access_token 쿼리파라미터로 인증.
+     * 유저별 SSE 구독. Authorization 헤더로만 인증.
      */
-    @Operation(summary = "SSE 구독", description = "로그인 유저의 알림 수신을 위한 SSE 구독을 시작합니다. Authorization 헤더 또는 access_token 쿼리파라미터로 인증합니다.")
+    @Operation(summary = "SSE 구독", description = "로그인 유저의 알림 수신을 위한 SSE 구독을 시작합니다. Authorization 헤더(Bearer)로 인증합니다.")
     @GetMapping(path = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter stream(@AuthenticationPrincipal CustomUserDetails user) {
         String uuid = user.getUuid();
@@ -43,8 +43,8 @@ public class UserNotificationController {
     @Operation(summary = "테스트용 알림 전송", description = "개발 편의용 테스트 API입니다. 로그인 유저에게 즉시 알림 이벤트를 전송합니다.")
     @PostMapping("/test")
     public Map<String, Object> test(@AuthenticationPrincipal CustomUserDetails user,
-            @Parameter(description = "알림 유형") @RequestParam(name="type", defaultValue = "test") String type,
-            @Parameter(description = "알림 메시지") @RequestParam(name="message", defaultValue = "hello") String message) {
+            @Parameter(description = "알림 유형") @RequestParam(name = "type", defaultValue = "test") String type,
+            @Parameter(description = "알림 메시지") @RequestParam(name = "message", defaultValue = "hello") String message) {
         sseService.sendToUser(user.getUuid(), type, Map.of("message", message));
         return Map.of("ok", true, "connections", sseService.getActiveConnectionCount(user.getUuid()));
     }

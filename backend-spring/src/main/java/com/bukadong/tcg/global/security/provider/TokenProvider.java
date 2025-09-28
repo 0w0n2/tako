@@ -88,11 +88,7 @@ public class TokenProvider {
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(GRANT_TYPE)) {
             return bearerToken.substring(GRANT_TYPE.length());
         }
-        // EventSource 등 일부 클라이언트는 커스텀 헤더를 전송하기 어려우므로, access_token 쿼리 파라미터도 허용
-        String tokenParam = request.getParameter("access_token");
-        if (StringUtils.hasText(tokenParam)) {
-            return tokenParam;
-        }
+        // 쿼리 파라미터를 통한 토큰 수신은 보안 및 일관성 상 허용하지 않음
         return null;
     }
 
