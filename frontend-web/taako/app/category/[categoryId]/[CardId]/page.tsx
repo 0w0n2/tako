@@ -1,11 +1,11 @@
 'use client'
 
-import Link from 'next/link';
 import { useState, useEffect } from 'react';
 
 import api from "@/lib/api"
 import EffectCard from "@/components/cards/EffectCard"
 import CardInfo from "@/components/cards/CardInfo"
+import CardPriceChart from "@/components/charts/CardPriceChart"
 import Loading from '@/components/Loading';
 import AuctionCard from "@/components/auction/AuctionCard";
   import CategoryPagination from "@/components/categories/categoryPagination";
@@ -18,6 +18,7 @@ export default function CategoryItemPage({ params }: { params: { categoryId: str
   const [isLoading, setIsLoading] = useState(true);
   const [cardData, setCardData] = useState<any>(null);
   const [description, setDescription] = useState<any>(null);
+  const [priceData, setPriceData] = useState<any[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
 
   const cardTypes = {
@@ -109,7 +110,18 @@ export default function CategoryItemPage({ params }: { params: { categoryId: str
       }
     };
 
+    const fetchPriceData = async () => {
+      try {
+        const response = await api.get(`/v1/auctions/cards/${params.CardId}/history`)
+        setPriceData(response.data || []);
+      } catch (error) {
+        console.error('Error fetching price data:', error);
+        setPriceData([]);
+      }
+    };
+
     fetchCardData();
+    fetchPriceData();
   }, [params.CardId, params.categoryId, cardType]);
 
   if (isLoading) {
@@ -190,6 +202,23 @@ export default function CategoryItemPage({ params }: { params: { categoryId: str
               description={description}
               cardType={cardType}
             />
+            
+            {/* 카드 가격 차트 */}
+            <div className="mt-8">
+              <div className="border border-[#353535] rounded-xl p-6">
+                <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                  <span className="w-6 h-6 bg-[#353535] rounded-full flex items-center justify-center">
+                    <span className="text-white text-xs">📈</span>
+                  </span>
+                  가격 시세
+                </h3>
+                <CardPriceChart 
+                  data={priceData}
+                  width={600}
+                  height={300}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
