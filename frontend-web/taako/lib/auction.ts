@@ -1,6 +1,5 @@
 import api from "./api";
 import { GetHotCards, AuctionDetailProps, WeeklyAuctions } from "@/types/auction";
-import { compressToUnder500KB } from "@/lib/imageCompression";
 import type { Card } from "@/types/card";
 import type { Seller } from "@/types/seller";
 import type { History } from "@/types/history";
@@ -8,19 +7,16 @@ import type { BidQueueRequest, BidQueueResponse } from "@/types/bid";
 
 // 경매 등록
 export const createAuction = async (requestDto: any, files: File[]) => {
-  const formData = new FormData();
+	const formData = new FormData();
 
-  // JSON은 반드시 Blob으로 넣어 Content-Type이 application/json 이 되게
-  formData.append(
-    "requestDto",
-    new Blob([JSON.stringify(requestDto)], { type: "application/json" })
-  );
+	// JSON은 반드시 Blob으로 넣어 Content-Type이 application/json 이 되게
+	formData.append("requestDto", new Blob([JSON.stringify(requestDto)], { type: "application/json" }));
 
-  for (const f of files || []) formData.append("files", f);
+	for (const f of files || []) formData.append("files", f);
 
-  // 여기서 Content-Type 지정하지 마세요 (axios가 자동으로 multipart/form-data; boundary=... 붙임)
-  const res = await api.post("/v1/auctions", formData);
-  return res.data;
+	// 여기서 Content-Type 지정하지 마세요 (axios가 자동으로 multipart/form-data; boundary=... 붙임)
+	const res = await api.post("/v1/auctions", formData);
+	return res.data;
 };
 
 // 경매 목록 조회
