@@ -18,7 +18,6 @@ import java.sql.Timestamp;
 import java.sql.Date;
 import java.time.Duration;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.bukadong.tcg.api.auction.entity.QAuction.auction;
 import static com.bukadong.tcg.api.bid.entity.QAuctionBid.auctionBid;
@@ -82,10 +81,55 @@ public class AuctionDetailRepositoryImpl implements AuctionDetailRepository {
                 // UTC Instant -> Timestamp
                 .setParameter("fromDate", Timestamp.from(fromStartUtc)).getResultList();
 
-        return rows
-                .stream().map(r -> DailyPriceLine.builder().date(((Date) r[0]).toLocalDate())
-                        .minPrice((BigDecimal) r[1]).maxPrice((BigDecimal) r[2]).avgPrice((BigDecimal) r[3]).build())
-                .collect(Collectors.toList());
+        return rows.stream()
+                .map(r -> DailyPriceLine.builder()
+                        .date(((Date) r[0]).toLocalDate())
+                        .minPrice((BigDecimal) r[1])
+                        .maxPrice((BigDecimal) r[2])
+                        .avgPrice((BigDecimal) r[3])
+                        .build())
+                .toList();
+    }
+
+    @Override
+    public List<DailyPriceLine> findWeeklyPriceLinesByCardIdAndGradeCode(Long cardId, String gradeCode) {
+        // UTC 기준 오늘 00:00에서 6일 전 00:00까지 범위
+        LocalDate todayUtc = LocalDate.now(ZoneOffset.UTC);
+        LocalDate fromDateUtc = todayUtc.minusDays(6);
+        Instant fromStartUtc = fromDateUtc.atStartOfDay().toInstant(ZoneOffset.UTC);
+
+        // auction_result가 존재하는 = SOLD된 경매만 집계 (JOIN으로 보장)
+        // 동일 카드 + 동일 grade_code 필터
+        String sql = "SELECT DATE(ar.created_at) AS d, "
+                + "       MIN(ab.amount) AS min_price, "
+                + "       MAX(ab.amount) AS max_price, "
+                + "       AVG(ab.amount) AS avg_price "
+                + "  FROM auction_result ar "
+                + "  JOIN auction_bid ab ON ab.id = ar.auction_bid_id "
+                + "  JOIN auction a ON a.id = ab.auction_id "
+                + "  JOIN card_ai_grade g ON g.id = a.grade_id "
+                + " WHERE a.card_id = :cardId "
+                + "   AND g.grade_code = :gradeCode "
+                + "   AND ar.created_at >= :fromDate "
+                + " GROUP BY DATE(ar.created_at) "
+                + " ORDER BY DATE(ar.created_at) ASC";
+
+        @SuppressWarnings("unchecked")
+        List<Object[]> rows = em.createNativeQuery(sql)
+                .setParameter("cardId", cardId)
+                .setParameter("gradeCode", gradeCode)
+                // UTC Instant -> Timestamp
+                .setParameter("fromDate", Timestamp.from(fromStartUtc))
+                .getResultList();
+
+        return rows.stream()
+                .map(r -> DailyPriceLine.builder()
+                        .date(((Date) r[0]).toLocalDate())
+                        .minPrice((BigDecimal) r[1])
+                        .maxPrice((BigDecimal) r[2])
+                        .avgPrice((BigDecimal) r[3])
+                        .build())
+                .toList();
     }
 
     @Override
