@@ -16,23 +16,19 @@ function ToastCard({ t, onClose }: { readonly t: NotificationToastItem; readonly
 		return () => clearTimeout(timer);
 	}, [t.id, t.durationMs, onClose]);
 
-	const colorByType: Record<string, string> = {
-		info: "border-blue-400",
-		success: "border-green-500",
-		warning: "border-amber-400",
-		error: "border-red-500",
-	};
-
-	const color = colorByType[String(t.type ?? "info").toLowerCase()] ?? "border-blue-400";
-
 	const inner = (
-		<output className={`w-80 max-w-[88vw] bg-[#111] text-white rounded-md shadow-xl border-l-4 ${color} p-3 pointer-events-auto block`} aria-live="polite">
-			<div className="flex items-start gap-3">
-				<div className="shrink-0 mt-[2px]">
-					<Image src="/icon/fcm_icon_72.png" alt="알림" width={36} height={36} className="rounded-sm" />
+		<output
+			className={`relative overflow-hidden w-80 max-w-[88vw] bg-[#111] text-white rounded-md shadow-xl border-l-4 border-yellow-500 ring-1 ring-inset ring-yellow-500/25 p-3 pointer-events-auto block`}
+			aria-live="polite"
+		>
+			{/* subtle yellow glow */}
+			<div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-yellow-500/8 to-transparent" />
+			<div className="relative flex items-start gap-3">
+				<div className="shrink-0 mt-[2px] rounded-sm p-0.5">
+					<Image src="/icon/fcm_icon_72.png" alt="알림" width={36} height={36} className="rounded-[2px]" />
 				</div>
 				<div className="min-w-0 flex-1">
-					{t.title && <div className="text-sm font-semibold mb-1 truncate">{t.title}</div>}
+					{t.title && <div className="text-sm font-semibold mb-1 truncate text-yellow-300">{t.title}</div>}
 					{t.message && <div className="text-sm opacity-90 whitespace-pre-wrap break-words">{t.message}</div>}
 					<div className="mt-2 text-right">
 						<button className="text-xs text-gray-300 hover:text-white focus:outline-none" onClick={() => onClose(t.id)} aria-label="닫기">
