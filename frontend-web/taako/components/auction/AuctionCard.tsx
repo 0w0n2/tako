@@ -33,9 +33,9 @@ export default function AuctionCard({ item, onWishChange }: Props){
     return Math.max(0, Math.ceil((startAtMs - Date.now()) / 1000));
   });
 
-  console.log(`now ${Date.now()}`)
-  console.log(`remain ${remainingTime}`)
-  console.log(`left ${startLeft}`)
+  // console.log(`now ${Date.now()}`)
+  // console.log(`remain ${remainingTime}`)
+  // console.log(`left ${startLeft}`)
 
   // 아이템 갱신 시 재초기화
   useEffect(() => {
