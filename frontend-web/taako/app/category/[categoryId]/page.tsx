@@ -1,6 +1,6 @@
 'use client'
 
-import SearchInput from "@/components/atoms/Input/SearchInput"
+import CategorySearch from "@/components/atoms/Input/CategorySearch"
 import Filter from "@/components/filters/Filter"
 import SimpleCard from '@/components/cards/SimpleCard'
 import CategoryPagination from '@/components/categories/categoryPagination'
@@ -217,6 +217,12 @@ export default function CategoryPage({ params }: CategoryPageProps) {
     setCurrentPage(1) // 필터 변경 시 첫 페이지로 리셋
   }
 
+  // 검색 핸들러
+  const handleSearch = (query: string) => {
+    setKeyword(query)
+    setCurrentPage(1) // 검색 시 첫 페이지로 리셋
+  }
+
   return (
     <div>
       <div className="default-container">
@@ -226,7 +232,7 @@ export default function CategoryPage({ params }: CategoryPageProps) {
             itemsMap={itemsMap} 
             onSelectionsChange={handleFilterChange}
           />
-          <SearchInput />
+          <CategorySearch onSearch={handleSearch} />
         </div>
         <div>
           {loading ? (
