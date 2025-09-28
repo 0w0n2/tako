@@ -45,15 +45,15 @@ public class PopularityService {
     private final MediaPresignQueryService mediaPresignQueryService;
 
     /** 조회 가중치 (기본 1) */
-    @Value("${popularity.weight.view:1}")
+    @Value("${popularity.weight.view}")
     private double viewWeight;
 
     /** 입찰 가중치 (기본 5) */
-    @Value("${popularity.weight.bid:5}")
+    @Value("${popularity.weight.bid}")
     private double bidWeight;
 
     /** 분 버킷 TTL (분) */
-    @Value("${popularity.bucket.ttl-minutes:70}")
+    @Value("${popularity.bucket.ttl-minutes}")
     private long bucketTtlMinutes;
 
     /**
