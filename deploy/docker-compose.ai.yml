@@ -29,7 +29,7 @@ services:
     networks:
       - e104_net
     env_file:
-      - .env.devai
+      - .env.dev.ai
 
 networks:
   e104_net:

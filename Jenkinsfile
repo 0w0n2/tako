@@ -231,6 +231,17 @@ pipeline {
     }
 
     stage('Prepare .env.dev') {
+      steps {
+        withCredentials([file(credentialsId: 'ENV_AI_DEV_FILE', variable: 'ENV_AI_DEV_FILE')]) {
+          sh '''
+            set -eu
+            install -m 600 "$ENV_AI_DEV_FILE" deploy/.env.dev.ai
+          '''
+        }
+      }
+    }
+
+    stage('Prepare .env.dev') {
       when {
         expression {
           ((env.GL_MR_ACTION ?: "") == "merge" || (env.GL_MR_STATE ?: "") == "merged") &&
@@ -276,8 +287,8 @@ pipeline {
               sh ''' 
                 set -eux
 
-                docker compose --env-file deploy/.env.ai -f "$COMPOSE_AI_FILE" pull || true
-                docker compose --env-file deploy/.env.ai -f "$COMPOSE_AI_FILE" up -d --build tako_ai
+                docker compose --env-file deploy/.env.dev.ai -f "$COMPOSE_AI_FILE" pull || true
+                docker compose --env-file deploy/.env.dev.ai -f "$COMPOSE_AI_FILE" up -d --build tako_ai_dev
               '''
           } else {
               echo "No deploy target matched for source branch: ${dev_source}"
