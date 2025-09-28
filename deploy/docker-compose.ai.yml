@@ -4,8 +4,24 @@ services:
       context: ../backend-fastapi
       dockerfile: Dockerfile
     container_name: tako_ai
-    ports:
-      - "8000:8000"
+    expose:
+      - "8000"
+    mem_limit: 1024m
+    memswap_limit: 1024m
+    cpus: "0.6"
+    restart: unless-stopped 
+    networks:
+      - e104_net
+    env_file:
+      - .env.ai
+
+  tako_ai_dev:
+    build:
+      context: ../backend-fastapi
+      dockerfile: Dockerfile
+    container_name: tako_ai_dev
+    expose:
+      - "8000"
     mem_limit: 1024m
     memswap_limit: 1024m
     cpus: "0.6"
@@ -13,7 +29,7 @@ services:
     networks:
       - e104_net
     env_file:
-      - .env.ai
+      - .env.devai
 
 networks:
   e104_net:
