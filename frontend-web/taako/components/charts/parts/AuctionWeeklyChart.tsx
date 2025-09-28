@@ -54,7 +54,7 @@ export default function AuctionWeeklyChart({ auction, width = 540, height = 200,
 					<Line type="monotone" dataKey="minPrice" name="최소경매가" stroke="#ffffff" strokeWidth={2} dot={false} />
 				</LineChart>
 			) : (
-				<div className="w-[540px] h-[200px] flex items-center justify-center bg-gray-800 rounded border border-gray-700">
+				<div className="w-[600px] h-[200px] flex items-center justify-center bg-gray-800 rounded border border-gray-700">
 					<p className="text-gray-400 text-sm">지난 7일간의 거래 데이터가 없습니다.</p>
 				</div>
 			)}

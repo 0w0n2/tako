@@ -28,6 +28,8 @@ import java.util.List;
 @RequiredArgsConstructor
 @Transactional
 public class MediaAttachmentService {
+    private static final String DEFAULT_PROFILE_PREFIX = "media/member/profile/default";
+    private static final String DEFAULT_BACKGROUND_PREFIX = "media/member/background/default";
 
     private final MediaPermissionRegistry permissionRegistry;
     private final MediaRepository mediaRepository;
@@ -144,7 +146,7 @@ public class MediaAttachmentService {
             permissionRegistry.get(type).checkCanDelete(type, ownerId, m.getId(), actor);
         }
 
-        // S3 삭제 (best-effort)
+        // S3 삭제 (best-effort) - 기본(default) 키는 보호
         for (Media m : list) {
             tryDeleteS3Object(m.getS3keyOrUrl());
         }
@@ -171,31 +173,54 @@ public class MediaAttachmentService {
     }
 
     private void tryDeleteS3Object(String urlOrKey) {
-        if (urlOrKey == null || urlOrKey.isBlank())
+        if (urlOrKey == null || urlOrKey.isBlank()) {
             return;
-        String lower = urlOrKey.toLowerCase();
-        String fileKey = urlOrKey;
-        if (lower.startsWith("http://") || lower.startsWith("https://")) {
-            try {
-                URI uri = URI.create(urlOrKey);
-                String path = uri.getPath();
-                if (path != null && !path.isBlank()) {
-                    fileKey = path.startsWith("/") ? path.substring(1) : path;
-                    int firstSlash = fileKey.indexOf('/');
-                    if (firstSlash > 0)
-                        fileKey = fileKey.substring(firstSlash + 1);
-                }
-            } catch (Exception ignored) {
-                return;
-            }
         }
-        if (fileKey != null && !fileKey.isBlank() && !fileKey.startsWith("http")) {
-            try {
-                s3Uploader.delete(fileKey);
-            } catch (Exception ignored) {
+        String key = toS3Key(urlOrKey);
+        if (key == null || key.isBlank() || key.startsWith("http")) {
+            return;
+        }
+        if (isProtectedDefaultKey(key)) {
+            // 기본 제공 이미지(default)는 S3에서 삭제하지 않습니다.
+            return;
+        }
+        safeDelete(key);
+    }
 
-            }
+    private String toS3Key(String urlOrKey) {
+        String lower = urlOrKey.toLowerCase();
+        if (!(lower.startsWith("http://") || lower.startsWith("https://"))) {
+            return urlOrKey;
         }
+        try {
+            URI uri = URI.create(urlOrKey);
+            String path = uri.getPath();
+            if (path == null || path.isBlank()) {
+                return null;
+            }
+            String fileKey = path.startsWith("/") ? path.substring(1) : path;
+            int firstSlash = fileKey.indexOf('/');
+            return (firstSlash > 0) ? fileKey.substring(firstSlash + 1) : fileKey;
+        } catch (Exception ignored) {
+            // URL 파싱 실패 시 원본 값을 버리고 삭제를 시도하지 않습니다(보수적 동작).
+            return null;
+        }
+    }
+
+    private void safeDelete(String key) {
+        try {
+            s3Uploader.delete(key);
+        } catch (Exception ignored) {
+            // 베스트 에포트 삭제: S3 삭제 실패는 무시합니다(레거시/권한/일시적 이슈 가능).
+        }
+    }
+
+    private boolean isProtectedDefaultKey(String key) {
+        if (key == null || key.isBlank()) {
+            return false;
+        }
+        String normalized = key.startsWith("/") ? key.substring(1) : key;
+        return normalized.startsWith(DEFAULT_PROFILE_PREFIX) || normalized.startsWith(DEFAULT_BACKGROUND_PREFIX);
     }
 
     /**

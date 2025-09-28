@@ -9,6 +9,7 @@ pipeline {
     booleanParam(name: 'MANUAL_FRONT', defaultValue: false, description: 'Frontend only')
     booleanParam(name: 'MANUAL_AI', defaultValue: false, description: 'AI Backend only')
     booleanParam(name: 'MANUAL_MYSQL', defaultValue: false, description: 'MySQL only')
+    booleanParam(name: 'MANUAL_REDIS', defaultValue: false, description: 'redis only')
   }
 
   triggers {
@@ -248,6 +249,38 @@ pipeline {
 
           docker compose --env-file deploy/.env.prod -f "$COMPOSE_PROD_FILE" pull || true
           docker compose --env-file deploy/.env.prod -f "$COMPOSE_PROD_FILE" up -d --build mysql_prod
+        '''
+      }
+    }
+
+    stage('redis dev (compose up)') {
+      when {
+        expression {
+          params.MANUAL_DEV_DEPLOY && params.MANUAL_REDIS
+        }
+      }
+      steps {
+        sh '''
+          set -eux
+
+          docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" pull || true
+          docker compose --env-file deploy/.env.dev -f "$COMPOSE_DEV_FILE" up -d --build redis_dev
+        '''
+      }
+    }
+
+    stage('redis prod (compose up)') {
+      when {
+        expression {
+          params.MANUAL_PROD_DEPLOY && params.MANUAL_REDIS
+        }
+      }
+      steps {
+        sh '''
+          set -eux
+
+          docker compose --env-file deploy/.env.prod -f "$COMPOSE_PROD_FILE" pull || true
+          docker compose --env-file deploy/.env.prod -f "$COMPOSE_PROD_FILE" up -d --build redis_prod
         '''
       }
     }

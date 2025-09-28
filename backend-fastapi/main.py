@@ -38,6 +38,8 @@ origins = [
     "https://dev-api.tako.today",
     "https://dev.api.tako.today",
     "https://dev.tako.today",
+    "https://tako.today",
+    "https://api.tako.today",
 ]
 
 app.add_middleware(
