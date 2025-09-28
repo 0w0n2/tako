@@ -9,7 +9,6 @@ import dynamic from "next/dynamic";
 import ReactQueryProvider from "@/components/providers/ReactQueryProvider";
 import NotificationSseProvider from "@/components/providers/NotificationSseProvider";
 import NotificationToaster from "@/components/overlays/NotificationToaster";
-import NotificationTestButton from "@/components/dev/NotificationTestButton";
 
 const montserrat = Montserrat({
 	subsets: ["latin"],
@@ -48,8 +47,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
 					{/* 고정 헤더 높이를 고려한 전역 상단 패딩. 과도한 여백을 줄이기 위해 pt를 낮춤 */}
 					<div className="pt-24 pb-10">{children}</div>
 					<Footer />
-					{/* 개발용: 알림 테스트 버튼 (prod에서 숨김) */}
-					<NotificationTestButton />
 				</ReactQueryProvider>
 			</body>
 		</html>
