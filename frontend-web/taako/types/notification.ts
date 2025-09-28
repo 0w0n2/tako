@@ -5,6 +5,7 @@ export type NotificationSettingKey =
 	| "DELIVERY_CONFIRM_REQUEST"
 	| "INQUIRY_ANSWERED"
 	| "BID_FAILED"
+	| "BID_OUTBID"
 	| "AUCTION_CLOSED_SELLER"
 	| "AUCTION_NEW_INQUIRY"
 	| "AUCTION_CANCELED"
@@ -59,21 +60,22 @@ export interface CategorizedNotificationSettingItem {
 
 // 각 키를 카테고리 & 라벨에 매핑
 export const NOTIFICATION_SETTING_META: Record<NotificationSettingKey, Omit<CategorizedNotificationSettingItem, "key" | "value">> = {
-	DELIVERY_CONFIRM_REQUEST: { category: "DELIVERY", label: "수취 확인 요청" },
+	NOTICE_NEW: { category: "NOTICE", label: "새 공지" },
 	INQUIRY_ANSWERED: { category: "INQUIRY", label: "문의 답변" },
+	BID_ACCEPTED: { category: "BID", label: "입찰 성공" },
 	BID_FAILED: { category: "BID", label: "입찰 실패" },
+	BID_OUTBID: { category: "BID", label: "상위 입찰 발생" },
+	BID_REJECTED: { category: "BID", label: "입찰 거절" },
 	AUCTION_CLOSED_SELLER: { category: "AUCTION", label: "내 경매 종료" },
 	AUCTION_NEW_INQUIRY: { category: "AUCTION", label: "경매 새 문의" },
 	AUCTION_CANCELED: { category: "AUCTION", label: "경매 취소" },
-	BID_REJECTED: { category: "BID", label: "입찰 거절" },
-	NOTICE_NEW: { category: "NOTICE", label: "새 공지" },
+	AUCTION_WON: { category: "AUCTION", label: "낙찰 성공" },
 	WISH_CARD_LISTED: { category: "WISH", label: "관심 카드 등록" },
 	WISH_AUCTION_STARTED: { category: "WISH", label: "관심 경매 시작" },
+	DELIVERY_CONFIRM_REQUEST: { category: "DELIVERY", label: "수취 확인 요청" },
 	DELIVERY_STATUS_CHANGED: { category: "DELIVERY", label: "배송 상태 변경" },
 	DELIVERY_CONFIRMED_SELLER: { category: "DELIVERY", label: "구매자 수취 확인" },
 	DELIVERY_STARTED: { category: "DELIVERY", label: "배송 시작" },
-	BID_ACCEPTED: { category: "BID", label: "입찰 채택" },
-	AUCTION_WON: { category: "AUCTION", label: "낙찰 성공" },
 	WISH_AUCTION_DUE_SOON: { category: "WISH", label: "관심 경매 마감 임박" },
 	WISH_AUCTION_ENDED: { category: "WISH", label: "관심 경매 종료" },
 };

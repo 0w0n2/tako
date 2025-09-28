@@ -3,6 +3,7 @@
 
 import api from "@/lib/api";
 import { useEffect, useRef, useState } from "react";
+import { sseLog, isSseDebug, sseLogForce } from "@/lib/logger";
 
 type Options = {
 	sseUrl?: string; // 기본: /v1/auctions/{id}/live
@@ -29,7 +30,8 @@ export function useAuctionPrice(auctionId: number | string, initialPrice: number
 
 	// logging helper (stable per render)
 	const log = (...a: any[]) => {
-		if (opts.debug) console.log("[useAuctionPrice]", ...a);
+		if (opts.debug) sseLogForce("auction", ...a);
+		else if (isSseDebug()) sseLog("auction", ...a);
 	};
 
 	// util helpers
@@ -57,7 +59,8 @@ export function useAuctionPrice(auctionId: number | string, initialPrice: number
 				log("parse error", eventName, err);
 				return;
 			}
-			log("evt", eventName, data);
+			if (eventName === "heartbeat") log("heartbeat", data);
+			else log("event", eventName, data);
 			handler(data);
 		};
 	};
@@ -113,8 +116,8 @@ export function useAuctionPrice(auctionId: number | string, initialPrice: number
 				return;
 			}
 			esRef.current = es;
-			log("SSE connecting", { url: sseUrl, auctionId });
-			es.onopen = () => log("SSE open (connected)");
+			log("connecting", { url: sseUrl, auctionId });
+			es.onopen = () => log("open");
 
 			// attach listeners
 			es.addEventListener(
@@ -184,7 +187,7 @@ export function useAuctionPrice(auctionId: number | string, initialPrice: number
 			);
 
 			es.onerror = (e) => {
-				log("SSE error", e);
+				log("error, will reconnect", e);
 				es?.close();
 				esRef.current = null;
 				startPolling();
