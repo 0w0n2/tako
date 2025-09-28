@@ -139,6 +139,22 @@ pipeline {
       }
     }
 
+    stage('Prepare .env.dev.ai') {
+      when {
+        expression {
+          params.MANUAL_AI
+        }
+      }
+      steps {
+        withCredentials([file(credentialsId: 'ENV_AI_DEV_FILE', variable: 'ENV_AI_DEV_FILE')]) {
+          sh '''
+            set -eu
+            install -m 600 "$ENV_AI_DEV_FILE" deploy/.env.dev.ai
+          '''
+        }
+      }
+    }
+
     stage('Back dev Deploy (compose up)') {
       when {
         expression {
@@ -205,10 +221,26 @@ pipeline {
       }
     }
 
-    stage('AI Deploy (compose up)') {
+    stage('AI Dev Deploy (compose up)') {
       when {
         expression {
-          params.MANUAL_AI && (params.MANUAL_DEV_DEPLOY || params.MANUAL_PROD_DEPLOY)
+          params.MANUAL_AI && params.MANUAL_DEV_DEPLOY
+        }
+      }
+      steps {
+        sh '''
+          set -eux
+
+          docker compose --env-file deploy/.env.dev.ai -f "$COMPOSE_AI_FILE" pull || true
+          docker compose --env-file deploy/.env.dev.ai -f "$COMPOSE_AI_FILE" up -d --build tako_ai_dev
+        '''
+      }
+    }
+
+    stage('AI Prod Deploy (compose up)') {
+      when {
+        expression {
+          params.MANUAL_AI && params.MANUAL_PROD_DEPLOY
         }
       }
       steps {
