@@ -6,6 +6,8 @@ export const searchAuctionCardCategory = async (categoryMajorId: number, categor
     params: {
       categoryMajorId: categoryMajorId,
       categoryMediumId: categoryMediumId,
+      page: 0,
+      size: 100,
     }
   });
   return res.data;
