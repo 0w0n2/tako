@@ -29,12 +29,13 @@ spring:
     driver-class-name: ${DB_DRIVER}
     hikari:
       connection-init-sql: "SET time_zone = '+00:00'"
-      maximum-pool-size: 30
-      minimum-idle: 5
-      idle-timeout: 600000
-      max-lifetime: 1700000
-      connection-timeout: 30000
-      leak-detection-threshold: 60000
+      maximum-pool-size: 40 # 최대 커넥션 수
+      minimum-idle: 10 # 최소 유휴 커넥션 수
+      idle-timeout: 300000 # 5분
+      max-lifetime: 540000 # 9분
+      keepalive-time: 240000 # 4분 (idle 커넥션 주기적 ping)
+      connection-timeout: 10000 # 10초
+      leak-detection-threshold: 20000 # 20초
 
   jackson:
     time-zone: UTC
