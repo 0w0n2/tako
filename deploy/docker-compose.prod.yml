@@ -29,8 +29,10 @@ services:
     image: redis:8.0
     container_name: redis_prod
     command: ["redis-server","--maxmemory","128mb","--maxmemory-policy","volatile-lru"]
-    expose:
-      - "6379"
+    # expose:
+    #   - "6379"
+    ports:
+      - "6380:6379"
     volumes:
       - redis_prod_data:/data
     mem_limit: 256m
