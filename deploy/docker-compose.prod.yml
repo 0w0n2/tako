@@ -9,8 +9,8 @@ services:
       "--collation-server=utf8mb4_unicode_ci",
       "--default-time-zone=+00:00"
     ]
-    expose:
-      - "3306"
+    ports:
+      - "3307:3306"
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
       MYSQL_DATABASE: tcg
