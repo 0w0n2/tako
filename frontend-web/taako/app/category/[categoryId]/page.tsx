@@ -11,7 +11,6 @@ import { AxiosResponse } from "axios"
 import { useEffect, useState } from 'react'
 import { CARD_SIZE, singleCard } from '@/types/card'
 import { FilterOption, FilterItem } from '@/types/filter'
-import Link from "next/link"
 
 export default function CategoryPage({ params }: CategoryPageProps) {
   const { categoryId, categoryName } = params
@@ -248,13 +247,12 @@ export default function CategoryPage({ params }: CategoryPageProps) {
                                   categoryName as keyof typeof CARD_SIZE;
                   
                   return (
-                    <Link href={`/category/${categoryId}/${card.id}`}>
                     <SimpleCard 
                       key={card.id} 
                       imageUrl={(card.imageUrls && card.imageUrls.length > 0) ? card.imageUrls[0] : '/no-image.jpg'} 
                       cardType={cardType}
+                      href={`/category/${categoryId}/${card.id}`}
                     />
-                    </Link>
                   );
                 })}
               </div>
