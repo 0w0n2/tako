@@ -230,7 +230,7 @@ pipeline {
       }
     }
 
-    stage('Prepare .env.dev') {
+    stage('Prepare .env.dev.ai') {
       steps {
         withCredentials([file(credentialsId: 'ENV_AI_DEV_FILE', variable: 'ENV_AI_DEV_FILE')]) {
           sh '''
