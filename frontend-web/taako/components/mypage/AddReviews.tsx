@@ -36,7 +36,7 @@ export default function AddReviews() {
 						{/* 상품 정보 */}
 						<div className="flex items-center gap-4">
 							<div className="w-18 h-18 rounded-sm overflow-hidden">
-								<Image className="w-full h-full object-fit" src={item.imageUrl || "/no-image.jpg"} alt="thumbnail" width={100} height={100} />
+								<Image className="w-full h-full object-cover" src={item.imageUrl || "/no-image.jpg"} alt="thumbnail" width={100} height={100} unoptimized />
 							</div>
 							<div>
 								<h3>{item.title}</h3>
