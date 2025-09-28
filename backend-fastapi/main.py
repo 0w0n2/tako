@@ -9,6 +9,7 @@ from fastapi import (
     status,
     Request,
     Body,
+    Form,  # (기존 기능 유지: Form 사용)
 )
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer
@@ -19,7 +20,7 @@ from io import BytesIO
 import numpy as np
 import cv2, math, uvicorn, os, uuid, datetime
 from ws import ws_manager
-from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncEngine
 from sqlalchemy import text
 from dotenv import load_dotenv
 
@@ -36,8 +37,10 @@ api_router = APIRouter(prefix="/ai")
 origins = [
     "http://localhost:3000",
     "https://dev-api.tako.today",
-    "https://dev.api.tako.today",
     "https://dev.tako.today",
+    # ==== 추가: 운영 도메인 ====
+    "https://tako.today",
+    "https://api.tako.today",
 ]
 
 app.add_middleware(
@@ -75,12 +78,54 @@ VERIFY_MODEL_PATH = os.getenv("VERIFY_MODEL_PATH", "models/card_verification.pt"
 SEG_MODEL_PATH = os.getenv("SEG_MODEL_PATH", "models/card_segmentation.pt")
 DEFECT_MODEL_PATH = os.getenv("DEFECT_MODEL_PATH", "models/card_defect_detection.pt")
 
-DATABASE_URL = os.getenv("DATABASE_URL")
-assert DATABASE_URL is not None
-engine = create_async_engine(DATABASE_URL, future=True)
+# ==== DB 엔진 설정 (도메인별 분기) ====
+# 기본 권장: DATABASE_URL_TAKO, DATABASE_URL_API 사용
+# 호환: DATABASE_URL_DEV(=TAKO), DATABASE_URL_PROD(=API) 대체로도 동작
+DATABASE_URL_TAKO = os.getenv("DATABASE_URL")
+DATABASE_URL_API = os.getenv("DATABASE_URL_PROD")
+
+if not DATABASE_URL_TAKO:
+    raise RuntimeError(
+        "DATABASE_URL 환경변수가 필요합니다."
+    )
+if not DATABASE_URL_API:
+    raise RuntimeError(
+        "DATABASE_URL_PROD 환경변수가 필요합니다."
+    )
+
+engine_tako: AsyncEngine = create_async_engine(DATABASE_URL_TAKO, future=True)
+engine_api: AsyncEngine = create_async_engine(DATABASE_URL_API, future=True)
+
+# 도메인 매핑 (필요 시 자유롭게 추가/수정 가능)
+TAKO_HOSTS = {
+    "dev.tako.today",
+    "dev-api.tako.today",
+}
+API_HOSTS = {
+    "api.tako.today",
+    "tako.today",
+}
 
 
-async def insert_grade(hash, grade):
+def _extract_host(request: Request) -> str:
+    """
+    리버스 프록시(Nginx) 환경 고려: x-forwarded-host 우선, 없으면 Host.
+    포트 제거 및 소문자 정규화.
+    """
+    host = request.headers.get("x-forwarded-host") or request.headers.get("host") or ""
+    host = host.split(",")[0].strip().split(":")[0].lower()
+    return host
+
+
+def pick_engine(request: Request) -> AsyncEngine:
+    host = _extract_host(request)
+    if host in API_HOSTS:
+        return engine_api
+    # 기본: tako 계열
+    return engine_tako
+
+
+async def insert_grade(engine: AsyncEngine, hash, grade):
     now = datetime.datetime.utcnow()
 
     sql = text(
@@ -401,6 +446,7 @@ async def condition_check(
     image_side_2: UploadFile = File(...),
     image_side_3: UploadFile = File(...),
     image_side_4: UploadFile = File(...),
+    request: Request = None,  # (기능 동일: 요청 호스트 판별용 파라미터 추가, 나머지 입력 스키마/동작 불변)
 ):
     # ---- Step 0: 파일 형식 검증 ----
     uploads = {
@@ -537,7 +583,11 @@ async def condition_check(
         "grade": grade(final_score),
         "hash": hash,
     }
-    await insert_grade(hash, grade(final_score))
+
+    # ==== 변경된 부분: 요청 호스트 기준으로 대상 엔진 선택하여 기록 ====
+    target_engine = pick_engine(request)
+    await insert_grade(target_engine, hash, grade(final_score))
+
     return JSONResponse(result)
 
 
