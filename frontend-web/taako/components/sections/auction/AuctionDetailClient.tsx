@@ -8,7 +8,7 @@ import RankElement from "@/components/atoms/RankElement";
 import BidInputForm from "@/components/atoms/BidInputForm";
 import AuctionDetailImages from "@/components/sections/auction/AuctionDetailImages";
 import RemainingTime from "@/components/atoms/RemainingTime";
-import { formatKSTFull } from "@/lib/formatKST";
+import { toKstDate, formatKSTFull } from "@/lib/formatKST";
 import AuctionHistoryTable from "@/components/charts/parts/AuctionHistoryTable";
 import AuctionWeeklyChart from "@/components/charts/parts/AuctionWeeklyChart";
 import AuctionInquiry from "@/components/sections/auction/AuctionInquiry";
@@ -114,13 +114,14 @@ export default function AuctionDetailClient({ auctionId, historySize = 5 }: Read
 
   // 진행/내 경매 여부 계산
   const now = Date.now();
-  const startMs = auc.startDatetime ? new Date(auc.startDatetime).getTime() : 0;
-  const endMs = (auc.endDatetime || auc.endTime) ? new Date(auc.endDatetime || auc.endTime).getTime() : 0;
-  const isActive = startMs <= now && now < endMs;
-  const isMyAuction = !!myInfo && !!auc?.seller?.id && myInfo.memberId === auc.seller.id;
-
-  const displayPrice = currentPrice ?? auc.currentPrice;
   const fmtDateTime = (iso?: string) => formatKSTFull(iso);
+  const toInstantMs = (iso?: string | null) => toKstDate(iso)?.getTime() ?? 0;
+  const startMs = toInstantMs(auc.startDatetime);
+  const endMs   = toInstantMs(auc.endDatetime || auc.endTime);
+  
+  const isActive = startMs > 0 && endMs > 0 && startMs <= now && now < endMs;
+  const isMyAuction = !!myInfo && !!auc?.seller?.id && myInfo.memberId === auc.seller.id;
+  const displayPrice = currentPrice ?? auc.currentPrice;
 
   return (
     <div className="default-container relative">
@@ -182,7 +183,7 @@ export default function AuctionDetailClient({ auctionId, historySize = 5 }: Read
                           </div>
                           <div className="flex gap-1 text-sm">
                             <p className="text-[#ddd]">거래일:</p>
-                            <p>{new Date(item.timestamp).toLocaleString()}</p>
+                            <p>{item.timestamp}</p>
                           </div>
                         </div>
                       ))

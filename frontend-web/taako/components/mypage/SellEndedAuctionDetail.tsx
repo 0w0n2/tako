@@ -9,6 +9,7 @@ import SellerPayoutPanel from "@/components/nft/SellerPanel";
 import { useMyInfo } from "@/hooks/useMySellInfo";
 import useWallet from "@/hooks/useWallet";
 import { useDelivery } from "@/hooks/useSellDelivery";
+import { useDelivery as sellerInfo } from "@/hooks/useDelivery";
 import AddTracking from "./delivery/AddTracking";
 import SellDeliveryForm from "./delivery/SellDeliveryForm";
 import { MySellAuctions, Bids } from "@/types/auth";
@@ -86,6 +87,7 @@ const getChartData = (auction: MySellAuctions) => {
 export default function SellEndedAuctionDetail({ item, modalType, onOpenModal, onCloseModal }: Props) {
   const { myInfo } = useMyInfo();
   const { auctionDelivery, handlerGetAuctionDelivery } = useDelivery();
+  const { hasSeller } = sellerInfo(item.auctionId);
   const { walletAddress } = useWallet();
 
   const today = new Date();
@@ -145,7 +147,7 @@ export default function SellEndedAuctionDetail({ item, modalType, onOpenModal, o
               className="px-8 py-3 text-sm rounded-md border-1 border-[#353535] bg-[#191924]"
               onClick={() => onOpenModal("delivery")}
             >
-              배송지등록
+              {hasSeller ? "배송지 선택 완료" : "배송지 선택"}
             </button>
             <button
               className="px-8 py-3 text-sm rounded-md border-1 border-[#353535] bg-[#191924]"

@@ -88,7 +88,7 @@ export function useERC721Approval({
       setApproved(currentApproved);
       setApprovedForAll(Boolean(isAll));
     } catch (e: any) {
-      setError(e?.message ?? String(e));
+      setError("소유권 이전 중 오류가 발생하였습니다. 잠시 후 다시 시도해주세요!");
     }
   }, [nftAddress, spender, tid, validateRead, unminted, spenderIsValid]);
 
@@ -116,7 +116,7 @@ export function useERC721Approval({
       await refresh();
       return receipt;
     } catch (e: any) {
-      setError(e?.message ?? String(e));
+      setError("소유권 이전 중 오류가 발생하였습니다. 잠시 후 다시 시도해주세요!");
       throw e;
     } finally {
       setLoading(false);
@@ -141,7 +141,7 @@ export function useERC721Approval({
       await refresh();
       return receipt;
     } catch (e: any) {
-      setError(e?.message ?? String(e));
+      setError("소유권 이전 설정 중 오류가 발생하였습니다. 잠시 후 다시 시도해주세요!");
       throw e;
     } finally {
       setLoading(false);

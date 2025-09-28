@@ -88,6 +88,23 @@ export default function NewAuctionPage() {
     setGradeHash(gradeHash);
   };
 
+  // 🔧 유틸: "HH:mm" | "HH:mm:ss" | undefined → "HH:mm:ss"
+  function normalizeTime(t?: string, fallback = "10:00:00"): string {
+    if (!t) return fallback;
+    const a = t.split(":").map(s => s.padStart(2, "0"));
+    if (a.length === 2) return `${a[0]}:${a[1]}:00`;
+    if (a.length >= 3) return `${a[0]}:${a[1]}:${a[2]}`;
+    return fallback;
+  }
+
+  // 🔧 유틸: Date(로컬=KST) → "YYYY-MM-DD" (toISOString() 금지!)
+  function ymdLocal(date: Date): string {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  }
+
   const onSubmit: SubmitHandler<AuctionFormProps> = async (data) => {
     const { requestDto, registerNft } = data;
 
@@ -404,22 +421,14 @@ export default function NewAuctionPage() {
                     onChange={({ startDate, startTime, endDate, endTime }) => {
                       // 시작일시 저장
                       if (startDate) {
-                        const startDateStr = startDate
-                          .toISOString()
-                          .split("T")[0];
-                        const startIso = `${startDateStr}T${startTime}`;
-                        setValue("requestDto.startDatetime", startIso, {
-                          shouldValidate: true,
-                        });
+                        const startPlain = `${ymdLocal(startDate)}T${normalizeTime(startTime)}`;
+                        setValue("requestDto.startDatetime", startPlain, { shouldValidate: true });
                       }
 
                       // 종료일시 저장
                       if (endDate) {
-                        const endDateStr = endDate.toISOString().split("T")[0];
-                        const endIso = `${endDateStr}T${endTime}`;
-                        setValue("requestDto.endDatetime", endIso, {
-                          shouldValidate: true,
-                        });
+                        const endPlain = `${ymdLocal(endDate)}T${normalizeTime(endTime)}`;
+                        setValue("requestDto.endDatetime", endPlain, { shouldValidate: true });
                       }
                     }}
                   />
