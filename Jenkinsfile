@@ -420,63 +420,63 @@ pipeline {
       }
     }
       
-    stage('Docker Image Push to DockerHub') {
-      when {
-        expression {
-          ((env.GL_MR_ACTION ?: "") == "merge" || (env.GL_MR_STATE ?: "") == "merged") &&
-          (env.GL_MR_TARGET == env.RELEASE_BRANCH)
-        }
-      }
-      environment {
-        // 커밋 해시(12자리) 기준 태깅, 없으면 manual
-        IMG_SHA = "${(env.GL_MR_SHA ?: env.GIT_COMMIT ?: 'manual').take(12)}"
-      }
-      steps {
-        withCredentials([
-          usernamePassword(
-            credentialsId: 'dockerhub-creds',
-            usernameVariable: 'DOCKER_USER',
-            passwordVariable: 'DOCKER_PASS'
-          )
-        ]) {
-          script {
-            // 서비스별 정의 (경로/도커파일/이미지명)
-            def targets = [
-              [name: 'backend',  ctx: 'backend-spring',   df: 'Dockerfile', image: 'seok1419/tako-backend'],
-              [name: 'frontend', ctx: 'frontend-web/taako',     df: 'Dockerfile', image: 'seok1419/tako-frontend'],
-              // [name: 'ai',       ctx: 'backend-fastapi',  df: 'Dockerfile', image: 'seok1419/tako-ai']
-            ]
+    // stage('Docker Image Push to DockerHub') {
+    //   when {
+    //     expression {
+    //       ((env.GL_MR_ACTION ?: "") == "merge" || (env.GL_MR_STATE ?: "") == "merged") &&
+    //       (env.GL_MR_TARGET == env.RELEASE_BRANCH)
+    //     }
+    //   }
+    //   environment {
+    //     // 커밋 해시(12자리) 기준 태깅, 없으면 manual
+    //     IMG_SHA = "${(env.GL_MR_SHA ?: env.GIT_COMMIT ?: 'manual').take(12)}"
+    //   }
+    //   steps {
+    //     withCredentials([
+    //       usernamePassword(
+    //         credentialsId: 'dockerhub-creds',
+    //         usernameVariable: 'DOCKER_USER',
+    //         passwordVariable: 'DOCKER_PASS'
+    //       )
+    //     ]) {
+    //       script {
+    //         // 서비스별 정의 (경로/도커파일/이미지명)
+    //         def targets = [
+    //           [name: 'backend',  ctx: 'backend-spring',   df: 'Dockerfile', image: 'seok1419/tako-backend'],
+    //           [name: 'frontend', ctx: 'frontend-web/taako',     df: 'Dockerfile', image: 'seok1419/tako-frontend'],
+    //           // [name: 'ai',       ctx: 'backend-fastapi',  df: 'Dockerfile', image: 'seok1419/tako-ai']
+    //         ]
 
-            sh "echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin"
+    //         sh "echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin"
             
-            targets.each { t ->
-              sh """
-                set -eu
-                export DOCKER_BUILDKIT=1
+    //         targets.each { t ->
+    //           sh """
+    //             set -eu
+    //             export DOCKER_BUILDKIT=1
 
-                # 경로/파일 존재 확인
-                test -d "${t.ctx}"
-                test -f "${t.ctx}/${t.df}"
+    //             # 경로/파일 존재 확인
+    //             test -d "${t.ctx}"
+    //             test -f "${t.ctx}/${t.df}"
 
-                docker build --pull \
-                  -t "${t.image}:${IMG_SHA}" \
-                  -f "${t.ctx}/${t.df}" \
-                  "${t.ctx}"
+    //             docker build --pull \
+    //               -t "${t.image}:${IMG_SHA}" \
+    //               -f "${t.ctx}/${t.df}" \
+    //               "${t.ctx}"
 
-                docker tag "${t.image}:${IMG_SHA}" "${t.image}:latest"
+    //             docker tag "${t.image}:${IMG_SHA}" "${t.image}:latest"
 
-                docker push "${t.image}:${IMG_SHA}"
-                docker push "${t.image}:latest"
-              """
-            }
-            sh '''
-              docker logout || true
-              docker image prune -f || true
-            '''
-          }
-        }
-      }
-    }
+    //             docker push "${t.image}:${IMG_SHA}"
+    //             docker push "${t.image}:latest"
+    //           """
+    //         }
+    //         sh '''
+    //           docker logout || true
+    //           docker image prune -f || true
+    //         '''
+    //       }
+    //     }
+    //   }
+    // }
   }
 
   post {
