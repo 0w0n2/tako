@@ -23,6 +23,13 @@ import {
   HoverCardContent,
   HoverCardTrigger
 } from "@/components/ui/hover-card";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel"
 
 type Props = {
   auctionId: number;
@@ -164,33 +171,56 @@ export default function AuctionDetailClient({ auctionId, historySize = 5 }: Read
                     </div>
                   )}
                 </HoverCardTrigger>
-                <HoverCardContent>
-                  <div className="flex flex-col">
+                <HoverCardContent className="min-w-[600px]">
+                  <Carousel>
+                    <div className="flex items-end mb-2">
+                      <h3 className="px-2">NFT 거래 내역</h3>
+                      <p className="text-sm text-[#a5a5a5]">{history.length}건</p>
+                    </div>
+                    <CarouselContent className="px-2">
                     {history && history.length > 0 ? (
-                      history.map((item, index) => (
-                        <div key={index} className="bg-gray-800 rounded-lg p-3 mb-2">
-                          <div className="flex gap-1 text-sm">
-                            <p className="text-[#ddd]">판매자:</p>
-                            <p>{item.seller.nickname}</p>
-                          </div>
-                          <div className="flex gap-1 text-sm">
-                            <p className="text-[#ddd]">구매자:</p>
-                            <p>{item.buyer.nickname}</p>
-                          </div>
-                          <div className="flex gap-1 text-sm">
-                            <p className="text-[#ddd]">가격:</p>
-                            <p>{item.priceInEth} ETH</p>
-                          </div>
-                          <div className="flex gap-1 text-sm">
-                            <p className="text-[#ddd]">거래일:</p>
-                            <p>{item.timestamp}</p>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="text-sm text-[#a5a5a5] text-center py-5">NFT 거래 이력이 없습니다.</div>
-                    )}
-                  </div>
+                        history.map((item, index) => (
+                          <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/2">
+                            <div
+                              className={`relative bg-[#222226] flex flex-col gap-1 rounded-lg p-3 border border-[#a5a5a5]
+                                ${index !== history.length - 1 ? "opacity-30 hover:opacity-100 transition-opacity duration-200" : ""}`}
+                            >
+                              {/* 연결선 */}
+                              {index !== history.length - 1 && (
+                                <div className="absolute left-[100%] top-1/2 -translate-y-1/2 h-[2px] w-4 bg-[#a5a5a5]" />
+                              )}
+
+                              <div className="text-sm text-gray-300">#{index + 1}</div>
+                              <div className="flex gap-1 text-xs">
+                                <p className="text-[#ddd]">판매자:</p>
+                                <p>{item.seller.nickname}</p>
+                              </div>
+                              <div className="flex gap-1 text-xs">
+                                <p className="text-[#ddd]">구매자:</p>
+                                <p>{item.buyer.nickname}</p>
+                              </div>
+                              <div className="flex gap-1 text-xs">
+                                <p className="text-[#ddd]">등급:</p>
+                                <p>{item.grade.gradeCode}</p>
+                              </div>
+                              <div className="flex gap-1 text-xs">
+                                <p className="text-[#ddd]">가격:</p>
+                                <p>{item.priceInEth} ETH</p>
+                              </div>
+                              <div className="flex gap-1 text-xs">
+                                <p className="text-[#ddd]">거래일:</p>
+                                <p>{formatKSTFull(item.timestamp)}</p>
+                              </div>
+                            </div>
+                          </CarouselItem>
+                        ))
+                      ) : (
+                        <div className="text-sm text-[#a5a5a5] text-center py-5">NFT 거래 이력이 없습니다.</div>
+                      )}
+                    </CarouselContent>
+                    <CarouselPrevious />
+                    <CarouselNext />
+                  </Carousel>
                 </HoverCardContent>
               </HoverCard>
             </div>
