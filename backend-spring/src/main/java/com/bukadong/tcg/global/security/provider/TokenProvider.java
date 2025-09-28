@@ -44,32 +44,19 @@ public class TokenProvider {
     }
 
     public String generateAccessToken(String subject, String authorities, Date expiration) {
-        return Jwts.builder()
-                .subject(subject)
-                .claim(AUTHORITIES_CLAIM, authorities)
-                .expiration(expiration)
-                .issuedAt(new Date())
-                .signWith(secretKey, Jwts.SIG.HS256)
-                .compact();
+        return Jwts.builder().subject(subject).claim(AUTHORITIES_CLAIM, authorities).expiration(expiration)
+                .issuedAt(new Date()).signWith(secretKey, Jwts.SIG.HS256).compact();
     }
 
     public String generateRefreshToken(String subject, Date expiration) {
-        return Jwts.builder()
-                .subject(subject)
-                .expiration(expiration)
-                .issuedAt(new Date())
-                .signWith(secretKey, Jwts.SIG.HS256)
-                .compact();
+        return Jwts.builder().subject(subject).expiration(expiration).issuedAt(new Date())
+                .signWith(secretKey, Jwts.SIG.HS256).compact();
     }
 
     /* JWT 토큰을 복호화하여 토큰에 포함된 클레임(Payload) 반환 */
     public Claims parseClaims(String token) {
         try {
-            return Jwts.parser()
-                    .verifyWith(secretKey)
-                    .build()
-                    .parseSignedClaims(token)
-                    .getPayload();
+            return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload();
         } catch (SecurityException | MalformedJwtException | IllegalArgumentException e) {
             log.warn("Invalid JWT Token: {}", e.getMessage());
             throw new BaseException(INVALID_JWT_TOKEN);
@@ -101,6 +88,11 @@ public class TokenProvider {
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(GRANT_TYPE)) {
             return bearerToken.substring(GRANT_TYPE.length());
         }
+        // EventSource 등 일부 클라이언트는 커스텀 헤더를 전송하기 어려우므로, access_token 쿼리 파라미터도 허용
+        String tokenParam = request.getParameter("access_token");
+        if (StringUtils.hasText(tokenParam)) {
+            return tokenParam;
+        }
         return null;
     }
 
@@ -112,14 +104,11 @@ public class TokenProvider {
         }
 
         Collection<? extends GrantedAuthority> authorities = Arrays
-                .stream(claims.get(AUTHORITIES_CLAIM).toString().split(","))
-                .map(SimpleGrantedAuthority::new)
-                .toList();
+                .stream(claims.get(AUTHORITIES_CLAIM).toString().split(",")).map(SimpleGrantedAuthority::new).toList();
 
         String memberUuid = claims.getSubject();
 
-        UserDetails principal = memberRepository.findByUuid(memberUuid)
-                .map(UserDetailsDto::new)
+        UserDetails principal = memberRepository.findByUuid(memberUuid).map(UserDetailsDto::new)
                 .orElseThrow(() -> new UsernameNotFoundException("해당하는 사용자를 찾을 수 없습니다."));
 
         return new UsernamePasswordAuthenticationToken(principal, "", authorities);

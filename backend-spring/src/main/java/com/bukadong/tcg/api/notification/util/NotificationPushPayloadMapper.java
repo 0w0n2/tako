@@ -48,6 +48,7 @@ public final class NotificationPushPayloadMapper {
         GROUP_MAP.put(NotificationTypeCode.BID_ACCEPTED, BID);
         GROUP_MAP.put(NotificationTypeCode.BID_REJECTED, BID);
         GROUP_MAP.put(NotificationTypeCode.BID_FAILED, BID);
+        GROUP_MAP.put(NotificationTypeCode.BID_OUTBID, BID);
 
         // 배송
         GROUP_MAP.put(NotificationTypeCode.DELIVERY_STARTED, DELIVERY);

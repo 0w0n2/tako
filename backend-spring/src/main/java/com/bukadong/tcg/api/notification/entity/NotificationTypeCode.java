@@ -26,6 +26,7 @@ public enum NotificationTypeCode {
     BID_ACCEPTED, // 입찰 반영 성공
     BID_REJECTED, // 입찰 거절 (가격/기간 등 조건 미충족)
     BID_FAILED, // 시스템 오류로 반영 실패 (옵션)
+    BID_OUTBID, // 상위 입찰 발생으로 최고가 지위 상실
 
     // 배송
     DELIVERY_STARTED, // 운송장 등록 등으로 배송 시작됨(구매자)
