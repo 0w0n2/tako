@@ -84,18 +84,6 @@ module.exports = {
   },
 
   async redirects() {
-    // Keep strict equality check; wrap in function so static analyzer doesn't flag as always false
-    const isProd = () => APP_STAGE == "prod";
-    if (isProd()) {
-      return [
-        {
-          source: '/:path*',
-          has: [{ type: 'host', value: 'tako.today' }],
-          destination: `${SITE}/:path*`,
-          permanent: true,
-        },
-      ];
-    }
     return [];
   },
 };
