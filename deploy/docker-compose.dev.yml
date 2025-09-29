@@ -1,0 +1,99 @@
+services:
+  mysql_dev:
+    image: mysql:8.0
+    container_name: mysql_dev
+    ports:
+      - "3306:3306"
+    command: [
+      "--max-connections=200",
+      "--innodb-buffer-pool-size=256M",
+      "--character-set-server=utf8mb4",
+      "--collation-server=utf8mb4_unicode_ci",
+      "--default-time-zone=+00:00"
+    ]
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: tcg
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - mysql_dev_data:/var/lib/mysql
+    mem_limit: 512m
+    memswap_limit: 512m
+    cpus: "0.2"
+    restart: unless-stopped
+    networks:
+      - e104_net
+
+  redis_dev:
+    image: redis:8.0
+    container_name: redis_dev
+    ports:
+      - "6379:6379"
+    command: ["redis-server","--maxmemory","128mb","--maxmemory-policy","volatile-lru"]
+    mem_limit: 256m
+    memswap_limit: 256m
+    cpus: "0.1"
+    volumes:
+      - redis_dev_data:/data
+    restart: unless-stopped
+    networks:
+      - e104_net
+
+  tako_back_dev:
+    build:
+      context: ../backend-spring
+      dockerfile: Dockerfile
+    container_name: tako_back_dev
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env.dev
+    mem_limit: 1536m
+    memswap_limit: 1536m
+    cpus: "1"
+    depends_on:
+      - mysql_dev
+      - redis_dev
+    restart: unless-stopped
+    networks:
+      - e104_net
+
+  tako_front_dev:
+    build:
+      context: ../frontend-web/taako
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_TAKO_NFT: ${NEXT_PUBLIC_TAKO_NFT}
+        NEXT_PUBLIC_SPENDER_ADDRESS: ${NEXT_PUBLIC_SPENDER_ADDRESS}
+        NEXT_PUBLIC_FIREBASE_API_KEY: ${NEXT_PUBLIC_FIREBASE_API_KEY}
+        NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN}
+        NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${NEXT_PUBLIC_FIREBASE_PROJECT_ID}
+        NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ${NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET}
+        NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID}
+        NEXT_PUBLIC_FIREBASE_APP_ID: ${NEXT_PUBLIC_FIREBASE_APP_ID}
+        NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID: ${NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID}
+        NEXT_PUBLIC_FIREBASE_VAPID_KEY: ${NEXT_PUBLIC_FIREBASE_VAPID_KEY}
+        NEXT_PUBLIC_DEBUG_FCM: ${NEXT_PUBLIC_DEBUG_FCM}
+        APP_STAGE: "dev"
+    container_name: tako_front_dev
+    ports:
+      - "3000:3000"
+    mem_limit: 768m
+    memswap_limit: 768m
+    cpus: "0.5"
+    restart: unless-stopped
+    networks:
+      - e104_net
+    env_file:
+      - .env.dev
+
+networks:
+  e104_net:
+    external: true
+
+volumes:
+  mysql_dev_data:
+    external: true
+  redis_dev_data:
+    external: true

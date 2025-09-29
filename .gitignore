@@ -1,0 +1,6 @@
+/.vscode
+.env.dev
+.env.prod
+.env.ai
+.env.dev.ai
+.idea
