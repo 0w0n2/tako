@@ -109,11 +109,11 @@ export default function SimpleCard(props: SimpleCardProps) {
       onClick={handleClick}
     >
       <Image
+        loader={() => src}
         src={src}
         alt="card-image"
         fill
         sizes="100vw"
-        unoptimized
         style={{ objectFit: 'contain' }}
         onError={() => {
           if (src !== basePng) setSrc(basePng)

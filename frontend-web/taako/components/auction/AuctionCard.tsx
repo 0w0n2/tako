@@ -127,12 +127,12 @@ export default function AuctionCard({ item, onWishChange }: Props){
 
         <div className="absolute top-0 left-0 w-full h-full">
           <Image
+          loader={()=> item.primaryImageUrl}
             src={item.primaryImageUrl || '/no-image.jpg'}
             alt={item.title}
             width={200}
             height={300}
             className="w-full h-full object-cover rounded"
-            unoptimized
           />
         </div>
 
