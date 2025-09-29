@@ -26,10 +26,10 @@ export default function MainBanner() {
                 // onSlideChange={() => console.log('slide change')}
             >
                 <SwiperSlide className=''>
-                    <div><Image src="/background/banner-1.png" alt="banner-1" width={1280} height={480} /></div>
+                    <div><Image src="/background/banner-2.png" alt="banner-2" width={1280} height={480} /></div>
                 </SwiperSlide>
                 <SwiperSlide className=''>
-                    <div><Image src="/background/banner-1.png" alt="banner-1" width={1280} height={480} /></div>
+                    <div><Image src="/background/banner-2.png" alt="banner-2" width={1280} height={480} /></div>
                 </SwiperSlide>
             </Swiper>
         </div>

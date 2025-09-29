@@ -579,8 +579,8 @@ pipeline {
 ##### Pipeline Success!
 ---
 ##### 서비스 점검하러 가기
-:springboot: [Backend Spring Server](https://dev-api.tako.today/swagger-ui/index.html)
-:react: [Frontend React Server](https://dev.tako.today)
+:springboot: [Backend Spring Server](https://api.tako.today/swagger-ui/index.html)
+:react: [Frontend React Server](https://tako.today)
 """
               )
           } else {

@@ -45,7 +45,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
 					<FcmSpinOverlay />
 					<Header />
 					{/* 고정 헤더 높이를 고려한 전역 상단 패딩. 과도한 여백을 줄이기 위해 pt를 낮춤 */}
-					<div className="pt-24 pb-10">{children}</div>
+					<div className="pt-[130px] pb-10">{children}</div>
 					<Footer />
 				</ReactQueryProvider>
 			</body>

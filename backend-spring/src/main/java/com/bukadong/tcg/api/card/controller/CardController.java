@@ -5,6 +5,7 @@ import com.bukadong.tcg.api.card.dto.response.CardDetailResponse;
 import com.bukadong.tcg.api.card.dto.response.CardListRow;
 import com.bukadong.tcg.api.card.service.CardQueryService;
 import com.bukadong.tcg.api.member.service.MemberQueryService;
+import com.bukadong.tcg.api.popularity.service.PopularityService;
 import com.bukadong.tcg.global.common.base.BaseResponse;
 import com.bukadong.tcg.global.common.dto.PageResponse;
 import com.bukadong.tcg.global.security.dto.CustomUserDetails;
@@ -39,6 +40,7 @@ public class CardController {
 
     private final CardQueryService cardQueryService;
     private final MemberQueryService memberQueryService;
+    private final PopularityService popularityService;
 
     /**
      * 카드 검색
@@ -73,6 +75,12 @@ public class CardController {
             @Parameter(name = "cardId", description = "카드 ID", required = true) @PathVariable("cardId") Long cardId,
             @AuthenticationPrincipal CustomUserDetails user) {
         Long memberId = (user == null) ? null : memberQueryService.getByUuid(user.getUuid()).getId();
-        return BaseResponse.onSuccess(cardQueryService.getDetail(cardId, memberId));
+        var resp = cardQueryService.getDetail(cardId, memberId);
+        try {
+            popularityService.recordCardDetailView(cardId);
+        } catch (Exception ignore) {
+            // 인기도 카운팅 실패는 본 요청 흐름에 영향 주지 않음
+        }
+        return BaseResponse.onSuccess(resp);
     }
 }

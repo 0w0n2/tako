@@ -47,6 +47,18 @@ public interface AuctionDetailRepository {
     List<DailyPriceLine> findWeeklyPriceLinesByCardId(Long cardId);
 
     /**
+     * 최근 7일 일자별(min/max/avg) 시세 라인 - 동일 카드 + 동일 등급(grade_code)
+     * <P>
+     * auction_result의 최종 입찰가 기반이며, grade_code가 같은 경매만 집계한다.
+     * </P>
+     *
+     * @PARAM cardId 카드 ID
+     * @PARAM gradeCode 등급 코드(예: PSA10 등)
+     * @RETURN 일자별 라인
+     */
+    List<DailyPriceLine> findWeeklyPriceLinesByCardIdAndGradeCode(Long cardId, String gradeCode);
+
+    /**
      * 입찰 히스토리 조회
      * 
      * @PARAM auctionId 경매 ID

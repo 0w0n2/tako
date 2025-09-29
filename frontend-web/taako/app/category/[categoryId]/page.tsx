@@ -1,6 +1,6 @@
 'use client'
 
-import SearchInput from "@/components/atoms/Input/SearchInput"
+import CategorySearch from "@/components/atoms/Input/CategorySearch"
 import Filter from "@/components/filters/Filter"
 import SimpleCard from '@/components/cards/SimpleCard'
 import CategoryPagination from '@/components/categories/categoryPagination'
@@ -11,7 +11,6 @@ import { AxiosResponse } from "axios"
 import { useEffect, useState } from 'react'
 import { CARD_SIZE, singleCard } from '@/types/card'
 import { FilterOption, FilterItem } from '@/types/filter'
-import Link from "next/link"
 
 export default function CategoryPage({ params }: CategoryPageProps) {
   const { categoryId, categoryName } = params
@@ -217,6 +216,12 @@ export default function CategoryPage({ params }: CategoryPageProps) {
     setCurrentPage(1) // 필터 변경 시 첫 페이지로 리셋
   }
 
+  // 검색 핸들러
+  const handleSearch = (query: string) => {
+    setKeyword(query)
+    setCurrentPage(1) // 검색 시 첫 페이지로 리셋
+  }
+
   return (
     <div>
       <div className="default-container">
@@ -226,7 +231,7 @@ export default function CategoryPage({ params }: CategoryPageProps) {
             itemsMap={itemsMap} 
             onSelectionsChange={handleFilterChange}
           />
-          <SearchInput />
+          <CategorySearch onSearch={handleSearch} />
         </div>
         <div>
           {loading ? (
@@ -242,13 +247,12 @@ export default function CategoryPage({ params }: CategoryPageProps) {
                                   categoryName as keyof typeof CARD_SIZE;
                   
                   return (
-                    <Link href={`/category/${categoryId}/${card.id}`}>
                     <SimpleCard 
                       key={card.id} 
                       imageUrl={(card.imageUrls && card.imageUrls.length > 0) ? card.imageUrls[0] : '/no-image.jpg'} 
                       cardType={cardType}
+                      href={`/category/${categoryId}/${card.id}`}
                     />
-                    </Link>
                   );
                 })}
               </div>
