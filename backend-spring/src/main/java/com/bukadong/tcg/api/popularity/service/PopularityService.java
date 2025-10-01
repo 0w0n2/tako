@@ -126,87 +126,126 @@ public class PopularityService {
     @Transactional(readOnly = true)
     public PageResponse<PopularCardDto> getTopCardsLastHour(long categoryId, int page, int size) {
         LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
-
-        // 1) 최근 60분 키 생성
-        List<String> minuteKeys = new ArrayList<>(60);
-        for (int i = 0; i < 60; i++) {
-            minuteKeys.add(PopularityKeyUtil.minuteKey(categoryId, now.minusMinutes(i)));
-        }
-
-        // 2) 존재하는 키만 추려서 합산 비용 절감
-        List<String> existing = minuteKeys.stream().filter(k -> Boolean.TRUE.equals(stringRedisTemplate.hasKey(k)))
-                .toList();
-
+        List<String> minuteKeys = buildMinuteKeys(categoryId, now, 60);
+        List<String> existing = filterExistingKeys(minuteKeys);
         if (existing.isEmpty()) {
             return new PageResponse<>(List.of(), page, size, 0, 0);
         }
 
-        // 3) 임시 결과 키
-        String destKey = PopularityKeyUtil.tempKey(categoryId, UUID.randomUUID().toString());
-
+        String destKey = createTempKeyAndUnion(categoryId, existing);
         try {
-            // 4) ZUNIONSTORE (고수준 API) — 가중치는 이벤트 시점에 반영했으므로 SUM만 필요
-            String first = existing.get(0);
-            List<String> others = (existing.size() > 1) ? existing.subList(1, existing.size()) : List.of();
-            stringRedisTemplate.opsForZSet().unionAndStore(first, others, destKey);
-
-            long totalElements = Optional.ofNullable(stringRedisTemplate.opsForZSet().zCard(destKey)).orElse(0L);
-            int totalPages = size == 0 ? 0 : (int) Math.ceil((double) totalElements / size);
-
-            long start = (long) page * size;
+            long totalElements = zCard(destKey);
+            int totalPages = computeTotalPages(size, totalElements);
+            long start = computeStart(page, size);
             long end = start + size - 1;
 
-            // 5) 상위 범위 조회 (점수 포함)
-            Set<ZSetOperations.TypedTuple<String>> range = stringRedisTemplate.opsForZSet()
-                    .reverseRangeWithScores(destKey, start, end);
-
+            Set<ZSetOperations.TypedTuple<String>> range = fetchRangeWithScores(destKey, start, end);
             if (range == null || range.isEmpty()) {
                 return new PageResponse<>(List.of(), page, size, totalElements, totalPages);
             }
 
-            // 6) 카드 ID 리스트 추출 (멤버는 cardId 문자열)
-            List<Long> cardIds = range.stream().map(ZSetOperations.TypedTuple::getValue).filter(Objects::nonNull)
-                    .map(Long::valueOf).toList();
-
-            // 7) 카드 메타 로딩 (rarity 포함)
-            Map<Long, Card> cardMap = cardRepository.findAllById(cardIds).stream()
-                    .collect(Collectors.toMap(Card::getId, c -> c));
-
-            // 7-1) 카드 대표 이미지(IMAGE, seqNo=1) 벌크 조회 → ownerId(=cardId) -> s3key 매핑
-            final Map<Long, String> imageKeyByCardId = cardIds.isEmpty() ? java.util.Collections.emptyMap()
-                    : mediaRepository.findCardThumbnails(MediaType.CARD, cardIds).stream()
-                            .collect(Collectors.toMap(Media::getOwnerId, Media::getS3keyOrUrl, (a, b) -> a)); // 중복시 첫 값
-                                                                                                              // 유지
-
-            // 8) DTO 매핑: name/rarity, 이미지는 Presigned URL로 변환
-            List<PopularCardDto> content = range.stream().map(t -> {
-                Long cardId = (t.getValue() != null) ? Long.valueOf(t.getValue()) : null;
-                Double scoreObj = t.getScore();
-                double score = (scoreObj != null) ? scoreObj.doubleValue() : 0.0;
-                Card card = (cardId != null) ? cardMap.get(cardId) : null;
-
-                String name = (card != null && card.getName() != null) ? card.getName() : null;
-                String rarity = Rarity.COMMON.name();
-                if (card != null && card.getRarity() != null) {
-                    rarity = card.getRarity().name();
-                }
-                String presignedUrl = null;
-                if (cardId != null) {
-                    String key = imageKeyByCardId.get(cardId);
-                    if (key != null) {
-                        presignedUrl = mediaPresignQueryService.getPresignedUrl(key, java.time.Duration.ofMinutes(5));
-                    }
-                }
-
-                return new PopularCardDto(cardId, name, rarity, score, presignedUrl);
-            }).toList();
+            List<Long> cardIds = extractCardIds(range);
+            Map<Long, Card> cardMap = loadCards(cardIds);
+            Map<Long, String> imageKeyByCardId = loadThumbnailKeys(cardIds);
+            List<PopularCardDto> content = toDtoList(range, cardMap, imageKeyByCardId);
 
             return new PageResponse<>(content, page, size, totalElements, totalPages);
-
         } finally {
-            // 9) 임시 키 정리
             stringRedisTemplate.delete(destKey);
         }
+    }
+
+    // helpers to reduce cognitive complexity
+    private List<String> buildMinuteKeys(long categoryId, LocalDateTime now, int minutes) {
+        List<String> keys = new ArrayList<>(minutes);
+        for (int i = 0; i < minutes; i++) {
+            keys.add(PopularityKeyUtil.minuteKey(categoryId, now.minusMinutes(i)));
+        }
+        return keys;
+    }
+
+    private List<String> filterExistingKeys(List<String> keys) {
+        return keys.stream().filter(k -> Boolean.TRUE.equals(stringRedisTemplate.hasKey(k))).toList();
+    }
+
+    private String createTempKeyAndUnion(long categoryId, List<String> existing) {
+        String destKey = PopularityKeyUtil.tempKey(categoryId, UUID.randomUUID().toString());
+        String first = existing.get(0);
+        List<String> others = (existing.size() > 1) ? existing.subList(1, existing.size()) : List.of();
+        stringRedisTemplate.opsForZSet().unionAndStore(first, others, destKey);
+        return destKey;
+    }
+
+    private long zCard(String key) {
+        return Optional.ofNullable(stringRedisTemplate.opsForZSet().zCard(key)).orElse(0L);
+    }
+
+    private int computeTotalPages(int size, long totalElements) {
+        return size == 0 ? 0 : (int) Math.ceil((double) totalElements / size);
+    }
+
+    private long computeStart(int page, int size) {
+        return (long) page * size;
+    }
+
+    private Set<ZSetOperations.TypedTuple<String>> fetchRangeWithScores(String key, long start, long end) {
+        return stringRedisTemplate.opsForZSet().reverseRangeWithScores(key, start, end);
+    }
+
+    private List<Long> extractCardIds(Set<ZSetOperations.TypedTuple<String>> range) {
+        return range.stream()
+                .map(ZSetOperations.TypedTuple::getValue)
+                .filter(Objects::nonNull)
+                .map(Long::valueOf)
+                .toList();
+    }
+
+    private Map<Long, Card> loadCards(List<Long> cardIds) {
+        if (cardIds.isEmpty())
+            return java.util.Collections.emptyMap();
+        return cardRepository.findAllById(cardIds).stream().collect(Collectors.toMap(Card::getId, c -> c));
+    }
+
+    private Map<Long, String> loadThumbnailKeys(List<Long> cardIds) {
+        if (cardIds.isEmpty())
+            return java.util.Collections.emptyMap();
+        return mediaRepository.findCardThumbnails(MediaType.CARD, cardIds).stream()
+                .collect(Collectors.toMap(Media::getOwnerId, Media::getS3keyOrUrl, (a, b) -> a));
+    }
+
+    private List<PopularCardDto> toDtoList(Set<ZSetOperations.TypedTuple<String>> range,
+            Map<Long, Card> cardMap,
+            Map<Long, String> imageKeyByCardId) {
+        return range.stream()
+                .map(t -> buildDtoFromTuple(t, cardMap, imageKeyByCardId))
+                .toList();
+    }
+
+    private PopularCardDto buildDtoFromTuple(ZSetOperations.TypedTuple<String> t,
+            Map<Long, Card> cardMap,
+            Map<Long, String> imageKeyByCardId) {
+        Long cardId = extractCardId(t);
+        double score = t.getScore() != null ? t.getScore() : 0.0;
+        Card card = (cardId != null) ? cardMap.get(cardId) : null;
+
+        String name = (card != null && card.getName() != null) ? card.getName() : null;
+        String rarity = (card != null && card.getRarity() != null)
+                ? card.getRarity().name()
+                : Rarity.COMMON.name();
+
+        String presignedUrl = generatePresignedUrl(cardId, imageKeyByCardId);
+        return new PopularCardDto(cardId, name, rarity, score, presignedUrl);
+    }
+
+    private Long extractCardId(ZSetOperations.TypedTuple<String> t) {
+        return (t.getValue() != null) ? Long.valueOf(t.getValue()) : null;
+    }
+
+    private String generatePresignedUrl(Long cardId, Map<Long, String> imageKeyByCardId) {
+        if (cardId == null)
+            return null;
+        String key = imageKeyByCardId.get(cardId);
+        return (key != null) ? mediaPresignQueryService.getPresignedUrl(key, Duration.ofMinutes(5)) : null;
     }
 
     /**

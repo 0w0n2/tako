@@ -29,87 +29,92 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class BidQueueProducer {
 
-    private static final String AUCTION_KEY_PREFIX = "auction:";
-    private final RedisTemplate<String, String> redisTemplate;
-    private final DefaultRedisScript<List> bidAtomicScript; // ⬅️ 빈 주입
-    @Value("${auction.bid.idempotency-ttl-seconds:1800}")
-    private long idemTtlSeconds;
+        private static final String AUCTION_KEY_PREFIX = "auction:";
+        // 공통 JSON 꼬리 포맷 상수 추출
+        private static final String PAYLOAD_TAIL = "\"auctionId\":%d,\"memberId\":%d,\"amount\":\"%s\",\"eventId\":\"%s\",\"ts\":%d}";
+        private final RedisTemplate<String, String> redisTemplate;
+        private final DefaultRedisScript<List<String>> bidAtomicScript;
+        @Value("${auction.bid.idempotency-ttl-seconds:1800}")
+        private long idemTtlSeconds;
 
-    /**
-     * 입찰 원자 검증/적재
-     * <P>
-     * 멱등 TTL을 30분으로 상향(재전송/지연 대비).
-     * </P>
-     * 
-     * @PARAM auctionId 경매 ID
-     * @PARAM memberId 입찰자
-     * @PARAM amount 입찰가
-     * @PARAM eventId 멱등키(=requestId)
-     * @RETURN Map(code, currentPriceAfter)
-     */
-    public Map<String, String> enqueue(Long auctionId, Long memberId, BigDecimal amount, String eventId) {
-        String auctionKey = AUCTION_KEY_PREFIX + auctionId;
-        String queueKey = AUCTION_KEY_PREFIX + auctionId + ":bidq";
-        String idemKey = "idem:" + eventId;
+        /**
+         * 입찰 원자 검증/적재
+         * <P>
+         * 멱등 TTL을 30분으로 상향(재전송/지연 대비).
+         * </P>
+         * 
+         * @PARAM auctionId 경매 ID
+         * @PARAM memberId 입찰자
+         * @PARAM amount 입찰가
+         * @PARAM eventId 멱등키(=requestId)
+         * @RETURN Map(code, currentPriceAfter)
+         */
+        public Map<String, String> enqueue(Long auctionId, Long memberId, BigDecimal amount, String eventId) {
+                String auctionKey = AUCTION_KEY_PREFIX + auctionId;
+                String queueKey = AUCTION_KEY_PREFIX + auctionId + ":bidq";
+                String idemKey = "idem:" + eventId;
 
-        long now = Instant.now().getEpochSecond();
-        String priceStr = amount.toPlainString();
+                long now = Instant.now().getEpochSecond();
+                String priceStr = amount.toPlainString();
 
-        String payloadOk = String.format(
-                "{\"event\":\"BID\",\"intended\":\"ACCEPT\",\"reason\":null,"
-                        + "\"auctionId\":%d,\"memberId\":%d,\"amount\":\"%s\",\"eventId\":\"%s\",\"ts\":%d}",
-                auctionId, memberId, priceStr, eventId, now);
+                String payloadOk = String.format(
+                                "{\"event\":\"BID\",\"intended\":\"ACCEPT\",\"reason\":null,"
+                                                + PAYLOAD_TAIL,
+                                auctionId, memberId, priceStr, eventId, now);
 
-        // buy-now ACCEPT payload (Lua가 bid >= buy_now_price 시 이 페이로드를 push)
-        String payloadOkBuyNow = String.format("{\"event\":\"BID\",\"intended\":\"ACCEPT\",\"reason\":\"BUY_NOW\","
-                + "\"auctionId\":%d,\"memberId\":%d,\"amount\":\"%s\",\"eventId\":\"%s\",\"ts\":%d,\"buyNow\":true}",
-                auctionId, memberId, priceStr, eventId, now);
+                // buy-now ACCEPT payload (Lua가 bid >= buy_now_price 시 이 페이로드를 push)
+                String payloadOkBuyNow = String.format(
+                                "{\"event\":\"BID\",\"intended\":\"ACCEPT\",\"reason\":\"BUY_NOW\","
+                                                + "\"auctionId\":%d,\"memberId\":%d,\"amount\":\"%s\",\"eventId\":\"%s\",\"ts\":%d,\"buyNow\":true}",
+                                auctionId, memberId, priceStr, eventId, now);
 
-        String payloadMissing = String.format(
-                "{\"event\":\"BID\",\"intended\":\"REJECT\",\"reason\":\"MISSING\","
-                        + "\"auctionId\":%d,\"memberId\":%d,\"amount\":\"%s\",\"eventId\":\"%s\",\"ts\":%d}",
-                auctionId, memberId, priceStr, eventId, now);
+                String payloadMissing = String.format(
+                                "{\"event\":\"BID\",\"intended\":\"REJECT\",\"reason\":\"MISSING\","
+                                                + PAYLOAD_TAIL,
+                                auctionId, memberId, priceStr, eventId, now);
 
-        String payloadNotRunning = String.format(
-                "{\"event\":\"BID\",\"intended\":\"REJECT\",\"reason\":\"NOT_RUNNING\","
-                        + "\"auctionId\":%d,\"memberId\":%d,\"amount\":\"%s\",\"eventId\":\"%s\",\"ts\":%d}",
-                auctionId, memberId, priceStr, eventId, now);
+                String payloadNotRunning = String.format(
+                                "{\"event\":\"BID\",\"intended\":\"REJECT\",\"reason\":\"NOT_RUNNING\","
+                                                + PAYLOAD_TAIL,
+                                auctionId, memberId, priceStr, eventId, now);
 
-        String payloadLowPrice = String.format(
-                "{\"event\":\"BID\",\"intended\":\"REJECT\",\"reason\":\"LOW_PRICE\","
-                        + "\"auctionId\":%d,\"memberId\":%d,\"amount\":\"%s\",\"eventId\":\"%s\",\"ts\":%d}",
-                auctionId, memberId, priceStr, eventId, now);
+                String payloadLowPrice = String.format(
+                                "{\"event\":\"BID\",\"intended\":\"REJECT\",\"reason\":\"LOW_PRICE\","
+                                                + PAYLOAD_TAIL,
+                                auctionId, memberId, priceStr, eventId, now);
 
-        String payloadSelfBid = String.format(
-                "{\"event\":\"BID\",\"intended\":\"REJECT\",\"reason\":\"SELF_BID\","
-                        + "\"auctionId\":%d,\"memberId\":%d,\"amount\":\"%s\",\"eventId\":\"%s\",\"ts\":%d}",
-                auctionId, memberId, priceStr, eventId, now);
+                String payloadSelfBid = String.format(
+                                "{\"event\":\"BID\",\"intended\":\"REJECT\",\"reason\":\"SELF_BID\","
+                                                + PAYLOAD_TAIL,
+                                auctionId, memberId, priceStr, eventId, now);
 
-        List<String> keys = Arrays.asList(auctionKey, queueKey, idemKey);
+                List<String> keys = Arrays.asList(auctionKey, queueKey, idemKey);
 
-        @SuppressWarnings("unchecked")
-        List<String> ret = redisTemplate.execute(bidAtomicScript, keys, priceStr, // ARGV[1]
-                String.valueOf(now), // ARGV[2]
-                String.valueOf(idemTtlSeconds), // ARGV[3]
-                payloadOk, // ARGV[4]
-                payloadMissing, // ARGV[5]
-                payloadNotRunning, // ARGV[6]
-                payloadLowPrice, // ARGV[7]
-                String.valueOf(memberId), // ARGV[8] bidderId (문자열로 전달!)
-                payloadSelfBid, // ARGV[9]
-                payloadOkBuyNow // ARGV[10]
-        );
+                List<String> ret = redisTemplate.execute(
+                                bidAtomicScript,
+                                keys,
+                                priceStr, // ARGV[1]
+                                String.valueOf(now), // ARGV[2]
+                                String.valueOf(idemTtlSeconds), // ARGV[3]
+                                payloadOk, // ARGV[4]
+                                payloadMissing, // ARGV[5]
+                                payloadNotRunning, // ARGV[6]
+                                payloadLowPrice, // ARGV[7]
+                                String.valueOf(memberId), // ARGV[8]
+                                payloadSelfBid, // ARGV[9]
+                                payloadOkBuyNow // ARGV[10]
+                );
 
-        String code;
-        String curAfter;
-        if (ret == null || ret.isEmpty()) {
-            code = "ERROR";
-            curAfter = "";
-        } else {
-            code = String.valueOf(ret.get(0));
-            curAfter = (ret.size() >= 2) ? String.valueOf(ret.get(1)) : "";
+                String code;
+                String curAfter;
+                if (ret == null || ret.isEmpty()) {
+                        code = "ERROR";
+                        curAfter = "";
+                } else {
+                        code = String.valueOf(ret.get(0));
+                        curAfter = (ret.size() >= 2) ? String.valueOf(ret.get(1)) : "";
+                }
+
+                return Map.of("code", code, "currentPriceAfter", curAfter);
         }
-
-        return Map.of("code", code, "currentPriceAfter", curAfter);
-    }
 }

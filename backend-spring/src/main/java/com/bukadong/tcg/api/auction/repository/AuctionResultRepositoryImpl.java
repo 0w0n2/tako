@@ -2,7 +2,6 @@ package com.bukadong.tcg.api.auction.repository;
 
 import static com.bukadong.tcg.api.auction.entity.QAuctionResult.auctionResult;
 
-import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;

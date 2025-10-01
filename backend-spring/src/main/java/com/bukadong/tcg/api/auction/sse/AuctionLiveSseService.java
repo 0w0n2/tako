@@ -16,6 +16,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.HashMap;
+import java.math.BigDecimal;
 
 import org.springframework.data.redis.core.RedisTemplate;
 
@@ -79,7 +81,7 @@ public class AuctionLiveSseService {
 
     /** 가격 변경 브로드캐스트 (목록+상세) */
     public void publishPriceUpdate(long auctionId, String currentPrice, Long endTsEpochSec) {
-        Map<String, Object> payload = new java.util.HashMap<>();
+        Map<String, Object> payload = new HashMap<>();
         payload.put(FIELD_AUCTION_ID, auctionId);
         payload.put(FIELD_CURRENT_PRICE, currentPrice);
         if (endTsEpochSec != null)
@@ -151,8 +153,8 @@ public class AuctionLiveSseService {
 
     private boolean isPriceStale(String currentPrice, String incomingPrice) {
         try {
-            java.math.BigDecimal incoming = new java.math.BigDecimal(incomingPrice);
-            java.math.BigDecimal current = new java.math.BigDecimal(currentPrice);
+            BigDecimal incoming = new BigDecimal(incomingPrice);
+            BigDecimal current = new BigDecimal(currentPrice);
             // 기존 '<= 0' (같은 금액도 dead 처리) → '< 0' 으로 변경하여 동일 금액은 전파
             return incoming.compareTo(current) < 0;
         } catch (Exception ignore) {

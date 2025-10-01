@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 import java.util.Map;
 import java.util.ArrayList;
@@ -22,6 +24,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.HashMap;
 
 @Tag(name = "Auctions")
 @RestController
@@ -69,8 +72,8 @@ public class AuctionSseController {
 
         // 비어있으면 전역 구독으로 대체 가능하나, 여기서는 빈 스냅샷으로 구독만 생성
         if (ids.isEmpty()) {
-            throw new org.springframework.web.server.ResponseStatusException(
-                    org.springframework.http.HttpStatus.BAD_REQUEST, "Query param 'ids' must contain at least one id");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Query param 'ids' must contain at least one id");
         }
 
         // 스냅샷 수집 (필요 시 ensureLoaded)
@@ -82,7 +85,7 @@ public class AuctionSseController {
                 Map<String, String> snap = raw.entrySet().stream()
                         .collect(Collectors.toMap(e -> String.valueOf(e.getKey()), e -> String.valueOf(e.getValue())));
                 // 클라이언트 편의를 위해 auctionId를 명시적으로 포함
-                snap = new java.util.HashMap<>(snap);
+                snap = new HashMap<>(snap);
                 snap.put("auctionId", String.valueOf(id));
                 snapshots.add(snap);
             } catch (Exception ignore) {

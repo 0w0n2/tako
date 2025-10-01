@@ -15,7 +15,7 @@ import java.util.List;
  * </P>
  * 
  * @PARAM 없음
- * @RETURN DefaultRedisScript<List>
+ * @RETURN DefaultRedisScript<List<String>>
  */
 @Configuration
 public class RedisScriptsConfig {
@@ -26,13 +26,16 @@ public class RedisScriptsConfig {
      * 반환 형식: [code, currentPriceAfter]
      * </P>
      * 
-     * @RETURN DefaultRedisScript<List>
+     * @RETURN DefaultRedisScript<List<String>>
      */
     @Bean
-    public DefaultRedisScript<List> bidAtomicScript() {
-        DefaultRedisScript<List> script = new DefaultRedisScript<>();
+    DefaultRedisScript<List<String>> bidAtomicScript() {
+        DefaultRedisScript<List<String>> script = new DefaultRedisScript<>();
         script.setScriptText(AuctionBidLuaScripts.BID_ATOMIC);
-        script.setResultType(List.class);
+        // Redis가 배열로 반환하므로 List<String> 결과 타입으로 설정 (제네릭 소거 보완 캐스팅)
+        @SuppressWarnings({ "rawtypes", "unchecked" })
+        Class<List<String>> listStringClass = (Class) List.class;
+        script.setResultType(listStringClass);
         return script;
     }
 }

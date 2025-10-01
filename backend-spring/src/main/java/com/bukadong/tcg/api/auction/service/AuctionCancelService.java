@@ -19,8 +19,6 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 
 /**
  * 경매 취소 서비스

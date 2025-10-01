@@ -1,7 +1,6 @@
 package com.bukadong.tcg.api.popularity.util;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 

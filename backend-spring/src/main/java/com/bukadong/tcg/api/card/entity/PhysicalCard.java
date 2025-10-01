@@ -4,13 +4,10 @@ import com.bukadong.tcg.api.member.entity.Member;
 import com.bukadong.tcg.global.common.base.BaseEntity;
 import com.bukadong.tcg.global.util.BigIntegerToStringConverter;
 import jakarta.persistence.*;
-import jnr.a64asm.Mem;
 import lombok.*;
 import org.springframework.util.StringUtils;
-import org.web3j.crypto.Hash;
 
 import java.math.BigInteger;
-import java.util.Optional;
 
 /**
  * 실물 카드 엔티티
@@ -26,7 +23,12 @@ import java.util.Optional;
  * </ul>
  */
 @Entity
-@Table(name = "physical_card", uniqueConstraints = {@UniqueConstraint(name = "uk_pcard_token_id", columnNames = "token_id"), @UniqueConstraint(name = "uk_pcard_secret_hash", columnNames = "secret_hash")}, indexes = {@Index(name = "idx_pcard_card", columnList = "card_id"), @Index(name = "idx_pcard_owner", columnList = "owner_member_id"), @Index(name = "idx_pcard_token_id", columnList = "token_id")})
+@Table(name = "physical_card", uniqueConstraints = {
+        @UniqueConstraint(name = "uk_pcard_token_id", columnNames = "token_id"),
+        @UniqueConstraint(name = "uk_pcard_secret_hash", columnNames = "secret_hash") }, indexes = {
+                @Index(name = "idx_pcard_card", columnList = "card_id"),
+                @Index(name = "idx_pcard_owner", columnList = "owner_member_id"),
+                @Index(name = "idx_pcard_token_id", columnList = "token_id") })
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor

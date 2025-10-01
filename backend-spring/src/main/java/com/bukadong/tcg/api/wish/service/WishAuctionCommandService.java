@@ -2,12 +2,9 @@ package com.bukadong.tcg.api.wish.service;
 
 import com.bukadong.tcg.api.wish.entity.WishAuction;
 import com.bukadong.tcg.api.wish.repository.auction.WishAuctionRepository;
-import com.bukadong.tcg.global.common.exception.BaseException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
 
 /**
  * 위시 경매 명령 서비스

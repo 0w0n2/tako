@@ -1,16 +1,11 @@
 package com.bukadong.tcg.api.member.service;
 
-import com.bukadong.tcg.api.auth.dto.request.PasswordResetRequestDto;
 import com.bukadong.tcg.api.member.entity.Member;
 import com.bukadong.tcg.api.member.repository.MemberRepository;
 import com.bukadong.tcg.global.common.base.BaseResponseStatus;
 import com.bukadong.tcg.global.common.exception.BaseException;
 
-import com.bukadong.tcg.global.mail.constants.MailConstants;
-import com.bukadong.tcg.global.util.RedisUtils;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.bcrypt.BCrypt;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,6 +34,5 @@ public class MemberQueryService {
     public Member getByUuid(String uuid) {
         return memberRepository.findByUuid(uuid).orElseThrow(() -> new BaseException(BaseResponseStatus.NOT_FOUND));
     }
-
 
 }

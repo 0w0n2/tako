@@ -7,6 +7,7 @@ import com.bukadong.tcg.api.notification.entity.NotificationTypeCode;
 import com.bukadong.tcg.api.notification.repository.NotificationRepository;
 import com.bukadong.tcg.api.notification.repository.NotificationTypeRepository;
 import com.bukadong.tcg.api.notification.util.NotificationTargetUrlBuilder;
+import com.bukadong.tcg.api.notification.event.NotificationCreatedEvent;
 import com.bukadong.tcg.global.common.base.BaseResponseStatus;
 import com.bukadong.tcg.global.common.exception.BaseException;
 
@@ -87,8 +88,8 @@ public class NotificationCommandService {
         }
 
         // 트랜잭션 커밋 후 FCM 발송을 위해 이벤트 발행
-        eventPublisher.publishEvent(new com.bukadong.tcg.api.notification.event.NotificationCreatedEvent(id, memberId,
-                typeCode, causeId, title, message, targetUrl));
+        eventPublisher.publishEvent(new NotificationCreatedEvent(id, memberId, typeCode, causeId, title, message,
+                targetUrl));
 
         return id;
     }
@@ -226,12 +227,15 @@ public class NotificationCommandService {
 
     private String buildTargetUrl(NotificationTypeCode typeCode, Long causeId) {
         return switch (typeCode) {
-        case WISH_AUCTION_STARTED, WISH_AUCTION_DUE_SOON, WISH_AUCTION_ENDED, AUCTION_NEW_INQUIRY, AUCTION_WON, AUCTION_CLOSED_SELLER, AUCTION_CANCELED, DELIVERY_STARTED, DELIVERY_STATUS_CHANGED, DELIVERY_CONFIRM_REQUEST, DELIVERY_CONFIRMED_SELLER, BID_ACCEPTED, BID_REJECTED, BID_FAILED -> targetUrlBuilder
-                .buildForAuction(causeId);
-        case WISH_CARD_LISTED -> targetUrlBuilder.buildForCard(causeId);
-        case INQUIRY_ANSWERED -> targetUrlBuilder.buildForInquiry(causeId);
-        case NOTICE_NEW -> "/notice/" + (causeId == null ? "" : causeId);
-        case BID_OUTBID -> targetUrlBuilder.buildForAuction(causeId);
+            case WISH_AUCTION_STARTED, WISH_AUCTION_DUE_SOON, WISH_AUCTION_ENDED, AUCTION_NEW_INQUIRY, AUCTION_WON,
+                    AUCTION_CLOSED_SELLER, AUCTION_CANCELED, DELIVERY_STARTED, DELIVERY_STATUS_CHANGED,
+                    DELIVERY_CONFIRM_REQUEST, DELIVERY_CONFIRMED_SELLER, BID_ACCEPTED, BID_REJECTED, BID_FAILED ->
+                targetUrlBuilder
+                        .buildForAuction(causeId);
+            case WISH_CARD_LISTED -> targetUrlBuilder.buildForCard(causeId);
+            case INQUIRY_ANSWERED -> targetUrlBuilder.buildForInquiry(causeId);
+            case NOTICE_NEW -> "/notice/" + (causeId == null ? "" : causeId);
+            case BID_OUTBID -> targetUrlBuilder.buildForAuction(causeId);
         };
     }
 

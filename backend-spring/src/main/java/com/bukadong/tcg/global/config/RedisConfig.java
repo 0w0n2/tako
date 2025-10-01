@@ -76,7 +76,7 @@ public class RedisConfig {
      */
     @Bean
     StringRedisTemplate stringRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
-        StringRedisTemplate t = new org.springframework.data.redis.core.StringRedisTemplate();
+        StringRedisTemplate t = new StringRedisTemplate();
         t.setConnectionFactory(redisConnectionFactory);
         t.setEnableTransactionSupport(false);
         return t;
