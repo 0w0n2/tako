@@ -230,6 +230,17 @@ pipeline {
       }
     }
 
+    stage('Prepare .env.dev.ai') {
+      steps {
+        withCredentials([file(credentialsId: 'ENV_AI_DEV_FILE', variable: 'ENV_AI_DEV_FILE')]) {
+          sh '''
+            set -eu
+            install -m 600 "$ENV_AI_DEV_FILE" deploy/.env.dev.ai
+          '''
+        }
+      }
+    }
+
     stage('Prepare .env.dev') {
       when {
         expression {
@@ -276,8 +287,8 @@ pipeline {
               sh ''' 
                 set -eux
 
-                docker compose --env-file deploy/.env.ai -f "$COMPOSE_AI_FILE" pull || true
-                docker compose --env-file deploy/.env.ai -f "$COMPOSE_AI_FILE" up -d --build tako_ai
+                docker compose --env-file deploy/.env.dev.ai -f "$COMPOSE_AI_FILE" pull || true
+                docker compose --env-file deploy/.env.dev.ai -f "$COMPOSE_AI_FILE" up -d --build tako_ai_dev
               '''
           } else {
               echo "No deploy target matched for source branch: ${dev_source}"
@@ -568,8 +579,8 @@ pipeline {
 ##### Pipeline Success!
 ---
 ##### 서비스 점검하러 가기
-:springboot: [Backend Spring Server](https://dev-api.tako.today/swagger-ui/index.html)
-:react: [Frontend React Server](https://dev.tako.today)
+:springboot: [Backend Spring Server](https://api.tako.today/swagger-ui/index.html)
+:react: [Frontend React Server](https://tako.today)
 """
               )
           } else {

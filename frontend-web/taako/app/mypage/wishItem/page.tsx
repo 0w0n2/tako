@@ -1,6 +1,5 @@
 'use client'
 
-import Link from "next/link";
 import SimpleCard from "@/components/cards/SimpleCard";
 import { useAllWishCards } from "@/hooks/useCardWish";
 import { useEffect, useState } from "react";
@@ -122,14 +121,12 @@ export default function WishItemPage() {
       </h1>
       <div style={gridStyle}>
         {cardsWithInfo.map((card) => (
-          <Link key={card.cardId} href={`/category/${card.categoryId || 1}/${card.cardId}`}>
-            <div style={{ cursor: 'pointer' }}>
-              <SimpleCard 
-                imageUrl={card.cardImage || '/no-image.jpg'} 
-                cardType={cardTypes[card.cardType || 2]}
-              />
-            </div>
-          </Link>
+          <SimpleCard 
+            key={card.cardId}
+            imageUrl={card.cardImage || '/no-image.jpg'} 
+            cardType={cardTypes[card.cardType || 2]}
+            href={`/category/${card.categoryId || 1}/${card.cardId}`}
+          />
         ))}
       </div>
     </div>

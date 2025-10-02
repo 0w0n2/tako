@@ -29,12 +29,13 @@ spring:
     driver-class-name: ${DB_DRIVER}
     hikari:
       connection-init-sql: "SET time_zone = '+00:00'"
-      maximum-pool-size: 30
-      minimum-idle: 5
-      idle-timeout: 600000
-      max-lifetime: 1700000
-      connection-timeout: 30000
-      leak-detection-threshold: 60000
+      maximum-pool-size: 40 # 최대 커넥션 수
+      minimum-idle: 10 # 최소 유휴 커넥션 수
+      idle-timeout: 300000 # 5분
+      max-lifetime: 540000 # 9분
+      keepalive-time: 240000 # 4분 (idle 커넥션 주기적 ping)
+      connection-timeout: 10000 # 10초
+      leak-detection-threshold: 20000 # 20초
 
   jackson:
     time-zone: UTC
@@ -147,10 +148,10 @@ security:
 # 인기도 관련 설정
 popularity:
   weight:
-    view: ${POPULARITY_WEIGHT_VIEW:1} # 조회 가중치 (double). 미설정 시 기본 1
-    bid: ${POPULARITY_WEIGHT_BID:5} # 입찰 가중치 (double). 미설정 시 기본 5
+    view: ${POPULARITY_WEIGHT_VIEW} # 조회 가중치 (double).
+    bid: ${POPULARITY_WEIGHT_BID} # 입찰 가중치 (double).
   bucket:
-    ttl-minutes: ${POPULARITY_BUCKET_TTL_MINUTES:70} # 분 버킷 TTL. 기본 70분(60분 + 버퍼)
+    ttl-minutes: ${POPULARITY_BUCKET_TTL_MINUTES} # 분 버킷 TTL.
 
 logging:
   charset:

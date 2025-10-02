@@ -10,7 +10,6 @@ import com.bukadong.tcg.api.auction.repository.AuctionRepository;
 import com.bukadong.tcg.api.auction.repository.AuctionRepositoryCustom;
 import com.bukadong.tcg.api.auction.repository.AuctionSort;
 import com.bukadong.tcg.api.card.entity.PhysicalCard;
-import com.bukadong.tcg.api.card.repository.PhysicalCardRepository;
 import com.bukadong.tcg.api.media.entity.MediaType;
 import com.bukadong.tcg.api.media.service.MediaUrlService;
 import com.bukadong.tcg.api.wish.repository.auction.WishAuctionRepository;
@@ -119,7 +118,15 @@ public class AuctionQueryService {
 
         List<String> imageUrls = mediaUrlService.getPresignedImageUrls(MediaType.AUCTION_ITEM, auctionId,
                 Duration.ofMinutes(5));
-        var weeklyPrices = auctionDetailRepository.findWeeklyPriceLinesByCardId(auction.getCard().getId());
+                // 동일 등급 카드의 주간 가격 라인: gradeCode가 있으면 등급 필터링, 없으면 카드 전체로 폴백
+                List<com.bukadong.tcg.api.auction.dto.response.AuctionDetailResponse.DailyPriceLine> weeklyPrices;
+                var grade = auction.getGrade();
+                if (grade != null && grade.getGradeCode() != null && !grade.getGradeCode().isBlank()) {
+                        weeklyPrices = auctionDetailRepository
+                                        .findWeeklyPriceLinesByCardIdAndGradeCode(auction.getCard().getId(), grade.getGradeCode());
+                } else {
+                        weeklyPrices = auctionDetailRepository.findWeeklyPriceLinesByCardId(auction.getCard().getId());
+                }
         var history = auctionDetailRepository.findBidHistory(auctionId, historySize);
         var sellerInfo = auctionDetailRepository.findSellerInfoByAuctionId(auctionId);
         boolean wished = false;

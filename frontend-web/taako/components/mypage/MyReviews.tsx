@@ -27,7 +27,7 @@ export default function MyReviews() {
 					</div>
 					<div className="flex items-center gap-4">
 						<div className="w-18 h-18 rounded-sm overflow-hidden">
-							<Image className="w-full h-full object-fit" src={it.imageUrl || "/no-image.jpg"} alt="thumbnail" width={100} height={100} />
+							<Image className="w-full h-full object-cover" src={it.imageUrl || "/no-image.jpg"} alt="thumbnail" width={100} height={100} unoptimized />
 						</div>
 						<div>
 							<h3>{it.title}</h3>

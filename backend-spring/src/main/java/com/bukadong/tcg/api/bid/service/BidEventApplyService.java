@@ -190,8 +190,14 @@ public class BidEventApplyService {
 
             if (buyNowEvent) {
                 // 즉시구매: 낙찰 처리 (금액은 buy_now_price로 고정하도록 Lua가 amount를 buy_now_price로 반환)
+                LocalDateTime nowUtc = LocalDateTime.now(ZoneOffset.UTC);
                 auction.setWinner(memberId, ab.getId(), finalBid);
-                auction.markClosed(AuctionCloseReason.BUY_NOW, LocalDateTime.now(ZoneOffset.UTC));
+                // DB의 현재가도 즉시구매가로 동기화
+                auction.changeCurrentPrice(finalBid);
+                // 종료 상태/사유 설정 + 실제 종료시각 고정
+                auction.markClosed(AuctionCloseReason.BUY_NOW, nowUtc);
+                // 정합성: 스케줄러/알림/정렬 등 endDatetime을 즉시 종료 시각으로 동기화
+                auction.setEndDatetime(nowUtc);
             } else {
                 // 일반 입찰: 현재가 갱신 및 연장 정책
                 auction.changeCurrentPrice(finalBid); // 도메인 유효성 검사 포함
@@ -277,6 +283,15 @@ public class BidEventApplyService {
                             try {
                                 auctionCacheService.overwritePrice(auctionId, bidPlain);
                                 auctionCacheService.markEnded(auctionId);
+                                // 즉시구매 시 실제 종료시각을 Redis end_ts에도 반영하고, 구독자에게 end_ts 변경을 전파
+                                try {
+                                    auctionCacheService.applyAdminChange(auctionId, true, nowSec);
+                                    auctionLiveSseService.publishEndTsUpdate(auctionId, nowSec);
+                                } catch (Exception endTsEx) {
+                                    log.warn("[afterCommit] buy-now end_ts update failed auctionId={}, eventId={}",
+                                            auctionId,
+                                            eventId, endTsEx);
+                                }
                                 // 즉시구매 전용 이벤트 전파 (상세 구독자)
                                 try {
                                     auctionLiveSseService.publishBuyNow(auctionId, nickname, bidPlain,
@@ -428,18 +443,18 @@ public class BidEventApplyService {
         if (r == null)
             return AuctionBidReason.REJECTED.name();
         switch (r) {
-        case "LOW_PRICE":
-            return AuctionBidReason.LOW_PRICE.name();
-        case "NOT_RUNNING":
-            return AuctionBidReason.NOT_RUNNING.name();
-        case "MISSING":
-            return AuctionBidReason.MISSING.name();
-        case "PRECHECK":
-            return AuctionBidReason.PRECHECK.name();
-        case "SELF_BID":
-            return AuctionBidReason.SELF_BID.name();
-        default:
-            return r;
+            case "LOW_PRICE":
+                return AuctionBidReason.LOW_PRICE.name();
+            case "NOT_RUNNING":
+                return AuctionBidReason.NOT_RUNNING.name();
+            case "MISSING":
+                return AuctionBidReason.MISSING.name();
+            case "PRECHECK":
+                return AuctionBidReason.PRECHECK.name();
+            case "SELF_BID":
+                return AuctionBidReason.SELF_BID.name();
+            default:
+                return r;
         }
     }
 }
