@@ -768,7 +768,7 @@
           </details>
           <br>
           <a href="https://www.notion.so/25f7dcd980dd803d953ff2df439d5d7f?v=25f7dcd980dd804da024000c620b205a&source=copy_link" target="_blank">
-          <h3 align="left">📋 기능 명세서</h3>
+          <h3 align="left">📋 기능 명세서</h3></a>
           <details align="left">
           <summary>
             <strong>Details</strong>
@@ -777,10 +777,10 @@
             <a href=https://www.notion.so/25f7dcd980dd803d953ff2df439d5d7f?v=25f7dcd980dd804da024000c620b205a&source=copy_link" target="_blank">
           <img src="./readme-assets/feature.png" width="90%" align=center/></a>
           </div>
-          </details></a>
+          </details>
           <br>
           <a href="https://www.notion.so/2677dcd980dd81029f6cf2d054b5ad15?v=2677dcd980dd81e3b392000ca591ecfd&source=copy_link" target="_blank">
-          <h3 align="left">📡 API 명세서</h3>
+          <h3 align="left">📡 API 명세서</h3></a>
           <details align="left">
           <summary>
             <strong>Details</strong>
@@ -789,7 +789,7 @@
             <a href="https://www.notion.so/2677dcd980dd81029f6cf2d054b5ad15?v=2677dcd980dd81e3b392000ca591ecfd&source=copy_link" target="_blank">
           <img src="./readme-assets/api.png" width="90%" align=center/></a>
           </div>
-          </details></a>
+          </details>
           <br>
         </div>
         <br><br>
