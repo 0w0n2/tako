@@ -73,7 +73,7 @@
                         <a href="https://github.com/Jodndud" target="_blank">
                         <img src="./readme-assets/wooyeong_jo.png" width="140px" /> <br>
                         <strong>조우영</strong><br>
-                        (Frontend》 </a></p>
+                        《Frontend》 </a></p>
                     </td>
                 </tr>
                 <tr>
