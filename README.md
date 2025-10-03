@@ -301,36 +301,36 @@
   <table align="center">
   <tbody>
     <tr>
-      <th style="text-align: center">✅ Jenkins Pipeline Success</th>
-      <th style="text-align: center">❌ Jenkins Pipeline Failure</th>
+      <td align="center" width="50%"><b>✅ Jenkins Pipeline Success</b></td>
+      <td align="center" width="50%"><b>❌ Jenkins Pipeline Failure</b></td>
     </tr>
     <tr>
-      <td><img src="./readme-assets/jenkins_pipeline_success.gif" width="100%"></td>
-      <td><img src="./readme-assets/jenkins_pipeline_failure.gif" width="100%"></td>
+      <td align="center"><img src="./readme-assets/jenkins_pipeline_success.gif"/></td>
+      <td align="center"><img src="./readme-assets/jenkins_pipeline_failure.gif"/></td>
     </tr>
     <tr>
-      <th style="text-align: center">🔀 Merge Request Created Notification</th>
-      <th style="text-align: center">🗨️ Jira Issue Notification</th>
+      <td align="center" width="50%"><b>🔀 Merge Request Created Notification</b></td>
+      <td align="center" width="50%"><b>🗨️ Jira Issue Notification</b></td>
     </tr>
     <tr>
-      <td><img src="./readme-assets/merge_request_created_notification.gif" width="100%"></td>
-      <td><img src="./readme-assets/jira_issue_notification.gif" width="100%"></td>
+      <td align="center"><img src="./readme-assets/merge_request_created_notification.gif"/></td>
+      <td align="center"><img src="./readme-assets/jira_issue_notification.gif"/></td>
     </tr>
     <tr>
-      <th style="text-align: center">🚨 CPU Anomaly Detected</th>
-      <th style="text-align: center">🚨 Memory Anomaly Detected</th>
+      <td align="center" width="50%"><b>🚨 CPU Anomaly Detected</b></td>
+      <td align="center" width="50%"><b>🚨 Memory Anomaly Detected</b></td>
     </tr>
     <tr>
-      <td><img src="./readme-assets/CPU_anomaly_detected.png" width="100%"></td>
-      <td><img src="./readme-assets/memory_anomaly_detected.png" width="100%"></td>
+      <td align="center"><img src="./readme-assets/CPU_anomaly_detected.png"/></td>
+      <td align="center"><img src="./readme-assets/memory_anomaly_detected.png"/></td>
     </tr>
     <tr>
-      <th style="text-align: center">✅ CPU Anomaly Cleared</th>
-      <th style="text-align: center">✅ Memory Anomaly Cleared</th>
+      <td align="center" width="50%"><b>✅ CPU Anomaly Cleared</b></td>
+      <td align="center" width="50%"><b>✅ Memory Anomaly Cleared</b></td>
     </tr>
     <tr>
-      <td><img src="./readme-assets/CPU_anomaly_cleared.gif" width="100%"></td>
-      <td><img src="./readme-assets/memory_anomaly_cleared.gif" width="100%"></td>
+      <td align="center"><img src="./readme-assets/CPU_anomaly_cleared.gif"/></td>
+      <td align="center"><img src="./readme-assets/memory_anomaly_cleared.gif"/></td>
     </tr>
   </tbody>
   </table>
@@ -340,80 +340,42 @@
         <h2 align="left"><a name="keyFeatures">🌠 주요 기능</a></h2>
 <div align="center">
 <table>
-  <tbody>
-    <tr>
-      <th style="text-align: center">메인화면</th>
-      <th style="text-align: center">회원가입/로그인</th>
-    </tr>
-    <tr>
-      <td><img src="./readme-assets/feature/1_main.gif" width="100%"></td>
-      <td><img src="./readme-assets/feature/2_signup.gif" width="100%"></td>
-    </tr>
-    <tr>
-      <th style="text-align: center">메타마스크 지갑 연동</th>
-      <th style="text-align: center">경매 정보 조회</th>
-    </tr>
-    <tr>
-      <td><img src="./readme-assets/feature/3_wallet.gif" width="100%"></td>
-      <td><img src="./readme-assets/feature/4_auction.gif" width="100%"></td>
-    </tr>
-    <tr>
-      <th style="text-align: center">카드 별 경매 정보 조회</th>
-      <th style="text-align: center">판매자 경매 등록</th>
-    </tr>
-    <tr>
-      <td><img src="./readme-assets/feature/5_card.gif" width="100%"></td>
-      <td><img src="./readme-assets/feature/6_create_auction.gif" width="100%"></td>
-    </tr>
-    <tr>
-      <th style="text-align: center">경매 상세 정보 조회</th>
-      <th style="text-align: center">NFT 거래 이력 조회</th>
-    </tr>
-    <tr>
-      <td><img src="./readme-assets/feature/7_auction_detail.gif" width="100%"></td>
-      <td><img src="./readme-assets/feature/8_nft_history.gif" width="100%"></td>
-    </tr>
-    <tr>
-      <th style="text-align: center">문의 등록</th>
-      <th style="text-align: center">입찰</th>
-    </tr>
-    <tr>
-      <td><img src="./readme-assets/feature/9_inquiry.gif" width="100%"></td>
-      <td><img src="./readme-assets/feature/10_bid.gif" width="100%"></td>
-    </tr>
-    <tr>
-      <th style="text-align: center">입찰 내역 조회</th>
-      <th style="text-align: center">판매 내역 조회</th>
-    </tr>
-    <tr>
-      <td><img src="./readme-assets/feature/11_bid_list.gif" width="100%"></td>
-      <td><img src="./readme-assets/feature/12_sell_list.gif" width="100%"></td>
-    </tr>
-    <tr>
-      <th style="text-align: center">관심 카드/경매 조회</th>
-      <th style="text-align: center">판매자 배송 정보 등록</th>
-    </tr>
-    <tr>
-      <td><img src="./readme-assets/feature/13_interest_card.gif" width="100%"></td>
-      <td><img src="./readme-assets/feature/14_seller_delivery.gif" width="100%"></td>
-    </tr>
-    <tr>
-      <th style="text-align: center">판매자 대금 인출</th>
-      <th style="text-align: center">판매자 상점</th>
-    </tr>
-    <tr>
-      <td><img src="./readme-assets/feature/15_seller_withdraw.gif" width="100%"></td>
-      <td><img src="./readme-assets/feature/16_seller_store.gif" width="100%"></td>
-    </tr>
-    <tr>
-      <th style="text-align: center">알림함/실시간 FCM 알림</th>
-      <th style="text-align: center"></th>
-    </tr>
-    <tr>
-      <td><img src="./readme-assets/feature/17_notification.gif" width="100%"></td>
-      <td></td>
-    </tr>
-  </tbody>
+<tbody align="center"> 
+    <tr> <th style="text-align: center"> 메인화면 </th> <th style="text-align: center"> 회원가입/로그인 </th> </tr>
+    <tr> <td width="50%"><img width="100%" src="./readme-assets/feature/1_main.gif"/></td> 
+        <td width="50%"><img width="100%" src="./readme-assets/feature/2_signup.gif"/></td> </tr> </tbody>
+<tbody align="center"> 
+    <tr> <th style="text-align: center"> 메타마스크 지갑 연동 </th> <th style="text-align: center"> 경매 정보 조회 </th> </tr>
+    <tr> <td width="50%"><img width="100%" src="./readme-assets/feature/3_wallet.gif"/></td> 
+        <td width="50%"><img width="100%" src="./readme-assets/feature/4_auction.gif"/></td> </tr> </tbody>
+<tbody align="center"> 
+    <tr> <th style="text-align: center"> 카드 별 경매 정보 조회 </th> <th style="text-align: center"> 판매자 경매 등록 </th> </tr>
+    <tr> <td width="50%"><img width="100%" src="./readme-assets/feature/5_card.gif"/></td> 
+        <td width="50%"><img width="100%" src="./readme-assets/feature/6_create_auction.gif"/></td> </tr> </tbody>
+<tbody align="center"> 
+    <tr> <th style="text-align: center"> 경매 상세 정보 조회 </th> <th style="text-align: center"> NFT 거래 이력 조회 </th> </tr>
+    <tr> <td width="50%"><img width="100%" src="./readme-assets/feature/7_auction_detail.gif"/></td> 
+        <td width="50%"><img width="100%" src="./readme-assets/feature/8_nft_history.gif"/></td> </tr> </tbody>
+<tbody align="center"> 
+    <tr> <th style="text-align: center"> 문의 등록 </th> <th style="text-align: center"> 입찰 </th> </tr>
+    <tr> <td width="50%"><img width="100%" src="./readme-assets/feature/9_inquiry.gif"/></td> 
+        <td width="50%"><img width="100%" src="./readme-assets/feature/10_bid.gif"/></td> </tr> </tbody>
+<tbody align="center"> 
+    <tr> <th style="text-align: center"> 입찰 내역 조회 </th> <th style="text-align: center"> 판매 내역 조회 </th> </tr>
+    <tr> <td width="50%"><img width="100%" src="./readme-assets/feature/11_bid_list.gif"/></td> 
+        <td width="50%"><img width="100%" src="./readme-assets/feature/12_sell_list.gif"/></td> </tr> </tbody>
+<tbody align="center"> 
+    <tr> <th style="text-align: center"> 관심 카드/경매 조회 </th> <th style="text-align: center"> 판매자 배송 정보 등록 </th> </tr>
+    <tr> <td width="50%"><img width="100%" src="./readme-assets/feature/13_interest_card.gif"/></td> 
+        <td width="50%"><img width="100%" src="./readme-assets/feature/14_seller_delivery.gif"/></td> </tr> </tbody>
+<tbody align="center"> 
+    <tr> <th style="text-align: center"> 판매자 대금 인출 </th> <th style="text-align: center"> 판매자 상점 </th> </tr>
+    <tr> <td width="50%"><img width="100%" src="./readme-assets/feature/15_seller_withdraw.gif"/></td> 
+        <td width="50%"><img width="100%" src="./readme-assets/feature/16_seller_store.gif"/></td> </tr> </tbody>
+<tbody align="center"> 
+    <tr> <th style="text-align: center"> 알림함/실시간 FCM 알림 </th> <th style="text-align: center">  </th> </tr>
+    <tr> <td width="50%"><img width="100%" src="./readme-assets/feature/17_notification.gif"/></td> 
+        <td width="50%"></tbody>
 </table>
 </div>
         <br><br>
