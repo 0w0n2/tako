@@ -299,13 +299,11 @@
           <h3 align="left">🔔 Real-time CI/CD & Project Event Alerts</h3>
 <div align="center">
   <table align="center">
-  <thead>
+  <tbody>
     <tr>
       <th style="text-align: center">✅ Jenkins Pipeline Success</th>
       <th style="text-align: center">❌ Jenkins Pipeline Failure</th>
     </tr>
-  </thead>
-  <tbody>
     <tr>
       <td><img src="./readme-assets/jenkins_pipeline_success.gif" width="100%"></td>
       <td><img src="./readme-assets/jenkins_pipeline_failure.gif" width="100%"></td>
@@ -342,13 +340,11 @@
         <h2 align="left"><a name="keyFeatures">🌠 주요 기능</a></h2>
 <div align="center">
 <table>
-  <thead>
+  <tbody>
     <tr>
       <th style="text-align: center">메인화면</th>
       <th style="text-align: center">회원가입/로그인</th>
     </tr>
-  </thead>
-  <tbody>
     <tr>
       <td><img src="./readme-assets/feature/1_main.gif" width="100%"></td>
       <td><img src="./readme-assets/feature/2_signup.gif" width="100%"></td>
