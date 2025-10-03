@@ -22,14 +22,9 @@ const NEXT_PUBLIC_FIREBASE_VAPID_KEY =
 const DOMAINS = {
   dev: {
     SITE: "https://dev.tako.today",
-    API: "http://localhost:8080",
+    API: "https://dev-api.tako.today",
     AI_API: "https://dev.tako.today/ai",
   },
-  // dev: {
-  //   SITE: "https://dev.tako.today",
-  //   API: "https://dev-api.tako.today",
-  //   AI_API: "https://dev.tako.today/ai",
-  // },
   prod: {
     SITE: "https://tako.today",
     API: "https://api.tako.today",
