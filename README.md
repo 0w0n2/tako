@@ -298,222 +298,127 @@
         <div>
           <h3 align="left">🔔 Real-time CI/CD & Project Event Alerts</h3>
 <div align="center">
-  <div style="max-width: 800px; margin: auto; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;">
-    <div style="display:flex; text-align:center; background-color:#f7f7f7;">
-      <div style="width:50%; padding: 10px; border-bottom: 1px solid #ddd; border-right: 1px solid #ddd;">
-        <b>✅ Jenkins Pipeline Success</b>
-      </div>
-      <div style="width:50%; padding: 10px; border-bottom: 1px solid #ddd;">
-        <b>❌ Jenkins Pipeline Failure</b>
-      </div>
-    </div>
-    <div style="display:flex; border-bottom: 1px solid #ddd;">
-      <div style="width:50%; border-right: 1px solid #ddd;">
-        <img style="width:100%; height:100%; object-fit:contain; display: block;" src="./readme-assets/jenkins_pipeline_success.gif" />
-      </div>
-      <div style="width:50%;">
-        <img style="width:100%; height:100%; object-fit:contain; display: block;" src="./readme-assets/jenkins_pipeline_failure.gif" />
-      </div>
-    </div>
-    <div style="display:flex; text-align:center; background-color:#f7f7f7;">
-      <div style="width:50%; padding: 10px; border-bottom: 1px solid #ddd; border-right: 1px solid #ddd;">
-        <b>🔀 Merge Request Created Notification</b>
-      </div>
-      <div style="width:50%; padding: 10px; border-bottom: 1px solid #ddd;">
-        <b>🗨️ Jira Issue Notification</b>
-      </div>
-    </div>
-    <div style="display:flex; border-bottom: 1px solid #ddd;">
-      <div style="width:50%; border-right: 1px solid #ddd;">
-        <img style="width:100%; height:100%; object-fit:contain; display: block;" src="./readme-assets/merge_request_created_notification.gif" />
-      </div>
-      <div style="width:50%;">
-        <img style="width:100%; height:100%; object-fit:contain; display: block;" src="./readme-assets/jira_issue_notification.gif" />
-      </div>
-    </div>
-    <div style="display:flex; text-align:center; background-color:#f7f7f7;">
-      <div style="width:50%; padding: 10px; border-bottom: 1px solid #ddd; border-right: 1px solid #ddd;">
-        <b>🚨 CPU Anomaly Detected</b>
-      </div>
-      <div style="width:50%; padding: 10px; border-bottom: 1px solid #ddd;">
-        <b>🚨 Memory Anomaly Detected</b>
-      </div>
-    </div>
-    <div style="display:flex; border-bottom: 1px solid #ddd;">
-      <div style="width:50%; border-right: 1px solid #ddd;">
-        <img style="width:100%; height:100%; object-fit:contain; display: block;" src="./readme-assets/CPU_anomaly_detected.png" />
-      </div>
-      <div style="width:50%;">
-        <img style="width:100%; height:100%; object-fit:contain; display: block;" src="./readme-assets/memory_anomaly_detected.png" />
-      </div>
-    </div>
-    <div style="display:flex; text-align:center; background-color:#f7f7f7;">
-      <div style="width:50%; padding: 10px; border-bottom: 1px solid #ddd; border-right: 1px solid #ddd;">
-        <b>✅ CPU Anomaly Cleared</b>
-      </div>
-      <div style="width:50%; padding: 10px; border-bottom: 1px solid #ddd;">
-        <b>✅ Memory Anomaly Cleared</b>
-      </div>
-    </div>
-    <div style="display:flex;">
-      <div style="width:50%; border-right: 1px solid #ddd;">
-        <img style="width:100%; height:100%; object-fit:contain; display: block;" src="./readme-assets/CPU_anomaly_cleared.gif" />
-      </div>
-      <div style="width:50%;">
-        <img style="width:100%; height:100%; object-fit:contain; display: block;" src="./readme-assets/memory_anomaly_cleared.gif" />
-      </div>
-    </div>
-  </div>
+  <table align="center">
+  <thead>
+    <tr>
+      <th style="text-align: center">✅ Jenkins Pipeline Success</th>
+      <th style="text-align: center">❌ Jenkins Pipeline Failure</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><img src="./readme-assets/jenkins_pipeline_success.gif" width="100%"></td>
+      <td><img src="./readme-assets/jenkins_pipeline_failure.gif" width="100%"></td>
+    </tr>
+    <tr>
+      <th style="text-align: center">🔀 Merge Request Created Notification</th>
+      <th style="text-align: center">🗨️ Jira Issue Notification</th>
+    </tr>
+    <tr>
+      <td><img src="./readme-assets/merge_request_created_notification.gif" width="100%"></td>
+      <td><img src="./readme-assets/jira_issue_notification.gif" width="100%"></td>
+    </tr>
+    <tr>
+      <th style="text-align: center">🚨 CPU Anomaly Detected</th>
+      <th style="text-align: center">🚨 Memory Anomaly Detected</th>
+    </tr>
+    <tr>
+      <td><img src="./readme-assets/CPU_anomaly_detected.png" width="100%"></td>
+      <td><img src="./readme-assets/memory_anomaly_detected.png" width="100%"></td>
+    </tr>
+    <tr>
+      <th style="text-align: center">✅ CPU Anomaly Cleared</th>
+      <th style="text-align: center">✅ Memory Anomaly Cleared</th>
+    </tr>
+    <tr>
+      <td><img src="./readme-assets/CPU_anomaly_cleared.gif" width="100%"></td>
+      <td><img src="./readme-assets/memory_anomaly_cleared.gif" width="100%"></td>
+    </tr>
+  </tbody>
+  </table>
 </div>
         </div>
         <br><br>
         <h2 align="left"><a name="keyFeatures">🌠 주요 기능</a></h2>
 <div align="center">
-  <div style="max-width: 800px; margin: auto; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;">
-    <div style="display:flex; text-align:center; background-color:#f7f7f7;">
-      <div style="width:50%; padding: 10px; border-bottom: 1px solid #ddd; border-right: 1px solid #ddd;">
-        <strong>메인화면</strong>
-      </div>
-      <div style="width:50%; padding: 10px; border-bottom: 1px solid #ddd;">
-        <strong>회원가입/로그인</strong>
-      </div>
-    </div>
-    <div style="display:flex; border-bottom: 1px solid #ddd;">
-      <div style="width:50%; border-right: 1px solid #ddd;">
-        <img style="width:100%; height:100%; object-fit:contain; display: block;" src="./readme-assets/feature/1_main.gif" />
-      </div>
-      <div style="width:50%;">
-        <img style="width:100%; height:100%; object-fit:contain; display: block;" src="./readme-assets/feature/2_signup.gif" />
-      </div>
-    </div>
-    <div style="display:flex; text-align:center; background-color:#f7f7f7;">
-      <div style="width:50%; padding: 10px; border-bottom: 1px solid #ddd; border-right: 1px solid #ddd;">
-        <strong>메타마스크 지갑 연동</strong>
-      </div>
-      <div style="width:50%; padding: 10px; border-bottom: 1px solid #ddd;">
-        <strong>경매 정보 조회</strong>
-      </div>
-    </div>
-    <div style="display:flex; border-bottom: 1px solid #ddd;">
-      <div style="width:50%; border-right: 1px solid #ddd;">
-        <img style="width:100%; height:100%; object-fit:contain; display: block;" src="./readme-assets/feature/3_wallet.gif" />
-      </div>
-      <div style="width:50%;">
-        <img style="width:100%; height:100%; object-fit:contain; display: block;" src="./readme-assets/feature/4_auction.gif" />
-      </div>
-    </div>
-    <div style="display:flex; text-align:center; background-color:#f7f7f7;">
-      <div style="width:50%; padding: 10px; border-bottom: 1px solid #ddd; border-right: 1px solid #ddd;">
-        <strong>카드 별 경매 정보 조회</strong>
-      </div>
-      <div style="width:50%; padding: 10px; border-bottom: 1px solid #ddd;">
-        <strong>판매자 경매 등록</strong>
-      </div>
-    </div>
-    <div style="display:flex; border-bottom: 1px solid #ddd;">
-      <div style="width:50%; border-right: 1px solid #ddd;">
-        <img style="width:100%; height:100%; object-fit:contain; display: block;" src="./readme-assets/feature/5_card.gif" />
-      </div>
-      <div style="width:50%;">
-        <img style="width:100%; height:100%; object-fit:contain; display: block;" src="./readme-assets/feature/6_create_auction.gif" />
-      </div>
-    </div>
-    <div style="display:flex; text-align:center; background-color:#f7f7f7;">
-      <div style="width:50%; padding: 10px; border-bottom: 1px solid #ddd; border-right: 1px solid #ddd;">
-        <strong>경매 상세 정보 조회</strong>
-      </div>
-      <div style="width:50%; padding: 10px; border-bottom: 1px solid #ddd;">
-        <strong>NFT 거래 이력 조회</strong>
-      </div>
-    </div>
-    <div style="display:flex; border-bottom: 1px solid #ddd;">
-      <div style="width:50%; border-right: 1px solid #ddd;">
-        <img style="width:100%; height:100%; object-fit:contain; display: block;" src="./readme-assets/feature/7_auction_detail.gif" />
-      </div>
-      <div style="width:50%;">
-        <img style="width:100%; height:100%; object-fit:contain; display: block;" src="./readme-assets/feature/8_nft_history.gif" />
-      </div>
-    </div>
-    <div style="display:flex; text-align:center; background-color:#f7f7f7;">
-      <div style="width:50%; padding: 10px; border-bottom: 1px solid #ddd; border-right: 1px solid #ddd;">
-        <strong>문의 등록</strong>
-      </div>
-      <div style="width:50%; padding: 10px; border-bottom: 1px solid #ddd;">
-        <strong>입찰</strong>
-      </div>
-    </div>
-    <div style="display:flex; border-bottom: 1px solid #ddd;">
-      <div style="width:50%; border-right: 1px solid #ddd;">
-        <img style="width:100%; height:100%; object-fit:contain; display: block;" src="./readme-assets/feature/9_inquiry.gif" />
-      </div>
-      <div style="width:50%;">
-        <img style="width:100%; height:100%; object-fit:contain; display: block;" src="./readme-assets/feature/10_bid.gif" />
-      </div>
-    </div>
-    <div style="display:flex; text-align:center; background-color:#f7f7f7;">
-      <div style="width:50%; padding: 10px; border-bottom: 1px solid #ddd; border-right: 1px solid #ddd;">
-        <strong>입찰 내역 조회</strong>
-      </div>
-      <div style="width:50%; padding: 10px; border-bottom: 1px solid #ddd;">
-        <strong>판매 내역 조회</strong>
-      </div>
-    </div>
-    <div style="display:flex; border-bottom: 1px solid #ddd;">
-      <div style="width:50%; border-right: 1px solid #ddd;">
-        <img style="width:100%; height:100%; object-fit:contain; display: block;" src="./readme-assets/feature/11_bid_list.gif" />
-      </div>
-      <div style="width:50%;">
-        <img style="width:100%; height:100%; object-fit:contain; display: block;" src="./readme-assets/feature/12_sell_list.gif" />
-      </div>
-    </div>
-    <div style="display:flex; text-align:center; background-color:#f7f7f7;">
-      <div style="width:50%; padding: 10px; border-bottom: 1px solid #ddd; border-right: 1px solid #ddd;">
-        <strong>관심 카드/경매 조회</strong>
-      </div>
-      <div style="width:50%; padding: 10px; border-bottom: 1px solid #ddd;">
-        <strong>판매자 배송 정보 등록</strong>
-      </div>
-    </div>
-    <div style="display:flex; border-bottom: 1px solid #ddd;">
-      <div style="width:50%; border-right: 1px solid #ddd;">
-        <img style="width:100%; height:100%; object-fit:contain; display: block;" src="./readme-assets/feature/13_interest_card.gif" />
-      </div>
-      <div style="width:50%;">
-        <img style="width:100%; height:100%; object-fit:contain; display: block;" src="./readme-assets/feature/14_seller_delivery.gif" />
-      </div>
-    </div>
-    <div style="display:flex; text-align:center; background-color:#f7f7f7;">
-      <div style="width:50%; padding: 10px; border-bottom: 1px solid #ddd; border-right: 1px solid #ddd;">
-        <strong>판매자 대금 인출</strong>
-      </div>
-      <div style="width:50%; padding: 10px; border-bottom: 1px solid #ddd;">
-        <strong>판매자 상점</strong>
-      </div>
-    </div>
-    <div style="display:flex; border-bottom: 1px solid #ddd;">
-      <div style="width:50%; border-right: 1px solid #ddd;">
-        <img style="width:100%; height:100%; object-fit:contain; display: block;" src="./readme-assets/feature/15_seller_withdraw.gif" />
-      </div>
-      <div style="width:50%;">
-        <img style="width:100%; height:100%; object-fit:contain; display: block;" src="./readme-assets/feature/16_seller_store.gif" />
-      </div>
-    </div>
-    <div style="display:flex; text-align:center; background-color:#f7f7f7;">
-      <div style="width:50%; padding: 10px; border-bottom: 1px solid #ddd; border-right: 1px solid #ddd;">
-        <strong>알림함/실시간 FCM 알림</strong>
-      </div>
-      <div style="width:50%; padding: 10px; border-bottom: 1px solid #ddd;">
-        <strong></strong>
-      </div>
-    </div>
-    <div style="display:flex;">
-      <div style="width:50%; border-right: 1px solid #ddd;">
-        <img style="width:100%; height:100%; object-fit:contain; display: block;" src="./readme-assets/feature/17_notification.gif" />
-      </div>
-      <div style="width:50%;">
-      </div>
-    </div>
-  </div>
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: center">메인화면</th>
+      <th style="text-align: center">회원가입/로그인</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><img src="./readme-assets/feature/1_main.gif" width="100%"></td>
+      <td><img src="./readme-assets/feature/2_signup.gif" width="100%"></td>
+    </tr>
+    <tr>
+      <th style="text-align: center">메타마스크 지갑 연동</th>
+      <th style="text-align: center">경매 정보 조회</th>
+    </tr>
+    <tr>
+      <td><img src="./readme-assets/feature/3_wallet.gif" width="100%"></td>
+      <td><img src="./readme-assets/feature/4_auction.gif" width="100%"></td>
+    </tr>
+    <tr>
+      <th style="text-align: center">카드 별 경매 정보 조회</th>
+      <th style="text-align: center">판매자 경매 등록</th>
+    </tr>
+    <tr>
+      <td><img src="./readme-assets/feature/5_card.gif" width="100%"></td>
+      <td><img src="./readme-assets/feature/6_create_auction.gif" width="100%"></td>
+    </tr>
+    <tr>
+      <th style="text-align: center">경매 상세 정보 조회</th>
+      <th style="text-align: center">NFT 거래 이력 조회</th>
+    </tr>
+    <tr>
+      <td><img src="./readme-assets/feature/7_auction_detail.gif" width="100%"></td>
+      <td><img src="./readme-assets/feature/8_nft_history.gif" width="100%"></td>
+    </tr>
+    <tr>
+      <th style="text-align: center">문의 등록</th>
+      <th style="text-align: center">입찰</th>
+    </tr>
+    <tr>
+      <td><img src="./readme-assets/feature/9_inquiry.gif" width="100%"></td>
+      <td><img src="./readme-assets/feature/10_bid.gif" width="100%"></td>
+    </tr>
+    <tr>
+      <th style="text-align: center">입찰 내역 조회</th>
+      <th style="text-align: center">판매 내역 조회</th>
+    </tr>
+    <tr>
+      <td><img src="./readme-assets/feature/11_bid_list.gif" width="100%"></td>
+      <td><img src="./readme-assets/feature/12_sell_list.gif" width="100%"></td>
+    </tr>
+    <tr>
+      <th style="text-align: center">관심 카드/경매 조회</th>
+      <th style="text-align: center">판매자 배송 정보 등록</th>
+    </tr>
+    <tr>
+      <td><img src="./readme-assets/feature/13_interest_card.gif" width="100%"></td>
+      <td><img src="./readme-assets/feature/14_seller_delivery.gif" width="100%"></td>
+    </tr>
+    <tr>
+      <th style="text-align: center">판매자 대금 인출</th>
+      <th style="text-align: center">판매자 상점</th>
+    </tr>
+    <tr>
+      <td><img src="./readme-assets/feature/15_seller_withdraw.gif" width="100%"></td>
+      <td><img src="./readme-assets/feature/16_seller_store.gif" width="100%"></td>
+    </tr>
+    <tr>
+      <th style="text-align: center">알림함/실시간 FCM 알림</th>
+      <th style="text-align: center"></th>
+    </tr>
+    <tr>
+      <td><img src="./readme-assets/feature/17_notification.gif" width="100%"></td>
+      <td></td>
+    </tr>
+  </tbody>
+</table>
 </div>
         <br><br>
                 <h2 align="left"><a name="directories">📂 디렉터리 구조</a></h2>
@@ -867,7 +772,7 @@
           </details>
           <br>
           <a href="https://www.notion.so/25f7dcd980dd803d953ff2df439d5d7f?v=25f7dcd980dd804da024000c620b205a&source=copy_link" target="_blank">
-          <h3 align="left">📋 기능 명세서</h3></a>
+          <h3 align="left">📋 기능 명세서</h3>
           <details align="left">
           <summary>
             <strong>Details</strong>
@@ -876,10 +781,10 @@
             <a href=https://www.notion.so/25f7dcd980dd803d953ff2df439d5d7f?v=25f7dcd980dd804da024000c620b205a&source=copy_link" target="_blank">
           <img src="./readme-assets/feature.png" width="90%" align=center/></a>
           </div>
-          </details>
+          </details></a>
           <br>
           <a href="https://www.notion.so/2677dcd980dd81029f6cf2d054b5ad15?v=2677dcd980dd81e3b392000ca591ecfd&source=copy_link" target="_blank">
-          <h3 align="left">📡 API 명세서</h3></a>
+          <h3 align="left">📡 API 명세서</h3>
           <details align="left">
           <summary>
             <strong>Details</strong>
@@ -888,7 +793,7 @@
             <a href="https://www.notion.so/2677dcd980dd81029f6cf2d054b5ad15?v=2677dcd980dd81e3b392000ca591ecfd&source=copy_link" target="_blank">
           <img src="./readme-assets/api.png" width="90%" align=center/></a>
           </div>
-          </details>
+          </details></a>
           <br>
         </div>
         <br><br>
